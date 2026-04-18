@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QShortcut
 from PyQt5.QtGui import QKeySequence
-from views.login.SelecaoModo import Ui_SelecaoModo
-from views.login_view import LoginView
+from ui.login.selecao_modo import Ui_SelecaoModo
+from views.login.login_view import LoginView
 
 class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def __init__(self, parent=None):
@@ -21,11 +21,11 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.shortcut_f2.activated.connect(self._open_painel_admin)
 
     def _open_painel_admin(self):
-        from views.painel_admin_view import PainelAdminView
-        self.admin = PainelAdminView()
-        self.admin.show()
-        self.close()
-
+        from views.admin.painel_admin_view import PainelAdminView
+        self.hide()
+        self.painel_admin = PainelAdminView()
+        self.painel_admin.show()
+        
     def _exit(self):
         LoginView.usuario_logado = None  # Encerra a sessão do usuário atual
         self.hide()

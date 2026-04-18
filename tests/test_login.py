@@ -19,8 +19,8 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
-from views.login_view import LoginView
-from views.selecao_modo_view import SelecaoModoView
+from views.login.login_view import LoginView
+from views.login.selecao_modo_view import SelecaoModoView
 from database.connection import close_connection
 
 def _excepthook(tipo, valor, tb):

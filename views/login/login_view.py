@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDialog, QApplication
-from views.login.TelaDeLogin import Ui_TelaDeLogin 
+from ui.login.tela_de_login import Ui_TelaDeLogin 
 from models.usuario_model import UsuarioModel
 
 class LoginView(QDialog, Ui_TelaDeLogin):

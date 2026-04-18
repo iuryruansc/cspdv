@@ -5,8 +5,8 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv()) 
 
 from PyQt5.QtWidgets import QApplication
-from views.login_view import LoginView
-from views.selecao_modo_view import SelecaoModoView
+from views.login.login_view import LoginView
+from views.login.selecao_modo_view import SelecaoModoView
 from views.setup_wizard_view import SetupWizardView
 from models.setup_model import SetupModel
 from database.connection import close_connection
