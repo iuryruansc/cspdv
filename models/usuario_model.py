@@ -1,4 +1,5 @@
 import hashlib
+import bcrypt
 from typing import Optional, Dict, Any, cast
 from database.connection import get_connection
 
@@ -27,7 +28,6 @@ class UsuarioModel:
         # ── bcrypt ──────────────────────────────────────────────────────
         if senha_banco.startswith(('$2b$', '$2a$', '$2y$')):
             try:
-                import bcrypt
                 return bcrypt.checkpw(
                     senha_digitada.encode('utf-8'),
                     senha_banco.encode('utf-8'),
@@ -50,7 +50,6 @@ class UsuarioModel:
 
     @staticmethod
     def autenticar(login: str, senha: str) -> Optional[Dict[str, Any]]:
-        print(f"Autenticando usuário: {login}")
         usuario = UsuarioModel.buscar_por_login(login)
 
         if usuario is None:

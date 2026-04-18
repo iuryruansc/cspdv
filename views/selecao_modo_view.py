@@ -1,15 +1,12 @@
-import os
 from PyQt5.QtWidgets import QWidget, QShortcut
 from PyQt5.QtGui import QKeySequence
-from PyQt5.uic import loadUi
+from views.login.SelecaoModo import Ui_SelecaoModo
 from views.login_view import LoginView
 
-UI_DIR = os.path.join(os.path.dirname(__file__), '..', 'ui')
-
-class SelecaoModoView(QWidget):
+class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def __init__(self, parent=None):
         super().__init__(parent)
-        loadUi(os.path.join(UI_DIR, 'login','SelecaoModo.ui'), self)
+        self.setupUi(self)
 
         # Define o nome do operador logado no label
         if LoginView.usuario_logado:
