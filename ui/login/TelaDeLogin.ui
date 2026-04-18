@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TelaDeLogin</class>
+ <widget class="QDialog" name="TelaDeLogin">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>460</width><height>460</height></rect>
+  </property>
+  <property name="windowTitle"><string>CSPdv - Login</string></property>
+  <property name="modal"><bool>true</bool></property>
+  <property name="styleSheet">
+   <string notr="true">
+    QDialog {
+     background-color: #0f2030;
+     font-family: Arial;
+    }
+   </string>
+  </property>
+
+  <layout class="QVBoxLayout" name="mainVLayout">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+
+   <!-- ══ TOPO: Logo + versão ══ -->
+   <item>
+    <widget class="QFrame" name="frameTop">
+     <property name="minimumHeight"><number>130</number></property>
+     <property name="maximumHeight"><number>130</number></property>
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameTop {
+        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+         stop:0 #1a3a5a, stop:1 #0a1828);
+        border-bottom: 2px solid #3585c8;
+       }
+      </string>
+     </property>
+     <layout class="QVBoxLayout" name="topVLayout">
+      <property name="spacing"><number>4</number></property>
+      <property name="leftMargin"><number>0</number></property>
+      <property name="topMargin"><number>24</number></property>
+      <property name="rightMargin"><number>0</number></property>
+      <property name="bottomMargin"><number>18</number></property>
+      <item>
+       <widget class="QLabel" name="labelLogo">
+        <property name="text"><string>CSPdv</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+        <property name="styleSheet">
+         <string notr="true">color:white;font-size:40px;font-weight:bold;letter-spacing:2px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelSubtitulo">
+        <property name="text"><string>Sistema de Ponto de Venda</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+        <property name="styleSheet">
+         <string notr="true">color:#3585c8;font-size:11px;letter-spacing:1px;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelVersao">
+        <property name="text"><string>v1.0.0</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+        <property name="styleSheet">
+         <string notr="true">color:#1a3a5a;font-size:10px;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- ══ FORMULÁRIO ══ -->
+   <item>
+    <widget class="QFrame" name="frameForm">
+     <property name="styleSheet">
+      <string notr="true">QFrame#frameForm { background-color: #0f2030; }</string>
+     </property>
+     <layout class="QVBoxLayout" name="formVLayout">
+      <property name="spacing"><number>12</number></property>
+      <property name="leftMargin"><number>44</number></property>
+      <property name="topMargin"><number>28</number></property>
+      <property name="rightMargin"><number>44</number></property>
+      <property name="bottomMargin"><number>10</number></property>
+
+      <!-- Usuário -->
+      <item>
+       <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
+        <item>
+         <widget class="QLabel" name="labelLogin">
+          <property name="text"><string>Usuário</string></property>
+          <property name="styleSheet">
+           <string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditLogin">
+          <property name="minimumHeight"><number>42</number></property>
+          <property name="placeholderText"><string>Nome de usuário</string></property>
+          <property name="styleSheet">
+           <string notr="true">
+            QLineEdit{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:14px;color:#c0dff4;padding:4px 12px;selection-background-color:#3585c8;selection-color:white;}
+            QLineEdit:focus{border:2px solid #3585c8;background-color:#0f2840;}
+            QLineEdit:hover:!focus{border:2px solid #2a5a80;}
+           </string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <!-- Senha -->
+      <item>
+       <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
+        <item>
+         <widget class="QLabel" name="labelSenha">
+          <property name="text"><string>Senha</string></property>
+          <property name="styleSheet">
+           <string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditSenha">
+          <property name="minimumHeight"><number>42</number></property>
+          <property name="echoMode"><enum>QLineEdit::Password</enum></property>
+          <property name="placeholderText"><string>Senha</string></property>
+          <property name="styleSheet">
+           <string notr="true">
+            QLineEdit{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:14px;color:#c0dff4;padding:4px 12px;selection-background-color:#3585c8;selection-color:white;}
+            QLineEdit:focus{border:2px solid #3585c8;background-color:#0f2840;}
+            QLineEdit:hover:!focus{border:2px solid #2a5a80;}
+           </string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <!-- Mensagem de erro -->
+      <item>
+       <widget class="QLabel" name="labelErro">
+        <property name="text"><string>&#9679;  Usuário ou senha incorretos.</string></property>
+        <property name="visible"><bool>false</bool></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QLabel {
+           background-color: rgba(180,30,30,40);
+           border: 1px solid rgba(180,30,30,80);
+           border-radius: 4px;
+           font-size: 12px;
+           font-weight: bold;
+           color: #ff8080;
+           padding: 6px 10px;
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Botão Entrar -->
+      <item>
+       <widget class="QPushButton" name="btnLogar">
+        <property name="text"><string>Entrar</string></property>
+        <property name="shortcut"><string>Return</string></property>
+        <property name="default"><bool>true</bool></property>
+        <property name="minimumHeight"><number>48</number></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #2a7ad8,stop:1 #1a5ab8);color:white;font-size:15px;font-weight:bold;border:none;border-radius:7px;padding:8px;}
+          QPushButton:hover{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3a88e8,stop:1 #2a68c8);}
+          QPushButton:pressed{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #1a5098,stop:1 #0e3880);}
+         </string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Botão Cancelar -->
+      <item>
+       <widget class="QPushButton" name="btnCancelar">
+        <property name="text"><string>Cancelar</string></property>
+        <property name="shortcut"><string>Escape</string></property>
+        <property name="minimumHeight"><number>34</number></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton{background-color:transparent;color:#2a5a7a;font-size:12px;border:1px solid #1a3a5a;border-radius:5px;padding:4px;}
+          QPushButton:hover{background-color:rgba(255,255,255,6);color:#4a8ab0;border-color:#2a5a80;}
+          QPushButton:pressed{background-color:rgba(255,255,255,10);}
+         </string>
+        </property>
+       </widget>
+      </item>
+
+    </layout>
+   </widget>
+  </item>
+
+  <!-- ══ RODAPÉ: barra de carregamento ══ -->
+  <item>
+   <widget class="QFrame" name="frameRodape">
+    <property name="minimumHeight"><number>52</number></property>
+    <property name="maximumHeight"><number>52</number></property>
+    <property name="styleSheet">
+     <string notr="true">
+      QFrame#frameRodape {
+       background-color: #081828;
+       border-top: 1px solid #1a3a5a;
+      }
+     </string>
+    </property>
+    <layout class="QVBoxLayout" name="rodapeVLayout">
+     <property name="spacing"><number>4</number></property>
+     <property name="leftMargin"><number>20</number></property>
+     <property name="topMargin"><number>8</number></property>
+     <property name="rightMargin"><number>20</number></property>
+     <property name="bottomMargin"><number>8</number></property>
+     <item>
+      <widget class="QLabel" name="labelCarregando">
+       <property name="text"><string>Pronto.</string></property>
+       <property name="styleSheet">
+        <string notr="true">color:#2a4a6a;font-size:10px;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QProgressBar" name="progressBarCarregando">
+       <property name="minimumHeight"><number>6</number></property>
+       <property name="maximumHeight"><number>6</number></property>
+       <property name="value"><number>0</number></property>
+       <property name="textVisible"><bool>false</bool></property>
+       <property name="styleSheet">
+        <string notr="true">
+         QProgressBar{border:none;border-radius:3px;background-color:#0d2030;}
+         QProgressBar::chunk{background:qlineargradient(x1:0,y1:0,x2:1,y2:0,stop:0 #1a5fa0,stop:1 #3585c8);border-radius:3px;}
+        </string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </item>
+
+  </layout>
+ </widget>
+
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btnCancelar</sender>
+   <signal>clicked()</signal>
+   <receiver>TelaDeLogin</receiver>
+   <slot>reject()</slot>
+  </connection>
+ </connections>
+</ui>

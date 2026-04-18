@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FrenteLoja</class>
+ <widget class="QMainWindow" name="FrenteLoja">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1376</width>
+    <height>744</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CSPdv - Frente de Loja</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QMainWindow { background-color: #0f2030; font-family: Arial; }
+   </string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="rootHLayout" stretch="1,7">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="frameSidebar">
+      <property name="styleSheet">
+       <string notr="true">
+        QFrame#frameSidebar {
+         background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+          stop:0 #0a1828, stop:1 #0f2038);
+         border-right: 2px solid #1a3a5a;
+        }
+        QPushButton[navBtn=&quot;true&quot;] {
+         background-color: transparent;
+         color: #4a7a9a;
+         font-size: 12px;
+         font-weight: bold;
+         border: none;
+         border-left: 3px solid transparent;
+         border-radius: 0px;
+         padding: 11px 16px;
+         text-align: left;
+         min-height: 46px;
+        }
+        QPushButton[navBtn=&quot;true&quot;]:hover {
+         background-color: rgba(255,255,255,6);
+         color: #8ab4d0;
+         border-left: 3px solid rgba(53,133,200,60);
+        }
+        QPushButton[navBtn=&quot;true&quot;]:checked {
+         background-color: rgba(53,133,200,18);
+         color: white;
+         border-left: 3px solid #3585c8;
+        }
+        QPushButton[navBtn=&quot;true&quot;]:disabled {
+         color: #1a3a5a;
+         border-left: 3px solid transparent;
+         background-color: transparent;
+        }
+       </string>
+      </property>
+      <layout class="QVBoxLayout" name="sidebarVLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="frameSidebarOperador">
+         <property name="styleSheet">
+          <string notr="true">
+           QFrame#frameSidebarOperador {
+            background-color: rgba(255,255,255,5);
+            border-bottom: 1px solid #1a3a5a;
+           }
+          </string>
+         </property>
+         <layout class="QHBoxLayout" name="operadorHL">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <property name="leftMargin">
+           <number>12</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>12</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lblOpIcone">
+            <property name="styleSheet">
+             <string notr="true">font-size:22px;</string>
+            </property>
+            <property name="text">
+             <string>👤</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblOpNome">
+              <property name="styleSheet">
+               <string notr="true">font-size:12px;font-weight:bold;color:#c0dff4;</string>
+              </property>
+              <property name="text">
+               <string>ADMIN</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblCaixaStatus">
+              <property name="styleSheet">
+               <string notr="true">font-size:10px;color:#cc4040;</string>
+              </property>
+              <property name="text">
+               <string>● Caixa Fechado</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblSecaoPrincipal">
+         <property name="styleSheet">
+          <string notr="true">color:#1e4a6a;font-size:10px;font-weight:bold;letter-spacing:2px;padding:6px 16px 2px 16px;</string>
+         </property>
+         <property name="text">
+          <string>OPERAÇÕES</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNavAbertura">
+         <property name="text">
+          <string>🔑  Abertura de Caixa</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNavVendas">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>🛒  Vendas</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNavPreVenda">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>📋  Pré-Venda</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNavConsulta">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>🔍  Consulta de Preços</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblSecaoCaixa">
+         <property name="styleSheet">
+          <string notr="true">color:#1e4a6a;font-size:10px;font-weight:bold;letter-spacing:2px;padding:8px 16px 2px 16px;</string>
+         </property>
+         <property name="text">
+          <string>CAIXA</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNavMovimentacao">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>💳  Movimentação</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNavFechamento">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>🔒  Fechar Caixa</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="sidebarSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>10</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameSidebarFooter">
+         <property name="styleSheet">
+          <string notr="true">
+           QFrame#frameSidebarFooter {
+            background-color: rgba(0,0,0,20);
+            border-top: 1px solid #1a3a5a;
+           }
+          </string>
+         </property>
+         <layout class="QVBoxLayout" name="footerVLayout">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>14</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>14</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lblSidebarDataHora">
+            <property name="styleSheet">
+             <string notr="true">color:#2a5a7a;font-size:12px;font-weight:bold;</string>
+            </property>
+            <property name="text">
+             <string>--/--/----</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblSidebarHora">
+            <property name="styleSheet">
+             <string notr="true">color:#1a4060;font-size:20px;font-weight:bold;</string>
+            </property>
+            <property name="text">
+             <string>--:--:--</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnSairLoja">
+            <property name="styleSheet">
+             <string notr="true">
+              QPushButton{background-color:rgba(180,30,30,120);color:#ff8080;font-size:11px;font-weight:bold;border:1px solid rgba(180,30,30,80);border-radius:4px;padding:4px 8px;}
+              QPushButton:hover{background-color:rgba(200,40,40,160);}
+              QPushButton:pressed{background-color:rgba(140,20,20,160);}
+             </string>
+            </property>
+            <property name="text">
+             <string>➔  Sair da Loja</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QStackedWidget" name="stackedContent">
+      <property name="styleSheet">
+       <string notr="true">QStackedWidget { background-color: #0f2030; }</string>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="pageDefault">
+       <property name="styleSheet">
+        <string notr="true">QWidget { background-color: #0f2030; }</string>
+       </property>
+       <layout class="QVBoxLayout" name="defaultVLayout">
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblDefaultMsg">
+          <property name="styleSheet">
+           <string notr="true">color:#1a3a5a;font-size:18px;</string>
+          </property>
+          <property name="text">
+           <string>Carregando...</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>10</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ModalPosPagamento</class>
+ <widget class="QDialog" name="ModalPosPagamento">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>604</width>
+    <height>460</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CSPdv - Venda Finalizada</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background-color: #e8f2fa; font-family: Arial; }</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="mainVLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="frameTitleBar">
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameTitleBar {
+        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+         stop:0 #3a9a3a, stop:1 #1a7a1a);
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+       }
+      </string>
+     </property>
+     <layout class="QHBoxLayout" name="titleHL">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <property name="leftMargin">
+       <number>14</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>10</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblTitleIcon">
+        <property name="styleSheet">
+         <string notr="true">color:white;font-size:16px;font-weight:bold;</string>
+        </property>
+        <property name="text">
+         <string>✔</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblTitulo">
+        <property name="styleSheet">
+         <string notr="true">color:white;font-size:13px;font-weight:bold;</string>
+        </property>
+        <property name="text">
+         <string>Venda Finalizada com Sucesso!</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="titleSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameConteudo">
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameConteudo {
+        background-color: #e8f2fa;
+        border: 2px solid #2a8a30;
+        border-top: none;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+       }
+      </string>
+     </property>
+     <layout class="QVBoxLayout" name="conteudoVLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="topMargin">
+       <number>16</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="bottomMargin">
+       <number>16</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="frameTrocoDestaque">
+        <property name="styleSheet">
+         <string notr="true">
+          QFrame#frameTrocoDestaque {
+           background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+            stop:0 #1a5fa0, stop:1 #0e3878);
+           border-radius: 8px;
+          }
+         </string>
+        </property>
+        <layout class="QVBoxLayout" name="trocoDestaqueVL">
+         <property name="spacing">
+          <number>2</number>
+         </property>
+         <property name="leftMargin">
+          <number>20</number>
+         </property>
+         <property name="topMargin">
+          <number>14</number>
+         </property>
+         <property name="rightMargin">
+          <number>20</number>
+         </property>
+         <property name="bottomMargin">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lblTrocoTitulo">
+           <property name="styleSheet">
+            <string notr="true">color:#a0c8f0;font-size:12px;font-weight:bold;letter-spacing:3px;</string>
+           </property>
+           <property name="text">
+            <string>TROCO</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblTrocoValor">
+           <property name="styleSheet">
+            <string notr="true">color:white;font-size:40px;font-weight:bold;</string>
+           </property>
+           <property name="text">
+            <string>R$ 0,00</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frameResumoVenda">
+        <property name="styleSheet">
+         <string notr="true">
+          QFrame#frameResumoVenda {
+           background-color: #ffffff;
+           border: 1px solid #a8c4d8;
+           border-radius: 6px;
+          }
+         </string>
+        </property>
+        <layout class="QHBoxLayout" name="resumoVendaHL">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="frameResumoNumVenda">
+           <property name="styleSheet">
+            <string notr="true">QFrame{background-color:#f0f6fc;border-right:1px solid #dce8f0;border-top-left-radius:6px;border-bottom-left-radius:6px;}</string>
+           </property>
+           <layout class="QVBoxLayout" name="resumoNumVL">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>14</number>
+            </property>
+            <property name="topMargin">
+             <number>10</number>
+            </property>
+            <property name="rightMargin">
+             <number>14</number>
+            </property>
+            <property name="bottomMargin">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblNumVendaLabel">
+              <property name="styleSheet">
+               <string notr="true">font-size:10px;color:#5580a0;</string>
+              </property>
+              <property name="text">
+               <string>Venda nº</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblNumVendaValor">
+              <property name="styleSheet">
+               <string notr="true">font-size:16px;font-weight:bold;color:#1a5fa0;</string>
+              </property>
+              <property name="text">
+               <string>---</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameResumoTotalPago">
+           <property name="styleSheet">
+            <string notr="true">QFrame{background-color:#f0f6fc;border-right:1px solid #dce8f0;}</string>
+           </property>
+           <layout class="QVBoxLayout" name="resumoTotalPagoVL">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>14</number>
+            </property>
+            <property name="topMargin">
+             <number>10</number>
+            </property>
+            <property name="rightMargin">
+             <number>14</number>
+            </property>
+            <property name="bottomMargin">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblTotalPagoLabel">
+              <property name="styleSheet">
+               <string notr="true">font-size:10px;color:#5580a0;</string>
+              </property>
+              <property name="text">
+               <string>Pago</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblTotalPagoValor">
+              <property name="styleSheet">
+               <string notr="true">font-size:16px;font-weight:bold;color:#3a8a3a;</string>
+              </property>
+              <property name="text">
+               <string>R$ 0,00</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameResumoFormaPgto">
+           <property name="styleSheet">
+            <string notr="true">QFrame{background-color:#f0f6fc;border-right:1px solid #dce8f0;}</string>
+           </property>
+           <layout class="QVBoxLayout" name="resumoFormaPgtoVL">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>14</number>
+            </property>
+            <property name="topMargin">
+             <number>10</number>
+            </property>
+            <property name="rightMargin">
+             <number>14</number>
+            </property>
+            <property name="bottomMargin">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblFormaPgtoLabel">
+              <property name="styleSheet">
+               <string notr="true">font-size:10px;color:#5580a0;</string>
+              </property>
+              <property name="text">
+               <string>Forma de Pgto.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblFormaPgtoValor">
+              <property name="styleSheet">
+               <string notr="true">font-size:13px;font-weight:bold;color:#1a3a5c;</string>
+              </property>
+              <property name="text">
+               <string>---</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameResumoOperador">
+           <property name="styleSheet">
+            <string notr="true">QFrame{background-color:#f0f6fc;border-top-right-radius:6px;border-bottom-right-radius:6px;}</string>
+           </property>
+           <layout class="QVBoxLayout" name="resumoOperadorVL">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>14</number>
+            </property>
+            <property name="topMargin">
+             <number>10</number>
+            </property>
+            <property name="rightMargin">
+             <number>14</number>
+            </property>
+            <property name="bottomMargin">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblOperadorLabel">
+              <property name="styleSheet">
+               <string notr="true">font-size:10px;color:#5580a0;</string>
+              </property>
+              <property name="text">
+               <string>Operador</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblOperadorValor">
+              <property name="styleSheet">
+               <string notr="true">font-size:13px;font-weight:bold;color:#1a3a5c;</string>
+              </property>
+              <property name="text">
+               <string>ADMIN</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frameOpcoes">
+        <property name="styleSheet">
+         <string notr="true">
+          QFrame#frameOpcoes {
+           background-color: #f4f8fc;
+           border: 1px solid #c0d8ec;
+           border-radius: 6px;
+          }
+          QCheckBox {
+           font-size: 13px;
+           color: #1a3a5c;
+           spacing: 8px;
+           padding: 4px 8px;
+          }
+          QCheckBox::indicator {
+           width: 18px; height: 18px;
+           border: 2px solid #a8c4d8;
+           border-radius: 3px;
+           background: white;
+          }
+          QCheckBox::indicator:checked {
+           background-color: #3585c8;
+           border-color: #1a5fa0;
+          }
+         </string>
+        </property>
+        <layout class="QVBoxLayout" name="opcoesVL">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>14</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>14</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lblOpcoesTitle">
+           <property name="styleSheet">
+            <string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string>
+           </property>
+           <property name="text">
+            <string>Impressão</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout">
+           <property name="spacing">
+            <number>20</number>
+           </property>
+           <item>
+            <widget class="QCheckBox" name="checkImprimirCupom">
+             <property name="text">
+              <string>Imprimir cupom fiscal</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkImprimirNaoFiscal">
+             <property name="text">
+              <string>Imprimir não-fiscal</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>10</width>
+               <height>10</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="botoesHL">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="btnNovaVendaMesmoCliente">
+          <property name="minimumSize">
+           <size>
+            <width>150</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton{background-color:#f0f6fc;color:#1a3a5c;font-size:12px;font-weight:bold;border:1px solid #a8c4d8;border-radius:5px;padding:5px 12px;}
+            QPushButton:hover{background-color:#dceaf4;border-color:#3585c8;}
+            QPushButton:pressed{background-color:#c0d8ec;}
+           </string>
+          </property>
+          <property name="text">
+           <string>👤  Mesmo Cliente</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnImprimirNovaVenda">
+          <property name="minimumSize">
+           <size>
+            <width>110</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3585c8,stop:1 #1a5fa0);color:white;font-size:12px;font-weight:bold;border:none;border-radius:5px;padding:5px 12px;}
+            QPushButton:hover{background:#2a74b8;}
+            QPushButton:pressed{background:#1a5fa0;}
+           </string>
+          </property>
+          <property name="text">
+           <string>🖶  Imprimir</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnNovaVenda">
+          <property name="minimumSize">
+           <size>
+            <width>140</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3a9a3a,stop:1 #1a7a1a);color:white;font-size:13px;font-weight:bold;border:none;border-radius:5px;padding:5px 14px;}
+            QPushButton:hover{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #48aa48,stop:1 #288828);}
+            QPushButton:pressed{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #1a7a1a,stop:1 #0e5a0e);}
+           </string>
+          </property>
+          <property name="text">
+           <string>🛒  Nova Venda</string>
+          </property>
+          <property name="shortcut">
+           <string>Return</string>
+          </property>
+          <property name="default">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btnNovaVenda</sender>
+   <signal>clicked()</signal>
+   <receiver>ModalPosPagamento</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnNovaVendaMesmoCliente</sender>
+   <signal>clicked()</signal>
+   <receiver>ModalPosPagamento</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

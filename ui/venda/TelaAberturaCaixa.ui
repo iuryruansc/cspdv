@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TelaAberturaCaixa</class>
+ <widget class="QWidget" name="TelaAberturaCaixa">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>1176</width><height>744</height></rect>
+  </property>
+  <property name="windowTitle"><string>CSPdv - Abertura de Caixa</string></property>
+  <property name="styleSheet">
+   <string notr="true">QWidget { font-family: Arial; background-color: #0f2030; }</string>
+  </property>
+
+  <layout class="QVBoxLayout" name="mainVLayout">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+
+   <!-- Header interno -->
+   <item>
+    <widget class="QFrame" name="frameHeader">
+     <property name="minimumHeight"><number>56</number></property>
+     <property name="maximumHeight"><number>56</number></property>
+     <property name="styleSheet">
+      <string notr="true">QFrame#frameHeader{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #1a3a5a,stop:1 #0a1828);border-bottom:1px solid #1a3a5a;}</string>
+     </property>
+     <layout class="QHBoxLayout" name="headerHL">
+      <property name="leftMargin"><number>24</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>24</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+      <item>
+       <widget class="QLabel" name="lblHeaderIcone">
+        <property name="text"><string>&#128273;</string></property>
+        <property name="styleSheet"><string notr="true">font-size:22px;</string></property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout"><property name="spacing"><number>1</number></property>
+        <item><widget class="QLabel" name="lblHeaderTitulo"><property name="text"><string>Abertura de Caixa</string></property><property name="styleSheet"><string notr="true">color:white;font-size:16px;font-weight:bold;</string></property></widget></item>
+        <item><widget class="QLabel" name="lblHeaderSub"><property name="text"><string>Preencha as informações para iniciar as operações</string></property><property name="styleSheet"><string notr="true">color:#4a7a9a;font-size:11px;</string></property></widget></item>
+       </layout>
+      </item>
+      <item>
+       <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property></spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblHeaderDataHora">
+        <property name="text"><string>--/--/----  --:--</string></property>
+        <property name="styleSheet"><string notr="true">color:#2a5a7a;font-size:12px;</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Conteúdo central -->
+   <item>
+    <widget class="QWidget" name="widgetCentral">
+     <layout class="QHBoxLayout" name="centralHL">
+      <property name="spacing"><number>0</number></property>
+      <property name="leftMargin"><number>60</number></property>
+      <property name="topMargin"><number>30</number></property>
+      <property name="rightMargin"><number>60</number></property>
+      <property name="bottomMargin"><number>30</number></property>
+
+      <!-- Spacer esquerdo -->
+      <item>
+       <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer>
+      </item>
+
+      <!-- Card central do formulário -->
+      <item>
+       <widget class="QFrame" name="frameFormCard">
+        <property name="minimumWidth"><number>520</number></property>
+        <property name="maximumWidth"><number>580</number></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QFrame#frameFormCard {
+           background-color: #0d2030;
+           border: 1px solid #1a3a5a;
+           border-radius: 12px;
+          }
+         </string>
+        </property>
+        <layout class="QVBoxLayout" name="formCardVLayout">
+         <property name="spacing"><number>14</number></property>
+         <property name="leftMargin"><number>32</number></property>
+         <property name="topMargin"><number>28</number></property>
+         <property name="rightMargin"><number>32</number></property>
+         <property name="bottomMargin"><number>28</number></property>
+
+         <!-- Título do card -->
+         <item>
+          <layout class="QHBoxLayout"><property name="spacing"><number>10</number></property>
+           <item>
+            <widget class="QLabel" name="lblCardIcone">
+             <property name="text"><string>&#128184;</string></property>
+             <property name="styleSheet"><string notr="true">font-size:32px;</string></property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout"><property name="spacing"><number>2</number></property>
+             <item><widget class="QLabel" name="lblCardTitulo"><property name="text"><string>Fundo de Caixa</string></property><property name="styleSheet"><string notr="true">color:white;font-size:18px;font-weight:bold;</string></property></widget></item>
+             <item><widget class="QLabel" name="lblCardSub"><property name="text"><string>Informe os valores iniciais para abertura</string></property><property name="styleSheet"><string notr="true">color:#3a6a8a;font-size:12px;</string></property></widget></item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+
+         <!-- Separador -->
+         <item>
+          <widget class="QFrame" name="frameSep1">
+           <property name="styleSheet"><string notr="true">background-color:#1a3a5a;</string></property>
+           <property name="frameShape"><enum>QFrame::HLine</enum></property>
+           <property name="minimumHeight"><number>1</number></property>
+           <property name="maximumHeight"><number>1</number></property>
+          </widget>
+         </item>
+
+         <!-- Operador (read-only) -->
+         <item>
+          <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
+           <item><widget class="QLabel" name="lblOpLabel"><property name="text"><string>Operador</string></property><property name="styleSheet"><string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string></property></widget></item>
+           <item>
+            <widget class="QLineEdit" name="lineEditOperador">
+             <property name="minimumHeight"><number>38</number></property>
+             <property name="readOnly"><bool>true</bool></property>
+             <property name="styleSheet"><string notr="true">QLineEdit{background-color:#081828;border:2px solid #1a3a5a;border-radius:6px;font-size:14px;font-weight:bold;color:#4a8ab0;padding:4px 12px;}</string></property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+
+         <!-- Número do caixa -->
+         <item>
+          <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
+           <item><widget class="QLabel" name="lblNumCaixaLabel"><property name="text"><string>Nº do Caixa</string></property><property name="styleSheet"><string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string></property></widget></item>
+           <item>
+            <widget class="QComboBox" name="comboNumCaixa">
+             <property name="minimumHeight"><number>38</number></property>
+             <property name="styleSheet"><string notr="true">QComboBox{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:14px;font-weight:bold;color:#c0dff4;padding:4px 12px;}QComboBox:focus{border-color:#3585c8;}QComboBox::drop-down{border:none;width:28px;}QComboBox QAbstractItemView{background-color:#0d2030;border:1px solid #1a4060;selection-background-color:#1a4a7a;color:#c0dff4;font-size:13px;}</string></property>
+             <item><property name="text"><string>Caixa 01</string></property></item>
+             <item><property name="text"><string>Caixa 02</string></property></item>
+             <item><property name="text"><string>Caixa 03</string></property></item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+
+         <!-- Troco inicial -->
+         <item>
+          <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
+           <item>
+            <layout class="QHBoxLayout">
+             <item><widget class="QLabel" name="lblTrocoLabel"><property name="text"><string>Troco Inicial (R$)</string></property><property name="styleSheet"><string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string></property></widget></item>
+             <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item>
+             <item><widget class="QLabel" name="lblTrocoObrig"><property name="text"><string>* obrigatório</string></property><property name="styleSheet"><string notr="true">font-size:10px;color:#cc4040;font-style:italic;</string></property></widget></item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditTrocoInicial">
+             <property name="minimumHeight"><number>54</number></property>
+             <property name="alignment"><set>Qt::AlignRight|Qt::AlignVCenter</set></property>
+             <property name="placeholderText"><string>0,00</string></property>
+             <property name="styleSheet"><string notr="true">QLineEdit{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:28px;font-weight:bold;color:#c0dff4;padding:4px 16px;selection-background-color:#3585c8;selection-color:white;}QLineEdit:focus{border:2px solid #3585c8;background-color:#0f2840;}QLineEdit:hover:!focus{border:2px solid #2a5a80;}</string></property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+
+         <!-- Breakdown do troco (notas/moedas) — opcional -->
+         <item>
+          <widget class="QFrame" name="frameBreakdown">
+           <property name="styleSheet"><string notr="true">QFrame#frameBreakdown{background-color:#081828;border:1px solid #1a3a5a;border-radius:6px;}</string></property>
+           <layout class="QVBoxLayout" name="breakdownVLayout">
+            <property name="spacing"><number>8</number></property>
+            <property name="leftMargin"><number>14</number></property>
+            <property name="topMargin"><number>10</number></property>
+            <property name="rightMargin"><number>14</number></property>
+            <property name="bottomMargin"><number>10</number></property>
+            <item>
+             <widget class="QLabel" name="lblBreakdownTitulo"><property name="text"><string>Composição do fundo (opcional)</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#2a5a7a;</string></property></widget>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="breakdownGrid">
+              <property name="spacing"><number>6</number></property>
+              <item row="0" column="0"><widget class="QLabel" name="lblNota100"><property name="text"><string>R$ 100</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item row="0" column="1"><widget class="QSpinBox" name="spinNota100"><property name="minimumHeight"><number>28</number></property><property name="styleSheet"><string notr="true">QSpinBox{background-color:#0d2030;border:1px solid #1a4060;border-radius:4px;font-size:12px;color:#a0c8e8;padding:2px 6px;}QSpinBox:focus{border-color:#3585c8;}</string></property><property name="maximum"><number>999</number></property></widget></item>
+              <item row="0" column="2"><widget class="QLabel" name="lblNota50"><property name="text"><string>R$ 50</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item row="0" column="3"><widget class="QSpinBox" name="spinNota50"><property name="minimumHeight"><number>28</number></property><property name="styleSheet"><string notr="true">QSpinBox{background-color:#0d2030;border:1px solid #1a4060;border-radius:4px;font-size:12px;color:#a0c8e8;padding:2px 6px;}QSpinBox:focus{border-color:#3585c8;}</string></property><property name="maximum"><number>999</number></property></widget></item>
+              <item row="1" column="0"><widget class="QLabel" name="lblNota20"><property name="text"><string>R$ 20</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item row="1" column="1"><widget class="QSpinBox" name="spinNota20"><property name="minimumHeight"><number>28</number></property><property name="styleSheet"><string notr="true">QSpinBox{background-color:#0d2030;border:1px solid #1a4060;border-radius:4px;font-size:12px;color:#a0c8e8;padding:2px 6px;}QSpinBox:focus{border-color:#3585c8;}</string></property><property name="maximum"><number>999</number></property></widget></item>
+              <item row="1" column="2"><widget class="QLabel" name="lblNota10"><property name="text"><string>R$ 10</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item row="1" column="3"><widget class="QSpinBox" name="spinNota10"><property name="minimumHeight"><number>28</number></property><property name="styleSheet"><string notr="true">QSpinBox{background-color:#0d2030;border:1px solid #1a4060;border-radius:4px;font-size:12px;color:#a0c8e8;padding:2px 6px;}QSpinBox:focus{border-color:#3585c8;}</string></property><property name="maximum"><number>999</number></property></widget></item>
+              <item row="2" column="0"><widget class="QLabel" name="lblNota5"><property name="text"><string>R$ 5</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item row="2" column="1"><widget class="QSpinBox" name="spinNota5"><property name="minimumHeight"><number>28</number></property><property name="styleSheet"><string notr="true">QSpinBox{background-color:#0d2030;border:1px solid #1a4060;border-radius:4px;font-size:12px;color:#a0c8e8;padding:2px 6px;}QSpinBox:focus{border-color:#3585c8;}</string></property><property name="maximum"><number>999</number></property></widget></item>
+              <item row="2" column="2"><widget class="QLabel" name="lblNota2"><property name="text"><string>R$ 2</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item row="2" column="3"><widget class="QSpinBox" name="spinNota2"><property name="minimumHeight"><number>28</number></property><property name="styleSheet"><string notr="true">QSpinBox{background-color:#0d2030;border:1px solid #1a4060;border-radius:4px;font-size:12px;color:#a0c8e8;padding:2px 6px;}QSpinBox:focus{border-color:#3585c8;}</string></property><property name="maximum"><number>999</number></property></widget></item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout">
+              <item><widget class="QLabel" name="lblBreakdownTotal"><property name="text"><string>Total calculado:</string></property><property name="styleSheet"><string notr="true">font-size:11px;color:#3a6a8a;</string></property></widget></item>
+              <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item>
+              <item><widget class="QLabel" name="lblBreakdownTotalValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:#3585c8;</string></property></widget></item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+
+         <!-- Observações -->
+         <item>
+          <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
+           <item><widget class="QLabel" name="lblObsLabel"><property name="text"><string>Observações</string></property><property name="styleSheet"><string notr="true">font-size:11px;font-weight:bold;color:#3a6a8a;letter-spacing:1px;</string></property></widget></item>
+           <item>
+            <widget class="QPlainTextEdit" name="plainTextObs">
+             <property name="minimumHeight"><number>60</number></property>
+             <property name="maximumHeight"><number>60</number></property>
+             <property name="placeholderText"><string>Observações sobre a abertura...</string></property>
+             <property name="styleSheet"><string notr="true">QPlainTextEdit{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:12px;color:#8ab0cc;padding:6px 10px;}QPlainTextEdit:focus{border-color:#3585c8;}</string></property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+
+         <!-- Botão abrir caixa -->
+         <item>
+          <widget class="QPushButton" name="btnAbrirCaixa">
+           <property name="text"><string>&#128273;  Abrir Caixa e Iniciar Operações</string></property>
+           <property name="shortcut"><string>Return</string></property>
+           <property name="minimumHeight"><number>52</number></property>
+           <property name="styleSheet">
+            <string notr="true">
+             QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #2a7ad8,stop:1 #1a5ab8);color:white;font-size:15px;font-weight:bold;border:none;border-radius:8px;padding:8px;}
+             QPushButton:hover{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3a8ae8,stop:1 #2a6ac8);}
+             QPushButton:pressed{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #1a5098,stop:1 #0e3080);}
+            </string>
+           </property>
+          </widget>
+         </item>
+
+        </layout>
+       </widget>
+      </item>
+
+      <!-- Painel lateral direito: histórico de aberturas -->
+      <item>
+       <widget class="QFrame" name="frameHistoricoAberturas">
+        <property name="minimumWidth"><number>280</number></property>
+        <property name="maximumWidth"><number>320</number></property>
+        <property name="styleSheet"><string notr="true">QFrame#frameHistoricoAberturas{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+        <layout class="QVBoxLayout" name="historicoVLayout">
+         <property name="spacing"><number>0</number></property>
+         <property name="leftMargin"><number>0</number></property>
+         <property name="topMargin"><number>0</number></property>
+         <property name="rightMargin"><number>0</number></property>
+         <property name="bottomMargin"><number>0</number></property>
+         <item>
+          <widget class="QLabel" name="lblHistoricoTitulo">
+           <property name="text"><string>&#128336;  Últimas Aberturas</string></property>
+           <property name="minimumHeight"><number>40</number></property>
+           <property name="maximumHeight"><number>40</number></property>
+           <property name="styleSheet"><string notr="true">QLabel{background-color:#0a1828;color:#3a6a8a;font-size:12px;font-weight:bold;padding:10px 14px;border-top-left-radius:8px;border-top-right-radius:8px;border-bottom:1px solid #1a3a5a;}</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTableWidget" name="tableHistoricoAberturas">
+           <property name="styleSheet">
+            <string notr="true">
+             QTableWidget{background-color:#081828;alternate-background-color:#0a1e30;border:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;font-size:11px;gridline-color:#1a3a5a;outline:0;color:#6a9fcc;}
+             QTableWidget::item{padding:4px 8px;}
+             QTableWidget::item:selected{background-color:#1a4a7a;color:white;}
+             QHeaderView::section:horizontal{background-color:#0a1828;color:#2a5a7a;font-size:11px;font-weight:bold;padding:4px 8px;border:none;border-right:1px solid #1a3a5a;border-bottom:1px solid #1a3a5a;}
+             QHeaderView::section:horizontal:last{border-right:none;}
+             QHeaderView::section:horizontal:checked{background-color:#0a1828;color:#2a5a7a;}
+             QHeaderView::section:vertical{background-color:#0a1828;color:#0a1828;border:none;border-bottom:1px solid #1a3a5a;border-right:1px solid #1a3a5a;width:14px;}
+             QHeaderView::section:vertical:checked{background-color:#1a4a7a;color:#1a4a7a;}
+             QTableCornerButton::section{background-color:#0a1828;border:none;border-bottom:1px solid #1a3a5a;border-right:1px solid #1a3a5a;}
+             QScrollBar:vertical{background:#081828;width:6px;margin:0;}
+             QScrollBar::handle:vertical{background:#1a3a5a;border-radius:3px;min-height:20px;}
+             QScrollBar::handle:vertical:hover{background:#3585c8;}
+             QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}
+            </string>
+           </property>
+           <property name="columnCount"><number>3</number></property>
+           <property name="rowCount"><number>0</number></property>
+           <property name="selectionBehavior"><enum>QAbstractItemView::SelectRows</enum></property>
+           <property name="editTriggers"><set>QAbstractItemView::NoEditTriggers</set></property>
+           <property name="alternatingRowColors"><bool>true</bool></property>
+           <property name="showGrid"><bool>true</bool></property>
+           <attribute name="horizontalHeaderVisible"><bool>true</bool></attribute>
+           <attribute name="horizontalHeaderStretchLastSection"><bool>true</bool></attribute>
+           <attribute name="horizontalHeaderHighlightSections"><bool>false</bool></attribute>
+           <attribute name="verticalHeaderVisible"><bool>true</bool></attribute>
+           <attribute name="verticalHeaderDefaultSectionSize"><number>26</number></attribute>
+           <column><property name="text"><string>Data</string></property></column>
+           <column><property name="text"><string>Operador</string></property></column>
+           <column><property name="text"><string>Fundo (R$)</string></property></column>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <!-- Spacer direito -->
+      <item>
+       <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Status bar -->
+   <item>
+    <widget class="QFrame" name="frameStatusBar">
+     <property name="minimumHeight"><number>26</number></property>
+     <property name="maximumHeight"><number>26</number></property>
+     <property name="styleSheet"><string notr="true">QFrame#frameStatusBar{background-color:#081828;border-top:1px solid #1a3a5a;}</string></property>
+     <layout class="QHBoxLayout" name="statusHL">
+      <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>0</number></property>
+      <item><widget class="QLabel" name="lblStatus"><property name="text"><string>CSPdv  |  Abertura de Caixa</string></property><property name="styleSheet"><string notr="true">color:#1a4060;font-size:11px;font-weight:bold;</string></property></widget></item>
+      <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property></spacer></item>
+      <item><widget class="QLabel" name="lblStatusCaixaFechado"><property name="text"><string>&#9679; Caixa não iniciado</string></property><property name="styleSheet"><string notr="true">color:#cc4040;font-size:11px;</string></property></widget></item>
+     </layout>
+    </widget>
+   </item>
+
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

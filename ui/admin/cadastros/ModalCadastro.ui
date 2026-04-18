@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ModalEntidade</class>
+ <widget class="QDialog" name="ModalEntidade">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>260</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Nova Entidade</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background-color: #e8f2fa; font-family: Arial; }</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="mainVLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="frameTitleBar">
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameTitleBar {
+        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
+         stop:0 #3d90d8, stop:1 #1a5fa0);
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+       }
+      </string>
+     </property>
+     <layout class="QHBoxLayout" name="titleHLayout">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <property name="leftMargin">
+       <number>14</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblTitleIcon">
+        <property name="styleSheet">
+         <string notr="true">color:#a0d0f0;font-size:16px;</string>
+        </property>
+        <property name="text">
+         <string>🔗</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblTitulo">
+        <property name="styleSheet">
+         <string notr="true">color:white;font-size:14px;font-weight:bold;</string>
+        </property>
+        <property name="text">
+         <string>Nova Entidade</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="titleSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>10</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnFechar">
+        <property name="minimumSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton{background-color:#cc2222;border:none;border-radius:12px;color:white;font-size:11px;font-weight:bold;}
+          QPushButton:hover{background-color:#e03030;}
+          QPushButton:pressed{background-color:#aa1010;}
+         </string>
+        </property>
+        <property name="text">
+         <string>✕</string>
+        </property>
+        <property name="shortcut">
+         <string>Esc</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameConteudo">
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameConteudo {
+        background-color: #e8f2fa;
+        border: 2px solid #2a70b8;
+        border-top: none;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+       }
+      </string>
+     </property>
+     <layout class="QVBoxLayout" name="conteudoVLayout">
+      <property name="spacing">
+       <number>14</number>
+      </property>
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="frameBannerEdicao">
+        <property name="visible">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">
+          QFrame#frameBannerEdicao {
+           background-color: #f0f6fc;
+           border: 1px solid #a8c4d8;
+           border-left: 4px solid #3585c8;
+           border-radius: 4px;
+          }
+         </string>
+        </property>
+        <layout class="QHBoxLayout" name="bannerEdicaoHL">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>10</number>
+         </property>
+         <property name="topMargin">
+          <number>4</number>
+         </property>
+         <property name="rightMargin">
+          <number>10</number>
+         </property>
+         <property name="bottomMargin">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lblBannerLabel">
+           <property name="styleSheet">
+            <string notr="true">font-size:12px;color:#5580a0;</string>
+           </property>
+           <property name="text">
+            <string>Editando:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblBannerValor">
+           <property name="styleSheet">
+            <string notr="true">font-size:13px;font-weight:bold;color:#1a5fa0;</string>
+           </property>
+           <property name="text">
+            <string>#---</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="bannerSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>10</width>
+             <height>10</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblBannerAlteracao">
+           <property name="styleSheet">
+            <string notr="true">font-size:11px;color:#8090a0;font-style:italic;</string>
+           </property>
+           <property name="text">
+            <string>Última alteração: —</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="nomeVLayout">
+        <property name="spacing">
+         <number>6</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="nomeLabelHL">
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lblNome">
+            <property name="styleSheet">
+             <string notr="true">font-size:13px;font-weight:bold;color:#1a3a5c;</string>
+            </property>
+            <property name="text">
+             <string>Nome *</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblNomeErro">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font-size:11px;color:#cc2222;</string>
+            </property>
+            <property name="text">
+             <string>● Campo obrigatório</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="nomeLabelSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>10</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditNome">
+          <property name="styleSheet">
+           <string notr="true">
+            QLineEdit {
+             background-color: #ffffff;
+             border: 2px solid #a8c4d8;
+             border-radius: 6px;
+             font-size: 16px;
+             color: #1a3a5c;
+             padding: 4px 12px;
+             selection-background-color: #3585c8;
+             selection-color: #ffffff;
+            }
+            QLineEdit:focus {
+             border: 2px solid #3585c8;
+             background-color: #f8fcff;
+            }
+            QLineEdit[valid=&quot;false&quot;] {
+             border: 2px solid #cc2222;
+             background-color: #fff8f8;
+            }
+           </string>
+          </property>
+          <property name="maxLength">
+           <number>120</number>
+          </property>
+          <property name="placeholderText">
+           <string>Digite o nome...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblContadorChars">
+          <property name="styleSheet">
+           <string notr="true">font-size:10px;color:#8090a0;</string>
+          </property>
+          <property name="text">
+           <string>0 / 120 caracteres</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="botoesHLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <spacer name="btnSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnCancelar">
+          <property name="minimumSize">
+           <size>
+            <width>120</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton{background-color:#f0f0f0;color:#555555;font-size:12px;font-weight:bold;border:1px solid #bbbbbb;border-radius:5px;padding:5px 14px;}
+            QPushButton:hover{background-color:#e0e0e0;}
+            QPushButton:pressed{background-color:#cccccc;}
+           </string>
+          </property>
+          <property name="text">
+           <string>✕  Cancelar</string>
+          </property>
+          <property name="shortcut">
+           <string>Esc</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnSalvar">
+          <property name="minimumSize">
+           <size>
+            <width>140</width>
+            <height>40</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3585c8,stop:1 #1a5fa0);color:white;font-size:12px;font-weight:bold;border:none;border-radius:5px;padding:5px 14px;}
+            QPushButton:hover{background:#2a74b8;}
+            QPushButton:pressed{background:#1a5fa0;}
+            QPushButton:disabled{background:#9dbfda;color:#d0e4f4;}
+           </string>
+          </property>
+          <property name="text">
+           <string>💾  Salvar</string>
+          </property>
+          <property name="shortcut">
+           <string>Return</string>
+          </property>
+          <property name="default">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btnCancelar</sender>
+   <signal>clicked()</signal>
+   <receiver>ModalEntidade</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnFechar</sender>
+   <signal>clicked()</signal>
+   <receiver>ModalEntidade</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnSalvar</sender>
+   <signal>clicked()</signal>
+   <receiver>ModalEntidade</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

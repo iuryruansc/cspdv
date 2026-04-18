@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CupomNaoFiscal</class>
+ <widget class="QDialog" name="CupomNaoFiscal">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>340</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Cupom Não Fiscal</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background-color: #e8f2fa; font-family: Arial; }</string>
+  </property>
+
+  <layout class="QVBoxLayout" name="mainVLayout">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+
+   <!-- ══════════════════════════════════════
+        BARRA DE TÍTULO
+   ══════════════════════════════════════ -->
+   <item>
+    <widget class="QFrame" name="frameTitleBar">
+     <property name="minimumHeight"><number>32</number></property>
+     <property name="maximumHeight"><number>32</number></property>
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameTitleBar {
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+         stop:0 #3d90d8, stop:1 #1a5fa0);
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+       }
+      </string>
+     </property>
+     <layout class="QHBoxLayout" name="titleHLayout">
+      <property name="spacing"><number>6</number></property>
+      <property name="leftMargin"><number>8</number></property>
+      <property name="topMargin"><number>0</number></property>
+      <property name="rightMargin"><number>6</number></property>
+      <property name="bottomMargin"><number>0</number></property>
+
+      <!-- Ícone impressora -->
+      <item>
+       <widget class="QLabel" name="lblTitleIcon">
+        <property name="text"><string>🖨</string></property>
+        <property name="maximumWidth"><number>22</number></property>
+        <property name="styleSheet">
+         <string notr="true">color: #a0d0f0; font-size: 13px;</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- Título -->
+      <item>
+       <widget class="QLabel" name="lblTitulo">
+        <property name="text"><string>Cupom Não Fiscal</string></property>
+        <property name="styleSheet">
+         <string notr="true">color: white; font-size: 13px; font-weight: bold;</string>
+        </property>
+       </widget>
+      </item>
+
+      <item>
+       <spacer name="titleSpacer">
+        <property name="orientation"><enum>Qt::Horizontal</enum></property>
+        <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+       </spacer>
+      </item>
+
+      <!-- Botões da barra de título -->
+      <item>
+       <widget class="QPushButton" name="btnMinimizar">
+        <property name="text"><string>─</string></property>
+        <property name="minimumSize"><size><width>22</width><height>22</height></size></property>
+        <property name="maximumSize"><size><width>22</width><height>22</height></size></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton {
+           background-color: #2a70b8;
+           border: none;
+           border-radius: 3px;
+           color: white;
+           font-size: 11px;
+           font-weight: bold;
+          }
+          QPushButton:hover  { background-color: #3a85cc; }
+          QPushButton:pressed{ background-color: #1a5fa0; }
+         </string>
+        </property>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QPushButton" name="btnMaximizar">
+        <property name="text"><string>□</string></property>
+        <property name="minimumSize"><size><width>22</width><height>22</height></size></property>
+        <property name="maximumSize"><size><width>22</width><height>22</height></size></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton {
+           background-color: #2a70b8;
+           border: none;
+           border-radius: 3px;
+           color: white;
+           font-size: 11px;
+          }
+          QPushButton:hover  { background-color: #3a85cc; }
+          QPushButton:pressed{ background-color: #1a5fa0; }
+         </string>
+        </property>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QPushButton" name="btnFechar">
+        <property name="text"><string>✕</string></property>
+        <property name="shortcut"><string>Escape</string></property>
+        <property name="minimumSize"><size><width>22</width><height>22</height></size></property>
+        <property name="maximumSize"><size><width>22</width><height>22</height></size></property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton {
+           background-color: #cc2222;
+           border: none;
+           border-radius: 3px;
+           color: white;
+           font-size: 11px;
+           font-weight: bold;
+          }
+          QPushButton:hover  { background-color: #e03030; }
+          QPushButton:pressed{ background-color: #aa1010; }
+         </string>
+        </property>
+       </widget>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+   <!-- ══════════════════════════════════════
+        ÁREA DE CONTEÚDO
+   ══════════════════════════════════════ -->
+   <item>
+    <widget class="QFrame" name="frameConteudo">
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame#frameConteudo {
+        background-color: #f8f8f8;
+        border: 2px solid #2a70b8;
+        border-top: none;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+       }
+      </string>
+     </property>
+     <layout class="QVBoxLayout" name="conteudoVLayout">
+      <property name="spacing"><number>8</number></property>
+      <property name="leftMargin"><number>8</number></property>
+      <property name="topMargin"><number>8</number></property>
+      <property name="rightMargin"><number>8</number></property>
+      <property name="bottomMargin"><number>10</number></property>
+
+      <!-- ── ÁREA DE TEXTO DO CUPOM ── -->
+      <item>
+       <widget class="QPlainTextEdit" name="textCupom">
+        <property name="styleSheet">
+         <string notr="true">
+          QPlainTextEdit {
+           background-color: #ffffff;
+           border: 1px solid #c0c0c0;
+           border-radius: 2px;
+           font-family: "Courier New", Courier, monospace;
+           font-size: 11px;
+           color: #111111;
+           padding: 6px;
+           selection-background-color: #3585c8;
+           selection-color: #ffffff;
+          }
+          QScrollBar:vertical {
+           background: #f0f4f8;
+           width: 10px;
+           margin: 0;
+          }
+          QScrollBar::handle:vertical {
+           background: #a8c4d8;
+           border-radius: 4px;
+           min-height: 20px;
+          }
+          QScrollBar::handle:vertical:hover { background: #3585c8; }
+          QScrollBar::add-line:vertical,
+          QScrollBar::sub-line:vertical { height: 0px; }
+         </string>
+        </property>
+        <property name="readOnly"><bool>true</bool></property>
+        <property name="lineWrapMode"><enum>QPlainTextEdit::NoWrap</enum></property>
+        <property name="plainText">
+         <string>*****DOCUMENTO NAO FISCAL *****
+         VIDA NATURAL
+    CONFERENCIA DE PRODUTOS
+N. da venda: 0
+Atendente: ADMIN
+Data/Hora: --/--/---- --:--
+--------------------------------
+ITEM DESCRICAO
+COD.   QUANT.  V. UNIT.  V. TOTAL
+--------------------------------
+
+--------------------------------
+VALOR TOTAL                  0,00
+
+TOTAL PAGO                   0,00
+TROCO                        0,00
+--------------------------------
+      FORMAS DE PAGAMENTO
+--------------------------------
+
+--------------------------------
+    CONFERENCIA DE PRODUTOS</string>
+        </property>
+       </widget>
+      </item>
+
+      <!-- ── LINHA DE BOTÕES ── -->
+      <item>
+       <layout class="QHBoxLayout" name="botoesHLayout">
+        <property name="spacing"><number>10</number></property>
+
+        <item>
+         <spacer name="btnLeftSpacer">
+          <property name="orientation"><enum>Qt::Horizontal</enum></property>
+          <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+         </spacer>
+        </item>
+
+        <!-- Botão Imprimir -->
+        <item>
+         <widget class="QPushButton" name="btnImprimir">
+          <property name="text"><string>   Imprimir</string></property>
+          <property name="shortcut"><string>Return</string></property>
+          <property name="minimumSize"><size><width>120</width><height>36</height></size></property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton {
+             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+              stop:0 #f0f4f8, stop:1 #d8e8f4);
+             border: 1px solid #9ab8d0;
+             border-radius: 4px;
+             font-size: 12px;
+             font-weight: bold;
+             color: #1a3a5c;
+             padding: 4px 16px;
+            }
+            QPushButton:hover {
+             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+              stop:0 #e0ecf8, stop:1 #c0d8f0);
+             border-color: #6a9ab8;
+            }
+            QPushButton:pressed {
+             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+              stop:0 #c0d8f0, stop:1 #a0c4e4);
+            }
+           </string>
+          </property>
+         </widget>
+        </item>
+
+        <!-- Botão Sair -->
+        <item>
+         <widget class="QPushButton" name="btnSair">
+          <property name="text"><string>   Sair</string></property>
+          <property name="shortcut"><string>Escape</string></property>
+          <property name="minimumSize"><size><width>100</width><height>36</height></size></property>
+          <property name="styleSheet">
+           <string notr="true">
+            QPushButton {
+             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+              stop:0 #fce8e8, stop:1 #f0cccc);
+             border: 1px solid #cc7070;
+             border-radius: 4px;
+             font-size: 12px;
+             font-weight: bold;
+             color: #6a1a1a;
+             padding: 4px 16px;
+            }
+            QPushButton:hover {
+             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+              stop:0 #f8d8d8, stop:1 #e8b8b8);
+             border-color: #aa4444;
+            }
+            QPushButton:pressed {
+             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+              stop:0 #e8b8b8, stop:1 #d09898);
+            }
+           </string>
+          </property>
+         </widget>
+        </item>
+
+        <item>
+         <spacer name="btnRightSpacer">
+          <property name="orientation"><enum>Qt::Horizontal</enum></property>
+          <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+         </spacer>
+        </item>
+
+       </layout>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+  </layout>
+ </widget>
+
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btnSair</sender>
+   <signal>clicked()</signal>
+   <receiver>CupomNaoFiscal</receiver>
+   <slot>reject()</slot>
+  </connection>
+  <connection>
+   <sender>btnFechar</sender>
+   <signal>clicked()</signal>
+   <receiver>CupomNaoFiscal</receiver>
+   <slot>reject()</slot>
+  </connection>
+  <connection>
+   <sender>btnImprimir</sender>
+   <signal>clicked()</signal>
+   <receiver>CupomNaoFiscal</receiver>
+   <slot>accept()</slot>
+  </connection>
+ </connections>
+</ui>

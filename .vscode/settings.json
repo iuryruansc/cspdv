@@ -1,0 +1,15 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "explorer.compactFolders": false,
+  "code-runner.runInTerminal": true,
+  "code-runner.clearPreviousOutput": true,
+  "code-runner.executorMap": {
+    "python": "cls ; python -u"
+  },
+  "code-runner.ignoreSelection": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+  "python.terminal.useEnvFile": true,
+  "python.terminal.activateEnvironment": true
+}
