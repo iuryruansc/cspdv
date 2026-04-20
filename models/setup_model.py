@@ -72,9 +72,9 @@ class SetupModel:
             permissoes_base = [
                 ('sistema.master', 'Acesso Irrestrito (Master)'),
                 ('vendas.pdv', 'Acesso ao PDV (Frente de Caixa)'),
-                ('produtos.gerenciar', 'Cadastro e Edição de Produtos'),
-                ('estoque.ajustes', 'Ajustes e Movimentações de Estoque'),
-                ('financeiro.caixa', 'Abertura, Fechamento e Sangria')
+                ('estoque.gerenciar', 'Cadastro e Edição de Produtos'),
+                ('financeiro.total', 'Acesso Completo ao Módulo Financeiro'),
+                ('relatorios.ver', 'Visualização de Relatórios e Dashboards'),
             ]
 
             permissoes_ids = []

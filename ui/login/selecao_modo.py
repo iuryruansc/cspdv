@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'SelecaoModo.ui'
+# Form implementation generated from reading ui file 'selecao_modo.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -14,11 +14,38 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_SelecaoModo(object):
     def setupUi(self, SelecaoModo):
         SelecaoModo.setObjectName("SelecaoModo")
-        SelecaoModo.resize(1376, 744)
+        SelecaoModo.resize(1200, 800)
         SelecaoModo.setStyleSheet("\n"
 "    QWidget {\n"
-"     font-family: Arial;\n"
-"     background-color: #0f2a4a;\n"
+"        font-family: \'Segoe UI\', Arial;\n"
+"        background-color: #0f2a4a;\n"
+"        color: white;\n"
+"    }\n"
+"    QPushButton {\n"
+"        background-color: #1a3a5a;\n"
+"        border: 2px solid #2a4a6a;\n"
+"        border-radius: 15px;\n"
+"        color: white;\n"
+"        font-size: 18px;\n"
+"        font-weight: bold;\n"
+"        min-height: 120px;\n"
+"        min-width: 200px;\n"
+"    }\n"
+"    QPushButton:hover {\n"
+"        background-color: #2a4a6a;\n"
+"        border-color: #3a6aaa;\n"
+"    }\n"
+"    QPushButton:pressed {\n"
+"        background-color: #0a1a2a;\n"
+"    }\n"
+"    QLabel#lblTitulo {\n"
+"        font-size: 24px;\n"
+"        font-weight: bold;\n"
+"        color: #ffffff;\n"
+"    }\n"
+"    QLabel {\n"
+"        font-size: 14px;\n"
+"        color: #a0aec0;\n"
 "    }\n"
 "   ")
         self.mainVLayout = QtWidgets.QVBoxLayout(SelecaoModo)
@@ -26,365 +53,124 @@ class Ui_SelecaoModo(object):
         self.mainVLayout.setSpacing(0)
         self.mainVLayout.setObjectName("mainVLayout")
         self.frameHeader = QtWidgets.QFrame(SelecaoModo)
-        self.frameHeader.setMinimumHeight(72)
-        self.frameHeader.setMaximumHeight(72)
-        self.frameHeader.setStyleSheet("\n"
-"       QFrame#frameHeader {\n"
-"        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"         stop:0 #1a5fa0, stop:1 #0f2a4a);\n"
-"        border-bottom: 2px solid #3585c8;\n"
-"       }\n"
-"      ")
+        self.frameHeader.setMinimumSize(QtCore.QSize(0, 80))
+        self.frameHeader.setStyleSheet("background-color: #0a1f35; border-bottom: 1px solid #1a3a5a;")
         self.frameHeader.setObjectName("frameHeader")
-        self.headerHLayout = QtWidgets.QHBoxLayout(self.frameHeader)
-        self.headerHLayout.setContentsMargins(40, 10, 40, 10)
-        self.headerHLayout.setSpacing(12)
-        self.headerHLayout.setObjectName("headerHLayout")
-        self.lblLogo = QtWidgets.QLabel(self.frameHeader)
-        self.lblLogo.setStyleSheet("\n"
-"          color: white;\n"
-"          font-size: 32px;\n"
-"          font-weight: bold;\n"
-"          letter-spacing: 1px;\n"
-"         ")
-        self.lblLogo.setObjectName("lblLogo")
-        self.headerHLayout.addWidget(self.lblLogo)
-        spacerItem = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.headerHLayout.addItem(spacerItem)
-        self.frameOperadorInfo = QtWidgets.QFrame(self.frameHeader)
-        self.frameOperadorInfo.setStyleSheet("\n"
-"          QFrame#frameOperadorInfo {\n"
-"           background-color: rgba(255,255,255,12);\n"
-"           border: 1px solid rgba(255,255,255,25);\n"
-"           border-radius: 6px;\n"
-"          }\n"
-"         ")
-        self.frameOperadorInfo.setObjectName("frameOperadorInfo")
-        self.operadorHL = QtWidgets.QHBoxLayout(self.frameOperadorInfo)
-        self.operadorHL.setContentsMargins(14, 6, 14, 6)
-        self.operadorHL.setSpacing(10)
-        self.operadorHL.setObjectName("operadorHL")
-        self.lblOperadorIcone = QtWidgets.QLabel(self.frameOperadorInfo)
-        self.lblOperadorIcone.setStyleSheet("font-size:20px;")
-        self.lblOperadorIcone.setObjectName("lblOperadorIcone")
-        self.operadorHL.addWidget(self.lblOperadorIcone)
-        self.vboxlayout = QtWidgets.QVBoxLayout()
-        self.vboxlayout.setSpacing(1)
-        self.vboxlayout.setObjectName("vboxlayout")
-        self.lblOperadorLabel = QtWidgets.QLabel(self.frameOperadorInfo)
-        self.lblOperadorLabel.setStyleSheet("font-size:10px;color:#8ab0d0;")
-        self.lblOperadorLabel.setObjectName("lblOperadorLabel")
-        self.vboxlayout.addWidget(self.lblOperadorLabel)
-        self.lblOperadorNome = QtWidgets.QLabel(self.frameOperadorInfo)
-        self.lblOperadorNome.setStyleSheet("font-size:13px;font-weight:bold;color:white;")
-        self.lblOperadorNome.setObjectName("lblOperadorNome")
-        self.vboxlayout.addWidget(self.lblOperadorNome)
-        self.operadorHL.addLayout(self.vboxlayout)
-        self.headerHLayout.addWidget(self.frameOperadorInfo)
+        self.headerLayout = QtWidgets.QHBoxLayout(self.frameHeader)
+        self.headerLayout.setObjectName("headerLayout")
+        spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem)
+        self.lblTitulo = QtWidgets.QLabel(self.frameHeader)
+        self.lblTitulo.setObjectName("lblTitulo")
+        self.headerLayout.addWidget(self.lblTitulo)
+        spacerItem1 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.headerLayout.addItem(spacerItem1)
         self.btnSairSessao = QtWidgets.QPushButton(self.frameHeader)
-        self.btnSairSessao.setMinimumSize(QtCore.QSize(90, 36))
-        self.btnSairSessao.setStyleSheet("\n"
-"          QPushButton {\n"
-"           background-color: rgba(200,40,40,180);\n"
-"           color: white;\n"
-"           font-size: 12px;\n"
-"           font-weight: bold;\n"
-"           border: none;\n"
-"           border-radius: 5px;\n"
-"           padding: 5px 14px;\n"
-"          }\n"
-"          QPushButton:hover  { background-color: rgba(220,50,50,220); }\n"
-"          QPushButton:pressed{ background-color: rgba(160,20,20,220); }\n"
-"         ")
+        self.btnSairSessao.setMinimumSize(QtCore.QSize(104, 43))
+        self.btnSairSessao.setStyleSheet("background-color: #c53030; min-height: 40px; min-width: 100px; font-size: 12px;")
         self.btnSairSessao.setObjectName("btnSairSessao")
-        self.headerHLayout.addWidget(self.btnSairSessao)
+        self.headerLayout.addWidget(self.btnSairSessao)
         self.mainVLayout.addWidget(self.frameHeader)
-        self.widgetCentral = QtWidgets.QWidget(SelecaoModo)
-        self.widgetCentral.setStyleSheet("QWidget#widgetCentral { background-color: transparent; }")
-        self.widgetCentral.setObjectName("widgetCentral")
-        self.centralVLayout = QtWidgets.QVBoxLayout(self.widgetCentral)
-        self.centralVLayout.setContentsMargins(0, 0, 0, 0)
-        self.centralVLayout.setSpacing(0)
-        self.centralVLayout.setObjectName("centralVLayout")
-        spacerItem1 = QtWidgets.QSpacerItem(10, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.centralVLayout.addItem(spacerItem1)
-        self.titlesVLayout = QtWidgets.QVBoxLayout()
-        self.titlesVLayout.setSpacing(6)
-        self.titlesVLayout.setObjectName("titlesVLayout")
-        self.lblTituloSelecao = QtWidgets.QLabel(self.widgetCentral)
-        self.lblTituloSelecao.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblTituloSelecao.setStyleSheet("\n"
-"            color: white;\n"
-"            font-size: 26px;\n"
-"            font-weight: bold;\n"
-"            letter-spacing: 1px;\n"
-"           ")
-        self.lblTituloSelecao.setObjectName("lblTituloSelecao")
-        self.titlesVLayout.addWidget(self.lblTituloSelecao)
-        self.lblSubtituloSelecao = QtWidgets.QLabel(self.widgetCentral)
-        self.lblSubtituloSelecao.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblSubtituloSelecao.setStyleSheet("color: #6a9fcc; font-size: 14px;")
-        self.lblSubtituloSelecao.setObjectName("lblSubtituloSelecao")
-        self.titlesVLayout.addWidget(self.lblSubtituloSelecao)
-        self.centralVLayout.addLayout(self.titlesVLayout)
-        spacerItem2 = QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.centralVLayout.addItem(spacerItem2)
-        self.cardsHLayout = QtWidgets.QHBoxLayout()
-        self.cardsHLayout.setContentsMargins(120, -1, 120, -1)
-        self.cardsHLayout.setSpacing(40)
-        self.cardsHLayout.setObjectName("cardsHLayout")
-        spacerItem3 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.cardsHLayout.addItem(spacerItem3)
-        self.btnFrenteCaixa = QtWidgets.QPushButton(self.widgetCentral)
-        self.btnFrenteCaixa.setText("")
-        self.btnFrenteCaixa.setMinimumSize(QtCore.QSize(340, 320))
-        self.btnFrenteCaixa.setMaximumSize(QtCore.QSize(400, 340))
-        self.btnFrenteCaixa.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btnFrenteCaixa.setStyleSheet("\n"
-"            QPushButton {\n"
-"             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"              stop:0 #1a6020, stop:1 #0d3810);\n"
-"             border: 2px solid #2a8a30;\n"
-"             border-radius: 16px;\n"
-"            }\n"
-"            QPushButton:hover {\n"
-"             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"              stop:0 #1e7025, stop:1 #104215);\n"
-"             border: 2px solid #40bb48;\n"
-"            }\n"
-"            QPushButton:pressed {\n"
-"             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"              stop:0 #0d3810, stop:1 #061c08);\n"
-"             border: 2px solid #2a8a30;\n"
-"            }\n"
-"           ")
+        spacerItem2 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.mainVLayout.addItem(spacerItem2)
+        self.layoutContent = QtWidgets.QGridLayout()
+        self.layoutContent.setContentsMargins(50, -1, 50, -1)
+        self.layoutContent.setSpacing(40)
+        self.layoutContent.setObjectName("layoutContent")
+        self.vboxPDV = QtWidgets.QVBoxLayout()
+        self.vboxPDV.setObjectName("vboxPDV")
+        self.btnFrenteCaixa = QtWidgets.QPushButton(SelecaoModo)
         self.btnFrenteCaixa.setObjectName("btnFrenteCaixa")
-        self.cardsHLayout.addWidget(self.btnFrenteCaixa)
-        self.btnPainelAdmin = QtWidgets.QPushButton(self.widgetCentral)
-        self.btnPainelAdmin.setText("")
-        self.btnPainelAdmin.setMinimumSize(QtCore.QSize(340, 320))
-        self.btnPainelAdmin.setMaximumSize(QtCore.QSize(400, 340))
-        self.btnPainelAdmin.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btnPainelAdmin.setStyleSheet("\n"
-"            QPushButton {\n"
-"             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"              stop:0 #1a3a6a, stop:1 #0d1e38);\n"
-"             border: 2px solid #2a5fa0;\n"
-"             border-radius: 16px;\n"
-"            }\n"
-"            QPushButton:hover {\n"
-"             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"              stop:0 #1e4478, stop:1 #102244);\n"
-"             border: 2px solid #3585c8;\n"
-"            }\n"
-"            QPushButton:pressed {\n"
-"             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
-"              stop:0 #0d1e38, stop:1 #060e1c);\n"
-"             border: 2px solid #2a5fa0;\n"
-"            }\n"
-"           ")
+        self.vboxPDV.addWidget(self.btnFrenteCaixa)
+        self.lblFrenteCaixa = QtWidgets.QLabel(SelecaoModo)
+        self.lblFrenteCaixa.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblFrenteCaixa.setObjectName("lblFrenteCaixa")
+        self.vboxPDV.addWidget(self.lblFrenteCaixa)
+        self.layoutContent.addLayout(self.vboxPDV, 0, 0, 1, 1)
+        self.vboxEstoque = QtWidgets.QVBoxLayout()
+        self.vboxEstoque.setObjectName("vboxEstoque")
+        self.btnEstoque = QtWidgets.QPushButton(SelecaoModo)
+        self.btnEstoque.setObjectName("btnEstoque")
+        self.vboxEstoque.addWidget(self.btnEstoque)
+        self.lblEstoque = QtWidgets.QLabel(SelecaoModo)
+        self.lblEstoque.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblEstoque.setObjectName("lblEstoque")
+        self.vboxEstoque.addWidget(self.lblEstoque)
+        self.layoutContent.addLayout(self.vboxEstoque, 0, 1, 1, 1)
+        self.vboxFinanceiro = QtWidgets.QVBoxLayout()
+        self.vboxFinanceiro.setObjectName("vboxFinanceiro")
+        self.btnFinanceiro = QtWidgets.QPushButton(SelecaoModo)
+        self.btnFinanceiro.setObjectName("btnFinanceiro")
+        self.vboxFinanceiro.addWidget(self.btnFinanceiro)
+        self.lblFinanceiro = QtWidgets.QLabel(SelecaoModo)
+        self.lblFinanceiro.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblFinanceiro.setObjectName("lblFinanceiro")
+        self.vboxFinanceiro.addWidget(self.lblFinanceiro)
+        self.layoutContent.addLayout(self.vboxFinanceiro, 0, 2, 1, 1)
+        self.vboxRelatorios = QtWidgets.QVBoxLayout()
+        self.vboxRelatorios.setObjectName("vboxRelatorios")
+        self.btnRelatorios = QtWidgets.QPushButton(SelecaoModo)
+        self.btnRelatorios.setObjectName("btnRelatorios")
+        self.vboxRelatorios.addWidget(self.btnRelatorios)
+        self.lblRelatorios = QtWidgets.QLabel(SelecaoModo)
+        self.lblRelatorios.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblRelatorios.setObjectName("lblRelatorios")
+        self.vboxRelatorios.addWidget(self.lblRelatorios)
+        self.layoutContent.addLayout(self.vboxRelatorios, 1, 0, 1, 1)
+        self.vboxAdmin = QtWidgets.QVBoxLayout()
+        self.vboxAdmin.setObjectName("vboxAdmin")
+        self.btnPainelAdmin = QtWidgets.QPushButton(SelecaoModo)
         self.btnPainelAdmin.setObjectName("btnPainelAdmin")
-        self.cardsHLayout.addWidget(self.btnPainelAdmin)
-        spacerItem4 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.cardsHLayout.addItem(spacerItem4)
-        self.centralVLayout.addLayout(self.cardsHLayout)
-        self.cardsContentHLayout = QtWidgets.QHBoxLayout()
-        self.cardsContentHLayout.setContentsMargins(120, -1, 120, -1)
-        self.cardsContentHLayout.setSpacing(40)
-        self.cardsContentHLayout.setObjectName("cardsContentHLayout")
-        spacerItem5 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.cardsContentHLayout.addItem(spacerItem5)
-        self.frameCardCaixa = QtWidgets.QFrame(self.widgetCentral)
-        self.frameCardCaixa.setMinimumSize(QtCore.QSize(340, 320))
-        self.frameCardCaixa.setMaximumSize(QtCore.QSize(400, 340))
-        self.frameCardCaixa.setStyleSheet("\n"
-"            QFrame#frameCardCaixa {\n"
-"             background: transparent;\n"
-"             border: none;\n"
-"            }\n"
-"           ")
-        self.frameCardCaixa.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.frameCardCaixa.setObjectName("frameCardCaixa")
-        self.cardCaixaVLayout = QtWidgets.QVBoxLayout(self.frameCardCaixa)
-        self.cardCaixaVLayout.setContentsMargins(30, 36, 30, 36)
-        self.cardCaixaVLayout.setSpacing(14)
-        self.cardCaixaVLayout.setObjectName("cardCaixaVLayout")
-        self.lblIconeCaixa = QtWidgets.QLabel(self.frameCardCaixa)
-        self.lblIconeCaixa.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblIconeCaixa.setStyleSheet("font-size:64px;")
-        self.lblIconeCaixa.setObjectName("lblIconeCaixa")
-        self.cardCaixaVLayout.addWidget(self.lblIconeCaixa)
-        self.lblTituloCaixa = QtWidgets.QLabel(self.frameCardCaixa)
-        self.lblTituloCaixa.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblTituloCaixa.setStyleSheet("\n"
-"               color: #60e060;\n"
-"               font-size: 22px;\n"
-"               font-weight: bold;\n"
-"              ")
-        self.lblTituloCaixa.setObjectName("lblTituloCaixa")
-        self.cardCaixaVLayout.addWidget(self.lblTituloCaixa)
-        self.lblDescCaixa = QtWidgets.QLabel(self.frameCardCaixa)
-        self.lblDescCaixa.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblDescCaixa.setWordWrap(True)
-        self.lblDescCaixa.setStyleSheet("color: #88c888; font-size: 13px; line-height: 1.5;")
-        self.lblDescCaixa.setObjectName("lblDescCaixa")
-        self.cardCaixaVLayout.addWidget(self.lblDescCaixa)
-        spacerItem6 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.cardCaixaVLayout.addItem(spacerItem6)
-        self.frameTeclaCaixa = QtWidgets.QFrame(self.frameCardCaixa)
-        self.frameTeclaCaixa.setStyleSheet("\n"
-"               QFrame#frameTeclaCaixa {\n"
-"                background-color: rgba(40,140,40,60);\n"
-"                border: 1px solid rgba(60,180,60,80);\n"
-"                border-radius: 6px;\n"
-"               }\n"
-"              ")
-        self.frameTeclaCaixa.setObjectName("frameTeclaCaixa")
-        self.teclaHL = QtWidgets.QHBoxLayout(self.frameTeclaCaixa)
-        self.teclaHL.setContentsMargins(10, 6, 10, 6)
-        self.teclaHL.setObjectName("teclaHL")
-        spacerItem7 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.teclaHL.addItem(spacerItem7)
-        self.lblAtalhoCaixa = QtWidgets.QLabel(self.frameTeclaCaixa)
-        self.lblAtalhoCaixa.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblAtalhoCaixa.setStyleSheet("color:#60c860;font-size:11px;")
-        self.lblAtalhoCaixa.setObjectName("lblAtalhoCaixa")
-        self.teclaHL.addWidget(self.lblAtalhoCaixa)
-        spacerItem8 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.teclaHL.addItem(spacerItem8)
-        self.cardCaixaVLayout.addWidget(self.frameTeclaCaixa)
-        self.cardsContentHLayout.addWidget(self.frameCardCaixa)
-        self.frameCardAdmin = QtWidgets.QFrame(self.widgetCentral)
-        self.frameCardAdmin.setMinimumSize(QtCore.QSize(340, 320))
-        self.frameCardAdmin.setMaximumSize(QtCore.QSize(400, 340))
-        self.frameCardAdmin.setStyleSheet("\n"
-"            QFrame#frameCardAdmin {\n"
-"             background: transparent;\n"
-"             border: none;\n"
-"            }\n"
-"           ")
-        self.frameCardAdmin.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.frameCardAdmin.setObjectName("frameCardAdmin")
-        self.cardAdminVLayout = QtWidgets.QVBoxLayout(self.frameCardAdmin)
-        self.cardAdminVLayout.setContentsMargins(30, 36, 30, 36)
-        self.cardAdminVLayout.setSpacing(14)
-        self.cardAdminVLayout.setObjectName("cardAdminVLayout")
-        self.lblIconeAdmin = QtWidgets.QLabel(self.frameCardAdmin)
-        self.lblIconeAdmin.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblIconeAdmin.setStyleSheet("font-size:64px;color:#4a90d4;")
-        self.lblIconeAdmin.setObjectName("lblIconeAdmin")
-        self.cardAdminVLayout.addWidget(self.lblIconeAdmin)
-        self.lblTituloAdmin = QtWidgets.QLabel(self.frameCardAdmin)
-        self.lblTituloAdmin.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblTituloAdmin.setStyleSheet("\n"
-"               color: #60a8e0;\n"
-"               font-size: 22px;\n"
-"               font-weight: bold;\n"
-"              ")
-        self.lblTituloAdmin.setObjectName("lblTituloAdmin")
-        self.cardAdminVLayout.addWidget(self.lblTituloAdmin)
-        self.lblDescAdmin = QtWidgets.QLabel(self.frameCardAdmin)
-        self.lblDescAdmin.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblDescAdmin.setWordWrap(True)
-        self.lblDescAdmin.setStyleSheet("color: #6090b8; font-size: 13px; line-height: 1.5;")
-        self.lblDescAdmin.setObjectName("lblDescAdmin")
-        self.cardAdminVLayout.addWidget(self.lblDescAdmin)
-        spacerItem9 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.cardAdminVLayout.addItem(spacerItem9)
-        self.frameTeclaAdmin = QtWidgets.QFrame(self.frameCardAdmin)
-        self.frameTeclaAdmin.setStyleSheet("\n"
-"               QFrame#frameTeclaAdmin {\n"
-"                background-color: rgba(40,80,160,60);\n"
-"                border: 1px solid rgba(60,110,200,80);\n"
-"                border-radius: 6px;\n"
-"               }\n"
-"              ")
-        self.frameTeclaAdmin.setObjectName("frameTeclaAdmin")
-        self.teclaAdminHL = QtWidgets.QHBoxLayout(self.frameTeclaAdmin)
-        self.teclaAdminHL.setContentsMargins(10, 6, 10, 6)
-        self.teclaAdminHL.setObjectName("teclaAdminHL")
-        spacerItem10 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.teclaAdminHL.addItem(spacerItem10)
-        self.lblAtalhoAdmin = QtWidgets.QLabel(self.frameTeclaAdmin)
-        self.lblAtalhoAdmin.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblAtalhoAdmin.setStyleSheet("color:#6090b8;font-size:11px;")
-        self.lblAtalhoAdmin.setObjectName("lblAtalhoAdmin")
-        self.teclaAdminHL.addWidget(self.lblAtalhoAdmin)
-        spacerItem11 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.teclaAdminHL.addItem(spacerItem11)
-        self.cardAdminVLayout.addWidget(self.frameTeclaAdmin)
-        self.cardsContentHLayout.addWidget(self.frameCardAdmin)
-        spacerItem12 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.cardsContentHLayout.addItem(spacerItem12)
-        self.centralVLayout.addLayout(self.cardsContentHLayout)
-        spacerItem13 = QtWidgets.QSpacerItem(10, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.centralVLayout.addItem(spacerItem13)
-        self.mainVLayout.addWidget(self.widgetCentral)
-        self.frameStatusBar = QtWidgets.QFrame(SelecaoModo)
-        self.frameStatusBar.setMinimumHeight(36)
-        self.frameStatusBar.setMaximumHeight(36)
-        self.frameStatusBar.setStyleSheet("\n"
-"       QFrame#frameStatusBar {\n"
-"        background-color: #081828;\n"
-"        border-top: 1px solid #1a3a5a;\n"
-"       }\n"
-"      ")
-        self.frameStatusBar.setObjectName("frameStatusBar")
-        self.statusHLayout = QtWidgets.QHBoxLayout(self.frameStatusBar)
-        self.statusHLayout.setContentsMargins(20, 0, 20, 0)
-        self.statusHLayout.setSpacing(20)
-        self.statusHLayout.setObjectName("statusHLayout")
-        self.lblStatusSistema = QtWidgets.QLabel(self.frameStatusBar)
-        self.lblStatusSistema.setStyleSheet("color:#40c840;font-size:11px;font-weight:bold;")
-        self.lblStatusSistema.setObjectName("lblStatusSistema")
-        self.statusHLayout.addWidget(self.lblStatusSistema)
-        self.frameSepStatus = QtWidgets.QFrame(self.frameStatusBar)
-        self.frameSepStatus.setMinimumWidth(1)
-        self.frameSepStatus.setMaximumWidth(1)
-        self.frameSepStatus.setStyleSheet("background-color:#2a3a4a;")
-        self.frameSepStatus.setFrameShape(QtWidgets.QFrame.VLine)
-        self.frameSepStatus.setObjectName("frameSepStatus")
-        self.statusHLayout.addWidget(self.frameSepStatus)
-        self.lblDataHora = QtWidgets.QLabel(self.frameStatusBar)
-        self.lblDataHora.setStyleSheet("color:#4a6a8a;font-size:11px;")
-        self.lblDataHora.setObjectName("lblDataHora")
-        self.statusHLayout.addWidget(self.lblDataHora)
-        spacerItem14 = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.statusHLayout.addItem(spacerItem14)
-        self.lblVersao = QtWidgets.QLabel(self.frameStatusBar)
-        self.lblVersao.setStyleSheet("color:#2a4a6a;font-size:11px;")
+        self.vboxAdmin.addWidget(self.btnPainelAdmin)
+        self.lblPainelAdmin = QtWidgets.QLabel(SelecaoModo)
+        self.lblPainelAdmin.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblPainelAdmin.setObjectName("lblPainelAdmin")
+        self.vboxAdmin.addWidget(self.lblPainelAdmin)
+        self.layoutContent.addLayout(self.vboxAdmin, 1, 1, 1, 1)
+        self.mainVLayout.addLayout(self.layoutContent)
+        spacerItem3 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.mainVLayout.addItem(spacerItem3)
+        self.frameFooter = QtWidgets.QFrame(SelecaoModo)
+        self.frameFooter.setMinimumSize(QtCore.QSize(0, 50))
+        self.frameFooter.setObjectName("frameFooter")
+        self.footerLayout = QtWidgets.QHBoxLayout(self.frameFooter)
+        self.footerLayout.setObjectName("footerLayout")
+        self.lblOperadorNome = QtWidgets.QLabel(self.frameFooter)
+        self.lblOperadorNome.setStyleSheet("font-weight: bold; color: #40c840;")
+        self.lblOperadorNome.setObjectName("lblOperadorNome")
+        self.footerLayout.addWidget(self.lblOperadorNome)
+        spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.footerLayout.addItem(spacerItem4)
+        self.lblVersao = QtWidgets.QLabel(self.frameFooter)
         self.lblVersao.setObjectName("lblVersao")
-        self.statusHLayout.addWidget(self.lblVersao)
-        self.mainVLayout.addWidget(self.frameStatusBar)
+        self.footerLayout.addWidget(self.lblVersao)
+        self.mainVLayout.addWidget(self.frameFooter)
 
         self.retranslateUi(SelecaoModo)
         QtCore.QMetaObject.connectSlotsByName(SelecaoModo)
 
     def retranslateUi(self, SelecaoModo):
         _translate = QtCore.QCoreApplication.translate
-        SelecaoModo.setWindowTitle(_translate("SelecaoModo", "CSPdv - Selecionar Modo"))
-        self.lblLogo.setText(_translate("SelecaoModo", "CSPdv"))
-        self.lblOperadorIcone.setText(_translate("SelecaoModo", "👤"))
-        self.lblOperadorLabel.setText(_translate("SelecaoModo", "Operador logado"))
-        self.lblOperadorNome.setText(_translate("SelecaoModo", "ADMIN"))
-        self.btnSairSessao.setText(_translate("SelecaoModo", "✕  Sair"))
-        self.lblTituloSelecao.setText(_translate("SelecaoModo", "Como deseja continuar?"))
-        self.lblSubtituloSelecao.setText(_translate("SelecaoModo", "Selecione o modo de operação para esta sessão"))
-        self.lblIconeCaixa.setText(_translate("SelecaoModo", "💸"))
-        self.lblTituloCaixa.setText(_translate("SelecaoModo", "Frente de Caixa"))
-        self.lblDescCaixa.setText(_translate("SelecaoModo", "Acesso direto ao PDV para\n"
-"realizar vendas, pré-vendas\n"
-"e pagamentos"))
-        self.lblAtalhoCaixa.setText(_translate("SelecaoModo", "Pressione   F1   para abrir"))
-        self.lblIconeAdmin.setText(_translate("SelecaoModo", "⚙"))
-        self.lblTituloAdmin.setText(_translate("SelecaoModo", "Painel Administrativo"))
-        self.lblDescAdmin.setText(_translate("SelecaoModo", "Acesso ao painel de gestão\n"
-"para gerenciar produtos, clientes,\n"
-"usuários e relatórios"))
-        self.lblAtalhoAdmin.setText(_translate("SelecaoModo", "Pressione   F2   para abrir"))
-        self.lblStatusSistema.setText(_translate("SelecaoModo", "●  Sistema Online"))
-        self.lblDataHora.setText(_translate("SelecaoModo", "--/--/----  --:--:--"))
-        self.lblVersao.setText(_translate("SelecaoModo", "CSPdv  v1.0.0"))
+        SelecaoModo.setWindowTitle(_translate("SelecaoModo", "CSPdv - Seleção de Modo"))
+        self.lblTitulo.setText(_translate("SelecaoModo", "CLAUDINHA STORE - SELEÇÃO DE MÓDULO"))
+        self.btnSairSessao.setText(_translate("SelecaoModo", "SAIR (ESC)"))
+        self.btnFrenteCaixa.setToolTip(_translate("SelecaoModo", "[F1] Acesso ao PDV"))
+        self.btnFrenteCaixa.setText(_translate("SelecaoModo", "FRENTE DE CAIXA"))
+        self.lblFrenteCaixa.setText(_translate("SelecaoModo", "Vendas e Operações (F1)"))
+        self.btnEstoque.setToolTip(_translate("SelecaoModo", "[F3] Gestão de Produtos"))
+        self.btnEstoque.setText(_translate("SelecaoModo", "ESTOQUE"))
+        self.lblEstoque.setText(_translate("SelecaoModo", "Produtos e Compras (F3)"))
+        self.btnFinanceiro.setToolTip(_translate("SelecaoModo", "[F4] Fluxo de Caixa"))
+        self.btnFinanceiro.setText(_translate("SelecaoModo", "FINANCEIRO"))
+        self.lblFinanceiro.setText(_translate("SelecaoModo", "Contas e Fluxo (F4)"))
+        self.btnRelatorios.setToolTip(_translate("SelecaoModo", "[F5] Indicadores de Venda"))
+        self.btnRelatorios.setText(_translate("SelecaoModo", "RELATÓRIOS"))
+        self.lblRelatorios.setText(_translate("SelecaoModo", "Desempenho e BI (F5)"))
+        self.btnPainelAdmin.setToolTip(_translate("SelecaoModo", "[F2] Configurações do Sistema"))
+        self.btnPainelAdmin.setText(_translate("SelecaoModo", "PAINEL ADMIN"))
+        self.lblPainelAdmin.setText(_translate("SelecaoModo", "Configurações (F2)"))
+        self.lblOperadorNome.setText(_translate("SelecaoModo", "OPERADOR: ---"))
+        self.lblVersao.setText(_translate("SelecaoModo", "CSPdv v1.0.0"))
 
 
 if __name__ == "__main__":

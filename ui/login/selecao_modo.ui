@@ -3,616 +3,334 @@
  <class>SelecaoModo</class>
  <widget class="QWidget" name="SelecaoModo">
   <property name="geometry">
-   <rect><x>0</x><y>0</y><width>1376</width><height>744</height></rect>
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
   </property>
-  <property name="windowTitle"><string>CSPdv - Selecionar Modo</string></property>
+  <property name="windowTitle">
+   <string>CSPdv - Seleção de Modo</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">
     QWidget {
-     font-family: Arial;
-     background-color: #0f2a4a;
+        font-family: 'Segoe UI', Arial;
+        background-color: #0f2a4a;
+        color: white;
+    }
+    QPushButton {
+        background-color: #1a3a5a;
+        border: 2px solid #2a4a6a;
+        border-radius: 15px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        min-height: 120px;
+        min-width: 200px;
+    }
+    QPushButton:hover {
+        background-color: #2a4a6a;
+        border-color: #3a6aaa;
+    }
+    QPushButton:pressed {
+        background-color: #0a1a2a;
+    }
+    QLabel#lblTitulo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ffffff;
+    }
+    QLabel {
+        font-size: 14px;
+        color: #a0aec0;
     }
    </string>
   </property>
-
   <layout class="QVBoxLayout" name="mainVLayout">
-   <property name="spacing"><number>0</number></property>
-   <property name="leftMargin"><number>0</number></property>
-   <property name="topMargin"><number>0</number></property>
-   <property name="rightMargin"><number>0</number></property>
-   <property name="bottomMargin"><number>0</number></property>
-
-   <!-- ══ HEADER ══ -->
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QFrame" name="frameHeader">
-     <property name="minimumHeight"><number>72</number></property>
-     <property name="maximumHeight"><number>72</number></property>
-     <property name="styleSheet">
-      <string notr="true">
-       QFrame#frameHeader {
-        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-         stop:0 #1a5fa0, stop:1 #0f2a4a);
-        border-bottom: 2px solid #3585c8;
-       }
-      </string>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>80</height>
+      </size>
      </property>
-     <layout class="QHBoxLayout" name="headerHLayout">
-      <property name="spacing"><number>12</number></property>
-      <property name="leftMargin"><number>40</number></property>
-      <property name="topMargin"><number>10</number></property>
-      <property name="rightMargin"><number>40</number></property>
-      <property name="bottomMargin"><number>10</number></property>
-
-      <!-- Logo -->
+     <property name="styleSheet">
+      <string notr="true">background-color: #0a1f35; border-bottom: 1px solid #1a3a5a;</string>
+     </property>
+     <layout class="QHBoxLayout" name="headerLayout">
       <item>
-       <widget class="QLabel" name="lblLogo">
-        <property name="text"><string>CSPdv</string></property>
-        <property name="styleSheet">
-         <string notr="true">
-          color: white;
-          font-size: 32px;
-          font-weight: bold;
-          letter-spacing: 1px;
-         </string>
+       <spacer name="spacerLeft">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
         </property>
-       </widget>
-      </item>
-
-      <item>
-       <spacer name="headerSpacer">
-        <property name="orientation"><enum>Qt::Horizontal</enum></property>
-        <property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
        </spacer>
       </item>
-
-      <!-- Info do operador -->
       <item>
-       <widget class="QFrame" name="frameOperadorInfo">
-        <property name="styleSheet">
-         <string notr="true">
-          QFrame#frameOperadorInfo {
-           background-color: rgba(255,255,255,12);
-           border: 1px solid rgba(255,255,255,25);
-           border-radius: 6px;
-          }
-         </string>
+       <widget class="QLabel" name="lblTitulo">
+        <property name="text">
+         <string>CLAUDINHA STORE - SELEÇÃO DE MÓDULO</string>
         </property>
-        <layout class="QHBoxLayout" name="operadorHL">
-         <property name="spacing"><number>10</number></property>
-         <property name="leftMargin"><number>14</number></property>
-         <property name="topMargin"><number>6</number></property>
-         <property name="rightMargin"><number>14</number></property>
-         <property name="bottomMargin"><number>6</number></property>
-         <item>
-          <widget class="QLabel" name="lblOperadorIcone">
-           <property name="text"><string>&#128100;</string></property>
-           <property name="styleSheet"><string notr="true">font-size:20px;</string></property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QVBoxLayout">
-           <property name="spacing"><number>1</number></property>
-           <item>
-            <widget class="QLabel" name="lblOperadorLabel">
-             <property name="text"><string>Operador logado</string></property>
-             <property name="styleSheet"><string notr="true">font-size:10px;color:#8ab0d0;</string></property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="lblOperadorNome">
-             <property name="text"><string>ADMIN</string></property>
-             <property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:white;</string></property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
        </widget>
       </item>
-
-      <!-- Botão sair/trocar usuário -->
+      <item>
+       <spacer name="spacerRight">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item>
        <widget class="QPushButton" name="btnSairSessao">
-        <property name="text"><string>&#10005;  Sair</string></property>
-        <property name="minimumSize"><size><width>90</width><height>36</height></size></property>
+        <property name="minimumSize">
+         <size>
+          <width>104</width>
+          <height>43</height>
+         </size>
+        </property>
         <property name="styleSheet">
-         <string notr="true">
-          QPushButton {
-           background-color: rgba(200,40,40,180);
-           color: white;
-           font-size: 12px;
-           font-weight: bold;
-           border: none;
-           border-radius: 5px;
-           padding: 5px 14px;
-          }
-          QPushButton:hover  { background-color: rgba(220,50,50,220); }
-          QPushButton:pressed{ background-color: rgba(160,20,20,220); }
-         </string>
+         <string notr="true">background-color: #c53030; min-height: 40px; min-width: 100px; font-size: 12px;</string>
+        </property>
+        <property name="text">
+         <string>SAIR (ESC)</string>
         </property>
        </widget>
       </item>
-
      </layout>
     </widget>
    </item>
-
-   <!-- ══ ÁREA CENTRAL ══ -->
    <item>
-    <widget class="QWidget" name="widgetCentral">
-     <property name="styleSheet">
-      <string notr="true">QWidget#widgetCentral { background-color: transparent; }</string>
+    <spacer name="vSpacerTop">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
-     <layout class="QVBoxLayout" name="centralVLayout">
-      <property name="spacing"><number>0</number></property>
-      <property name="leftMargin"><number>0</number></property>
-      <property name="topMargin"><number>0</number></property>
-      <property name="rightMargin"><number>0</number></property>
-      <property name="bottomMargin"><number>0</number></property>
-
-      <!-- Espaçador topo -->
-      <item>
-       <spacer name="topSpacer">
-        <property name="orientation"><enum>Qt::Vertical</enum></property>
-        <property name="sizeHint" stdset="0"><size><width>10</width><height>40</height></size></property>
-       </spacer>
-      </item>
-
-      <!-- Título da seleção -->
-      <item>
-       <layout class="QVBoxLayout" name="titlesVLayout">
-        <property name="spacing"><number>6</number></property>
-        <item>
-         <widget class="QLabel" name="lblTituloSelecao">
-          <property name="text"><string>Como deseja continuar?</string></property>
-          <property name="alignment"><set>Qt::AlignCenter</set></property>
-          <property name="styleSheet">
-           <string notr="true">
-            color: white;
-            font-size: 26px;
-            font-weight: bold;
-            letter-spacing: 1px;
-           </string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="lblSubtituloSelecao">
-          <property name="text"><string>Selecione o modo de operação para esta sessão</string></property>
-          <property name="alignment"><set>Qt::AlignCenter</set></property>
-          <property name="styleSheet">
-           <string notr="true">color: #6a9fcc; font-size: 14px;</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-
-      <!-- Espaçador -->
-      <item>
-       <spacer name="midSpacer">
-        <property name="orientation"><enum>Qt::Vertical</enum></property>
-        <property name="sizeHint" stdset="0"><size><width>10</width><height>30</height></size></property>
-       </spacer>
-      </item>
-
-      <!-- ══ CARDS DE SELEÇÃO ══ -->
-      <item>
-       <layout class="QHBoxLayout" name="cardsHLayout">
-        <property name="spacing"><number>40</number></property>
-        <property name="leftMargin"><number>120</number></property>
-        <property name="rightMargin"><number>120</number></property>
-
-        <!-- Espaçador lateral esquerdo -->
-        <item>
-         <spacer name="leftSpacer">
-          <property name="orientation"><enum>Qt::Horizontal</enum></property>
-          <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
-         </spacer>
-        </item>
-
-        <!-- ─── CARD: FRENTE DE CAIXA ─── -->
-        <item>
-         <widget class="QPushButton" name="btnFrenteCaixa">
-          <property name="text"><string></string></property>
-          <property name="minimumSize"><size><width>340</width><height>320</height></size></property>
-          <property name="maximumSize"><size><width>400</width><height>340</height></size></property>
-          <property name="cursor">
-           <cursorShape>PointingHandCursor</cursorShape>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">
-            QPushButton {
-             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-              stop:0 #1a6020, stop:1 #0d3810);
-             border: 2px solid #2a8a30;
-             border-radius: 16px;
-            }
-            QPushButton:hover {
-             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-              stop:0 #1e7025, stop:1 #104215);
-             border: 2px solid #40bb48;
-            }
-            QPushButton:pressed {
-             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-              stop:0 #0d3810, stop:1 #061c08);
-             border: 2px solid #2a8a30;
-            }
-           </string>
-          </property>
-
-          <!-- Layout interno do card via QVBoxLayout no QPushButton não é
-               direto no .ui — usamos um QWidget filho posicionado -->
-         </widget>
-        </item>
-
-        <!-- Overlay do card Frente de Caixa (sobre o botão, via layout) -->
-        <!-- Como QPushButton não suporta layout filho no Qt Designer,
-             usamos um QFrame com layout por cima, posicionado via código.
-             A solução correta no .ui é usar QFrame clicável (mousePressEvent via código). -->
-
-        <!-- ─── CARD: PAINEL ADMINISTRATIVO ─── -->
-        <item>
-         <widget class="QPushButton" name="btnPainelAdmin">
-          <property name="text"><string></string></property>
-          <property name="minimumSize"><size><width>340</width><height>320</height></size></property>
-          <property name="maximumSize"><size><width>400</width><height>340</height></size></property>
-          <property name="cursor">
-           <cursorShape>PointingHandCursor</cursorShape>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">
-            QPushButton {
-             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-              stop:0 #1a3a6a, stop:1 #0d1e38);
-             border: 2px solid #2a5fa0;
-             border-radius: 16px;
-            }
-            QPushButton:hover {
-             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-              stop:0 #1e4478, stop:1 #102244);
-             border: 2px solid #3585c8;
-            }
-            QPushButton:pressed {
-             background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-              stop:0 #0d1e38, stop:1 #060e1c);
-             border: 2px solid #2a5fa0;
-            }
-           </string>
-          </property>
-         </widget>
-        </item>
-
-        <!-- Espaçador lateral direito -->
-        <item>
-         <spacer name="rightSpacer">
-          <property name="orientation"><enum>Qt::Horizontal</enum></property>
-          <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
-         </spacer>
-        </item>
-
-       </layout>
-      </item>
-
-      <!-- ══ CONTEÚDO DOS CARDS (frames sobrepostos via stacked approach) ══
-           Usamos QFrames independentes com o mesmo tamanho e posição
-           dos botões — populados via código com installEventFilter.
-           No Qt Designer, declaramos os frames de conteúdo aqui no layout
-           como widgets separados que serão posicionados por código (move/resize).
-           Para o .ui ficar funcional sozinho usamos um segundo QHBoxLayout
-           logo abaixo que replica as labels visíveis. -->
-
-      <!-- Labels de conteúdo dos cards — posicionados em cima dos botões por código -->
-      <item>
-       <layout class="QHBoxLayout" name="cardsContentHLayout">
-        <property name="spacing"><number>40</number></property>
-        <property name="leftMargin"><number>120</number></property>
-        <property name="rightMargin"><number>120</number></property>
-
-        <item>
-         <spacer name="leftSpacer2">
-          <property name="orientation"><enum>Qt::Horizontal</enum></property>
-          <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
-         </spacer>
-        </item>
-
-        <!-- Conteúdo: Frente de Caixa -->
-        <item>
-         <widget class="QFrame" name="frameCardCaixa">
-          <property name="minimumSize"><size><width>340</width><height>320</height></size></property>
-          <property name="maximumSize"><size><width>400</width><height>340</height></size></property>
-          <property name="styleSheet">
-           <string notr="true">
-            QFrame#frameCardCaixa {
-             background: transparent;
-             border: none;
-            }
-           </string>
-          </property>
-          <!-- Desabilitar eventos de mouse para passar o clique ao QPushButton abaixo -->
-          <property name="focusPolicy"><enum>Qt::NoFocus</enum></property>
-          <layout class="QVBoxLayout" name="cardCaixaVLayout">
-           <property name="spacing"><number>14</number></property>
-           <property name="leftMargin"><number>30</number></property>
-           <property name="topMargin"><number>36</number></property>
-           <property name="rightMargin"><number>30</number></property>
-           <property name="bottomMargin"><number>36</number></property>
-
-           <!-- Ícone -->
-           <item>
-            <widget class="QLabel" name="lblIconeCaixa">
-             <property name="text"><string>&#128184;</string></property>
-             <property name="alignment"><set>Qt::AlignCenter</set></property>
-             <property name="styleSheet"><string notr="true">font-size:64px;</string></property>
-            </widget>
-           </item>
-
-           <!-- Título -->
-           <item>
-            <widget class="QLabel" name="lblTituloCaixa">
-             <property name="text"><string>Frente de Caixa</string></property>
-             <property name="alignment"><set>Qt::AlignCenter</set></property>
-             <property name="styleSheet">
-              <string notr="true">
-               color: #60e060;
-               font-size: 22px;
-               font-weight: bold;
-              </string>
-             </property>
-            </widget>
-           </item>
-
-           <!-- Descrição -->
-           <item>
-            <widget class="QLabel" name="lblDescCaixa">
-             <property name="text"><string>Acesso direto ao PDV para&#10;realizar vendas, pré-vendas&#10;e pagamentos</string></property>
-             <property name="alignment"><set>Qt::AlignCenter</set></property>
-             <property name="wordWrap"><bool>true</bool></property>
-             <property name="styleSheet">
-              <string notr="true">color: #88c888; font-size: 13px; line-height: 1.5;</string>
-             </property>
-            </widget>
-           </item>
-
-           <!-- Spacer -->
-           <item>
-            <spacer name="caixaInnerSpacer">
-             <property name="orientation"><enum>Qt::Vertical</enum></property>
-             <property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property>
-            </spacer>
-           </item>
-
-           <!-- Tecla de atalho -->
-           <item>
-            <widget class="QFrame" name="frameTeclaCaixa">
-             <property name="styleSheet">
-              <string notr="true">
-               QFrame#frameTeclaCaixa {
-                background-color: rgba(40,140,40,60);
-                border: 1px solid rgba(60,180,60,80);
-                border-radius: 6px;
-               }
-              </string>
-             </property>
-             <layout class="QHBoxLayout" name="teclaHL">
-              <property name="leftMargin"><number>10</number></property>
-              <property name="topMargin"><number>6</number></property>
-              <property name="rightMargin"><number>10</number></property>
-              <property name="bottomMargin"><number>6</number></property>
-              <item>
-               <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="lblAtalhoCaixa">
-                <property name="text"><string>Pressione   F1   para abrir</string></property>
-                <property name="alignment"><set>Qt::AlignCenter</set></property>
-                <property name="styleSheet"><string notr="true">color:#60c860;font-size:11px;</string></property>
-               </widget>
-              </item>
-              <item>
-               <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
-
-          </layout>
-         </widget>
-        </item>
-
-        <!-- Conteúdo: Painel Administrativo -->
-        <item>
-         <widget class="QFrame" name="frameCardAdmin">
-          <property name="minimumSize"><size><width>340</width><height>320</height></size></property>
-          <property name="maximumSize"><size><width>400</width><height>340</height></size></property>
-          <property name="styleSheet">
-           <string notr="true">
-            QFrame#frameCardAdmin {
-             background: transparent;
-             border: none;
-            }
-           </string>
-          </property>
-          <property name="focusPolicy"><enum>Qt::NoFocus</enum></property>
-          <layout class="QVBoxLayout" name="cardAdminVLayout">
-           <property name="spacing"><number>14</number></property>
-           <property name="leftMargin"><number>30</number></property>
-           <property name="topMargin"><number>36</number></property>
-           <property name="rightMargin"><number>30</number></property>
-           <property name="bottomMargin"><number>36</number></property>
-
-           <!-- Ícone -->
-           <item>
-            <widget class="QLabel" name="lblIconeAdmin">
-             <property name="text"><string>&#9881;</string></property>
-             <property name="alignment"><set>Qt::AlignCenter</set></property>
-             <property name="styleSheet"><string notr="true">font-size:64px;color:#4a90d4;</string></property>
-            </widget>
-           </item>
-
-           <!-- Título -->
-           <item>
-            <widget class="QLabel" name="lblTituloAdmin">
-             <property name="text"><string>Painel Administrativo</string></property>
-             <property name="alignment"><set>Qt::AlignCenter</set></property>
-             <property name="styleSheet">
-              <string notr="true">
-               color: #60a8e0;
-               font-size: 22px;
-               font-weight: bold;
-              </string>
-             </property>
-            </widget>
-           </item>
-
-           <!-- Descrição -->
-           <item>
-            <widget class="QLabel" name="lblDescAdmin">
-             <property name="text"><string>Acesso ao painel de gestão&#10;para gerenciar produtos, clientes,&#10;usuários e relatórios</string></property>
-             <property name="alignment"><set>Qt::AlignCenter</set></property>
-             <property name="wordWrap"><bool>true</bool></property>
-             <property name="styleSheet">
-              <string notr="true">color: #6090b8; font-size: 13px; line-height: 1.5;</string>
-             </property>
-            </widget>
-           </item>
-
-           <!-- Spacer -->
-           <item>
-            <spacer name="adminInnerSpacer">
-             <property name="orientation"><enum>Qt::Vertical</enum></property>
-             <property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property>
-            </spacer>
-           </item>
-
-           <!-- Tecla de atalho -->
-           <item>
-            <widget class="QFrame" name="frameTeclaAdmin">
-             <property name="styleSheet">
-              <string notr="true">
-               QFrame#frameTeclaAdmin {
-                background-color: rgba(40,80,160,60);
-                border: 1px solid rgba(60,110,200,80);
-                border-radius: 6px;
-               }
-              </string>
-             </property>
-             <layout class="QHBoxLayout" name="teclaAdminHL">
-              <property name="leftMargin"><number>10</number></property>
-              <property name="topMargin"><number>6</number></property>
-              <property name="rightMargin"><number>10</number></property>
-              <property name="bottomMargin"><number>6</number></property>
-              <item>
-               <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer>
-              </item>
-              <item>
-               <widget class="QLabel" name="lblAtalhoAdmin">
-                <property name="text"><string>Pressione   F2   para abrir</string></property>
-                <property name="alignment"><set>Qt::AlignCenter</set></property>
-                <property name="styleSheet"><string notr="true">color:#6090b8;font-size:11px;</string></property>
-               </widget>
-              </item>
-              <item>
-               <spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer>
-              </item>
-             </layout>
-            </widget>
-           </item>
-
-          </layout>
-         </widget>
-        </item>
-
-        <item>
-         <spacer name="rightSpacer2">
-          <property name="orientation"><enum>Qt::Horizontal</enum></property>
-          <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
-         </spacer>
-        </item>
-
-       </layout>
-      </item>
-
-      <!-- Espaçador inferior -->
-      <item>
-       <spacer name="bottomSpacer">
-        <property name="orientation"><enum>Qt::Vertical</enum></property>
-        <property name="sizeHint" stdset="0"><size><width>10</width><height>40</height></size></property>
-       </spacer>
-      </item>
-
-     </layout>
-    </widget>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
    </item>
-
-   <!-- ══ STATUS BAR ══ -->
    <item>
-    <widget class="QFrame" name="frameStatusBar">
-     <property name="minimumHeight"><number>36</number></property>
-     <property name="maximumHeight"><number>36</number></property>
-     <property name="styleSheet">
-      <string notr="true">
-       QFrame#frameStatusBar {
-        background-color: #081828;
-        border-top: 1px solid #1a3a5a;
-       }
-      </string>
+    <layout class="QGridLayout" name="layoutContent">
+     <property name="leftMargin">
+      <number>50</number>
      </property>
-     <layout class="QHBoxLayout" name="statusHLayout">
-      <property name="spacing"><number>20</number></property>
-      <property name="leftMargin"><number>20</number></property>
-      <property name="topMargin"><number>0</number></property>
-      <property name="rightMargin"><number>20</number></property>
-      <property name="bottomMargin"><number>0</number></property>
-
-      <!-- Indicador sistema online -->
+     <property name="rightMargin">
+      <number>50</number>
+     </property>
+     <property name="spacing">
+      <number>40</number>
+     </property>
+     <item row="0" column="0">
+      <layout class="QVBoxLayout" name="vboxPDV">
+       <item>
+        <widget class="QPushButton" name="btnFrenteCaixa">
+         <property name="toolTip">
+          <string>[F1] Acesso ao PDV</string>
+         </property>
+         <property name="text">
+          <string>FRENTE DE CAIXA</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblFrenteCaixa">
+         <property name="text">
+          <string>Vendas e Operações (F1)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="1">
+      <layout class="QVBoxLayout" name="vboxEstoque">
+       <item>
+        <widget class="QPushButton" name="btnEstoque">
+         <property name="toolTip">
+          <string>[F3] Gestão de Produtos</string>
+         </property>
+         <property name="text">
+          <string>ESTOQUE</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblEstoque">
+         <property name="text">
+          <string>Produtos e Compras (F3)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="0" column="2">
+      <layout class="QVBoxLayout" name="vboxFinanceiro">
+       <item>
+        <widget class="QPushButton" name="btnFinanceiro">
+         <property name="toolTip">
+          <string>[F4] Fluxo de Caixa</string>
+         </property>
+         <property name="text">
+          <string>FINANCEIRO</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblFinanceiro">
+         <property name="text">
+          <string>Contas e Fluxo (F4)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <layout class="QVBoxLayout" name="vboxRelatorios">
+       <item>
+        <widget class="QPushButton" name="btnRelatorios">
+         <property name="toolTip">
+          <string>[F5] Indicadores de Venda</string>
+         </property>
+         <property name="text">
+          <string>RELATÓRIOS</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblRelatorios">
+         <property name="text">
+          <string>Desempenho e BI (F5)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="1">
+      <layout class="QVBoxLayout" name="vboxAdmin">
+       <item>
+        <widget class="QPushButton" name="btnPainelAdmin">
+         <property name="toolTip">
+          <string>[F2] Configurações do Sistema</string>
+         </property>
+         <property name="text">
+          <string>PAINEL ADMIN</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblPainelAdmin">
+         <property name="text">
+          <string>Configurações (F2)</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="vSpacerBottom">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameFooter">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>50</height>
+      </size>
+     </property>
+     <layout class="QHBoxLayout" name="footerLayout">
       <item>
-       <widget class="QLabel" name="lblStatusSistema">
-        <property name="text"><string>&#9679;  Sistema Online</string></property>
-        <property name="styleSheet"><string notr="true">color:#40c840;font-size:11px;font-weight:bold;</string></property>
+       <widget class="QLabel" name="lblOperadorNome">
+        <property name="styleSheet">
+         <string notr="true">font-weight: bold; color: #40c840;</string>
+        </property>
+        <property name="text">
+         <string>OPERADOR: ---</string>
+        </property>
        </widget>
       </item>
-
-      <!-- Separador -->
       <item>
-       <widget class="QFrame" name="frameSepStatus">
-        <property name="minimumWidth"><number>1</number></property>
-        <property name="maximumWidth"><number>1</number></property>
-        <property name="styleSheet"><string notr="true">background-color:#2a3a4a;</string></property>
-        <property name="frameShape"><enum>QFrame::VLine</enum></property>
-       </widget>
-      </item>
-
-      <!-- Data/Hora -->
-      <item>
-       <widget class="QLabel" name="lblDataHora">
-        <property name="text"><string>--/--/----  --:--:--</string></property>
-        <property name="styleSheet"><string notr="true">color:#4a6a8a;font-size:11px;</string></property>
-       </widget>
-      </item>
-
-      <item>
-       <spacer name="statusSpacer">
-        <property name="orientation"><enum>Qt::Horizontal</enum></property>
-        <property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property>
+       <spacer name="spacerFooter">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
        </spacer>
       </item>
-
-      <!-- Sistema -->
       <item>
        <widget class="QLabel" name="lblVersao">
-        <property name="text"><string>CSPdv  v1.0.0</string></property>
-        <property name="styleSheet"><string notr="true">color:#2a4a6a;font-size:11px;</string></property>
+        <property name="text">
+         <string>CSPdv v1.0.0</string>
+        </property>
        </widget>
       </item>
-
      </layout>
     </widget>
    </item>
-
   </layout>
  </widget>
-
  <resources/>
  <connections/>
 </ui>

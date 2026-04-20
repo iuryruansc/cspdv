@@ -81,6 +81,7 @@ def run_test_bypass():
         'login': 'admin',
         'cargo': 'Administrador',
         'email': 'teste@cspdv.com',
+        # permissões: sistema.master, vendas.pdv, estoque.gerenciar, financeiro.total, relatorios.ver
         'permissoes': ['sistema.master']
     }
 
