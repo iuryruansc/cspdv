@@ -80,7 +80,8 @@ def run_test_bypass():
         'nome': 'Desenvolvedor Teste',
         'login': 'admin',
         'cargo': 'Administrador',
-        'email': 'teste@cspdv.com'
+        'email': 'teste@cspdv.com',
+        'permissoes': ['sistema.master']
     }
 
     LoginView.usuario_logado = usuario_mock

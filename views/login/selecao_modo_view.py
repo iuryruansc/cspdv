@@ -7,6 +7,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self._verificar_acessos()
 
         # Define o nome do operador logado no label
         if LoginView.usuario_logado:
@@ -20,7 +21,37 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.shortcut_f2 = QShortcut(QKeySequence("F2"), self)
         self.shortcut_f2.activated.connect(self._open_painel_admin)
 
+    def _tem_permissao(self, chave_requerida):
+        if not LoginView.usuario_logado:
+            return False
+
+        permissoes = LoginView.usuario_logado.get('permissoes', [])
+
+        if 'sistema.master' in permissoes:
+            return True
+        
+        return chave_requerida in permissoes
+        
+    def _verificar_acessos(self):
+        controles = [
+            ('sistema.master', [self.btnPainelAdmin, self.frameCardAdmin]),
+            ('vendas.pdv',     [self.btnFrenteCaixa, self.frameCardCaixa]),
+            # ('estoque.gerenciar', [self.btnEstoque, self.frameEstoque]),
+        ]
+
+        for chave, objetos in controles:
+            tem_acesso = self._tem_permissao(chave)
+
+            for obj in objetos:
+                if hasattr(obj, 'setVisible'):
+                    obj.setVisible(tem_acesso) 
+                elif hasattr(obj, 'setEnabled'):
+                    obj.setEnabled(tem_acesso)
+
     def _open_painel_admin(self):
+        if not self._tem_permissao('sistema.master'):
+            return
+
         from views.admin.painel_admin_view import PainelAdminView
         self.hide()
         self.painel_admin = PainelAdminView()

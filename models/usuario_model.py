@@ -1,6 +1,6 @@
 import hashlib
 import bcrypt
-from typing import Optional, Dict, Any, cast
+from typing import List, Optional, Dict, Any, cast
 from database.connection import get_connection
 
 class UsuarioModel:
@@ -65,3 +65,20 @@ class UsuarioModel:
             raise ValueError('Conta inativa. Contate o administrador.')
 
         return usuario
+    
+    @staticmethod
+    def buscar_permissoes(perfil_id: int) -> list:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            sql = """
+                SELECT p.chave 
+                FROM permissoes p
+                INNER JOIN perfil_permissoes pp ON pp.permissao_id = p.id
+                WHERE pp.perfil_id = %s
+            """
+            cursor.execute(sql, (perfil_id,))
+            resultados = cast(List[Dict[str, Any]], cursor.fetchall())
+            return [row['chave'] for row in resultados]
+        finally:
+            cursor.close()

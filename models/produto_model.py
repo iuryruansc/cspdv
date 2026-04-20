@@ -1,36 +1,49 @@
+from typing import Optional, Dict, Any, cast
 from database.connection import get_connection
 
 class ProdutoModel:
-    @staticmethod
-    def buscar_por_codigo(codigo):
-        connection = get_connection()
-        try:
-            with connection.cursor(dictionary=True) as cursor:
-                sql = "SELECT * FROM produtos WHERE codigo_barras = %s LIMIT 1"
-                cursor.execute(sql, (codigo,))
-                return cursor.fetchone()
-        except Exception as e:
-            print(f"Erro de SQL na ProdutoModel: {e}")
-            raise e
-        finally:
-            connection.close()
 
     @staticmethod
-    def inserir(dados):
-        connection = get_connection()
+    def buscar_por_codigo(codigo: str) -> Optional[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
         try:
-            with connection.cursor() as cursor:
-                sql = """
-                    INSERT INTO produtos 
-                    (codigo_barras, descricao, ncm, cest, preco_custo, preco_venda, estoque_atual, id_categoria, id_unidade) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """
-                valores = (
-                    dados['codigo_barras'], dados['descricao'], dados['ncm'],
-                    dados['cest'], dados['preco_custo'], dados['preco_venda'],
-                    dados['estoque'], dados['id_categoria'], dados['id_unidade']
-                )
-                cursor.execute(sql, valores)
-                connection.commit()
+            cursor.execute(
+                "SELECT * FROM produtos WHERE codigo_barras = %s LIMIT 1",
+                (codigo,)
+            )
+            resultado = cursor.fetchone()
+            return cast(Optional[Dict[str, Any]], resultado)
+        except Exception as e:
+            print(f"Erro ao buscar produto por código: {e}")
+            raise
         finally:
-            connection.close()
+            cursor.close()
+
+    @staticmethod
+    def inserir(dados: Dict[str, Any]) -> Optional[int]:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                INSERT INTO produtos
+                    (codigo_barras, nome, ncm, cest,
+                     preco_compra, preco_venda, quantidade_estoque,
+                     categoria_id, marca_id, fornecedor_id,
+                     unidade_id, unidade_tributavel_id, ativo)
+                VALUES
+                    (%(codigo_barras)s, %(nome)s, %(ncm)s, %(cest)s,
+                     %(preco_compra)s, %(preco_venda)s, %(quantidade_estoque)s,
+                     %(categoria_id)s, %(marca_id)s, %(fornecedor_id)s,
+                     %(unidade_id)s, %(unidade_tributavel_id)s, %(ativo)s)
+                """,
+                dados,
+            )
+            conn.commit()
+            return cast(Optional[int], cursor.lastrowid)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()

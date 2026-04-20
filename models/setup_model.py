@@ -59,7 +59,40 @@ class SetupModel:
             )
             cargo_id = cursor.lastrowid
 
-            # 4. Funcionário
+           # 4. Criar o Perfil 'Administrador Master'
+            cursor.execute(
+                """
+                INSERT INTO perfis (nome, descricao, ativo, updateAt) 
+                VALUES ('Admin Master', 'Acesso irrestrito a todos os módulos do sistema', 'S', NOW())
+                """
+            )
+            perfil_id = cursor.lastrowid
+
+            # 5. Definir as Permissões Base Iniciais
+            permissoes_base = [
+                ('sistema.master', 'Acesso Irrestrito (Master)'),
+                ('vendas.pdv', 'Acesso ao PDV (Frente de Caixa)'),
+                ('produtos.gerenciar', 'Cadastro e Edição de Produtos'),
+                ('estoque.ajustes', 'Ajustes e Movimentações de Estoque'),
+                ('financeiro.caixa', 'Abertura, Fechamento e Sangria')
+            ]
+
+            permissoes_ids = []
+            for chave, nome_amigavel in permissoes_base:
+                cursor.execute(
+                    "INSERT INTO permissoes (chave, nome_amigavel) VALUES (%s, %s)",
+                    (chave, nome_amigavel)
+                )
+                permissoes_ids.append(cursor.lastrowid)
+
+            # 6. Vincular todas as permissões criadas ao Perfil Master
+            for perm_id in permissoes_ids:
+                cursor.execute(
+                    "INSERT INTO perfil_permissoes (perfil_id, permissao_id) VALUES (%s, %s)",
+                    (perfil_id, perm_id)
+                )
+
+            # 7. Funcionário
             cursor.execute(
                 """
                 INSERT INTO funcionarios
@@ -71,24 +104,24 @@ class SetupModel:
             )
             funcionario_id = cursor.lastrowid
 
-            # 5. Usuário admin com BCRYPT (Muito mais seguro que SHA-256)
+            # 8. Usuário admin
             password_plain = admin['senha'].encode('utf-8')
-            # O gensalt() já gera um salt aleatório para cada usuário
             senha_hash = bcrypt.hashpw(password_plain, bcrypt.gensalt()).decode('utf-8')
 
             cursor.execute(
                 """
                 INSERT INTO usuarios
-                    (funcionario_id, nome, email, senha, cargo, createdAt, updatedAt, ativo)
+                    (funcionario_id, nome, email, senha, cargo, createdAt, updatedAt, ativo, perfil_acesso_id)
                 VALUES
                     (%(funcionario_id)s, %(login)s, %(email)s, %(senha_hash)s,
-                     'Administrador', NOW(), NOW(), 'S')
+                     'Administrador', NOW(), NOW(), 'S', %(perfil_id)s)
                 """,
                 {
                     'funcionario_id': funcionario_id,
                     'login': admin['login'],
                     'email': admin.get('email', ''),
                     'senha_hash': senha_hash,
+                    'perfil_id': perfil_id  # <--- Vinculando o usuário ao perfil
                 },
             )
 

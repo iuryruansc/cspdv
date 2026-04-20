@@ -20,27 +20,22 @@ def _excepthook(tipo, valor, tb):
 
 sys.excepthook = _excepthook
 
-
 def main():
     app = QApplication(sys.argv)
 
-    # ── Primeiro uso: exibe o wizard antes do login ──────────────────────
     try:
         if SetupModel.is_first_run():
             wizard = SetupWizardView()
             if wizard.exec_() != SetupWizardView.Accepted or not wizard.foi_concluido():
-                return  # usuário cancelou sem concluir
+                return
     except ConnectionError:
-        # Se não conseguiu conectar, o LoginView vai mostrar o erro
         pass
 
-    # ── Login normal ─────────────────────────────────────────────────────
     login = LoginView()
     if login.exec_() == LoginView.Accepted:
         selecao = SelecaoModoView()
         selecao.show()
         sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
     try:

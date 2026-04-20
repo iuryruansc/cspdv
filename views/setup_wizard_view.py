@@ -4,11 +4,10 @@ from typing import Union
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFrame, QStackedWidget, QComboBox, QWidget,
-    QProgressBar, QMessageBox
+    QProgressBar
 )
 from PyQt5.QtCore import QEvent, QTimer
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
 from models.setup_model import SetupModel
 
 # ─── Paleta e helpers de estilo ─────────────────────────────────────────────
@@ -376,7 +375,7 @@ class PageEndereco(WizardPage):
                     self.f_cidade.set_value(data.get('localidade', ''))
                     self.f_estado.set_value(data.get('uf', ''))
                     self.f_numero.field_widget.setFocus() # Pula para o número
-            except:
+            except (requests.RequestException, ValueError):
                 pass # Falha silenciosa se estiver sem internet
 
     def get_data(self):
@@ -706,6 +705,13 @@ class SetupWizardView(QDialog):
                 lbl.setStyleSheet(f"font-size:11px;color:{TEXT_MUTED};")
 
     def _salvar(self):
+        self._dados_empresa = {
+            **self.pages[1].get_data(),
+            **self.pages[2].get_data(),
+        }
+        self._dados_pdv   = self.pages[3].get_data()
+        self._dados_admin = self.pages[4].get_data()
+
         self.btn_avancar.setEnabled(False)
         self.btn_voltar.setEnabled(False)
         self.lbl_status.setText('Salvando...')
