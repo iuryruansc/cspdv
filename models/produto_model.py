@@ -13,12 +13,13 @@ class ProdutoModel:
                 (codigo,)
             )
             resultado = cursor.fetchone()
-            return cast(Optional[Dict[str, Any]], resultado)
+            return resultado
         except Exception as e:
             print(f"Erro ao buscar produto por código: {e}")
             raise
         finally:
             cursor.close()
+            conn.close()
 
     @staticmethod
     def inserir(dados: Dict[str, Any]) -> Optional[int]:
@@ -41,9 +42,11 @@ class ProdutoModel:
                 dados,
             )
             conn.commit()
-            return cast(Optional[int], cursor.lastrowid)
-        except Exception:
+            return cursor.lastrowid
+        except Exception as e:
             conn.rollback()
+            print(f"Erro ao inserir: {e}")
             raise
         finally:
             cursor.close()
+            conn.close()

@@ -22,6 +22,7 @@ class SetupModel:
             return True
         finally:
             cursor.close()
+            conn.close()
 
     @staticmethod
     def salvar_tudo(empresa: Dict[str, Any], pdv: Dict[str, Any], admin: Dict[str, Any]) -> None:
@@ -133,3 +134,4 @@ class SetupModel:
             raise
         finally:
             cursor.close()
+            conn.close()

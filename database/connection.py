@@ -1,46 +1,42 @@
 import os
-import mysql.connector
-from mysql.connector import Error
+from mysql.connector import Error, pooling
 from dotenv import load_dotenv
 
 # Carrega o .env que está na raiz do projeto (cspdv/.env)
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
-_connection = None
+_connection_pool = None
 
-def get_connection():
-    global _connection
-
-    # Reconecta se a conexão não existe ou foi perdida
-    if _connection is None or not _connection.is_connected():
+def get_connection_pool():
+    global _connection_pool
+    if _connection_pool is None:
         try:
-            _connection = mysql.connector.connect(
+            _connection_pool = pooling.MySQLConnectionPool(
+                pool_name="cspdv_pool",
+                pool_size=10,
+                pool_reset_session=True,
                 host=os.getenv('DB_HOST'),
                 port=int(os.getenv('DB_PORT', 3306)),
                 user=os.getenv('DB_USER'),
                 password=os.getenv('DB_PASSWORD'),
                 database=os.getenv('DB_NAME'),
                 charset='utf8mb4',
-                use_unicode=True,
-                autocommit=False,
-                connection_timeout=10,
-                use_pure=True
+                autocommit=False
             )
         except Error as e:
-            raise ConnectionError(
-                f"Não foi possível conectar ao banco de dados.\n"
-                f"Verifique as credenciais no arquivo .env\n"
-                f"Erro original: {e}"
-            )
-    return _connection
+            raise ConnectionError(f"Erro ao criar o pool de conexões: {e}")
+    return _connection_pool
 
+
+def get_connection():
+    try:
+        pool = get_connection_pool()
+        return pool.get_connection()
+    except Error as e:
+        raise ConnectionError(f"Não foi possível obter conexão do pool: {e}")
 
 def close_connection():
-    global _connection
-    if _connection and _connection.is_connected():
-        _connection.close()
-        _connection = None
-
+    pass
 
 # Teste rápido: # python database/connection.py
 if __name__ == '__main__':

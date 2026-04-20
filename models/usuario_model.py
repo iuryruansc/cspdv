@@ -22,6 +22,7 @@ class UsuarioModel:
             return cast(Optional[Dict[str, Any]], cursor.fetchone())
         finally:
             cursor.close()
+            conn.close()
 
     @staticmethod
     def verificar_senha(senha_digitada: str, senha_banco: str) -> bool:
@@ -82,3 +83,4 @@ class UsuarioModel:
             return [row['chave'] for row in resultados]
         finally:
             cursor.close()
+            conn.close()

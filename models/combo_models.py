@@ -14,6 +14,7 @@ class CategoriaModel:
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
             cursor.close()
+            conn.close()
 
 
 class MarcaModel:
@@ -28,6 +29,7 @@ class MarcaModel:
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
             cursor.close()
+            conn.close()
 
 
 class FornecedorModel:
@@ -47,6 +49,7 @@ class FornecedorModel:
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
             cursor.close()
+            conn.close()
 
 
 class UnidadeModel:
@@ -68,3 +71,4 @@ class UnidadeModel:
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
             cursor.close()
+            conn.close()
