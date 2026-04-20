@@ -6,7 +6,9 @@ class SetupModel:
 
     @staticmethod
     def is_first_run() -> bool:
+        print("Verificando se é a primeira execução do sistema...")
         conn = get_connection()
+        print("Conexão estabelecida, verificando tabela config_empresa...")
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT COUNT(*) FROM config_empresa")
