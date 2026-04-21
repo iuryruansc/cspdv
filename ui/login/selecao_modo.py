@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'selecao_modo.ui'
+# Form implementation generated from reading ui file 'D:\Python\cspdv\ui\login\selecao_modo.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -14,133 +14,256 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_SelecaoModo(object):
     def setupUi(self, SelecaoModo):
         SelecaoModo.setObjectName("SelecaoModo")
-        SelecaoModo.resize(1200, 800)
+        SelecaoModo.resize(1279, 820)
         SelecaoModo.setStyleSheet("\n"
-"    QWidget {\n"
-"        font-family: \'Segoe UI\', Arial;\n"
-"        background-color: #0f2a4a;\n"
-"        color: white;\n"
-"    }\n"
-"    QPushButton {\n"
-"        background-color: #1a3a5a;\n"
-"        border: 2px solid #2a4a6a;\n"
-"        border-radius: 15px;\n"
-"        color: white;\n"
-"        font-size: 18px;\n"
-"        font-weight: bold;\n"
-"        min-height: 120px;\n"
-"        min-width: 200px;\n"
-"    }\n"
-"    QPushButton:hover {\n"
-"        background-color: #2a4a6a;\n"
-"        border-color: #3a6aaa;\n"
-"    }\n"
-"    QPushButton:pressed {\n"
-"        background-color: #0a1a2a;\n"
-"    }\n"
-"    QLabel#lblTitulo {\n"
-"        font-size: 24px;\n"
-"        font-weight: bold;\n"
-"        color: #ffffff;\n"
-"    }\n"
-"    QLabel {\n"
-"        font-size: 14px;\n"
-"        color: #a0aec0;\n"
-"    }\n"
+"QWidget {\n"
+" font-family: \'Segoe UI\', Arial;\n"
+" background-color: #0c2238;\n"
+" color: white;\n"
+"}\n"
+"QFrame#frameHero {\n"
+" background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #13385c, stop:1 #0b1f33);\n"
+" border-bottom: 1px solid #21486b;\n"
+"}\n"
+"QLabel#lblTitulo {\n"
+" font-size: 28px;\n"
+" font-weight: bold;\n"
+" color: white;\n"
+"}\n"
+"QLabel#lblSubtitulo, QLabel#lblVersao {\n"
+" font-size: 12px;\n"
+" color: #a8c3da;\n"
+"}\n"
+"QFrame[card=\"true\"] {\n"
+" background-color: #112c47;\n"
+" border: 1px solid #234d72;\n"
+" border-radius: 18px;\n"
+"}\n"
+"QLabel[moduleBadge=\"true\"] {\n"
+" background-color: rgba(255,255,255,24);\n"
+" color: #d8ebfb;\n"
+" border: 1px solid rgba(255,255,255,35);\n"
+" border-radius: 11px;\n"
+" padding: 4px 10px;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+"}\n"
+"QLabel[moduleTitle=\"true\"] {\n"
+" font-size: 22px;\n"
+" font-weight: bold;\n"
+" color: white;\n"
+"}\n"
+"QLabel[moduleDesc=\"true\"] {\n"
+" font-size: 12px;\n"
+" color: #a8c3da;\n"
+"}\n"
+"QPushButton[moduleCard=\"true\"] {\n"
+" background-color: #163758;\n"
+" color: white;\n"
+" border: 1px solid #2b5e87;\n"
+" border-radius: 10px;\n"
+" padding: 10px 14px;\n"
+" font-size: 12px;\n"
+" font-weight: bold;\n"
+" text-align: center;\n"
+"}\n"
+"QPushButton[moduleCard=\"true\"]:hover {\n"
+" background-color: #1d466c;\n"
+" border-color: #3d78a8;\n"
+"}\n"
+"QPushButton[moduleCard=\"true\"]:pressed {\n"
+" background-color: #10314e;\n"
+"}\n"
+"QPushButton#btnSairSessao {\n"
+" background-color: #c53030;\n"
+" color: white;\n"
+" border: none;\n"
+" border-radius: 6px;\n"
+" padding: 8px 16px;\n"
+" font-size: 12px;\n"
+" font-weight: bold;\n"
+"}\n"
+"QPushButton#btnSairSessao:hover {\n"
+" background-color: #df4242;\n"
+"}\n"
+"QFrame#frameFooter {\n"
+" background-color: #09192a;\n"
+" border-top: 1px solid #163753;\n"
+"}\n"
+"QLabel#lblOperadorNome {\n"
+" font-weight: bold;\n"
+" color: #70e28b;\n"
+" font-size: 12px;\n"
+"}\n"
 "   ")
         self.mainVLayout = QtWidgets.QVBoxLayout(SelecaoModo)
         self.mainVLayout.setContentsMargins(0, 0, 0, 0)
         self.mainVLayout.setSpacing(0)
         self.mainVLayout.setObjectName("mainVLayout")
-        self.frameHeader = QtWidgets.QFrame(SelecaoModo)
-        self.frameHeader.setMinimumSize(QtCore.QSize(0, 80))
-        self.frameHeader.setStyleSheet("background-color: #0a1f35; border-bottom: 1px solid #1a3a5a;")
-        self.frameHeader.setObjectName("frameHeader")
-        self.headerLayout = QtWidgets.QHBoxLayout(self.frameHeader)
-        self.headerLayout.setObjectName("headerLayout")
-        spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.headerLayout.addItem(spacerItem)
-        self.lblTitulo = QtWidgets.QLabel(self.frameHeader)
+        self.frameHero = QtWidgets.QFrame(SelecaoModo)
+        self.frameHero.setMinimumSize(QtCore.QSize(0, 146))
+        self.frameHero.setMaximumSize(QtCore.QSize(16777215, 146))
+        self.frameHero.setObjectName("frameHero")
+        self.heroVLayout = QtWidgets.QVBoxLayout(self.frameHero)
+        self.heroVLayout.setContentsMargins(28, 24, 28, 20)
+        self.heroVLayout.setObjectName("heroVLayout")
+        self.heroTopLayout = QtWidgets.QHBoxLayout()
+        self.heroTopLayout.setObjectName("heroTopLayout")
+        self.lblTitulo = QtWidgets.QLabel(self.frameHero)
         self.lblTitulo.setObjectName("lblTitulo")
-        self.headerLayout.addWidget(self.lblTitulo)
-        spacerItem1 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.headerLayout.addItem(spacerItem1)
-        self.btnSairSessao = QtWidgets.QPushButton(self.frameHeader)
-        self.btnSairSessao.setMinimumSize(QtCore.QSize(104, 43))
-        self.btnSairSessao.setStyleSheet("background-color: #c53030; min-height: 40px; min-width: 100px; font-size: 12px;")
+        self.heroTopLayout.addWidget(self.lblTitulo)
+        spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.heroTopLayout.addItem(spacerItem)
+        self.btnSairSessao = QtWidgets.QPushButton(self.frameHero)
+        self.btnSairSessao.setMinimumSize(QtCore.QSize(110, 38))
         self.btnSairSessao.setObjectName("btnSairSessao")
-        self.headerLayout.addWidget(self.btnSairSessao)
-        self.mainVLayout.addWidget(self.frameHeader)
-        spacerItem2 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.mainVLayout.addItem(spacerItem2)
+        self.heroTopLayout.addWidget(self.btnSairSessao)
+        self.heroVLayout.addLayout(self.heroTopLayout)
+        self.lblSubtitulo = QtWidgets.QLabel(self.frameHero)
+        self.lblSubtitulo.setObjectName("lblSubtitulo")
+        self.heroVLayout.addWidget(self.lblSubtitulo)
+        self.mainVLayout.addWidget(self.frameHero)
         self.layoutContent = QtWidgets.QGridLayout()
-        self.layoutContent.setContentsMargins(50, -1, 50, -1)
-        self.layoutContent.setSpacing(40)
+        self.layoutContent.setContentsMargins(26, 24, 26, 24)
+        self.layoutContent.setSpacing(18)
         self.layoutContent.setObjectName("layoutContent")
-        self.vboxPDV = QtWidgets.QVBoxLayout()
-        self.vboxPDV.setObjectName("vboxPDV")
-        self.btnFrenteCaixa = QtWidgets.QPushButton(SelecaoModo)
-        self.btnFrenteCaixa.setObjectName("btnFrenteCaixa")
-        self.vboxPDV.addWidget(self.btnFrenteCaixa)
-        self.lblFrenteCaixa = QtWidgets.QLabel(SelecaoModo)
-        self.lblFrenteCaixa.setAlignment(QtCore.Qt.AlignCenter)
+        self.cardFrenteCaixa = QtWidgets.QFrame(SelecaoModo)
+        self.cardFrenteCaixa.setObjectName("cardFrenteCaixa")
+        self.cardFrenteCaixaLayout = QtWidgets.QVBoxLayout(self.cardFrenteCaixa)
+        self.cardFrenteCaixaLayout.setContentsMargins(18, 18, 18, 18)
+        self.cardFrenteCaixaLayout.setSpacing(12)
+        self.cardFrenteCaixaLayout.setObjectName("cardFrenteCaixaLayout")
+        self.lblBadgePdv = QtWidgets.QLabel(self.cardFrenteCaixa)
+        self.lblBadgePdv.setObjectName("lblBadgePdv")
+        self.cardFrenteCaixaLayout.addWidget(self.lblBadgePdv)
+        self.lblTitlePdv = QtWidgets.QLabel(self.cardFrenteCaixa)
+        self.lblTitlePdv.setObjectName("lblTitlePdv")
+        self.cardFrenteCaixaLayout.addWidget(self.lblTitlePdv)
+        self.lblFrenteCaixa = QtWidgets.QLabel(self.cardFrenteCaixa)
+        self.lblFrenteCaixa.setWordWrap(True)
         self.lblFrenteCaixa.setObjectName("lblFrenteCaixa")
-        self.vboxPDV.addWidget(self.lblFrenteCaixa)
-        self.layoutContent.addLayout(self.vboxPDV, 0, 0, 1, 1)
-        self.vboxEstoque = QtWidgets.QVBoxLayout()
-        self.vboxEstoque.setObjectName("vboxEstoque")
-        self.btnEstoque = QtWidgets.QPushButton(SelecaoModo)
-        self.btnEstoque.setObjectName("btnEstoque")
-        self.vboxEstoque.addWidget(self.btnEstoque)
-        self.lblEstoque = QtWidgets.QLabel(SelecaoModo)
-        self.lblEstoque.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblEstoque.setObjectName("lblEstoque")
-        self.vboxEstoque.addWidget(self.lblEstoque)
-        self.layoutContent.addLayout(self.vboxEstoque, 0, 1, 1, 1)
-        self.vboxFinanceiro = QtWidgets.QVBoxLayout()
-        self.vboxFinanceiro.setObjectName("vboxFinanceiro")
-        self.btnFinanceiro = QtWidgets.QPushButton(SelecaoModo)
-        self.btnFinanceiro.setObjectName("btnFinanceiro")
-        self.vboxFinanceiro.addWidget(self.btnFinanceiro)
-        self.lblFinanceiro = QtWidgets.QLabel(SelecaoModo)
-        self.lblFinanceiro.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblFinanceiro.setObjectName("lblFinanceiro")
-        self.vboxFinanceiro.addWidget(self.lblFinanceiro)
-        self.layoutContent.addLayout(self.vboxFinanceiro, 0, 2, 1, 1)
-        self.vboxRelatorios = QtWidgets.QVBoxLayout()
-        self.vboxRelatorios.setObjectName("vboxRelatorios")
-        self.btnRelatorios = QtWidgets.QPushButton(SelecaoModo)
-        self.btnRelatorios.setObjectName("btnRelatorios")
-        self.vboxRelatorios.addWidget(self.btnRelatorios)
-        self.lblRelatorios = QtWidgets.QLabel(SelecaoModo)
-        self.lblRelatorios.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblRelatorios.setObjectName("lblRelatorios")
-        self.vboxRelatorios.addWidget(self.lblRelatorios)
-        self.layoutContent.addLayout(self.vboxRelatorios, 1, 0, 1, 1)
-        self.vboxAdmin = QtWidgets.QVBoxLayout()
-        self.vboxAdmin.setObjectName("vboxAdmin")
-        self.btnPainelAdmin = QtWidgets.QPushButton(SelecaoModo)
-        self.btnPainelAdmin.setObjectName("btnPainelAdmin")
-        self.vboxAdmin.addWidget(self.btnPainelAdmin)
-        self.lblPainelAdmin = QtWidgets.QLabel(SelecaoModo)
-        self.lblPainelAdmin.setAlignment(QtCore.Qt.AlignCenter)
+        self.cardFrenteCaixaLayout.addWidget(self.lblFrenteCaixa)
+        spacerItem1 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.cardFrenteCaixaLayout.addItem(spacerItem1)
+        self.btnFrenteCaixa = QtWidgets.QPushButton(self.cardFrenteCaixa)
+        self.btnFrenteCaixa.setObjectName("btnFrenteCaixa")
+        self.cardFrenteCaixaLayout.addWidget(self.btnFrenteCaixa)
+        self.layoutContent.addWidget(self.cardFrenteCaixa, 0, 0, 1, 1)
+        self.cardAdmin = QtWidgets.QFrame(SelecaoModo)
+        self.cardAdmin.setObjectName("cardAdmin")
+        self.cardAdminLayout = QtWidgets.QVBoxLayout(self.cardAdmin)
+        self.cardAdminLayout.setContentsMargins(18, 18, 18, 18)
+        self.cardAdminLayout.setSpacing(12)
+        self.cardAdminLayout.setObjectName("cardAdminLayout")
+        self.lblBadgeAdmin = QtWidgets.QLabel(self.cardAdmin)
+        self.lblBadgeAdmin.setObjectName("lblBadgeAdmin")
+        self.cardAdminLayout.addWidget(self.lblBadgeAdmin)
+        self.lblTitleAdmin = QtWidgets.QLabel(self.cardAdmin)
+        self.lblTitleAdmin.setObjectName("lblTitleAdmin")
+        self.cardAdminLayout.addWidget(self.lblTitleAdmin)
+        self.lblPainelAdmin = QtWidgets.QLabel(self.cardAdmin)
+        self.lblPainelAdmin.setWordWrap(True)
         self.lblPainelAdmin.setObjectName("lblPainelAdmin")
-        self.vboxAdmin.addWidget(self.lblPainelAdmin)
-        self.layoutContent.addLayout(self.vboxAdmin, 1, 1, 1, 1)
-        self.mainVLayout.addLayout(self.layoutContent)
+        self.cardAdminLayout.addWidget(self.lblPainelAdmin)
+        spacerItem2 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.cardAdminLayout.addItem(spacerItem2)
+        self.btnPainelAdmin = QtWidgets.QPushButton(self.cardAdmin)
+        self.btnPainelAdmin.setObjectName("btnPainelAdmin")
+        self.cardAdminLayout.addWidget(self.btnPainelAdmin)
+        self.layoutContent.addWidget(self.cardAdmin, 0, 1, 1, 1)
+        self.cardEstoque = QtWidgets.QFrame(SelecaoModo)
+        self.cardEstoque.setObjectName("cardEstoque")
+        self.cardEstoqueLayout = QtWidgets.QVBoxLayout(self.cardEstoque)
+        self.cardEstoqueLayout.setContentsMargins(18, 18, 18, 18)
+        self.cardEstoqueLayout.setSpacing(12)
+        self.cardEstoqueLayout.setObjectName("cardEstoqueLayout")
+        self.lblBadgeEstoque = QtWidgets.QLabel(self.cardEstoque)
+        self.lblBadgeEstoque.setObjectName("lblBadgeEstoque")
+        self.cardEstoqueLayout.addWidget(self.lblBadgeEstoque)
+        self.lblTitleEstoque = QtWidgets.QLabel(self.cardEstoque)
+        self.lblTitleEstoque.setObjectName("lblTitleEstoque")
+        self.cardEstoqueLayout.addWidget(self.lblTitleEstoque)
+        self.lblEstoque = QtWidgets.QLabel(self.cardEstoque)
+        self.lblEstoque.setWordWrap(True)
+        self.lblEstoque.setObjectName("lblEstoque")
+        self.cardEstoqueLayout.addWidget(self.lblEstoque)
         spacerItem3 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.mainVLayout.addItem(spacerItem3)
+        self.cardEstoqueLayout.addItem(spacerItem3)
+        self.btnEstoque = QtWidgets.QPushButton(self.cardEstoque)
+        self.btnEstoque.setObjectName("btnEstoque")
+        self.cardEstoqueLayout.addWidget(self.btnEstoque)
+        self.layoutContent.addWidget(self.cardEstoque, 0, 2, 1, 1)
+        self.cardFinanceiro = QtWidgets.QFrame(SelecaoModo)
+        self.cardFinanceiro.setObjectName("cardFinanceiro")
+        self.cardFinanceiroLayout = QtWidgets.QVBoxLayout(self.cardFinanceiro)
+        self.cardFinanceiroLayout.setContentsMargins(18, 18, 18, 18)
+        self.cardFinanceiroLayout.setSpacing(12)
+        self.cardFinanceiroLayout.setObjectName("cardFinanceiroLayout")
+        self.lblBadgeFinanceiro = QtWidgets.QLabel(self.cardFinanceiro)
+        self.lblBadgeFinanceiro.setObjectName("lblBadgeFinanceiro")
+        self.cardFinanceiroLayout.addWidget(self.lblBadgeFinanceiro)
+        self.lblTitleFinanceiro = QtWidgets.QLabel(self.cardFinanceiro)
+        self.lblTitleFinanceiro.setObjectName("lblTitleFinanceiro")
+        self.cardFinanceiroLayout.addWidget(self.lblTitleFinanceiro)
+        self.lblFinanceiro = QtWidgets.QLabel(self.cardFinanceiro)
+        self.lblFinanceiro.setWordWrap(True)
+        self.lblFinanceiro.setObjectName("lblFinanceiro")
+        self.cardFinanceiroLayout.addWidget(self.lblFinanceiro)
+        spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.cardFinanceiroLayout.addItem(spacerItem4)
+        self.btnFinanceiro = QtWidgets.QPushButton(self.cardFinanceiro)
+        self.btnFinanceiro.setObjectName("btnFinanceiro")
+        self.cardFinanceiroLayout.addWidget(self.btnFinanceiro)
+        self.layoutContent.addWidget(self.cardFinanceiro, 1, 0, 1, 1)
+        self.cardRelatorios = QtWidgets.QFrame(SelecaoModo)
+        self.cardRelatorios.setObjectName("cardRelatorios")
+        self.cardRelatoriosLayout = QtWidgets.QVBoxLayout(self.cardRelatorios)
+        self.cardRelatoriosLayout.setContentsMargins(18, 18, 18, 18)
+        self.cardRelatoriosLayout.setSpacing(12)
+        self.cardRelatoriosLayout.setObjectName("cardRelatoriosLayout")
+        self.lblBadgeRelatorios = QtWidgets.QLabel(self.cardRelatorios)
+        self.lblBadgeRelatorios.setObjectName("lblBadgeRelatorios")
+        self.cardRelatoriosLayout.addWidget(self.lblBadgeRelatorios)
+        self.lblTitleRelatorios = QtWidgets.QLabel(self.cardRelatorios)
+        self.lblTitleRelatorios.setObjectName("lblTitleRelatorios")
+        self.cardRelatoriosLayout.addWidget(self.lblTitleRelatorios)
+        self.lblRelatorios = QtWidgets.QLabel(self.cardRelatorios)
+        self.lblRelatorios.setWordWrap(True)
+        self.lblRelatorios.setObjectName("lblRelatorios")
+        self.cardRelatoriosLayout.addWidget(self.lblRelatorios)
+        spacerItem5 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.cardRelatoriosLayout.addItem(spacerItem5)
+        self.btnRelatorios = QtWidgets.QPushButton(self.cardRelatorios)
+        self.btnRelatorios.setObjectName("btnRelatorios")
+        self.cardRelatoriosLayout.addWidget(self.btnRelatorios)
+        self.layoutContent.addWidget(self.cardRelatorios, 1, 1, 1, 1)
+        self.cardResumo = QtWidgets.QFrame(SelecaoModo)
+        self.cardResumo.setObjectName("cardResumo")
+        self.cardResumoLayout = QtWidgets.QVBoxLayout(self.cardResumo)
+        self.cardResumoLayout.setContentsMargins(24, 22, 24, 22)
+        self.cardResumoLayout.setSpacing(14)
+        self.cardResumoLayout.setObjectName("cardResumoLayout")
+        self.lblResumoTitle = QtWidgets.QLabel(self.cardResumo)
+        self.lblResumoTitle.setObjectName("lblResumoTitle")
+        self.cardResumoLayout.addWidget(self.lblResumoTitle)
+        self.lblResumoText3 = QtWidgets.QLabel(self.cardResumo)
+        self.lblResumoText3.setObjectName("lblResumoText3")
+        self.cardResumoLayout.addWidget(self.lblResumoText3)
+        self.layoutContent.addWidget(self.cardResumo, 1, 2, 1, 1)
+        self.mainVLayout.addLayout(self.layoutContent)
         self.frameFooter = QtWidgets.QFrame(SelecaoModo)
-        self.frameFooter.setMinimumSize(QtCore.QSize(0, 50))
+        self.frameFooter.setMinimumSize(QtCore.QSize(0, 54))
+        self.frameFooter.setMaximumSize(QtCore.QSize(16777215, 54))
         self.frameFooter.setObjectName("frameFooter")
         self.footerLayout = QtWidgets.QHBoxLayout(self.frameFooter)
+        self.footerLayout.setContentsMargins(18, 8, 18, 8)
+        self.footerLayout.setSpacing(10)
         self.footerLayout.setObjectName("footerLayout")
         self.lblOperadorNome = QtWidgets.QLabel(self.frameFooter)
-        self.lblOperadorNome.setStyleSheet("font-weight: bold; color: #40c840;")
         self.lblOperadorNome.setObjectName("lblOperadorNome")
         self.footerLayout.addWidget(self.lblOperadorNome)
-        spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.footerLayout.addItem(spacerItem4)
+        spacerItem6 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.footerLayout.addItem(spacerItem6)
         self.lblVersao = QtWidgets.QLabel(self.frameFooter)
         self.lblVersao.setObjectName("lblVersao")
         self.footerLayout.addWidget(self.lblVersao)
@@ -151,24 +274,65 @@ class Ui_SelecaoModo(object):
 
     def retranslateUi(self, SelecaoModo):
         _translate = QtCore.QCoreApplication.translate
-        SelecaoModo.setWindowTitle(_translate("SelecaoModo", "CSPdv - Seleção de Modo"))
-        self.lblTitulo.setText(_translate("SelecaoModo", "CLAUDINHA STORE - SELEÇÃO DE MÓDULO"))
+        SelecaoModo.setWindowTitle(_translate("SelecaoModo", "CSPdv - Seleção de Áreas"))
+        self.lblTitulo.setText(_translate("SelecaoModo", "CSPdv • Centro de Operações"))
         self.btnSairSessao.setText(_translate("SelecaoModo", "SAIR (ESC)"))
-        self.btnFrenteCaixa.setToolTip(_translate("SelecaoModo", "[F1] Acesso ao PDV"))
-        self.btnFrenteCaixa.setText(_translate("SelecaoModo", "FRENTE DE CAIXA"))
-        self.lblFrenteCaixa.setText(_translate("SelecaoModo", "Vendas e Operações (F1)"))
-        self.btnEstoque.setToolTip(_translate("SelecaoModo", "[F3] Gestão de Produtos"))
-        self.btnEstoque.setText(_translate("SelecaoModo", "ESTOQUE"))
-        self.lblEstoque.setText(_translate("SelecaoModo", "Produtos e Compras (F3)"))
-        self.btnFinanceiro.setToolTip(_translate("SelecaoModo", "[F4] Fluxo de Caixa"))
-        self.btnFinanceiro.setText(_translate("SelecaoModo", "FINANCEIRO"))
-        self.lblFinanceiro.setText(_translate("SelecaoModo", "Contas e Fluxo (F4)"))
-        self.btnRelatorios.setToolTip(_translate("SelecaoModo", "[F5] Indicadores de Venda"))
-        self.btnRelatorios.setText(_translate("SelecaoModo", "RELATÓRIOS"))
-        self.lblRelatorios.setText(_translate("SelecaoModo", "Desempenho e BI (F5)"))
-        self.btnPainelAdmin.setToolTip(_translate("SelecaoModo", "[F2] Configurações do Sistema"))
-        self.btnPainelAdmin.setText(_translate("SelecaoModo", "PAINEL ADMIN"))
-        self.lblPainelAdmin.setText(_translate("SelecaoModo", "Configurações (F2)"))
+        self.lblSubtitulo.setText(_translate("SelecaoModo", "Selecione o módulo desejado."))
+        self.cardFrenteCaixa.setProperty("card", _translate("SelecaoModo", "true"))
+        self.lblBadgePdv.setText(_translate("SelecaoModo", "F1 • OPERAÇÃO"))
+        self.lblBadgePdv.setProperty("moduleBadge", _translate("SelecaoModo", "true"))
+        self.lblTitlePdv.setText(_translate("SelecaoModo", "Frente de Caixa"))
+        self.lblTitlePdv.setProperty("moduleTitle", _translate("SelecaoModo", "true"))
+        self.lblFrenteCaixa.setText(_translate("SelecaoModo", "Vendas, caixa e atendimento em operação contínua."))
+        self.lblFrenteCaixa.setProperty("moduleDesc", _translate("SelecaoModo", "true"))
+        self.btnFrenteCaixa.setToolTip(_translate("SelecaoModo", "[F1] Frente de caixa"))
+        self.btnFrenteCaixa.setText(_translate("SelecaoModo", "Acessar Frente de Caixa"))
+        self.btnFrenteCaixa.setProperty("moduleCard", _translate("SelecaoModo", "true"))
+        self.cardAdmin.setProperty("card", _translate("SelecaoModo", "true"))
+        self.lblBadgeAdmin.setText(_translate("SelecaoModo", "F2 • ADMINISTRAÇÃO"))
+        self.lblBadgeAdmin.setProperty("moduleBadge", _translate("SelecaoModo", "true"))
+        self.lblTitleAdmin.setText(_translate("SelecaoModo", "Painel Admin"))
+        self.lblTitleAdmin.setProperty("moduleTitle", _translate("SelecaoModo", "true"))
+        self.lblPainelAdmin.setText(_translate("SelecaoModo", "Usuários, perfis, permissões, cargos e cadastros mestres."))
+        self.lblPainelAdmin.setProperty("moduleDesc", _translate("SelecaoModo", "true"))
+        self.btnPainelAdmin.setToolTip(_translate("SelecaoModo", "[F2] Painel administrativo"))
+        self.btnPainelAdmin.setText(_translate("SelecaoModo", "Acessar Painel Admin"))
+        self.btnPainelAdmin.setProperty("moduleCard", _translate("SelecaoModo", "true"))
+        self.cardEstoque.setProperty("card", _translate("SelecaoModo", "true"))
+        self.lblBadgeEstoque.setText(_translate("SelecaoModo", "F3 • ESTOQUE"))
+        self.lblBadgeEstoque.setProperty("moduleBadge", _translate("SelecaoModo", "true"))
+        self.lblTitleEstoque.setText(_translate("SelecaoModo", "Estoque"))
+        self.lblTitleEstoque.setProperty("moduleTitle", _translate("SelecaoModo", "true"))
+        self.lblEstoque.setText(_translate("SelecaoModo", "Produtos, lotes, validade, ajustes e movimentações."))
+        self.lblEstoque.setProperty("moduleDesc", _translate("SelecaoModo", "true"))
+        self.btnEstoque.setToolTip(_translate("SelecaoModo", "[F3] Estoque"))
+        self.btnEstoque.setText(_translate("SelecaoModo", "Acessar Estoque"))
+        self.btnEstoque.setProperty("moduleCard", _translate("SelecaoModo", "true"))
+        self.cardFinanceiro.setProperty("card", _translate("SelecaoModo", "true"))
+        self.lblBadgeFinanceiro.setText(_translate("SelecaoModo", "F4 • FINANCEIRO"))
+        self.lblBadgeFinanceiro.setProperty("moduleBadge", _translate("SelecaoModo", "true"))
+        self.lblTitleFinanceiro.setText(_translate("SelecaoModo", "Financeiro"))
+        self.lblTitleFinanceiro.setProperty("moduleTitle", _translate("SelecaoModo", "true"))
+        self.lblFinanceiro.setText(_translate("SelecaoModo", "Caixa, pagamentos, parcelas, reembolsos e posição diária."))
+        self.lblFinanceiro.setProperty("moduleDesc", _translate("SelecaoModo", "true"))
+        self.btnFinanceiro.setToolTip(_translate("SelecaoModo", "[F4] Financeiro"))
+        self.btnFinanceiro.setText(_translate("SelecaoModo", "Acessar Financeiro"))
+        self.btnFinanceiro.setProperty("moduleCard", _translate("SelecaoModo", "true"))
+        self.cardRelatorios.setProperty("card", _translate("SelecaoModo", "true"))
+        self.lblBadgeRelatorios.setText(_translate("SelecaoModo", "F5 • RELATÓRIOS"))
+        self.lblBadgeRelatorios.setProperty("moduleBadge", _translate("SelecaoModo", "true"))
+        self.lblTitleRelatorios.setText(_translate("SelecaoModo", "Relatórios"))
+        self.lblTitleRelatorios.setProperty("moduleTitle", _translate("SelecaoModo", "true"))
+        self.lblRelatorios.setText(_translate("SelecaoModo", "Indicadores, rankings, ticket médio e visão gerencial."))
+        self.lblRelatorios.setProperty("moduleDesc", _translate("SelecaoModo", "true"))
+        self.btnRelatorios.setToolTip(_translate("SelecaoModo", "[F5] Relatórios"))
+        self.btnRelatorios.setText(_translate("SelecaoModo", "Acessar Relatórios"))
+        self.btnRelatorios.setProperty("moduleCard", _translate("SelecaoModo", "true"))
+        self.cardResumo.setProperty("card", _translate("SelecaoModo", "true"))
+        self.lblResumoTitle.setText(_translate("SelecaoModo", "Atalhos"))
+        self.lblResumoTitle.setProperty("moduleTitle", _translate("SelecaoModo", "true"))
+        self.lblResumoText3.setText(_translate("SelecaoModo", "Use F1 a F5 para acesso rápido."))
+        self.lblResumoText3.setProperty("moduleDesc", _translate("SelecaoModo", "true"))
         self.lblOperadorNome.setText(_translate("SelecaoModo", "OPERADOR: ---"))
         self.lblVersao.setText(_translate("SelecaoModo", "CSPdv v1.0.0"))
 

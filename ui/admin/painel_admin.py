@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'PainelAdmin.ui'
+# Form implementation generated from reading ui file 'painel_admin.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PainelAdmin(object):
     def setupUi(self, PainelAdmin):
         PainelAdmin.setObjectName("PainelAdmin")
-        PainelAdmin.resize(1376, 758)
+        PainelAdmin.resize(1388, 812)
         PainelAdmin.setStyleSheet("QWidget { font-family: Arial; }")
         self.centralWidget = QtWidgets.QWidget(PainelAdmin)
         self.centralWidget.setObjectName("centralWidget")
@@ -24,10 +24,9 @@ class Ui_PainelAdmin(object):
         self.mainVLayout.setObjectName("mainVLayout")
         self.frameHeader = QtWidgets.QFrame(self.centralWidget)
         self.frameHeader.setStyleSheet("\n"
-"        QFrame#frameHeader {\n"
-"         background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"          stop:0 #3585c8, stop:1 #1a5fa0);\n"
-"        }\n"
+"QFrame#frameHeader {\n"
+" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);\n"
+"}\n"
 "       ")
         self.frameHeader.setObjectName("frameHeader")
         self.headerHLayout = QtWidgets.QHBoxLayout(self.frameHeader)
@@ -35,11 +34,7 @@ class Ui_PainelAdmin(object):
         self.headerHLayout.setSpacing(12)
         self.headerHLayout.setObjectName("headerHLayout")
         self.lblLogo = QtWidgets.QLabel(self.frameHeader)
-        self.lblLogo.setStyleSheet("\n"
-"           color: white;\n"
-"           font-size: 28px;\n"
-"           font-weight: bold;\n"
-"          ")
+        self.lblLogo.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
         self.lblLogo.setObjectName("lblLogo")
         self.headerHLayout.addWidget(self.lblLogo)
         self.frameSepHeader = QtWidgets.QFrame(self.frameHeader)
@@ -49,19 +44,19 @@ class Ui_PainelAdmin(object):
         self.headerHLayout.addWidget(self.frameSepHeader)
         self.lblBadgeAdmin = QtWidgets.QLabel(self.frameHeader)
         self.lblBadgeAdmin.setStyleSheet("\n"
-"           QLabel {\n"
-"            background-color: rgba(255,255,255,30);\n"
-"            color: #ffe080;\n"
-"            font-size: 12px;\n"
-"            font-weight: bold;\n"
-"            border: 1px solid rgba(255,255,255,60);\n"
-"            border-radius: 4px;\n"
-"            padding: 3px 10px;\n"
-"           }\n"
+"QLabel {\n"
+" background-color: rgba(255,255,255,30);\n"
+" color: #ffe080;\n"
+" font-size: 12px;\n"
+" font-weight: bold;\n"
+" border: 1px solid rgba(255,255,255,60);\n"
+" border-radius: 4px;\n"
+" padding: 3px 10px;\n"
+"}\n"
 "          ")
         self.lblBadgeAdmin.setObjectName("lblBadgeAdmin")
         self.headerHLayout.addWidget(self.lblBadgeAdmin)
-        spacerItem = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.headerHLayout.addItem(spacerItem)
         self.lblOperadorInfo = QtWidgets.QLabel(self.frameHeader)
         self.lblOperadorInfo.setStyleSheet("color: #d0e8ff; font-size: 11px;")
@@ -69,69 +64,61 @@ class Ui_PainelAdmin(object):
         self.headerHLayout.addWidget(self.lblOperadorInfo)
         self.lblDataHora = QtWidgets.QLabel(self.frameHeader)
         self.lblDataHora.setStyleSheet("\n"
-"           QLabel {\n"
-"            color: white;\n"
-"            font-size: 11px;\n"
-"            font-weight: bold;\n"
-"            background-color: rgba(0,0,0,30);\n"
-"            border-radius: 3px;\n"
-"            padding: 3px 8px;\n"
-"           }\n"
+"QLabel {\n"
+" color: white;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+" background-color: rgba(0,0,0,30);\n"
+" border-radius: 3px;\n"
+" padding: 3px 8px;\n"
+"}\n"
 "          ")
         self.lblDataHora.setObjectName("lblDataHora")
         self.headerHLayout.addWidget(self.lblDataHora)
         self.btnSair = QtWidgets.QPushButton(self.frameHeader)
-        self.btnSair.setMinimumSize(QtCore.QSize(80, 32))
+        self.btnSair.setMinimumSize(QtCore.QSize(86, 34))
         self.btnSair.setStyleSheet("\n"
-"           QPushButton {\n"
-"            background-color: #cc2222;\n"
-"            color: white;\n"
-"            font-size: 11px;\n"
-"            font-weight: bold;\n"
-"            border: none;\n"
-"            border-radius: 4px;\n"
-"            padding: 4px 12px;\n"
-"           }\n"
-"           QPushButton:hover  { background-color: #e03030; }\n"
-"           QPushButton:pressed{ background-color: #aa1010; }\n"
+"QPushButton {\n"
+" background-color: #cc2222;\n"
+" color: white;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+" border: none;\n"
+" border-radius: 4px;\n"
+" padding: 4px 12px;\n"
+"}\n"
+"QPushButton:hover  { background-color: #e03030; }\n"
+"QPushButton:pressed{ background-color: #aa1010; }\n"
 "          ")
         self.btnSair.setObjectName("btnSair")
         self.headerHLayout.addWidget(self.btnSair)
         self.mainVLayout.addWidget(self.frameHeader)
         self.frameNavBar = QtWidgets.QFrame(self.centralWidget)
-        self.frameNavBar.setMinimumHeight(44)
-        self.frameNavBar.setMaximumHeight(44)
+        self.frameNavBar.setMinimumSize(QtCore.QSize(0, 46))
+        self.frameNavBar.setMaximumSize(QtCore.QSize(16777215, 46))
         self.frameNavBar.setStyleSheet("\n"
-"       QFrame#frameNavBar { background-color: #1a5fa0; }\n"
-"       QPushButton {\n"
-"        background-color: transparent;\n"
-"        color: #c8dff4;\n"
-"        font-size: 12px;\n"
-"        font-weight: bold;\n"
-"        border: none;\n"
-"        border-bottom: 3px solid transparent;\n"
-"        min-height: 44px;\n"
-"        padding: 6px 18px;\n"
-"       }\n"
-"       QPushButton:hover {\n"
-"        color: white;\n"
-"        background-color: rgba(255,255,255,15);\n"
-"        border-bottom: 3px solid rgba(255,255,255,60);\n"
-"       }\n"
-"       QPushButton:checked {\n"
-"        color: white;\n"
-"        background-color: rgba(255,255,255,20);\n"
-"        border-bottom: 3px solid #ffe080;\n"
-"       }\n"
-"       /* Sub-itens de catálogo (marcas/fornec/categ) — fonte menor */\n"
-"       QPushButton[navSub=\"true\"] {\n"
-"        font-size: 11px;\n"
-"        padding: 4px 12px;\n"
-"        color: #a8d4f0;\n"
-"       }\n"
-"       QPushButton[navSub=\"true\"]:hover  { color: white; }\n"
-"       QPushButton[navSub=\"true\"]:checked { color: white; }\n"
-"      ")
+"QFrame#frameNavBar { background-color: #1a5fa0; }\n"
+"QPushButton {\n"
+" background-color: transparent;\n"
+" color: #c8dff4;\n"
+" font-size: 12px;\n"
+" font-weight: bold;\n"
+" border: none;\n"
+" border-bottom: 3px solid transparent;\n"
+" min-height: 44px;\n"
+" padding: 6px 18px;\n"
+"}\n"
+"QPushButton:hover {\n"
+" color: white;\n"
+" background-color: rgba(255,255,255,15);\n"
+" border-bottom: 3px solid rgba(255,255,255,60);\n"
+"}\n"
+"QPushButton:checked {\n"
+" color: white;\n"
+" background-color: rgba(255,255,255,20);\n"
+" border-bottom: 3px solid #ffe080;\n"
+"}\n"
+"       ")
         self.frameNavBar.setObjectName("frameNavBar")
         self.navHLayout = QtWidgets.QHBoxLayout(self.frameNavBar)
         self.navHLayout.setContentsMargins(8, 0, 0, 0)
@@ -142,14 +129,18 @@ class Ui_PainelAdmin(object):
         self.btnNavDashboard.setChecked(True)
         self.btnNavDashboard.setObjectName("btnNavDashboard")
         self.navHLayout.addWidget(self.btnNavDashboard)
-        self.btnNavVendas = QtWidgets.QPushButton(self.frameNavBar)
-        self.btnNavVendas.setCheckable(True)
-        self.btnNavVendas.setObjectName("btnNavVendas")
-        self.navHLayout.addWidget(self.btnNavVendas)
         self.btnNavProdutos = QtWidgets.QPushButton(self.frameNavBar)
         self.btnNavProdutos.setCheckable(True)
         self.btnNavProdutos.setObjectName("btnNavProdutos")
         self.navHLayout.addWidget(self.btnNavProdutos)
+        self.btnNavUsuarios = QtWidgets.QPushButton(self.frameNavBar)
+        self.btnNavUsuarios.setCheckable(True)
+        self.btnNavUsuarios.setObjectName("btnNavUsuarios")
+        self.navHLayout.addWidget(self.btnNavUsuarios)
+        self.btnNavVendas = QtWidgets.QPushButton(self.frameNavBar)
+        self.btnNavVendas.setCheckable(True)
+        self.btnNavVendas.setObjectName("btnNavVendas")
+        self.navHLayout.addWidget(self.btnNavVendas)
         self.btnNavClientes = QtWidgets.QPushButton(self.frameNavBar)
         self.btnNavClientes.setCheckable(True)
         self.btnNavClientes.setObjectName("btnNavClientes")
@@ -158,32 +149,66 @@ class Ui_PainelAdmin(object):
         self.btnNavLotes.setCheckable(True)
         self.btnNavLotes.setObjectName("btnNavLotes")
         self.navHLayout.addWidget(self.btnNavLotes)
-        self.btnNavUsuarios = QtWidgets.QPushButton(self.frameNavBar)
-        self.btnNavUsuarios.setCheckable(True)
-        self.btnNavUsuarios.setObjectName("btnNavUsuarios")
-        self.navHLayout.addWidget(self.btnNavUsuarios)
-        self.navSeparator = QtWidgets.QFrame(self.frameNavBar)
-        self.navSeparator.setMinimumWidth(1)
-        self.navSeparator.setMaximumWidth(1)
-        self.navSeparator.setStyleSheet("background-color:rgba(255,255,255,40);")
-        self.navSeparator.setFrameShape(QtWidgets.QFrame.VLine)
-        self.navSeparator.setObjectName("navSeparator")
-        self.navHLayout.addWidget(self.navSeparator)
-        self.btnNavMarcas = QtWidgets.QPushButton(self.frameNavBar)
-        self.btnNavMarcas.setCheckable(True)
-        self.btnNavMarcas.setObjectName("btnNavMarcas")
-        self.navHLayout.addWidget(self.btnNavMarcas)
-        self.btnNavFornecedores = QtWidgets.QPushButton(self.frameNavBar)
-        self.btnNavFornecedores.setCheckable(True)
-        self.btnNavFornecedores.setObjectName("btnNavFornecedores")
-        self.navHLayout.addWidget(self.btnNavFornecedores)
-        self.btnNavCategorias = QtWidgets.QPushButton(self.frameNavBar)
-        self.btnNavCategorias.setCheckable(True)
-        self.btnNavCategorias.setObjectName("btnNavCategorias")
-        self.navHLayout.addWidget(self.btnNavCategorias)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.navHLayout.addItem(spacerItem1)
         self.mainVLayout.addWidget(self.frameNavBar)
+        self.frameSubNavBar = QtWidgets.QFrame(self.centralWidget)
+        self.frameSubNavBar.setMinimumSize(QtCore.QSize(0, 42))
+        self.frameSubNavBar.setMaximumSize(QtCore.QSize(16777215, 42))
+        self.frameSubNavBar.setStyleSheet("\n"
+"QFrame#frameSubNavBar { background-color: #ecf4fb; border-bottom: 1px solid #d4e1ec; }\n"
+"QPushButton {\n"
+" background-color: transparent;\n"
+" color: #567f9f;\n"
+" border: none;\n"
+" padding: 6px 12px;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+" text-align: left;\n"
+"}\n"
+"QPushButton:hover { color: #1a5fa0; background-color: rgba(53,133,200,18); }\n"
+"       ")
+        self.frameSubNavBar.setObjectName("frameSubNavBar")
+        self.subNavLayout = QtWidgets.QHBoxLayout(self.frameSubNavBar)
+        self.subNavLayout.setContentsMargins(12, 0, 12, 0)
+        self.subNavLayout.setSpacing(6)
+        self.subNavLayout.setObjectName("subNavLayout")
+        self.btnNavMarcas = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavMarcas.setObjectName("btnNavMarcas")
+        self.subNavLayout.addWidget(self.btnNavMarcas)
+        self.btnNavFornecedores = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavFornecedores.setObjectName("btnNavFornecedores")
+        self.subNavLayout.addWidget(self.btnNavFornecedores)
+        self.btnNavCategorias = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavCategorias.setObjectName("btnNavCategorias")
+        self.subNavLayout.addWidget(self.btnNavCategorias)
+        self.btnNavPerfis = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavPerfis.setObjectName("btnNavPerfis")
+        self.subNavLayout.addWidget(self.btnNavPerfis)
+        self.btnNavPermissoes = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavPermissoes.setObjectName("btnNavPermissoes")
+        self.subNavLayout.addWidget(self.btnNavPermissoes)
+        self.btnNavCargos = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavCargos.setObjectName("btnNavCargos")
+        self.subNavLayout.addWidget(self.btnNavCargos)
+        self.btnNavFormasPagamento = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavFormasPagamento.setObjectName("btnNavFormasPagamento")
+        self.subNavLayout.addWidget(self.btnNavFormasPagamento)
+        self.btnNavCaixas = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavCaixas.setObjectName("btnNavCaixas")
+        self.subNavLayout.addWidget(self.btnNavCaixas)
+        self.btnNavFiscal = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavFiscal.setObjectName("btnNavFiscal")
+        self.subNavLayout.addWidget(self.btnNavFiscal)
+        self.btnNavUnidades = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavUnidades.setObjectName("btnNavUnidades")
+        self.subNavLayout.addWidget(self.btnNavUnidades)
+        self.btnNavPdvs = QtWidgets.QPushButton(self.frameSubNavBar)
+        self.btnNavPdvs.setObjectName("btnNavPdvs")
+        self.subNavLayout.addWidget(self.btnNavPdvs)
+        spacerItem2 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.subNavLayout.addItem(spacerItem2)
+        self.mainVLayout.addWidget(self.frameSubNavBar)
         self.mainContentVLayout = QtWidgets.QVBoxLayout()
         self.mainContentVLayout.setContentsMargins(16, 14, 16, 14)
         self.mainContentVLayout.setSpacing(12)
@@ -191,35 +216,25 @@ class Ui_PainelAdmin(object):
         self.sectionTitleHLayout = QtWidgets.QHBoxLayout()
         self.sectionTitleHLayout.setObjectName("sectionTitleHLayout")
         self.lblSectionTitle = QtWidgets.QLabel(self.centralWidget)
-        self.lblSectionTitle.setStyleSheet("\n"
-"             font-size: 18px;\n"
-"             font-weight: bold;\n"
-"             color: #1a3a5c;\n"
-"            ")
+        self.lblSectionTitle.setStyleSheet("font-size: 19px; font-weight: bold; color: #1a3a5c;")
         self.lblSectionTitle.setObjectName("lblSectionTitle")
         self.sectionTitleHLayout.addWidget(self.lblSectionTitle)
-        self.lblSectionSub = QtWidgets.QLabel(self.centralWidget)
-        self.lblSectionSub.setStyleSheet("font-size: 12px; color: #5580a0;")
-        self.lblSectionSub.setObjectName("lblSectionSub")
-        self.sectionTitleHLayout.addWidget(self.lblSectionSub)
-        spacerItem2 = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.sectionTitleHLayout.addItem(spacerItem2)
+        spacerItem3 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.sectionTitleHLayout.addItem(spacerItem3)
         self.btnFrenteCaixa = QtWidgets.QPushButton(self.centralWidget)
-        self.btnFrenteCaixa.setMinimumSize(QtCore.QSize(200, 36))
+        self.btnFrenteCaixa.setMinimumSize(QtCore.QSize(208, 38))
         self.btnFrenteCaixa.setStyleSheet("\n"
-"             QPushButton {\n"
-"              background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"               stop:0 #3585c8, stop:1 #1a5fa0);\n"
-"              color: white;\n"
-"              font-size: 12px;\n"
-"              font-weight: bold;\n"
-"              border: none;\n"
-"              border-radius: 5px;\n"
-"              padding: 6px 16px;\n"
-"             }\n"
-"             QPushButton:hover  { background: #2a74b8; }\n"
-"             QPushButton:pressed{ background: #1a5fa0; }\n"
-"            ")
+"QPushButton {\n"
+" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);\n"
+" color: white;\n"
+" font-size: 12px;\n"
+" font-weight: bold;\n"
+" border: none;\n"
+" border-radius: 5px;\n"
+" padding: 6px 16px;\n"
+"}\n"
+"QPushButton:hover { background: #2a74b8; }\n"
+"           ")
         self.btnFrenteCaixa.setObjectName("btnFrenteCaixa")
         self.sectionTitleHLayout.addWidget(self.btnFrenteCaixa)
         self.mainContentVLayout.addLayout(self.sectionTitleHLayout)
@@ -227,126 +242,82 @@ class Ui_PainelAdmin(object):
         self.cardsHLayout.setSpacing(12)
         self.cardsHLayout.setObjectName("cardsHLayout")
         self.cardVendasHoje = QtWidgets.QFrame(self.centralWidget)
-        self.cardVendasHoje.setStyleSheet("\n"
-"             QFrame#cardVendasHoje {\n"
-"              background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"               stop:0 #3585c8, stop:1 #1a5fa0);\n"
-"              border-radius: 8px;\n"
-"             }\n"
-"            ")
+        self.cardVendasHoje.setStyleSheet("QFrame#cardVendasHoje { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0); border-radius: 8px; }")
         self.cardVendasHoje.setObjectName("cardVendasHoje")
         self.cardVendasVLayout = QtWidgets.QVBoxLayout(self.cardVendasHoje)
         self.cardVendasVLayout.setContentsMargins(16, 14, 16, 14)
         self.cardVendasVLayout.setSpacing(4)
         self.cardVendasVLayout.setObjectName("cardVendasVLayout")
-        self.hboxlayout = QtWidgets.QHBoxLayout()
-        self.hboxlayout.setObjectName("hboxlayout")
         self.lblCardVendasIcon = QtWidgets.QLabel(self.cardVendasHoje)
-        self.lblCardVendasIcon.setStyleSheet("font-size: 22px;")
+        self.lblCardVendasIcon.setStyleSheet("font-size: 22px; color: white;")
         self.lblCardVendasIcon.setObjectName("lblCardVendasIcon")
-        self.hboxlayout.addWidget(self.lblCardVendasIcon)
-        spacerItem3 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.hboxlayout.addItem(spacerItem3)
-        self.cardVendasVLayout.addLayout(self.hboxlayout)
+        self.cardVendasVLayout.addWidget(self.lblCardVendasIcon)
         self.lblVendasHojeValor = QtWidgets.QLabel(self.cardVendasHoje)
         self.lblVendasHojeValor.setStyleSheet("color: white; font-size: 32px; font-weight: bold;")
         self.lblVendasHojeValor.setObjectName("lblVendasHojeValor")
         self.cardVendasVLayout.addWidget(self.lblVendasHojeValor)
         self.lblVendasHojeTitulo = QtWidgets.QLabel(self.cardVendasHoje)
-        self.lblVendasHojeTitulo.setStyleSheet("color: #a8d0f0; font-size: 12px;")
+        self.lblVendasHojeTitulo.setStyleSheet("color: #d5e9fa; font-size: 12px;")
         self.lblVendasHojeTitulo.setObjectName("lblVendasHojeTitulo")
         self.cardVendasVLayout.addWidget(self.lblVendasHojeTitulo)
         self.cardsHLayout.addWidget(self.cardVendasHoje)
         self.cardFaturamento = QtWidgets.QFrame(self.centralWidget)
-        self.cardFaturamento.setStyleSheet("\n"
-"             QFrame#cardFaturamento {\n"
-"              background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"               stop:0 #5cb85c, stop:1 #3a8a3a);\n"
-"              border-radius: 8px;\n"
-"             }\n"
-"            ")
+        self.cardFaturamento.setStyleSheet("QFrame#cardFaturamento { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #5cb85c, stop:1 #3f9443); border-radius: 8px; }")
         self.cardFaturamento.setObjectName("cardFaturamento")
         self.cardFatVLayout = QtWidgets.QVBoxLayout(self.cardFaturamento)
         self.cardFatVLayout.setContentsMargins(16, 14, 16, 14)
         self.cardFatVLayout.setSpacing(4)
         self.cardFatVLayout.setObjectName("cardFatVLayout")
-        self.hboxlayout1 = QtWidgets.QHBoxLayout()
-        self.hboxlayout1.setObjectName("hboxlayout1")
         self.lblCardFatIcon = QtWidgets.QLabel(self.cardFaturamento)
-        self.lblCardFatIcon.setStyleSheet("font-size: 22px;")
+        self.lblCardFatIcon.setStyleSheet("font-size: 22px; color: white;")
         self.lblCardFatIcon.setObjectName("lblCardFatIcon")
-        self.hboxlayout1.addWidget(self.lblCardFatIcon)
-        spacerItem4 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.hboxlayout1.addItem(spacerItem4)
-        self.cardFatVLayout.addLayout(self.hboxlayout1)
+        self.cardFatVLayout.addWidget(self.lblCardFatIcon)
         self.lblFaturamentoValor = QtWidgets.QLabel(self.cardFaturamento)
         self.lblFaturamentoValor.setStyleSheet("color: white; font-size: 26px; font-weight: bold;")
         self.lblFaturamentoValor.setObjectName("lblFaturamentoValor")
         self.cardFatVLayout.addWidget(self.lblFaturamentoValor)
         self.lblFaturamentoTitulo = QtWidgets.QLabel(self.cardFaturamento)
-        self.lblFaturamentoTitulo.setStyleSheet("color: #a8e0a8; font-size: 12px;")
+        self.lblFaturamentoTitulo.setStyleSheet("color: #daf0da; font-size: 12px;")
         self.lblFaturamentoTitulo.setObjectName("lblFaturamentoTitulo")
         self.cardFatVLayout.addWidget(self.lblFaturamentoTitulo)
         self.cardsHLayout.addWidget(self.cardFaturamento)
         self.cardProdutos = QtWidgets.QFrame(self.centralWidget)
-        self.cardProdutos.setStyleSheet("\n"
-"             QFrame#cardProdutos {\n"
-"              background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"               stop:0 #f0a030, stop:1 #c07810);\n"
-"              border-radius: 8px;\n"
-"             }\n"
-"            ")
+        self.cardProdutos.setStyleSheet("QFrame#cardProdutos { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f0a030, stop:1 #c87912); border-radius: 8px; }")
         self.cardProdutos.setObjectName("cardProdutos")
         self.cardProdVLayout = QtWidgets.QVBoxLayout(self.cardProdutos)
         self.cardProdVLayout.setContentsMargins(16, 14, 16, 14)
         self.cardProdVLayout.setSpacing(4)
         self.cardProdVLayout.setObjectName("cardProdVLayout")
-        self.hboxlayout2 = QtWidgets.QHBoxLayout()
-        self.hboxlayout2.setObjectName("hboxlayout2")
         self.lblCardProdIcon = QtWidgets.QLabel(self.cardProdutos)
-        self.lblCardProdIcon.setStyleSheet("font-size: 22px;")
+        self.lblCardProdIcon.setStyleSheet("font-size: 22px; color: #1f2a36;")
         self.lblCardProdIcon.setObjectName("lblCardProdIcon")
-        self.hboxlayout2.addWidget(self.lblCardProdIcon)
-        spacerItem5 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.hboxlayout2.addItem(spacerItem5)
-        self.cardProdVLayout.addLayout(self.hboxlayout2)
+        self.cardProdVLayout.addWidget(self.lblCardProdIcon)
         self.lblProdutosValor = QtWidgets.QLabel(self.cardProdutos)
-        self.lblProdutosValor.setStyleSheet("color: white; font-size: 32px; font-weight: bold;")
+        self.lblProdutosValor.setStyleSheet("color: #12202c; font-size: 32px; font-weight: bold;")
         self.lblProdutosValor.setObjectName("lblProdutosValor")
         self.cardProdVLayout.addWidget(self.lblProdutosValor)
         self.lblProdutosTitulo = QtWidgets.QLabel(self.cardProdutos)
-        self.lblProdutosTitulo.setStyleSheet("color: #ffe0a0; font-size: 12px;")
+        self.lblProdutosTitulo.setStyleSheet("color: #5d4415; font-size: 12px;")
         self.lblProdutosTitulo.setObjectName("lblProdutosTitulo")
         self.cardProdVLayout.addWidget(self.lblProdutosTitulo)
         self.cardsHLayout.addWidget(self.cardProdutos)
         self.cardClientes = QtWidgets.QFrame(self.centralWidget)
-        self.cardClientes.setStyleSheet("\n"
-"             QFrame#cardClientes {\n"
-"              background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"               stop:0 #9b59b6, stop:1 #6c3483);\n"
-"              border-radius: 8px;\n"
-"             }\n"
-"            ")
+        self.cardClientes.setStyleSheet("QFrame#cardClientes { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #8f62c7, stop:1 #6b4299); border-radius: 8px; }")
         self.cardClientes.setObjectName("cardClientes")
         self.cardCliVLayout = QtWidgets.QVBoxLayout(self.cardClientes)
         self.cardCliVLayout.setContentsMargins(16, 14, 16, 14)
         self.cardCliVLayout.setSpacing(4)
         self.cardCliVLayout.setObjectName("cardCliVLayout")
-        self.hboxlayout3 = QtWidgets.QHBoxLayout()
-        self.hboxlayout3.setObjectName("hboxlayout3")
         self.lblCardCliIcon = QtWidgets.QLabel(self.cardClientes)
-        self.lblCardCliIcon.setStyleSheet("font-size: 22px;")
+        self.lblCardCliIcon.setStyleSheet("font-size: 22px; color: white;")
         self.lblCardCliIcon.setObjectName("lblCardCliIcon")
-        self.hboxlayout3.addWidget(self.lblCardCliIcon)
-        spacerItem6 = QtWidgets.QSpacerItem(10, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.hboxlayout3.addItem(spacerItem6)
-        self.cardCliVLayout.addLayout(self.hboxlayout3)
+        self.cardCliVLayout.addWidget(self.lblCardCliIcon)
         self.lblClientesValor = QtWidgets.QLabel(self.cardClientes)
         self.lblClientesValor.setStyleSheet("color: white; font-size: 32px; font-weight: bold;")
         self.lblClientesValor.setObjectName("lblClientesValor")
         self.cardCliVLayout.addWidget(self.lblClientesValor)
         self.lblClientesTitulo = QtWidgets.QLabel(self.cardClientes)
-        self.lblClientesTitulo.setStyleSheet("color: #d8b8f0; font-size: 12px;")
+        self.lblClientesTitulo.setStyleSheet("color: #e6d9f4; font-size: 12px;")
         self.lblClientesTitulo.setObjectName("lblClientesTitulo")
         self.cardCliVLayout.addWidget(self.lblClientesTitulo)
         self.cardsHLayout.addWidget(self.cardClientes)
@@ -356,76 +327,67 @@ class Ui_PainelAdmin(object):
         self.bottomHLayout.setObjectName("bottomHLayout")
         self.frameUltimasVendas = QtWidgets.QFrame(self.centralWidget)
         self.frameUltimasVendas.setStyleSheet("\n"
-"             QFrame#frameUltimasVendas {\n"
-"              background-color: #ffffff;\n"
-"              border: 1px solid #a8c4d8;\n"
-"              border-radius: 6px;\n"
-"             }\n"
-"            ")
+"QFrame#frameUltimasVendas, QFrame#frameAcessoSistema, QFrame#frameConfiguracaoEstrutural {\n"
+" background-color: white;\n"
+" border: 1px solid #a8c4d8;\n"
+" border-radius: 6px;\n"
+"}\n"
+"QLabel[panelTitle=\"true\"] {\n"
+" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);\n"
+" color: white;\n"
+" font-size: 13px;\n"
+" font-weight: bold;\n"
+" padding: 6px 12px;\n"
+" border-top-left-radius: 6px;\n"
+" border-top-right-radius: 6px;\n"
+"}\n"
+"QTableWidget {\n"
+" background-color: #ffffff;\n"
+" border: none;\n"
+" font-size: 12px;\n"
+" gridline-color: #dce8f0;\n"
+"}\n"
+"QHeaderView::section {\n"
+" background-color: #f0f6fc;\n"
+" color: #1a3a5c;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+" padding: 4px 6px;\n"
+" border: none;\n"
+" border-right: 1px solid #dce8f0;\n"
+" border-bottom: 2px solid #3585c8;\n"
+"}\n"
+"QPushButton[actionButton=\"true\"] {\n"
+" background-color: #f0f6fc;\n"
+" color: #1a3a5c;\n"
+" font-size: 12px;\n"
+" font-weight: bold;\n"
+" border: 1px solid #c0d8ec;\n"
+" border-radius: 4px;\n"
+" padding: 8px 10px;\n"
+" text-align: left;\n"
+"}\n"
+"QPushButton[actionButton=\"true\"]:hover {\n"
+" background-color: #dceaf4;\n"
+" border-color: #3585c8;\n"
+" color: #1a5fa0;\n"
+"}\n"
+"           ")
         self.frameUltimasVendas.setObjectName("frameUltimasVendas")
-        self.ultimasVendasVLayout = QtWidgets.QVBoxLayout(self.frameUltimasVendas)
-        self.ultimasVendasVLayout.setContentsMargins(0, 0, 0, 0)
-        self.ultimasVendasVLayout.setSpacing(0)
-        self.ultimasVendasVLayout.setObjectName("ultimasVendasVLayout")
-        self.lblUltimasVendasTitle = QtWidgets.QLabel(self.frameUltimasVendas)
-        self.lblUltimasVendasTitle.setStyleSheet("\n"
-"                QLabel {\n"
-"                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"                  stop:0 #3585c8, stop:1 #1a5fa0);\n"
-"                 color: white;\n"
-"                 font-size: 13px;\n"
-"                 font-weight: bold;\n"
-"                 padding: 6px 12px;\n"
-"                 border-top-left-radius: 6px;\n"
-"                 border-top-right-radius: 6px;\n"
-"                }\n"
-"               ")
+        self.dashboardPanelsLayout = QtWidgets.QHBoxLayout(self.frameUltimasVendas)
+        self.dashboardPanelsLayout.setContentsMargins(0, 0, 0, 0)
+        self.dashboardPanelsLayout.setSpacing(12)
+        self.dashboardPanelsLayout.setObjectName("dashboardPanelsLayout")
+        self.panelUltimasVendas = QtWidgets.QFrame(self.frameUltimasVendas)
+        self.panelUltimasVendas.setObjectName("panelUltimasVendas")
+        self.panelUltimasVendasLayout = QtWidgets.QVBoxLayout(self.panelUltimasVendas)
+        self.panelUltimasVendasLayout.setContentsMargins(0, 0, 0, 0)
+        self.panelUltimasVendasLayout.setSpacing(0)
+        self.panelUltimasVendasLayout.setObjectName("panelUltimasVendasLayout")
+        self.lblUltimasVendasTitle = QtWidgets.QLabel(self.panelUltimasVendas)
         self.lblUltimasVendasTitle.setObjectName("lblUltimasVendasTitle")
-        self.ultimasVendasVLayout.addWidget(self.lblUltimasVendasTitle)
-        self.tableUltimasVendas = QtWidgets.QTableWidget(self.frameUltimasVendas)
-        self.tableUltimasVendas.setStyleSheet("\n"
-"                QTableWidget {\n"
-"                 background-color: #ffffff;\n"
-"                 border: none;\n"
-"                 font-size: 12px;\n"
-"                 gridline-color: #dce8f0;\n"
-"                 outline: 0;\n"
-"                }\n"
-"                QTableWidget::item { padding: 3px 6px; color: #111111; }\n"
-"                QTableWidget::item:selected { background-color: #3585c8; color: white; }\n"
-"                QTableWidget::item:alternate { background-color: #f2f8fc; }\n"
-"                QHeaderView::section:horizontal {\n"
-"                 background-color: #f0f6fc;\n"
-"                 color: #1a3a5c;\n"
-"                 font-size: 11px;\n"
-"                 font-weight: bold;\n"
-"                 padding: 4px 6px;\n"
-"                 border: none;\n"
-"                 border-right: 1px solid #dce8f0;\n"
-"                 border-bottom: 2px solid #3585c8;\n"
-"                }\n"
-"                QHeaderView::section:horizontal:last { border-right: none; }\n"
-"                QHeaderView::section:horizontal:checked { background-color: #f0f6fc; }\n"
-"                QHeaderView::section:vertical {\n"
-"                 background-color: #ffffff; color: #ffffff;\n"
-"                 border: none; border-bottom: 1px solid #dce8f0;\n"
-"                 border-right: 1px solid #dce8f0; width: 16px;\n"
-"                }\n"
-"                QHeaderView::section:vertical:checked { background-color: #3585c8; color: #3585c8; }\n"
-"                QTableCornerButton::section {\n"
-"                 background-color: #f0f6fc; border: none;\n"
-"                 border-bottom: 2px solid #3585c8; border-right: 1px solid #dce8f0;\n"
-"                }\n"
-"                QScrollBar:vertical { background: #f0f4f8; width: 10px; margin: 0; }\n"
-"                QScrollBar::handle:vertical { background: #a8c4d8; border-radius: 4px; min-height: 20px; }\n"
-"                QScrollBar::handle:vertical:hover { background: #3585c8; }\n"
-"                QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }\n"
-"               ")
-        self.tableUltimasVendas.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.tableUltimasVendas.setAlternatingRowColors(True)
-        self.tableUltimasVendas.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tableUltimasVendas.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tableUltimasVendas.setShowGrid(True)
+        self.panelUltimasVendasLayout.addWidget(self.lblUltimasVendasTitle)
+        self.tableUltimasVendas = QtWidgets.QTableWidget(self.panelUltimasVendas)
         self.tableUltimasVendas.setRowCount(0)
         self.tableUltimasVendas.setColumnCount(5)
         self.tableUltimasVendas.setObjectName("tableUltimasVendas")
@@ -439,72 +401,20 @@ class Ui_PainelAdmin(object):
         self.tableUltimasVendas.setHorizontalHeaderItem(3, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableUltimasVendas.setHorizontalHeaderItem(4, item)
-        self.tableUltimasVendas.horizontalHeader().setVisible(True)
-        self.tableUltimasVendas.horizontalHeader().setDefaultSectionSize(120)
-        self.tableUltimasVendas.horizontalHeader().setHighlightSections(False)
         self.tableUltimasVendas.horizontalHeader().setStretchLastSection(True)
-        self.tableUltimasVendas.verticalHeader().setVisible(True)
-        self.tableUltimasVendas.verticalHeader().setDefaultSectionSize(24)
-        self.tableUltimasVendas.verticalHeader().setHighlightSections(True)
-        self.ultimasVendasVLayout.addWidget(self.tableUltimasVendas)
-        self.bottomHLayout.addWidget(self.frameUltimasVendas)
-        self.frameRightPanel = QtWidgets.QFrame(self.centralWidget)
-        self.frameRightPanel.setStyleSheet("QFrame#frameRightPanel { background-color: #dce8f4; }")
-        self.frameRightPanel.setObjectName("frameRightPanel")
-        self.rightPanelVLayout = QtWidgets.QVBoxLayout(self.frameRightPanel)
-        self.rightPanelVLayout.setContentsMargins(0, 0, 0, 0)
-        self.rightPanelVLayout.setSpacing(10)
-        self.rightPanelVLayout.setObjectName("rightPanelVLayout")
-        self.frameAcoesRapidas = QtWidgets.QFrame(self.frameRightPanel)
-        self.frameAcoesRapidas.setStyleSheet("\n"
-"                QFrame#frameAcoesRapidas {\n"
-"                 background-color: #ffffff;\n"
-"                 border: 1px solid #a8c4d8;\n"
-"                 border-radius: 6px;\n"
-"                }\n"
-"               ")
-        self.frameAcoesRapidas.setObjectName("frameAcoesRapidas")
-        self.acoesVLayout = QtWidgets.QVBoxLayout(self.frameAcoesRapidas)
-        self.acoesVLayout.setContentsMargins(0, 0, 0, 0)
-        self.acoesVLayout.setSpacing(0)
-        self.acoesVLayout.setObjectName("acoesVLayout")
-        self.lblAcoesTitle = QtWidgets.QLabel(self.frameAcoesRapidas)
-        self.lblAcoesTitle.setStyleSheet("\n"
-"                   QLabel {\n"
-"                    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"                     stop:0 #3585c8, stop:1 #1a5fa0);\n"
-"                    color: white;\n"
-"                    font-size: 13px;\n"
-"                    font-weight: bold;\n"
-"                    padding: 6px 12px;\n"
-"                    border-top-left-radius: 6px;\n"
-"                    border-top-right-radius: 6px;\n"
-"                   }\n"
-"                  ")
+        self.panelUltimasVendasLayout.addWidget(self.tableUltimasVendas)
+        self.dashboardPanelsLayout.addWidget(self.panelUltimasVendas)
+        self.frameAcessoSistema = QtWidgets.QFrame(self.frameUltimasVendas)
+        self.frameAcessoSistema.setMinimumSize(QtCore.QSize(320, 0))
+        self.frameAcessoSistema.setObjectName("frameAcessoSistema")
+        self.frameAcessoSistemaLayout = QtWidgets.QVBoxLayout(self.frameAcessoSistema)
+        self.frameAcessoSistemaLayout.setContentsMargins(0, 0, 0, 0)
+        self.frameAcessoSistemaLayout.setSpacing(0)
+        self.frameAcessoSistemaLayout.setObjectName("frameAcessoSistemaLayout")
+        self.lblAcoesTitle = QtWidgets.QLabel(self.frameAcessoSistema)
         self.lblAcoesTitle.setObjectName("lblAcoesTitle")
-        self.acoesVLayout.addWidget(self.lblAcoesTitle)
-        self.frameAcoesBtns = QtWidgets.QFrame(self.frameAcoesRapidas)
-        self.frameAcoesBtns.setStyleSheet("\n"
-"                   QFrame#frameAcoesBtns { background-color: #ffffff; }\n"
-"                   QPushButton {\n"
-"                    background-color: #f0f6fc;\n"
-"                    color: #1a3a5c;\n"
-"                    font-size: 12px;\n"
-"                    font-weight: bold;\n"
-"                    border: 1px solid #c0d8ec;\n"
-"                    border-radius: 4px;\n"
-"                    padding: 8px 10px;\n"
-"                    text-align: left;\n"
-"                   }\n"
-"                   QPushButton:hover {\n"
-"                    background-color: #dceaf4;\n"
-"                    border-color: #3585c8;\n"
-"                    color: #1a5fa0;\n"
-"                   }\n"
-"                   QPushButton:pressed {\n"
-"                    background-color: #c0d8ec;\n"
-"                   }\n"
-"                  ")
+        self.frameAcessoSistemaLayout.addWidget(self.lblAcoesTitle)
+        self.frameAcoesBtns = QtWidgets.QFrame(self.frameAcessoSistema)
         self.frameAcoesBtns.setObjectName("frameAcoesBtns")
         self.acoesBtnsVLayout = QtWidgets.QVBoxLayout(self.frameAcoesBtns)
         self.acoesBtnsVLayout.setContentsMargins(10, 10, 10, 10)
@@ -513,9 +423,6 @@ class Ui_PainelAdmin(object):
         self.btnAcaoCadProduto = QtWidgets.QPushButton(self.frameAcoesBtns)
         self.btnAcaoCadProduto.setObjectName("btnAcaoCadProduto")
         self.acoesBtnsVLayout.addWidget(self.btnAcaoCadProduto)
-        self.btnAcaoRelatorio = QtWidgets.QPushButton(self.frameAcoesBtns)
-        self.btnAcaoRelatorio.setObjectName("btnAcaoRelatorio")
-        self.acoesBtnsVLayout.addWidget(self.btnAcaoRelatorio)
         self.btnAcaoCadCliente = QtWidgets.QPushButton(self.frameAcoesBtns)
         self.btnAcaoCadCliente.setObjectName("btnAcaoCadCliente")
         self.acoesBtnsVLayout.addWidget(self.btnAcaoCadCliente)
@@ -528,45 +435,67 @@ class Ui_PainelAdmin(object):
         self.btnAcaoCadFuncionario = QtWidgets.QPushButton(self.frameAcoesBtns)
         self.btnAcaoCadFuncionario.setObjectName("btnAcaoCadFuncionario")
         self.acoesBtnsVLayout.addWidget(self.btnAcaoCadFuncionario)
+        self.btnAcaoCadPerfil = QtWidgets.QPushButton(self.frameAcoesBtns)
+        self.btnAcaoCadPerfil.setObjectName("btnAcaoCadPerfil")
+        self.acoesBtnsVLayout.addWidget(self.btnAcaoCadPerfil)
+        self.btnAcaoCadPermissao = QtWidgets.QPushButton(self.frameAcoesBtns)
+        self.btnAcaoCadPermissao.setObjectName("btnAcaoCadPermissao")
+        self.acoesBtnsVLayout.addWidget(self.btnAcaoCadPermissao)
+        self.btnAcaoCadCargo = QtWidgets.QPushButton(self.frameAcoesBtns)
+        self.btnAcaoCadCargo.setObjectName("btnAcaoCadCargo")
+        self.acoesBtnsVLayout.addWidget(self.btnAcaoCadCargo)
         self.btnAcaoBackup = QtWidgets.QPushButton(self.frameAcoesBtns)
         self.btnAcaoBackup.setObjectName("btnAcaoBackup")
         self.acoesBtnsVLayout.addWidget(self.btnAcaoBackup)
         self.btnAcaoConfig = QtWidgets.QPushButton(self.frameAcoesBtns)
         self.btnAcaoConfig.setObjectName("btnAcaoConfig")
         self.acoesBtnsVLayout.addWidget(self.btnAcaoConfig)
-        self.acoesVLayout.addWidget(self.frameAcoesBtns)
-        self.rightPanelVLayout.addWidget(self.frameAcoesRapidas)
-        self.frameLogoInstitucional = QtWidgets.QFrame(self.frameRightPanel)
-        self.frameLogoInstitucional.setStyleSheet("\n"
-"                QFrame#frameLogoInstitucional {\n"
-"                 background-color: #ffffff;\n"
-"                 border: 1px solid #a8c4d8;\n"
-"                 border-radius: 6px;\n"
-"                }\n"
-"               ")
-        self.frameLogoInstitucional.setObjectName("frameLogoInstitucional")
-        self.logoInstVLayout = QtWidgets.QVBoxLayout(self.frameLogoInstitucional)
-        self.logoInstVLayout.setObjectName("logoInstVLayout")
-        self.lblLogoInstitucional = QtWidgets.QLabel(self.frameLogoInstitucional)
-        self.lblLogoInstitucional.setStyleSheet("\n"
-"                   color: #a0b8cc;\n"
-"                   font-size: 11px;\n"
-"                   font-style: italic;\n"
-"                  ")
-        self.lblLogoInstitucional.setScaledContents(False)
-        self.lblLogoInstitucional.setAlignment(QtCore.Qt.AlignCenter)
-        self.lblLogoInstitucional.setObjectName("lblLogoInstitucional")
-        self.logoInstVLayout.addWidget(self.lblLogoInstitucional)
-        self.rightPanelVLayout.addWidget(self.frameLogoInstitucional)
-        self.bottomHLayout.addWidget(self.frameRightPanel)
+        self.frameAcessoSistemaLayout.addWidget(self.frameAcoesBtns)
+        self.dashboardPanelsLayout.addWidget(self.frameAcessoSistema)
+        self.frameConfiguracaoEstrutural = QtWidgets.QFrame(self.frameUltimasVendas)
+        self.frameConfiguracaoEstrutural.setMinimumSize(QtCore.QSize(320, 0))
+        self.frameConfiguracaoEstrutural.setObjectName("frameConfiguracaoEstrutural")
+        self.frameConfiguracaoEstruturalLayout = QtWidgets.QVBoxLayout(self.frameConfiguracaoEstrutural)
+        self.frameConfiguracaoEstruturalLayout.setContentsMargins(0, 0, 0, 0)
+        self.frameConfiguracaoEstruturalLayout.setSpacing(0)
+        self.frameConfiguracaoEstruturalLayout.setObjectName("frameConfiguracaoEstruturalLayout")
+        self.lblConfigEstruturalTitle = QtWidgets.QLabel(self.frameConfiguracaoEstrutural)
+        self.lblConfigEstruturalTitle.setObjectName("lblConfigEstruturalTitle")
+        self.frameConfiguracaoEstruturalLayout.addWidget(self.lblConfigEstruturalTitle)
+        self.frameEstruturalBody = QtWidgets.QFrame(self.frameConfiguracaoEstrutural)
+        self.frameEstruturalBody.setObjectName("frameEstruturalBody")
+        self.frameEstruturalBodyLayout = QtWidgets.QVBoxLayout(self.frameEstruturalBody)
+        self.frameEstruturalBodyLayout.setContentsMargins(14, 14, 14, 14)
+        self.frameEstruturalBodyLayout.setSpacing(10)
+        self.frameEstruturalBodyLayout.setObjectName("frameEstruturalBodyLayout")
+        self.lblResumoAcesso = QtWidgets.QLabel(self.frameEstruturalBody)
+        self.lblResumoAcesso.setStyleSheet("font-size: 12px; color: #486a86;")
+        self.lblResumoAcesso.setWordWrap(True)
+        self.lblResumoAcesso.setObjectName("lblResumoAcesso")
+        self.frameEstruturalBodyLayout.addWidget(self.lblResumoAcesso)
+        self.lblResumoFinanceiro = QtWidgets.QLabel(self.frameEstruturalBody)
+        self.lblResumoFinanceiro.setStyleSheet("font-size: 12px; color: #486a86;")
+        self.lblResumoFinanceiro.setWordWrap(True)
+        self.lblResumoFinanceiro.setObjectName("lblResumoFinanceiro")
+        self.frameEstruturalBodyLayout.addWidget(self.lblResumoFinanceiro)
+        self.lblResumoFiscal = QtWidgets.QLabel(self.frameEstruturalBody)
+        self.lblResumoFiscal.setStyleSheet("font-size: 12px; color: #486a86;")
+        self.lblResumoFiscal.setWordWrap(True)
+        self.lblResumoFiscal.setObjectName("lblResumoFiscal")
+        self.frameEstruturalBodyLayout.addWidget(self.lblResumoFiscal)
+        self.btnAcaoRelatorio = QtWidgets.QPushButton(self.frameEstruturalBody)
+        self.btnAcaoRelatorio.setObjectName("btnAcaoRelatorio")
+        self.frameEstruturalBodyLayout.addWidget(self.btnAcaoRelatorio)
+        self.frameConfiguracaoEstruturalLayout.addWidget(self.frameEstruturalBody)
+        self.dashboardPanelsLayout.addWidget(self.frameConfiguracaoEstrutural)
+        self.bottomHLayout.addWidget(self.frameUltimasVendas)
         self.mainContentVLayout.addLayout(self.bottomHLayout)
         self.mainVLayout.addLayout(self.mainContentVLayout)
         self.frameStatusBar = QtWidgets.QFrame(self.centralWidget)
         self.frameStatusBar.setStyleSheet("\n"
-"        QFrame#frameStatusBar {\n"
-"         background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
-"          stop:0 #3585c8, stop:1 #1a5fa0);\n"
-"        }\n"
+"QFrame#frameStatusBar {\n"
+" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);\n"
+"}\n"
 "       ")
         self.frameStatusBar.setObjectName("frameStatusBar")
         self.statusHLayout = QtWidgets.QHBoxLayout(self.frameStatusBar)
@@ -576,14 +505,14 @@ class Ui_PainelAdmin(object):
         self.lblStatusSistema.setStyleSheet("color: #80ff80; font-size: 11px; font-weight: bold;")
         self.lblStatusSistema.setObjectName("lblStatusSistema")
         self.statusHLayout.addWidget(self.lblStatusSistema)
-        spacerItem7 = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.statusHLayout.addItem(spacerItem7)
+        spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.statusHLayout.addItem(spacerItem4)
         self.lblStatusBar = QtWidgets.QLabel(self.frameStatusBar)
         self.lblStatusBar.setStyleSheet("color: white; font-size: 11px; font-weight: bold;")
         self.lblStatusBar.setObjectName("lblStatusBar")
         self.statusHLayout.addWidget(self.lblStatusBar)
-        spacerItem8 = QtWidgets.QSpacerItem(40, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.statusHLayout.addItem(spacerItem8)
+        spacerItem5 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.statusHLayout.addItem(spacerItem5)
         self.lblStatusVersao = QtWidgets.QLabel(self.frameStatusBar)
         self.lblStatusVersao.setStyleSheet("color: #a0c8e8; font-size: 11px;")
         self.lblStatusVersao.setObjectName("lblStatusVersao")
@@ -598,36 +527,43 @@ class Ui_PainelAdmin(object):
         _translate = QtCore.QCoreApplication.translate
         PainelAdmin.setWindowTitle(_translate("PainelAdmin", "CSPdv - Painel Administrativo"))
         self.lblLogo.setText(_translate("PainelAdmin", "CSPdv"))
-        self.lblBadgeAdmin.setText(_translate("PainelAdmin", "⚙ ADMINISTRADOR"))
+        self.lblBadgeAdmin.setText(_translate("PainelAdmin", "ADMINISTRAÇÃO CENTRAL"))
         self.lblOperadorInfo.setText(_translate("PainelAdmin", "Operador: ADMIN"))
-        self.lblDataHora.setText(_translate("PainelAdmin", "--/--/----  --:--"))
-        self.btnSair.setText(_translate("PainelAdmin", "✕  Sair"))
-        self.btnNavDashboard.setText(_translate("PainelAdmin", "⊞  Dashboard"))
-        self.btnNavVendas.setText(_translate("PainelAdmin", "🛒  Vendas"))
-        self.btnNavProdutos.setText(_translate("PainelAdmin", "📦  Produtos"))
-        self.btnNavClientes.setText(_translate("PainelAdmin", "👥  Clientes"))
-        self.btnNavLotes.setText(_translate("PainelAdmin", "📋  Lotes"))
-        self.btnNavUsuarios.setText(_translate("PainelAdmin", "🔑  Usuários"))
-        self.btnNavMarcas.setText(_translate("PainelAdmin", "🏷  Marcas"))
-        self.btnNavFornecedores.setText(_translate("PainelAdmin", "🚚  Fornecedores"))
-        self.btnNavCategorias.setText(_translate("PainelAdmin", "📂  Categorias"))
-        self.lblSectionTitle.setText(_translate("PainelAdmin", "Dashboard"))
-        self.lblSectionSub.setText(_translate("PainelAdmin", "Visão geral do sistema"))
-        self.btnFrenteCaixa.setText(_translate("PainelAdmin", "🖥  Abrir Frente de Caixa"))
-        self.lblCardVendasIcon.setText(_translate("PainelAdmin", "🛒"))
+        self.lblDataHora.setText(_translate("PainelAdmin", "--/--/---- --:--:--"))
+        self.btnSair.setText(_translate("PainelAdmin", "Sair"))
+        self.btnNavDashboard.setText(_translate("PainelAdmin", "Dashboard"))
+        self.btnNavProdutos.setText(_translate("PainelAdmin", "Cadastros"))
+        self.btnNavUsuarios.setText(_translate("PainelAdmin", "Acesso"))
+        self.btnNavVendas.setText(_translate("PainelAdmin", "Financeiro"))
+        self.btnNavClientes.setText(_translate("PainelAdmin", "Relacionamento"))
+        self.btnNavLotes.setText(_translate("PainelAdmin", "Fiscal e Estoque"))
+        self.btnNavMarcas.setText(_translate("PainelAdmin", "Marcas"))
+        self.btnNavFornecedores.setText(_translate("PainelAdmin", "Fornecedores"))
+        self.btnNavCategorias.setText(_translate("PainelAdmin", "Categorias"))
+        self.btnNavPerfis.setText(_translate("PainelAdmin", "Perfis"))
+        self.btnNavPermissoes.setText(_translate("PainelAdmin", "Permissões"))
+        self.btnNavCargos.setText(_translate("PainelAdmin", "Cargos"))
+        self.btnNavFormasPagamento.setText(_translate("PainelAdmin", "Formas de Pagamento"))
+        self.btnNavCaixas.setText(_translate("PainelAdmin", "Caixas"))
+        self.btnNavFiscal.setText(_translate("PainelAdmin", "Parâmetros Fiscais"))
+        self.btnNavUnidades.setText(_translate("PainelAdmin", "Unidades"))
+        self.btnNavPdvs.setText(_translate("PainelAdmin", "PDVs"))
+        self.lblSectionTitle.setText(_translate("PainelAdmin", "Dashboard Administrativo"))
+        self.btnFrenteCaixa.setText(_translate("PainelAdmin", "Abrir Frente de Caixa"))
+        self.lblCardVendasIcon.setText(_translate("PainelAdmin", "V"))
         self.lblVendasHojeValor.setText(_translate("PainelAdmin", "0"))
-        self.lblVendasHojeTitulo.setText(_translate("PainelAdmin", "Vendas Hoje"))
-        self.lblCardFatIcon.setText(_translate("PainelAdmin", "💰"))
+        self.lblVendasHojeTitulo.setText(_translate("PainelAdmin", "Vendas processadas hoje"))
+        self.lblCardFatIcon.setText(_translate("PainelAdmin", "R$"))
         self.lblFaturamentoValor.setText(_translate("PainelAdmin", "R$ 0,00"))
-        self.lblFaturamentoTitulo.setText(_translate("PainelAdmin", "Faturamento Hoje"))
+        self.lblFaturamentoTitulo.setText(_translate("PainelAdmin", "Faturamento do dia"))
         self.lblCardProdIcon.setText(_translate("PainelAdmin", "📦"))
         self.lblProdutosValor.setText(_translate("PainelAdmin", "0"))
-        self.lblProdutosTitulo.setText(_translate("PainelAdmin", "Produtos Cadastrados"))
+        self.lblProdutosTitulo.setText(_translate("PainelAdmin", "Produtos cadastrados"))
         self.lblCardCliIcon.setText(_translate("PainelAdmin", "👥"))
         self.lblClientesValor.setText(_translate("PainelAdmin", "0"))
-        self.lblClientesTitulo.setText(_translate("PainelAdmin", "Clientes Cadastrados"))
+        self.lblClientesTitulo.setText(_translate("PainelAdmin", "Clientes ativos"))
         self.lblUltimasVendasTitle.setText(_translate("PainelAdmin", "Últimas Vendas"))
-        self.tableUltimasVendas.setSortingEnabled(False)
+        self.lblUltimasVendasTitle.setProperty("panelTitle", _translate("PainelAdmin", "true"))
         item = self.tableUltimasVendas.horizontalHeaderItem(0)
         item.setText(_translate("PainelAdmin", "N. Venda"))
         item = self.tableUltimasVendas.horizontalHeaderItem(1)
@@ -639,15 +575,34 @@ class Ui_PainelAdmin(object):
         item = self.tableUltimasVendas.horizontalHeaderItem(4)
         item.setText(_translate("PainelAdmin", "Total (R$)"))
         self.lblAcoesTitle.setText(_translate("PainelAdmin", "Ações Rápidas"))
+        self.lblAcoesTitle.setProperty("panelTitle", _translate("PainelAdmin", "true"))
         self.btnAcaoCadProduto.setText(_translate("PainelAdmin", "📦   Cadastrar Produto"))
-        self.btnAcaoRelatorio.setText(_translate("PainelAdmin", "📊   Cadastrar Lote"))
+        self.btnAcaoCadProduto.setProperty("actionButton", _translate("PainelAdmin", "true"))
         self.btnAcaoCadCliente.setText(_translate("PainelAdmin", "👤   Cadastrar Cliente"))
+        self.btnAcaoCadCliente.setProperty("actionButton", _translate("PainelAdmin", "true"))
         self.btnAcaoCadUsuario.setText(_translate("PainelAdmin", "🔑   Cadastrar Usuário"))
+        self.btnAcaoCadUsuario.setProperty("actionButton", _translate("PainelAdmin", "true"))
         self.btnAcaoCadFornecedor.setText(_translate("PainelAdmin", "🚚   Cadastrar Fornecedor"))
-        self.btnAcaoCadFuncionario.setText(_translate("PainelAdmin", "🧑‍💼   Cadastrar Funcionário"))
+        self.btnAcaoCadFornecedor.setProperty("actionButton", _translate("PainelAdmin", "true"))
+        self.btnAcaoCadFuncionario.setText(_translate("PainelAdmin", "🧑   Cadastrar Funcionário"))
+        self.btnAcaoCadFuncionario.setProperty("actionButton", _translate("PainelAdmin", "true"))
+        self.btnAcaoCadPerfil.setText(_translate("PainelAdmin", "🛡   Cadastrar Perfil"))
+        self.btnAcaoCadPerfil.setProperty("actionButton", _translate("PainelAdmin", "true"))
+        self.btnAcaoCadPermissao.setText(_translate("PainelAdmin", "✅   Gerenciar Permissões"))
+        self.btnAcaoCadPermissao.setProperty("actionButton", _translate("PainelAdmin", "true"))
+        self.btnAcaoCadCargo.setText(_translate("PainelAdmin", "🧾   Gerenciar Cargos"))
+        self.btnAcaoCadCargo.setProperty("actionButton", _translate("PainelAdmin", "true"))
         self.btnAcaoBackup.setText(_translate("PainelAdmin", "💾   Backup do Sistema"))
+        self.btnAcaoBackup.setProperty("actionButton", _translate("PainelAdmin", "true"))
         self.btnAcaoConfig.setText(_translate("PainelAdmin", "⚙   Configurações"))
-        self.lblLogoInstitucional.setText(_translate("PainelAdmin", "[ Imagem / Logo Institucional ]"))
+        self.btnAcaoConfig.setProperty("actionButton", _translate("PainelAdmin", "true"))
+        self.lblConfigEstruturalTitle.setText(_translate("PainelAdmin", "Estrutura"))
+        self.lblConfigEstruturalTitle.setProperty("panelTitle", _translate("PainelAdmin", "true"))
+        self.lblResumoAcesso.setText(_translate("PainelAdmin", "Acesso"))
+        self.lblResumoFinanceiro.setText(_translate("PainelAdmin", "Financeiro"))
+        self.lblResumoFiscal.setText(_translate("PainelAdmin", "Fiscal e Sistema"))
+        self.btnAcaoRelatorio.setText(_translate("PainelAdmin", "📊   Cadastrar Lote"))
+        self.btnAcaoRelatorio.setProperty("actionButton", _translate("PainelAdmin", "true"))
         self.lblStatusSistema.setText(_translate("PainelAdmin", "● Sistema Online"))
         self.lblStatusBar.setText(_translate("PainelAdmin", "CSPdv - Operador: ADMIN  |  Painel Administrativo"))
         self.lblStatusVersao.setText(_translate("PainelAdmin", "v1.0.0"))

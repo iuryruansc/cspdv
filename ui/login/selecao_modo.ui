@@ -6,46 +6,94 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>1279</width>
+    <height>820</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CSPdv - Seleção de Modo</string>
+   <string>CSPdv - Seleção de Áreas</string>
   </property>
   <property name="styleSheet">
    <string notr="true">
-    QWidget {
-        font-family: 'Segoe UI', Arial;
-        background-color: #0f2a4a;
-        color: white;
-    }
-    QPushButton {
-        background-color: #1a3a5a;
-        border: 2px solid #2a4a6a;
-        border-radius: 15px;
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        min-height: 120px;
-        min-width: 200px;
-    }
-    QPushButton:hover {
-        background-color: #2a4a6a;
-        border-color: #3a6aaa;
-    }
-    QPushButton:pressed {
-        background-color: #0a1a2a;
-    }
-    QLabel#lblTitulo {
-        font-size: 24px;
-        font-weight: bold;
-        color: #ffffff;
-    }
-    QLabel {
-        font-size: 14px;
-        color: #a0aec0;
-    }
+QWidget {
+ font-family: 'Segoe UI', Arial;
+ background-color: #0c2238;
+ color: white;
+}
+QFrame#frameHero {
+ background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #13385c, stop:1 #0b1f33);
+ border-bottom: 1px solid #21486b;
+}
+QLabel#lblTitulo {
+ font-size: 28px;
+ font-weight: bold;
+ color: white;
+}
+QLabel#lblSubtitulo, QLabel#lblVersao {
+ font-size: 12px;
+ color: #a8c3da;
+}
+QFrame[card=&quot;true&quot;] {
+ background-color: #112c47;
+ border: 1px solid #234d72;
+ border-radius: 18px;
+}
+QLabel[moduleBadge=&quot;true&quot;] {
+ background-color: rgba(255,255,255,24);
+ color: #d8ebfb;
+ border: 1px solid rgba(255,255,255,35);
+ border-radius: 11px;
+ padding: 4px 10px;
+ font-size: 11px;
+ font-weight: bold;
+}
+QLabel[moduleTitle=&quot;true&quot;] {
+ font-size: 22px;
+ font-weight: bold;
+ color: white;
+}
+QLabel[moduleDesc=&quot;true&quot;] {
+ font-size: 12px;
+ color: #a8c3da;
+}
+QPushButton[moduleCard=&quot;true&quot;] {
+ background-color: #163758;
+ color: white;
+ border: 1px solid #2b5e87;
+ border-radius: 10px;
+ padding: 10px 14px;
+ font-size: 12px;
+ font-weight: bold;
+ text-align: center;
+}
+QPushButton[moduleCard=&quot;true&quot;]:hover {
+ background-color: #1d466c;
+ border-color: #3d78a8;
+}
+QPushButton[moduleCard=&quot;true&quot;]:pressed {
+ background-color: #10314e;
+}
+QPushButton#btnSairSessao {
+ background-color: #c53030;
+ color: white;
+ border: none;
+ border-radius: 6px;
+ padding: 8px 16px;
+ font-size: 12px;
+ font-weight: bold;
+}
+QPushButton#btnSairSessao:hover {
+ background-color: #df4242;
+}
+QFrame#frameFooter {
+ background-color: #09192a;
+ border-top: 1px solid #163753;
+}
+QLabel#lblOperadorNome {
+ font-weight: bold;
+ color: #70e28b;
+ font-size: 12px;
+}
    </string>
   </property>
   <layout class="QVBoxLayout" name="mainVLayout">
@@ -65,63 +113,73 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QFrame" name="frameHeader">
+    <widget class="QFrame" name="frameHero">
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>80</height>
+       <height>146</height>
       </size>
      </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: #0a1f35; border-bottom: 1px solid #1a3a5a;</string>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>146</height>
+      </size>
      </property>
-     <layout class="QHBoxLayout" name="headerLayout">
+     <layout class="QVBoxLayout" name="heroVLayout">
+      <property name="leftMargin">
+       <number>28</number>
+      </property>
+      <property name="topMargin">
+       <number>24</number>
+      </property>
+      <property name="rightMargin">
+       <number>28</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
       <item>
-       <spacer name="spacerLeft">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-       </spacer>
+       <layout class="QHBoxLayout" name="heroTopLayout">
+        <item>
+         <widget class="QLabel" name="lblTitulo">
+          <property name="text">
+           <string>CSPdv • Centro de Operações</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="heroTopSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnSairSessao">
+          <property name="minimumSize">
+           <size>
+            <width>110</width>
+            <height>38</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>SAIR (ESC)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
-       <widget class="QLabel" name="lblTitulo">
+       <widget class="QLabel" name="lblSubtitulo">
         <property name="text">
-         <string>CLAUDINHA STORE - SELEÇÃO DE MÓDULO</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="spacerRight">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnSairSessao">
-        <property name="minimumSize">
-         <size>
-          <width>104</width>
-          <height>43</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: #c53030; min-height: 40px; min-width: 100px; font-size: 12px;</string>
-        </property>
-        <property name="text">
-         <string>SAIR (ESC)</string>
+         <string>Selecione o módulo desejado.</string>
         </property>
        </widget>
       </item>
@@ -129,185 +187,522 @@
     </widget>
    </item>
    <item>
-    <spacer name="vSpacerTop">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
     <layout class="QGridLayout" name="layoutContent">
      <property name="leftMargin">
-      <number>50</number>
+      <number>26</number>
+     </property>
+     <property name="topMargin">
+      <number>24</number>
      </property>
      <property name="rightMargin">
-      <number>50</number>
+      <number>26</number>
+     </property>
+     <property name="bottomMargin">
+      <number>24</number>
      </property>
      <property name="spacing">
-      <number>40</number>
+      <number>18</number>
      </property>
      <item row="0" column="0">
-      <layout class="QVBoxLayout" name="vboxPDV">
-       <item>
-        <widget class="QPushButton" name="btnFrenteCaixa">
-         <property name="toolTip">
-          <string>[F1] Acesso ao PDV</string>
-         </property>
-         <property name="text">
-          <string>FRENTE DE CAIXA</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblFrenteCaixa">
-         <property name="text">
-          <string>Vendas e Operações (F1)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QFrame" name="cardFrenteCaixa">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="cardFrenteCaixaLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>18</number>
+        </property>
+        <property name="topMargin">
+         <number>18</number>
+        </property>
+        <property name="rightMargin">
+         <number>18</number>
+        </property>
+        <property name="bottomMargin">
+         <number>18</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblBadgePdv">
+          <property name="text">
+           <string>F1 • OPERAÇÃO</string>
+          </property>
+          <property name="moduleBadge" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTitlePdv">
+          <property name="text">
+           <string>Frente de Caixa</string>
+          </property>
+          <property name="moduleTitle" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblFrenteCaixa">
+          <property name="text">
+           <string>Vendas, caixa e atendimento em operação contínua.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="moduleDesc" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerPdv">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnFrenteCaixa">
+          <property name="toolTip">
+           <string>[F1] Frente de caixa</string>
+          </property>
+          <property name="text">
+           <string>Acessar Frente de Caixa</string>
+          </property>
+          <property name="moduleCard" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item row="0" column="1">
-      <layout class="QVBoxLayout" name="vboxEstoque">
-       <item>
-        <widget class="QPushButton" name="btnEstoque">
-         <property name="toolTip">
-          <string>[F3] Gestão de Produtos</string>
-         </property>
-         <property name="text">
-          <string>ESTOQUE</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblEstoque">
-         <property name="text">
-          <string>Produtos e Compras (F3)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QFrame" name="cardAdmin">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="cardAdminLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>18</number>
+        </property>
+        <property name="topMargin">
+         <number>18</number>
+        </property>
+        <property name="rightMargin">
+         <number>18</number>
+        </property>
+        <property name="bottomMargin">
+         <number>18</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblBadgeAdmin">
+          <property name="text">
+           <string>F2 • ADMINISTRAÇÃO</string>
+          </property>
+          <property name="moduleBadge" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTitleAdmin">
+          <property name="text">
+           <string>Painel Admin</string>
+          </property>
+          <property name="moduleTitle" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblPainelAdmin">
+          <property name="text">
+           <string>Usuários, perfis, permissões, cargos e cadastros mestres.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="moduleDesc" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerAdmin">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnPainelAdmin">
+          <property name="toolTip">
+           <string>[F2] Painel administrativo</string>
+          </property>
+          <property name="text">
+           <string>Acessar Painel Admin</string>
+          </property>
+          <property name="moduleCard" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item row="0" column="2">
-      <layout class="QVBoxLayout" name="vboxFinanceiro">
-       <item>
-        <widget class="QPushButton" name="btnFinanceiro">
-         <property name="toolTip">
-          <string>[F4] Fluxo de Caixa</string>
-         </property>
-         <property name="text">
-          <string>FINANCEIRO</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblFinanceiro">
-         <property name="text">
-          <string>Contas e Fluxo (F4)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QFrame" name="cardEstoque">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="cardEstoqueLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>18</number>
+        </property>
+        <property name="topMargin">
+         <number>18</number>
+        </property>
+        <property name="rightMargin">
+         <number>18</number>
+        </property>
+        <property name="bottomMargin">
+         <number>18</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblBadgeEstoque">
+          <property name="text">
+           <string>F3 • ESTOQUE</string>
+          </property>
+          <property name="moduleBadge" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTitleEstoque">
+          <property name="text">
+           <string>Estoque</string>
+          </property>
+          <property name="moduleTitle" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblEstoque">
+          <property name="text">
+           <string>Produtos, lotes, validade, ajustes e movimentações.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="moduleDesc" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerEstoque">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnEstoque">
+          <property name="toolTip">
+           <string>[F3] Estoque</string>
+          </property>
+          <property name="text">
+           <string>Acessar Estoque</string>
+          </property>
+          <property name="moduleCard" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item row="1" column="0">
-      <layout class="QVBoxLayout" name="vboxRelatorios">
-       <item>
-        <widget class="QPushButton" name="btnRelatorios">
-         <property name="toolTip">
-          <string>[F5] Indicadores de Venda</string>
-         </property>
-         <property name="text">
-          <string>RELATÓRIOS</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblRelatorios">
-         <property name="text">
-          <string>Desempenho e BI (F5)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QFrame" name="cardFinanceiro">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="cardFinanceiroLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>18</number>
+        </property>
+        <property name="topMargin">
+         <number>18</number>
+        </property>
+        <property name="rightMargin">
+         <number>18</number>
+        </property>
+        <property name="bottomMargin">
+         <number>18</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblBadgeFinanceiro">
+          <property name="text">
+           <string>F4 • FINANCEIRO</string>
+          </property>
+          <property name="moduleBadge" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTitleFinanceiro">
+          <property name="text">
+           <string>Financeiro</string>
+          </property>
+          <property name="moduleTitle" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblFinanceiro">
+          <property name="text">
+           <string>Caixa, pagamentos, parcelas, reembolsos e posição diária.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="moduleDesc" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerFinanceiro">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnFinanceiro">
+          <property name="toolTip">
+           <string>[F4] Financeiro</string>
+          </property>
+          <property name="text">
+           <string>Acessar Financeiro</string>
+          </property>
+          <property name="moduleCard" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
      <item row="1" column="1">
-      <layout class="QVBoxLayout" name="vboxAdmin">
-       <item>
-        <widget class="QPushButton" name="btnPainelAdmin">
-         <property name="toolTip">
-          <string>[F2] Configurações do Sistema</string>
-         </property>
-         <property name="text">
-          <string>PAINEL ADMIN</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="lblPainelAdmin">
-         <property name="text">
-          <string>Configurações (F2)</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignCenter</set>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <widget class="QFrame" name="cardRelatorios">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="cardRelatoriosLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>18</number>
+        </property>
+        <property name="topMargin">
+         <number>18</number>
+        </property>
+        <property name="rightMargin">
+         <number>18</number>
+        </property>
+        <property name="bottomMargin">
+         <number>18</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblBadgeRelatorios">
+          <property name="text">
+           <string>F5 • RELATÓRIOS</string>
+          </property>
+          <property name="moduleBadge" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTitleRelatorios">
+          <property name="text">
+           <string>Relatórios</string>
+          </property>
+          <property name="moduleTitle" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblRelatorios">
+          <property name="text">
+           <string>Indicadores, rankings, ticket médio e visão gerencial.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="moduleDesc" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacerRelatorios">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnRelatorios">
+          <property name="toolTip">
+           <string>[F5] Relatórios</string>
+          </property>
+          <property name="text">
+           <string>Acessar Relatórios</string>
+          </property>
+          <property name="moduleCard" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QFrame" name="cardResumo">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="cardResumoLayout">
+        <property name="spacing">
+         <number>14</number>
+        </property>
+        <property name="leftMargin">
+         <number>24</number>
+        </property>
+        <property name="topMargin">
+         <number>22</number>
+        </property>
+        <property name="rightMargin">
+         <number>24</number>
+        </property>
+        <property name="bottomMargin">
+         <number>22</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblResumoTitle">
+          <property name="text">
+           <string>Atalhos</string>
+          </property>
+          <property name="moduleTitle" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblResumoText3">
+          <property name="text">
+           <string>Use F1 a F5 para acesso rápido.</string>
+          </property>
+          <property name="moduleDesc" stdset="0">
+           <string>true</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <spacer name="vSpacerBottom">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item>
     <widget class="QFrame" name="frameFooter">
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>50</height>
+       <height>54</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>54</height>
       </size>
      </property>
      <layout class="QHBoxLayout" name="footerLayout">
+      <property name="leftMargin">
+       <number>18</number>
+      </property>
+      <property name="topMargin">
+       <number>8</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <property name="spacing">
+       <number>10</number>
+      </property>
       <item>
        <widget class="QLabel" name="lblOperadorNome">
-        <property name="styleSheet">
-         <string notr="true">font-weight: bold; color: #40c840;</string>
-        </property>
         <property name="text">
          <string>OPERADOR: ---</string>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="spacerFooter">
+       <spacer name="footerSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>

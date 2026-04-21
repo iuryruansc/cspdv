@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PainelFinanceiro</class>
+ <widget class="QMainWindow" name="PainelFinanceiro">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1366</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CSPdv - Financeiro</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="mainVLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="frameHeader">
+      <property name="styleSheet">
+       <string notr="true">
+QFrame#frameHeader { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0); }
+QLabel#lblLogo { color: white; font-size: 28px; font-weight: bold; }
+QLabel#lblModulo {
+ color: #ffe39a; font-size: 12px; font-weight: bold;
+ background-color: rgba(255,255,255,30);
+ border: 1px solid rgba(255,255,255,60);
+ border-radius: 4px; padding: 3px 10px;
+}
+QLabel#lblOperadorInfo, QLabel#lblDataHora { color: #d9ebfb; font-size: 11px; }
+QPushButton#btnVoltarSelecao {
+ background-color: #cc2222; color: white; border: none; border-radius: 4px;
+ padding: 6px 12px; font-size: 11px; font-weight: bold;
+}
+QPushButton#btnVoltarSelecao:hover { background-color: #e03030; }
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="headerHLayout">
+       <property name="leftMargin"><number>14</number></property>
+       <property name="topMargin"><number>8</number></property>
+       <property name="rightMargin"><number>14</number></property>
+       <property name="bottomMargin"><number>8</number></property>
+       <item><widget class="QLabel" name="lblLogo"><property name="text"><string>CSPdv</string></property></widget></item>
+       <item><widget class="QFrame" name="frameSepHeader"><property name="styleSheet"><string notr="true">background-color: rgba(255,255,255,80);</string></property><property name="frameShape"><enum>QFrame::VLine</enum></property></widget></item>
+       <item><widget class="QLabel" name="lblModulo"><property name="text"><string>FINANCEIRO E CAIXA</string></property></widget></item>
+       <item><spacer name="headerSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+       <item><widget class="QLabel" name="lblOperadorInfo"><property name="text"><string>Operador: ---</string></property></widget></item>
+       <item><widget class="QLabel" name="lblDataHora"><property name="text"><string>--/--/---- --:--:--</string></property></widget></item>
+       <item><widget class="QPushButton" name="btnVoltarSelecao"><property name="text"><string>Voltar</string></property></widget></item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frameToolbar">
+      <property name="minimumSize">
+       <size><width>0</width><height>56</height></size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">
+QFrame#frameToolbar { background-color: #f0f6fc; border-bottom: 1px solid #c8d8e8; }
+QComboBox, QDateEdit {
+ background-color: white; border: 1px solid #b8cde0; border-radius: 4px;
+ padding: 6px 8px; font-size: 12px;
+}
+QPushButton {
+ background-color: #3585c8; color: white; border: none; border-radius: 4px;
+ padding: 6px 12px; font-size: 12px; font-weight: bold;
+}
+QPushButton:hover { background-color: #2b74b4; }
+QPushButton#btnRegistrarMovimento { background-color: #5cb85c; }
+QPushButton#btnRegistrarMovimento:hover { background-color: #4aa14a; }
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="toolbarLayout">
+       <property name="leftMargin"><number>16</number></property>
+       <property name="topMargin"><number>10</number></property>
+       <property name="rightMargin"><number>16</number></property>
+       <property name="bottomMargin"><number>10</number></property>
+       <item><widget class="QComboBox" name="cmbPdvFiltro"><item><property name="text"><string>Todos os PDVs</string></property></item></widget></item>
+       <item><widget class="QComboBox" name="cmbFormaPagamentoFiltro"><item><property name="text"><string>Todas as formas de pagamento</string></property></item></widget></item>
+       <item><widget class="QDateEdit" name="dateInicial"><property name="calendarPopup"><bool>true</bool></property></widget></item>
+       <item><widget class="QDateEdit" name="dateFinal"><property name="calendarPopup"><bool>true</bool></property></widget></item>
+       <item><widget class="QPushButton" name="btnAtualizar"><property name="text"><string>Atualizar</string></property></widget></item>
+       <item><widget class="QPushButton" name="btnAbrirCaixa"><property name="text"><string>Abrir Caixa</string></property></widget></item>
+       <item><widget class="QPushButton" name="btnFecharCaixa"><property name="text"><string>Fechar Caixa</string></property></widget></item>
+       <item><widget class="QPushButton" name="btnRegistrarMovimento"><property name="text"><string>Registrar Sangria/Suprimento</string></property></widget></item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="contentVLayout">
+      <property name="spacing"><number>12</number></property>
+      <property name="leftMargin"><number>16</number></property>
+      <property name="topMargin"><number>14</number></property>
+      <property name="rightMargin"><number>16</number></property>
+      <property name="bottomMargin"><number>14</number></property>
+      <item>
+       <layout class="QHBoxLayout" name="cardsLayout">
+        <property name="spacing"><number>12</number></property>
+        <item><widget class="QFrame" name="cardSaldoCaixa"><property name="styleSheet"><string notr="true">QFrame#cardSaldoCaixa { background-color: #3585c8; border-radius: 8px; } QLabel { color: white; } QLabel[role="value"] { font-size: 28px; font-weight: bold; } QLabel[role="title"] { color: #d8ebfb; font-size: 12px; }</string></property><layout class="QVBoxLayout" name="cardSaldoCaixaLayout"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>14</number></property><item><widget class="QLabel" name="lblSaldoCaixaValor"><property name="role" stdset="0"><string>value</string></property><property name="text"><string>R$ 0,00</string></property></widget></item><item><widget class="QLabel" name="lblSaldoCaixaTitulo"><property name="role" stdset="0"><string>title</string></property><property name="text"><string>Saldo Atual do Caixa</string></property></widget></item></layout></widget></item>
+        <item><widget class="QFrame" name="cardEntradasDia"><property name="styleSheet"><string notr="true">QFrame#cardEntradasDia { background-color: #5cb85c; border-radius: 8px; } QLabel { color: white; } QLabel[role="value"] { font-size: 28px; font-weight: bold; } QLabel[role="title"] { color: #daf0da; font-size: 12px; }</string></property><layout class="QVBoxLayout" name="cardEntradasDiaLayout"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>14</number></property><item><widget class="QLabel" name="lblEntradasDiaValor"><property name="role" stdset="0"><string>value</string></property><property name="text"><string>R$ 0,00</string></property></widget></item><item><widget class="QLabel" name="lblEntradasDiaTitulo"><property name="role" stdset="0"><string>title</string></property><property name="text"><string>Entradas do Dia</string></property></widget></item></layout></widget></item>
+        <item><widget class="QFrame" name="cardSaidasDia"><property name="styleSheet"><string notr="true">QFrame#cardSaidasDia { background-color: #e67e22; border-radius: 8px; } QLabel { color: white; } QLabel[role="value"] { font-size: 28px; font-weight: bold; } QLabel[role="title"] { color: #fbe0c3; font-size: 12px; }</string></property><layout class="QVBoxLayout" name="cardSaidasDiaLayout"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>14</number></property><item><widget class="QLabel" name="lblSaidasDiaValor"><property name="role" stdset="0"><string>value</string></property><property name="text"><string>R$ 0,00</string></property></widget></item><item><widget class="QLabel" name="lblSaidasDiaTitulo"><property name="role" stdset="0"><string>title</string></property><property name="text"><string>Saidas do Dia</string></property></widget></item></layout></widget></item>
+        <item><widget class="QFrame" name="cardPagamentosPendentes"><property name="styleSheet"><string notr="true">QFrame#cardPagamentosPendentes { background-color: #6c7ea0; border-radius: 8px; } QLabel { color: white; } QLabel[role="value"] { font-size: 28px; font-weight: bold; } QLabel[role="title"] { color: #d7def0; font-size: 12px; }</string></property><layout class="QVBoxLayout" name="cardPagamentosPendentesLayout"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>14</number></property><item><widget class="QLabel" name="lblPagamentosPendentesValor"><property name="role" stdset="0"><string>value</string></property><property name="text"><string>0</string></property></widget></item><item><widget class="QLabel" name="lblPagamentosPendentesTitulo"><property name="role" stdset="0"><string>title</string></property><property name="text"><string>Parcelas Pendentes</string></property></widget></item></layout></widget></item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="tablesLayout">
+        <property name="spacing"><number>12</number></property>
+        <item>
+         <widget class="QFrame" name="frameCaixaMovimentacoes">
+          <property name="styleSheet">
+           <string notr="true">
+QFrame#frameCaixaMovimentacoes, QFrame#frameRecebimentos {
+ background-color: white;
+ border: 1px solid #b8cde0;
+ border-radius: 6px;
+}
+QLabel[sectionTitle="true"] {
+ background-color: #f0f6fc;
+ color: #1a3a5c;
+ font-size: 13px;
+ font-weight: bold;
+ padding: 8px 12px;
+ border-bottom: 1px solid #d8e3ee;
+}
+QTableWidget {
+ border: none;
+ background-color: white;
+ gridline-color: #dce8f0;
+ font-size: 12px;
+}
+QHeaderView::section {
+ background-color: #f0f6fc;
+ color: #1a3a5c;
+ font-size: 11px;
+ font-weight: bold;
+ border: none;
+ border-right: 1px solid #dce8f0;
+ border-bottom: 2px solid #3585c8;
+ padding: 5px 6px;
+}
+           </string>
+          </property>
+          <layout class="QVBoxLayout" name="frameCaixaMovimentacoesLayout">
+           <property name="spacing"><number>0</number></property>
+           <property name="leftMargin"><number>0</number></property>
+           <property name="topMargin"><number>0</number></property>
+           <property name="rightMargin"><number>0</number></property>
+           <property name="bottomMargin"><number>0</number></property>
+           <item><widget class="QLabel" name="lblCaixaMovimentacoesSection"><property name="sectionTitle" stdset="0"><string>true</string></property><property name="text"><string>Movimentacoes de Caixa</string></property></widget></item>
+           <item>
+            <widget class="QTableWidget" name="tableCaixaMovimentacoes">
+             <property name="rowCount"><number>0</number></property>
+             <property name="columnCount"><number>6</number></property>
+             <attribute name="horizontalHeaderStretchLastSection"><bool>true</bool></attribute>
+             <column><property name="text"><string>Data/Hora</string></property></column>
+             <column><property name="text"><string>PDV</string></property></column>
+             <column><property name="text"><string>Operador</string></property></column>
+             <column><property name="text"><string>Motivo</string></property></column>
+             <column><property name="text"><string>Forma Pgto.</string></property></column>
+             <column><property name="text"><string>Valor</string></property></column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="frameRecebimentos">
+          <property name="minimumSize"><size><width>430</width><height>0</height></size></property>
+          <layout class="QVBoxLayout" name="frameRecebimentosLayout">
+           <property name="spacing"><number>0</number></property>
+           <property name="leftMargin"><number>0</number></property>
+           <property name="topMargin"><number>0</number></property>
+           <property name="rightMargin"><number>0</number></property>
+           <property name="bottomMargin"><number>0</number></property>
+           <item><widget class="QLabel" name="lblRecebimentosSection"><property name="sectionTitle" stdset="0"><string>true</string></property><property name="text"><string>Pagamentos e Parcelas</string></property></widget></item>
+           <item>
+            <widget class="QTableWidget" name="tablePagamentos">
+             <property name="rowCount"><number>0</number></property>
+             <property name="columnCount"><number>5</number></property>
+             <attribute name="horizontalHeaderStretchLastSection"><bool>true</bool></attribute>
+             <column><property name="text"><string>Venda</string></property></column>
+             <column><property name="text"><string>Forma</string></property></column>
+             <column><property name="text"><string>Parcelas</string></property></column>
+             <column><property name="text"><string>Status</string></property></column>
+             <column><property name="text"><string>Total</string></property></column>
+            </widget>
+           </item>
+           <item><widget class="QLabel" name="lblReembolsosSection"><property name="sectionTitle" stdset="0"><string>true</string></property><property name="text"><string>Reembolsos</string></property></widget></item>
+           <item>
+            <widget class="QTableWidget" name="tableReembolsos">
+             <property name="rowCount"><number>0</number></property>
+             <property name="columnCount"><number>4</number></property>
+             <attribute name="horizontalHeaderStretchLastSection"><bool>true</bool></attribute>
+             <column><property name="text"><string>Venda</string></property></column>
+             <column><property name="text"><string>Tipo</string></property></column>
+             <column><property name="text"><string>Status</string></property></column>
+             <column><property name="text"><string>Valor</string></property></column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QFrame" name="frameStatusBar">
+      <property name="styleSheet">
+       <string notr="true">
+QFrame#frameStatusBar { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0); }
+QLabel { color: white; font-size: 11px; }
+QLabel#lblStatusSistema { color: #80ff80; font-weight: bold; }
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="statusLayout">
+       <property name="leftMargin"><number>12</number></property>
+       <property name="rightMargin"><number>12</number></property>
+       <item><widget class="QLabel" name="lblStatusSistema"><property name="text"><string>Sistema online</string></property></widget></item>
+       <item><spacer name="statusSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+       <item><widget class="QLabel" name="lblStatusBar"><property name="text"><string>CSPdv - Modulo Financeiro</string></property></widget></item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

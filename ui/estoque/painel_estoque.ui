@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PainelEstoque</class>
+ <widget class="QMainWindow" name="PainelEstoque">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1366</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CSPdv - Estoque</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="mainVLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="frameHeader">
+      <property name="styleSheet">
+       <string notr="true">
+QFrame#frameHeader {
+ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);
+}
+QLabel#lblLogo {
+ color: white;
+ font-size: 28px;
+ font-weight: bold;
+}
+QLabel#lblModulo {
+ color: #ffe39a;
+ font-size: 12px;
+ font-weight: bold;
+ background-color: rgba(255,255,255,30);
+ border: 1px solid rgba(255,255,255,60);
+ border-radius: 4px;
+ padding: 3px 10px;
+}
+QLabel#lblOperadorInfo, QLabel#lblDataHora {
+ color: #d9ebfb;
+ font-size: 11px;
+}
+QPushButton#btnVoltarSelecao {
+ background-color: #cc2222;
+ color: white;
+ border: none;
+ border-radius: 4px;
+ padding: 6px 12px;
+ font-size: 11px;
+ font-weight: bold;
+}
+QPushButton#btnVoltarSelecao:hover {
+ background-color: #e03030;
+}
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="headerHLayout">
+       <property name="leftMargin">
+        <number>14</number>
+       </property>
+       <property name="topMargin">
+        <number>8</number>
+       </property>
+       <property name="rightMargin">
+        <number>14</number>
+       </property>
+       <property name="bottomMargin">
+        <number>8</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblLogo">
+         <property name="text">
+          <string>CSPdv</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameSepHeader">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(255,255,255,80);</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::VLine</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblModulo">
+         <property name="text">
+          <string>ESTOQUE E MOVIMENTACOES</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="headerSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblOperadorInfo">
+         <property name="text">
+          <string>Operador: ---</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblDataHora">
+         <property name="text">
+          <string>--/--/---- --:--:--</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnVoltarSelecao">
+         <property name="minimumSize">
+          <size>
+           <width>96</width>
+           <height>34</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Voltar</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frameToolbar">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>56</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">
+QFrame#frameToolbar { background-color: #f0f6fc; border-bottom: 1px solid #c8d8e8; }
+QLineEdit, QComboBox {
+ background-color: white;
+ border: 1px solid #b8cde0;
+ border-radius: 4px;
+ padding: 6px 8px;
+ font-size: 12px;
+}
+QPushButton {
+ background-color: #3585c8;
+ color: white;
+ border: none;
+ border-radius: 4px;
+ padding: 6px 12px;
+ font-size: 12px;
+ font-weight: bold;
+}
+QPushButton:hover { background-color: #2b74b4; }
+QPushButton#btnAjusteEstoque { background-color: #f0a030; color: #1d2430; }
+QPushButton#btnAjusteEstoque:hover { background-color: #d88b20; }
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="toolbarHLayout">
+       <property name="leftMargin">
+        <number>16</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>16</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="txtBuscaProduto">
+         <property name="placeholderText">
+          <string>Buscar por produto, codigo de barras ou lote</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cmbCategoriaFiltro">
+         <item>
+          <property name="text">
+           <string>Todas as categorias</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cmbFornecedorFiltro">
+         <item>
+          <property name="text">
+           <string>Todos os fornecedores</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnFiltrar">
+         <property name="text">
+          <string>Filtrar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNovoProduto">
+         <property name="text">
+          <string>Novo Produto</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnNovoLote">
+         <property name="text">
+          <string>Novo Lote</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnAjusteEstoque">
+         <property name="text">
+          <string>Ajuste de Estoque</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="contentVLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>16</number>
+      </property>
+      <property name="topMargin">
+       <number>14</number>
+      </property>
+      <property name="rightMargin">
+       <number>16</number>
+      </property>
+      <property name="bottomMargin">
+       <number>14</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="cardsHLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <item>
+         <widget class="QFrame" name="cardProdutosAtivos">
+          <property name="styleSheet">
+           <string notr="true">
+QFrame#cardProdutosAtivos { background-color: #3585c8; border-radius: 8px; }
+QLabel { color: white; }
+QLabel[role="value"] { font-size: 28px; font-weight: bold; }
+QLabel[role="title"] { color: #d8ebfb; font-size: 12px; }
+           </string>
+          </property>
+          <layout class="QVBoxLayout" name="cardProdutosAtivosLayout">
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>14</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblProdutosAtivosValor">
+             <property name="role" stdset="0">
+              <string>value</string>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblProdutosAtivosTitulo">
+             <property name="role" stdset="0">
+              <string>title</string>
+             </property>
+             <property name="text">
+              <string>Produtos Ativos</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="cardLotesAtivos">
+          <property name="styleSheet">
+           <string notr="true">
+QFrame#cardLotesAtivos { background-color: #5cb85c; border-radius: 8px; }
+QLabel { color: white; }
+QLabel[role="value"] { font-size: 28px; font-weight: bold; }
+QLabel[role="title"] { color: #daf0da; font-size: 12px; }
+           </string>
+          </property>
+          <layout class="QVBoxLayout" name="cardLotesAtivosLayout">
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>14</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblLotesAtivosValor">
+             <property name="role" stdset="0">
+              <string>value</string>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblLotesAtivosTitulo">
+             <property name="role" stdset="0">
+              <string>title</string>
+             </property>
+             <property name="text">
+              <string>Lotes Ativos</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="cardItensBaixoEstoque">
+          <property name="styleSheet">
+           <string notr="true">
+QFrame#cardItensBaixoEstoque { background-color: #f0a030; border-radius: 8px; }
+QLabel { color: #13202c; }
+QLabel[role="value"] { font-size: 28px; font-weight: bold; }
+QLabel[role="title"] { color: #523b10; font-size: 12px; }
+           </string>
+          </property>
+          <layout class="QVBoxLayout" name="cardItensBaixoEstoqueLayout">
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>14</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblItensBaixoEstoqueValor">
+             <property name="role" stdset="0">
+              <string>value</string>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblItensBaixoEstoqueTitulo">
+             <property name="role" stdset="0">
+              <string>title</string>
+             </property>
+             <property name="text">
+              <string>Produtos com Estoque Critico</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="cardMovimentacoesDia">
+          <property name="styleSheet">
+           <string notr="true">
+QFrame#cardMovimentacoesDia { background-color: #6c7ea0; border-radius: 8px; }
+QLabel { color: white; }
+QLabel[role="value"] { font-size: 28px; font-weight: bold; }
+QLabel[role="title"] { color: #d7def0; font-size: 12px; }
+           </string>
+          </property>
+          <layout class="QVBoxLayout" name="cardMovimentacoesDiaLayout">
+           <property name="leftMargin">
+            <number>16</number>
+           </property>
+           <property name="topMargin">
+            <number>14</number>
+           </property>
+           <property name="rightMargin">
+            <number>16</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblMovimentacoesDiaValor">
+             <property name="role" stdset="0">
+              <string>value</string>
+             </property>
+             <property name="text">
+              <string>0</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblMovimentacoesDiaTitulo">
+             <property name="role" stdset="0">
+              <string>title</string>
+             </property>
+             <property name="text">
+              <string>Movimentacoes do Dia</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="tablesHLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <item>
+         <widget class="QFrame" name="frameProdutos">
+          <property name="styleSheet">
+           <string notr="true">
+QFrame#frameProdutos, QFrame#frameMovimentacoes {
+ background-color: #ffffff;
+ border: 1px solid #b8cde0;
+ border-radius: 6px;
+}
+QLabel[sectionTitle="true"] {
+ background-color: #f0f6fc;
+ color: #1a3a5c;
+ font-size: 13px;
+ font-weight: bold;
+ padding: 8px 12px;
+ border-bottom: 1px solid #d8e3ee;
+}
+QTableWidget {
+ border: none;
+ background-color: white;
+ gridline-color: #dce8f0;
+ font-size: 12px;
+}
+QHeaderView::section {
+ background-color: #f0f6fc;
+ color: #1a3a5c;
+ font-size: 11px;
+ font-weight: bold;
+ border: none;
+ border-right: 1px solid #dce8f0;
+ border-bottom: 2px solid #3585c8;
+ padding: 5px 6px;
+}
+           </string>
+          </property>
+          <layout class="QVBoxLayout" name="frameProdutosLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblProdutosSection">
+             <property name="sectionTitle" stdset="0">
+              <string>true</string>
+             </property>
+             <property name="text">
+              <string>Produtos e Lotes</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tableProdutosEstoque">
+             <property name="rowCount">
+              <number>0</number>
+             </property>
+             <property name="columnCount">
+              <number>8</number>
+             </property>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column><property name="text"><string>Cod.</string></property></column>
+             <column><property name="text"><string>Produto</string></property></column>
+             <column><property name="text"><string>Categoria</string></property></column>
+             <column><property name="text"><string>Marca</string></property></column>
+             <column><property name="text"><string>Lote</string></property></column>
+             <column><property name="text"><string>Validade</string></property></column>
+             <column><property name="text"><string>Qtd.</string></property></column>
+             <column><property name="text"><string>Preco Venda</string></property></column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="frameMovimentacoes">
+          <property name="minimumSize">
+           <size>
+            <width>420</width>
+            <height>0</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="frameMovimentacoesLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lblMovimentacoesSection">
+             <property name="sectionTitle" stdset="0">
+              <string>true</string>
+             </property>
+             <property name="text">
+              <string>Ultimas Movimentacoes de Estoque</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tableMovimentacoesEstoque">
+             <property name="rowCount">
+              <number>0</number>
+             </property>
+             <property name="columnCount">
+              <number>5</number>
+             </property>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <column><property name="text"><string>Data/Hora</string></property></column>
+             <column><property name="text"><string>Produto</string></property></column>
+             <column><property name="text"><string>Tipo</string></property></column>
+             <column><property name="text"><string>Qtd.</string></property></column>
+             <column><property name="text"><string>Usuario</string></property></column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QFrame" name="frameStatusBar">
+      <property name="styleSheet">
+       <string notr="true">
+QFrame#frameStatusBar {
+ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);
+}
+QLabel { color: white; font-size: 11px; }
+QLabel#lblStatusSistema { color: #80ff80; font-weight: bold; }
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="statusHLayout">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblStatusSistema">
+         <property name="text">
+          <string>Sistema online</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="statusSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblStatusBar">
+         <property name="text">
+          <string>CSPdv - Modulo de Estoque</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
