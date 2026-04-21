@@ -1,6 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QApplication
-from ui.login.tela_de_login import Ui_TelaDeLogin 
+from PyQt5.QtWidgets import QApplication, QDialog
+
 from models.usuario_model import UsuarioModel
+from services.session_manager import SessionManager
+from ui.login.tela_de_login import Ui_TelaDeLogin
 
 class LoginView(QDialog, Ui_TelaDeLogin):
     usuario_logado = None
@@ -30,38 +32,39 @@ class LoginView(QDialog, Ui_TelaDeLogin):
             usuario = UsuarioModel.autenticar(login, senha)
 
             if usuario:
-                perfil_id = usuario.get('perfil_acesso_id')
+                perfil_id = usuario.get("perfil_acesso_id")
 
                 if perfil_id is not None:
-                    usuario['permissoes'] = UsuarioModel.buscar_permissoes(perfil_id)
+                    usuario["permissoes"] = UsuarioModel.buscar_permissoes(perfil_id)
                 else:
-                    usuario['permissoes'] = []
+                    usuario["permissoes"] = []
 
             if usuario is None:
-                self._show_error("Login ou senha inválidos.")
+                self._show_error("Login ou senha invalidos.")
                 return
-            
-            LoginView.usuario_logado = usuario
+
+            SessionManager.login(usuario)
+            LoginView.usuario_logado = SessionManager.current_user()
             print(f"Bem-vindo, {usuario['nome']}!")
             self.accept()
 
         except Exception as e:
             self._show_error(f"Erro: {str(e)}")
-        finally: 
+        finally:
             self._set_loading(False)
 
     def _show_error(self, message: str):
-        self.labelErro.setText(f"● {message}")
+        self.labelErro.setText(f"* {message}")
         self.labelErro.setVisible(True)
         self.lineEditSenha.clear()
         self.lineEditSenha.setFocus()
 
     def _set_loading(self, is_loading: bool):
         self.btnLogar.setEnabled(not is_loading)
-        self.labelCarregando.setText('Verificando...' if is_loading else 'Pronto.')
+        self.labelCarregando.setText("Verificando..." if is_loading else "Pronto.")
         self.progressBarCarregando.setVisible(is_loading)
-        
+
         if is_loading:
             self.progressBarCarregando.setRange(0, 0)
-        
+
         QApplication.processEvents()
