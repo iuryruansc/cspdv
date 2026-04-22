@@ -336,33 +336,6 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="colObsVLayout">
-             <property name="spacing">
-              <number>3</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblObservacao">
-               <property name="styleSheet">
-                <string notr="true">font-size:12px; font-weight:bold; color:#1a3a5c;</string>
-               </property>
-               <property name="text">
-                <string>Observação</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPlainTextEdit" name="plainTextObservacao">
-               <property name="styleSheet">
-                <string notr="true">QPlainTextEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:4px 8px;}QPlainTextEdit:focus{border-color:#3585c8;}</string>
-               </property>
-               <property name="placeholderText">
-                <string>Notas internas sobre a marca...</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="botoesHLayout">
              <property name="spacing">
               <number>10</number>

@@ -20,6 +20,9 @@ QWidget {
  background-color: #0c2238;
  color: white;
 }
+QLabel {
+ background-color: transparent;
+}
 QFrame#frameHero {
  background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #13385c, stop:1 #0b1f33);
  border-bottom: 1px solid #21486b;
@@ -30,6 +33,7 @@ QLabel#lblTitulo {
  color: white;
 }
 QLabel#lblSubtitulo, QLabel#lblVersao {
+ background-color: transparent;
  font-size: 12px;
  color: #a8c3da;
 }
@@ -48,11 +52,13 @@ QLabel[moduleBadge=&quot;true&quot;] {
  font-weight: bold;
 }
 QLabel[moduleTitle=&quot;true&quot;] {
+ background-color: transparent;
  font-size: 22px;
  font-weight: bold;
  color: white;
 }
 QLabel[moduleDesc=&quot;true&quot;] {
+ background-color: transparent;
  font-size: 12px;
  color: #a8c3da;
 }
@@ -90,6 +96,7 @@ QFrame#frameFooter {
  border-top: 1px solid #163753;
 }
 QLabel#lblOperadorNome {
+ background-color: transparent;
  font-weight: bold;
  color: #70e28b;
  font-size: 12px;

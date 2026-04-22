@@ -1,7 +1,34 @@
-from typing import Optional, Dict, Any, cast
+from typing import Optional, Dict, Any, List, cast
 from database.connection import get_connection
 
 class FornecedorModel:
+    @staticmethod
+    def listar_resumo() -> List[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    id_fornecedor,
+                    nome_fantasia,
+                    cnpj_cpf,
+                    telefone,
+                    cidade,
+                    estado,
+                    ativo
+                FROM fornecedores
+                ORDER BY nome_fantasia
+                """
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        except Exception as e:
+            print(f"Erro ao listar fornecedores: {e}")
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
     @staticmethod
     def inserir(dados: Dict[str, Any]) -> Optional[int]:
         conn = get_connection()

@@ -212,6 +212,9 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
         if not nome:
             erros.append("Descricao do Produto: preencha o nome do produto.")
             self.marcar_invalido(self.lineEditDescricao)
+        if not codigo_barras:
+            erros.append("Codigo de Barras: preencha um codigo de barras.")
+            self.marcar_invalido(self.lineEditCodigoBarras)
         if id_categoria is None:
             erros.append("Categoria: selecione uma categoria.")
             self.marcar_invalido(self.comboCategoria)
@@ -281,8 +284,14 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
                 self.marcar_invalido(self.lineEditDescricao)
             if "preco de venda" in mensagem.lower():
                 self.marcar_invalido(self.lineEditPrecoVenda)
-            if "codigo de barras" in mensagem.lower():
+            if "codigo de barras" in mensagem.lower() or "codigo do produto" in mensagem.lower():
                 self.marcar_invalido(self.lineEditCodigoBarras)
+            if "categoria" in mensagem.lower():
+                self.marcar_invalido(self.comboCategoria)
+            if "marca" in mensagem.lower():
+                self.marcar_invalido(self.comboMarca)
+            if "fornecedor" in mensagem.lower():
+                self.marcar_invalido(self.comboBox)
             QMessageBox.warning(self, "Atencao", mensagem)
 
     def _cancelar(self):

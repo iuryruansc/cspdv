@@ -16,6 +16,7 @@
   <property name="styleSheet">
    <string notr="true">
     QMainWindow { background-color: #0f2030; font-family: Arial; }
+    QLabel { background-color: transparent; }
    </string>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -37,6 +38,12 @@
     </property>
     <item>
      <widget class="QFrame" name="frameSidebar">
+      <property name="minimumWidth">
+       <number>224</number>
+      </property>
+      <property name="maximumWidth">
+       <number>224</number>
+      </property>
       <property name="styleSheet">
        <string notr="true">
         QFrame#frameSidebar {
@@ -133,7 +140,7 @@
             <item>
              <widget class="QLabel" name="lblOpNome">
               <property name="styleSheet">
-               <string notr="true">font-size:12px;font-weight:bold;color:#c0dff4;</string>
+               <string notr="true">color:#f5fbff;font-size:20px;font-weight:bold;</string>
               </property>
               <property name="text">
                <string>ADMIN</string>
@@ -143,7 +150,7 @@
             <item>
              <widget class="QLabel" name="lblCaixaStatus">
               <property name="styleSheet">
-               <string notr="true">font-size:10px;color:#cc4040;</string>
+               <string notr="true">color:#ff8a7a;font-size:12px;font-weight:bold;</string>
               </property>
               <property name="text">
                <string>● Caixa Fechado</string>
@@ -158,7 +165,7 @@
        <item>
         <widget class="QLabel" name="lblSecaoPrincipal">
          <property name="styleSheet">
-          <string notr="true">color:#1e4a6a;font-size:10px;font-weight:bold;letter-spacing:2px;padding:6px 16px 2px 16px;</string>
+          <string notr="true">color:#3f8ed6;font-size:15px;font-weight:bold;letter-spacing:1px;padding:6px 16px 2px 16px;</string>
          </property>
          <property name="text">
           <string>OPERAÇÕES</string>
@@ -220,7 +227,7 @@
        <item>
         <widget class="QLabel" name="lblSecaoCaixa">
          <property name="styleSheet">
-          <string notr="true">color:#1e4a6a;font-size:10px;font-weight:bold;letter-spacing:2px;padding:8px 16px 2px 16px;</string>
+          <string notr="true">color:#3f8ed6;font-size:13px;font-weight:bold;letter-spacing:1px;padding:8px 16px 2px 16px;</string>
          </property>
          <property name="text">
           <string>CAIXA</string>
@@ -295,7 +302,7 @@
           <item>
            <widget class="QLabel" name="lblSidebarDataHora">
             <property name="styleSheet">
-             <string notr="true">color:#2a5a7a;font-size:12px;font-weight:bold;</string>
+             <string notr="true">color:#5f93c2;font-size:13px;font-weight:bold;</string>
             </property>
             <property name="text">
              <string>--/--/----</string>
@@ -305,7 +312,7 @@
           <item>
            <widget class="QLabel" name="lblSidebarHora">
             <property name="styleSheet">
-             <string notr="true">color:#1a4060;font-size:20px;font-weight:bold;</string>
+             <string notr="true">color:#3f8ed6;font-size:22px;font-weight:bold;</string>
             </property>
             <property name="text">
              <string>--:--:--</string>
@@ -361,7 +368,7 @@
         <item>
          <widget class="QLabel" name="lblDefaultMsg">
           <property name="styleSheet">
-           <string notr="true">color:#1a3a5a;font-size:18px;</string>
+           <string notr="true">color:#7fb2df;font-size:20px;font-weight:600;line-height:1.4;</string>
           </property>
           <property name="text">
            <string>Carregando...</string>

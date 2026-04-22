@@ -92,6 +92,11 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def _open_pdv(self):
         if not self._tem_permissao("vendas.pdv"):
             return
+        from modules.venda.views.frente_loja_view import FrenteLojaView
+
+        self.hide()
+        self.frente_loja = FrenteLojaView()
+        self.frente_loja.show()
         
     def _open_painel_admin(self):
         if not self._tem_permissao("sistema.master"):

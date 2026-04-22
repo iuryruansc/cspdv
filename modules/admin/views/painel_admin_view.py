@@ -1,18 +1,29 @@
-import os
+from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QMessageBox, QPushButton, QShortcut
 
 from core.session_manager import SessionManager
+from modules.admin.views.widgets import ManagementPageWidget
 from ui.admin.painel_admin import Ui_PainelAdmin
 
-UI_DIR = os.path.join(os.path.dirname(__file__), "..", "ui")
 
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
 
+        self._management_configs: Dict[str, Dict[str, Any]] = {}
+        self._setup_user_context()
+        self._setup_datetime()
+        self._setup_management_area()
+        self._setup_navigation()
+        self._setup_actions()
+        self._setup_shortcuts()
+        self._show_dashboard()
+
+    def _setup_user_context(self) -> None:
         usuario = SessionManager.current_user()
         if usuario:
             nome = usuario["nome"].upper()
@@ -22,34 +33,278 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
             self.lblOperadorInfo.setText("Operador: Nao logado")
             self.lblStatusBar.setText("CSPdv - Painel Administrativo")
 
+    def _setup_datetime(self) -> None:
         self._update_datetime()
         self.timer = QTimer()
         self.timer.timeout.connect(self._update_datetime)
         self.timer.start(1000)
 
+    def _setup_management_area(self) -> None:
+        self.managementPage = ManagementPageWidget(self.centralWidget)
+        self.managementPage.hide()
+        self.mainContentVLayout.addWidget(self.managementPage)
+
+        self._management_configs = {
+            "produtos": {
+                "button": self.btnNavProdutosCadastro,
+                "title": "Produtos",
+                "section_title": "Gerenciamento de Produtos",
+                "hint": "Consulte itens cadastrados, acompanhe preco, estoque e relacoes principais antes de abrir o cadastro completo.",
+                "columns": [
+                    ("codigo_barras", "Codigo de Barras"),
+                    ("nome", "Produto"),
+                    ("categoria", "Categoria"),
+                    ("marca", "Marca"),
+                    ("fornecedor", "Fornecedor"),
+                    ("preco_venda", "Preco Venda"),
+                    ("quantidade_estoque", "Estoque"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_produtos,
+                "new_action": self._open_cadastro_produto,
+                "new_label": "Novo produto",
+                "shortcut": "F1",
+            },
+            "marcas": {
+                "button": self.btnNavMarcas,
+                "title": "Marcas",
+                "section_title": "Gerenciamento de Marcas",
+                "hint": "Marcas ficam dentro do painel para agilizar cadastros auxiliares e manter o operador no mesmo contexto.",
+                "columns": [
+                    ("id", "ID"),
+                    ("nome_marca", "Marca"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_marcas,
+                "new_action": self._open_cadastro_marca,
+                "new_label": "Nova marca",
+                "shortcut": "F2",
+            },
+            "fornecedores": {
+                "button": self.btnNavFornecedores,
+                "title": "Fornecedores",
+                "section_title": "Gerenciamento de Fornecedores",
+                "hint": "Consulte os fornecedores ativos e acesse o cadastro completo quando precisar de uma inclusao mais detalhada.",
+                "columns": [
+                    ("nome_fantasia", "Nome Fantasia"),
+                    ("cnpj_cpf", "CNPJ / CPF"),
+                    ("telefone", "Telefone"),
+                    ("cidade", "Cidade"),
+                    ("estado", "UF"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_fornecedores,
+                "new_action": self._open_cadastro_fornecedor,
+                "new_label": "Novo fornecedor",
+                "shortcut": "F3",
+            },
+            "categorias": {
+                "button": self.btnNavCategorias,
+                "title": "Categorias",
+                "section_title": "Gerenciamento de Categorias",
+                "hint": "Categorias curtas tambem permanecem dentro do admin para um fluxo mais rapido de organizacao dos produtos.",
+                "columns": [
+                    ("id", "ID"),
+                    ("nome", "Categoria"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_categorias,
+                "new_action": self._open_cadastro_categoria,
+                "new_label": "Nova categoria",
+                "shortcut": "F4",
+            },
+        }
+
+        for config in self._management_configs.values():
+            button = config["button"]
+            shortcut = config.get("shortcut")
+            if shortcut:
+                button.setText(f"({shortcut}) {config['title']}")
+
+    def _setup_navigation(self) -> None:
+        self.navGroup = QButtonGroup(self)
+        self.navGroup.setExclusive(True)
+        for button in (
+            self.btnNavDashboard,
+            self.btnNavProdutos,
+            self.btnNavUsuarios,
+            self.btnNavVendas,
+            self.btnNavClientes,
+            self.btnNavLotes,
+            self.btnNavConfiguracoes,
+        ):
+            self.navGroup.addButton(button)
+
+        self.btnNavDashboard.clicked.connect(lambda _=False: self._show_dashboard())
+        self.btnNavProdutos.clicked.connect(lambda _=False: self._show_management_page("produtos"))
+
+        for key, config in self._management_configs.items():
+            button = config["button"]
+            button.clicked.connect(lambda _, target=key: self._show_management_page(target))
+
+    def _setup_actions(self) -> None:
         self.btnAcaoCadProduto.clicked.connect(self._open_cadastro_produto)
+        self.btnAcaoBackup.clicked.connect(self._open_cadastro_marca)
+        self.btnAcaoConfig.clicked.connect(self._open_cadastro_categoria)
         self.btnAcaoCadFornecedor.clicked.connect(self._open_cadastro_fornecedor)
         self.btnSair.clicked.connect(self._exit)
+        self.managementPage.btnAtualizar.clicked.connect(self._refresh_current_management_page)
+        self.managementPage.btnAjustarQuantidade.clicked.connect(self._open_ajuste_quantidade)
 
-    def _open_cadastro_produto(self):
+    def _setup_shortcuts(self) -> None:
+        self.shortcutF1 = QShortcut(QKeySequence("F1"), self)
+        self.shortcutF1.activated.connect(lambda: self._show_management_page("produtos"))
+        self.shortcutF2 = QShortcut(QKeySequence("F2"), self)
+        self.shortcutF2.activated.connect(lambda: self._show_management_page("marcas"))
+        self.shortcutF3 = QShortcut(QKeySequence("F3"), self)
+        self.shortcutF3.activated.connect(lambda: self._show_management_page("fornecedores"))
+        self.shortcutF4 = QShortcut(QKeySequence("F4"), self)
+        self.shortcutF4.activated.connect(lambda: self._show_management_page("categorias"))
+
+    def _select_cadastros_nav(self) -> None:
+        if not self.btnNavProdutos.isChecked():
+            self.btnNavProdutos.setChecked(True)
+
+    def _show_dashboard(self) -> None:
+        self.btnNavDashboard.setChecked(True)
+        self.lblSectionTitle.setText("Dashboard Administrativo")
+        self.btnFrenteCaixa.show()
+        self.managementPage.hide()
+        self.cardVendasHoje.show()
+        self.cardFaturamento.show()
+        self.cardProdutos.show()
+        self.cardClientes.show()
+        self.frameUltimasVendas.show()
+        self._mark_subnav_button(None)
+
+    def _show_management_page(self, key: str) -> None:
+        config = self._management_configs[key]
+        self._select_cadastros_nav()
+        self.lblSectionTitle.setText(config["section_title"])
+        self.btnFrenteCaixa.hide()
+        self.cardVendasHoje.hide()
+        self.cardFaturamento.hide()
+        self.cardProdutos.hide()
+        self.cardClientes.hide()
+        self.frameUltimasVendas.hide()
+        self.managementPage.show()
+        self.managementPage.btnNovo.setText(config["new_label"])
+        self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
+        try:
+            self.managementPage.btnNovo.clicked.disconnect()
+        except TypeError:
+            pass
+        self.managementPage.btnNovo.clicked.connect(config["new_action"])
+        self._mark_subnav_button(config["button"])
+        self._populate_management_page(key)
+
+    def _mark_subnav_button(self, active_button: QPushButton | None) -> None:
+        for config in self._management_configs.values():
+            button = config["button"]
+            if button is active_button:
+                button.setStyleSheet(
+                    "color: #1a5fa0; background-color: rgba(53,133,200,30); border-bottom: 2px solid #3585c8;"
+                )
+            else:
+                button.setStyleSheet("")
+
+    def _populate_management_page(self, key: str) -> None:
+        config = self._management_configs[key]
+        error_message = None
+        try:
+            rows = config["loader"]()
+        except Exception as exc:
+            rows = []
+            error_message = (
+                f"Nao foi possivel consultar {config['title'].lower()} agora.\n\nDetalhes: {exc}"
+            )
+        self.managementPage.configure(
+            title=config["title"],
+            hint=config["hint"],
+            columns=config["columns"],
+            rows=rows,
+        )
+        self._current_management_key = key
+        if error_message:
+            QMessageBox.warning(self, "Falha ao carregar dados", error_message)
+
+    def _refresh_current_management_page(self) -> None:
+        current_key = getattr(self, "_current_management_key", None)
+        if current_key:
+            self._populate_management_page(current_key)
+
+    def _load_produtos(self) -> List[Dict[str, Any]]:
+        from modules.produtos.models.produto_model import ProdutoModel
+
+        return ProdutoModel.listar_resumo()
+
+    def _load_marcas(self) -> List[Dict[str, Any]]:
+        from modules.marcas.models.marca_model import MarcaModel
+
+        return MarcaModel.listar()
+
+    def _load_fornecedores(self) -> List[Dict[str, Any]]:
+        from modules.fornecedores.models.fornecedor_model import FornecedorModel
+
+        return FornecedorModel.listar_resumo()
+
+    def _load_categorias(self) -> List[Dict[str, Any]]:
+        from modules.categorias.models.categoria_model import CategoriaModel
+
+        return CategoriaModel.listar()
+
+    def _open_cadastro_produto(self) -> None:
         from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 
         self.hide()
         self.cadastro_produto = CadastroProdutoView()
         self.cadastro_produto.show()
 
-    def _open_cadastro_fornecedor(self):
+    def _open_cadastro_fornecedor(self) -> None:
         from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
 
         self.hide()
         self.cadastro_fornecedor = CadastroFornecedorView()
         self.cadastro_fornecedor.show()
 
-    def _update_datetime(self):
+    def _open_cadastro_marca(self) -> None:
+        from modules.marcas.views.cadastro_marca_view import CadastroMarcaView
+
+        dialog = CadastroMarcaView(self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
+
+    def _open_cadastro_categoria(self) -> None:
+        from modules.categorias.views.cadastro_categoria_view import CadastroCategoriaView
+
+        dialog = CadastroCategoriaView(self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
+
+    def _open_ajuste_quantidade(self) -> None:
+        if getattr(self, "_current_management_key", None) != "produtos":
+            return
+
+        produto = self.managementPage.selected_row()
+        if not produto:
+            QMessageBox.information(
+                self,
+                "Selecione um produto",
+                "Escolha um produto na tabela antes de ajustar a quantidade.",
+            )
+            return
+
+        from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
+
+        dialog = AjusteQuantidadeDialog(produto, self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
+
+    def _update_datetime(self) -> None:
         current = QDateTime.currentDateTime()
         self.lblDataHora.setText(current.toString("dd/MM/yyyy  hh:mm:ss"))
 
-    def _exit(self):
+    def _exit(self) -> None:
         from modules.auth.views.selecao_modo_view import SelecaoModoView
 
         self.hide()
