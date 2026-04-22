@@ -19,22 +19,22 @@ _app = QApplication.instance() or QApplication(sys.argv)
 
 @pytest.fixture
 def page_empresa():
-    from views.setup_wizard_view import PageEmpresa
+    from modules.setup.views.setup_wizard_view import PageEmpresa
     return PageEmpresa()
 
 @pytest.fixture
 def page_pdv():
-    from views.setup_wizard_view import PagePDV
+    from modules.setup.views.setup_wizard_view import PagePDV
     return PagePDV()
 
 @pytest.fixture
 def page_admin():
-    from views.setup_wizard_view import PageAdmin
+    from modules.setup.views.setup_wizard_view import PageAdmin
     return PageAdmin()
 
 @pytest.fixture
 def wizard():
-    from views.setup_wizard_view import SetupWizardView
+    from modules.setup.views.setup_wizard_view import SetupWizardView
     return SetupWizardView()
 
 def _preencher_empresa(page, cnpj='11222333000181'):
@@ -177,7 +177,7 @@ class TestGetData:
         assert len(cnpj) == 14
 
     def test_endereco_retorna_chaves_corretas(self):
-        from views.setup_wizard_view import PageEndereco
+        from modules.setup.views.setup_wizard_view import PageEndereco
         page = PageEndereco()
         assert set(page.get_data().keys()) == self.CHAVES_ENDERECO
 
@@ -206,7 +206,7 @@ class TestEndereco:
 
     @pytest.fixture
     def page(self):
-        from views.setup_wizard_view import PageEndereco
+        from modules.setup.views.setup_wizard_view import PageEndereco
         return PageEndereco()
 
     def _preencher(self, page):
@@ -256,7 +256,7 @@ class TestEndereco:
 
     # ── consultar_cep (ViaCEP mockado) ────────────────────────────────────
 
-    @patch('views.setup_wizard_view.requests.get')
+    @patch('modules.setup.views.setup_wizard_view.requests.get')
     def test_viacep_preenche_campos(self, mock_get, page):
         mock_get.return_value.json.return_value = {
             'logradouro': 'Avenida Paulista',
@@ -273,7 +273,7 @@ class TestEndereco:
         assert data['cidade']     == 'São Paulo'
         assert data['estado']     == 'SP'
 
-    @patch('views.setup_wizard_view.requests.get')
+    @patch('modules.setup.views.setup_wizard_view.requests.get')
     def test_viacep_cep_invalido_nao_preenche(self, mock_get, page):
         mock_get.return_value.json.return_value = {'erro': True}
         page.f_logr.set_value('Valor anterior')
@@ -282,8 +282,10 @@ class TestEndereco:
 
         assert page.get_data()['logradouro'] == 'Valor anterior'
 
-    @patch('views.setup_wizard_view.requests.get',
-           side_effect=requests.exceptions.ConnectionError('timeout simulado'))
+    @patch(
+        'modules.setup.views.setup_wizard_view.requests.get',
+        side_effect=requests.exceptions.ConnectionError('timeout simulado'),
+    )
     def test_viacep_falha_de_rede_nao_propaga(self, mock_get, page):
         page.f_cep.set_value('01310100')
         try:
@@ -294,7 +296,7 @@ class TestEndereco:
                 "verificar se except cobre requests.RequestException"
             )
 
-    @patch('views.setup_wizard_view.requests.get')
+    @patch('modules.setup.views.setup_wizard_view.requests.get')
     def test_viacep_nao_chamado_com_cep_incompleto(self, mock_get, page):
         page.f_cep.set_value('0131')
         page.consultar_cep()
@@ -327,23 +329,23 @@ class TestSetupModel:
         cursor.lastrowid = lastrowid
         return cursor
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_is_first_run_true(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         cursor = self._make_cursor(count=0)
         mock_get_conn.return_value.cursor.return_value = cursor
         assert SetupModel.is_first_run() is True
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_is_first_run_false(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         cursor = self._make_cursor(count=1)
         mock_get_conn.return_value.cursor.return_value = cursor
         assert SetupModel.is_first_run() is False
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_salvar_tudo_chama_commit(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
         cursor = self._make_cursor(lastrowid=1)
         conn.cursor.return_value = cursor
@@ -351,9 +353,9 @@ class TestSetupModel:
         SetupModel.salvar_tudo(self.EMPRESA, self.PDV, self.ADMIN)
         conn.commit.assert_called_once()
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_salvar_tudo_insere_nas_tabelas_corretas(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
         cursor = self._make_cursor(lastrowid=1)
         conn.cursor.return_value = cursor
@@ -368,9 +370,9 @@ class TestSetupModel:
                        'permissoes', 'perfil_permissoes', 'funcionarios', 'usuarios']:
             assert tabela in sql_calls, f"INSERT em '{tabela}' não encontrado"
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_salvar_tudo_faz_rollback_em_erro(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
         cursor = self._make_cursor()
         cursor.execute.side_effect = Exception('Erro simulado')
@@ -382,9 +384,9 @@ class TestSetupModel:
         conn.rollback.assert_called_once()
         conn.commit.assert_not_called()
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_salvar_tudo_senha_com_bcrypt(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
         cursor = self._make_cursor(lastrowid=1)
         conn.cursor.return_value = cursor
@@ -413,9 +415,9 @@ class TestSetupModel:
             params['senha_hash'].encode('utf-8'),
         ), "Hash bcrypt não corresponde à senha original"
 
-    @patch('models.setup_model.get_connection')
+    @patch('modules.setup.models.setup_model.get_connection')
     def test_salvar_tudo_fecha_cursor(self, mock_get_conn):
-        from models.setup_model import SetupModel
+        from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
         cursor = self._make_cursor(lastrowid=1)
         conn.cursor.return_value = cursor
@@ -511,7 +513,7 @@ class TestFluxoWizard:
     def test_foi_concluido_falso_antes_salvar(self, wizard):
         assert wizard.foi_concluido() is False
 
-    @patch('views.setup_wizard_view.SetupModel.salvar_tudo')
+    @patch('modules.setup.views.setup_wizard_view.SetupModel.salvar_tudo')
     def test_salvar_chama_model(self, mock_salvar, wizard):
         self._preencher_todas_as_paginas(wizard)
         wizard._current = len(wizard.pages) - 1
@@ -519,22 +521,24 @@ class TestFluxoWizard:
         wizard._salvar()
         mock_salvar.assert_called_once()
 
-    @patch('views.setup_wizard_view.SetupModel.salvar_tudo')
+    @patch('modules.setup.views.setup_wizard_view.SetupModel.salvar_tudo')
     def test_foi_concluido_verdadeiro_apos_salvar(self, mock_salvar, wizard):
         self._preencher_todas_as_paginas(wizard)
         wizard._current = len(wizard.pages) - 1
         wizard._salvar()
         assert wizard.foi_concluido() is True
 
-    @patch('views.setup_wizard_view.SetupModel.salvar_tudo',
-           side_effect=Exception('Erro de banco'))
+    @patch(
+        'modules.setup.views.setup_wizard_view.SetupModel.salvar_tudo',
+        side_effect=Exception('Erro de banco'),
+    )
     def test_erro_no_salvar_nao_marca_concluido(self, mock_salvar, wizard):
         self._preencher_todas_as_paginas(wizard)
         wizard._current = len(wizard.pages) - 1
         wizard._salvar()
         assert wizard.foi_concluido() is False
 
-    @patch('views.setup_wizard_view.SetupModel.salvar_tudo')
+    @patch('modules.setup.views.setup_wizard_view.SetupModel.salvar_tudo')
     def test_recoleta_dados_antes_de_salvar(self, mock_salvar, wizard):
         self._preencher_todas_as_paginas(wizard)
         wizard._current = len(wizard.pages) - 2

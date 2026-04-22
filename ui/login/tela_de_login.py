@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'TelaDeLogin.ui'
+# Form implementation generated from reading ui file 'tela_de_login.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #

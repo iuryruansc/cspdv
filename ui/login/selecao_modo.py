@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Python\cspdv\ui\login\selecao_modo.ui'
+# Form implementation generated from reading ui file 'selecao_modo.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #

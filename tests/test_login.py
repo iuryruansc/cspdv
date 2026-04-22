@@ -17,9 +17,9 @@ from dotenv import find_dotenv, load_dotenv
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from database.connection import close_connection
-from services.session_manager import SessionManager
-from views.login.login_view import LoginView
-from views.login.selecao_modo_view import SelecaoModoView
+from core.session_manager import SessionManager
+from modules.auth.views.login_view import LoginView
+from modules.auth.views.selecao_modo_view import SelecaoModoView
 
 load_dotenv(find_dotenv())
 

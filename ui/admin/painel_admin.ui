@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ui version="4.0">
  <class>PainelAdmin</class>
  <widget class="QMainWindow" name="PainelAdmin">
@@ -94,7 +94,7 @@ QLabel {
           </string>
          </property>
          <property name="text">
-          <string>ADMINISTRAÇÃO CENTRAL</string>
+          <string>ADMINISTRAÃƒâ€¡ÃƒÆ’O CENTRAL</string>
          </property>
         </widget>
        </item>
@@ -290,6 +290,16 @@ QPushButton:checked {
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="btnNavConfiguracoes">
+         <property name="text">
+          <string>ConfiguraÃƒÂ§ÃƒÂµes</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="navSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -381,7 +391,7 @@ QPushButton:hover { color: #1a5fa0; background-color: rgba(53,133,200,18); }
        <item>
         <widget class="QPushButton" name="btnNavPermissoes">
          <property name="text">
-          <string>Permissões</string>
+          <string>PermissÃƒÂµes</string>
          </property>
         </widget>
        </item>
@@ -409,7 +419,7 @@ QPushButton:hover { color: #1a5fa0; background-color: rgba(53,133,200,18); }
        <item>
         <widget class="QPushButton" name="btnNavFiscal">
          <property name="text">
-          <string>Parâmetros Fiscais</string>
+          <string>ParÃƒÂ¢metros Fiscais</string>
          </property>
         </widget>
        </item>
@@ -654,7 +664,7 @@ QPushButton:hover { background: #2a74b8; }
               <string notr="true">font-size: 22px; color: #1f2a36;</string>
              </property>
              <property name="text">
-              <string>📦</string>
+              <string>Ã°Å¸â€œÂ¦</string>
              </property>
             </widget>
            </item>
@@ -708,7 +718,7 @@ QPushButton:hover { background: #2a74b8; }
               <string notr="true">font-size: 22px; color: white;</string>
              </property>
              <property name="text">
-              <string>👥</string>
+              <string>Ã°Å¸â€˜Â¥</string>
              </property>
             </widget>
            </item>
@@ -751,7 +761,7 @@ QFrame#frameUltimasVendas, QFrame#frameAcessoSistema, QFrame#frameConfiguracaoEs
  border: 1px solid #a8c4d8;
  border-radius: 6px;
 }
-QLabel[panelTitle=&quot;true&quot;] {
+QLabel[panelTitle="true"] {
  background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);
  color: white;
  font-size: 13px;
@@ -776,7 +786,7 @@ QHeaderView::section {
  border-right: 1px solid #dce8f0;
  border-bottom: 2px solid #3585c8;
 }
-QPushButton[actionButton=&quot;true&quot;] {
+QPushButton[actionButton="true"] {
  background-color: #f0f6fc;
  color: #1a3a5c;
  font-size: 12px;
@@ -786,7 +796,7 @@ QPushButton[actionButton=&quot;true&quot;] {
  padding: 8px 10px;
  text-align: left;
 }
-QPushButton[actionButton=&quot;true&quot;]:hover {
+QPushButton[actionButton="true"]:hover {
  background-color: #dceaf4;
  border-color: #3585c8;
  color: #1a5fa0;
@@ -830,7 +840,7 @@ QPushButton[actionButton=&quot;true&quot;]:hover {
               <item>
                <widget class="QLabel" name="lblUltimasVendasTitle">
                 <property name="text">
-                 <string>Últimas Vendas</string>
+                 <string>ÃƒÅ¡ltimas Vendas</string>
                 </property>
                 <property name="panelTitle" stdset="0">
                  <string>true</string>
@@ -905,7 +915,7 @@ QPushButton[actionButton=&quot;true&quot;]:hover {
               <item>
                <widget class="QLabel" name="lblAcoesTitle">
                 <property name="text">
-                 <string>Ações Rápidas</string>
+                 <string>AÃƒÂ§ÃƒÂµes RÃƒÂ¡pidas</string>
                 </property>
                 <property name="panelTitle" stdset="0">
                  <string>true</string>
@@ -933,77 +943,7 @@ QPushButton[actionButton=&quot;true&quot;]:hover {
                  <item>
                   <widget class="QPushButton" name="btnAcaoCadProduto">
                    <property name="text">
-                    <string>📦   Cadastrar Produto</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadCliente">
-                   <property name="text">
-                    <string>👤   Cadastrar Cliente</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadUsuario">
-                   <property name="text">
-                    <string>🔑   Cadastrar Usuário</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadFornecedor">
-                   <property name="text">
-                    <string>🚚   Cadastrar Fornecedor</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadFuncionario">
-                   <property name="text">
-                    <string>🧑   Cadastrar Funcionário</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadPerfil">
-                   <property name="text">
-                    <string>🛡   Cadastrar Perfil</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadPermissao">
-                   <property name="text">
-                    <string>✅   Gerenciar Permissões</string>
-                   </property>
-                   <property name="actionButton" stdset="0">
-                    <string>true</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="btnAcaoCadCargo">
-                   <property name="text">
-                    <string>🧾   Gerenciar Cargos</string>
+                    <string>Cadastrar Produto</string>
                    </property>
                    <property name="actionButton" stdset="0">
                     <string>true</string>
@@ -1013,7 +953,7 @@ QPushButton[actionButton=&quot;true&quot;]:hover {
                  <item>
                   <widget class="QPushButton" name="btnAcaoBackup">
                    <property name="text">
-                    <string>💾   Backup do Sistema</string>
+                    <string>Cadastrar Marca</string>
                    </property>
                    <property name="actionButton" stdset="0">
                     <string>true</string>
@@ -1023,7 +963,77 @@ QPushButton[actionButton=&quot;true&quot;]:hover {
                  <item>
                   <widget class="QPushButton" name="btnAcaoConfig">
                    <property name="text">
-                    <string>⚙   Configurações</string>
+                    <string>Cadastrar Categoria</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadFornecedor">
+                   <property name="text">
+                    <string>Cadastrar Fornecedor</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadCliente">
+                   <property name="text">
+                    <string>Cadastrar Cliente</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadFuncionario">
+                   <property name="text">
+                    <string>Cadastrar Funcionário</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadUsuario">
+                   <property name="text">
+                    <string>Cadastrar Usuário</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadPerfil">
+                   <property name="text">
+                    <string>Cadastrar Perfil</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadPermissao">
+                   <property name="text">
+                    <string>Gerenciar Permissões</string>
+                   </property>
+                   <property name="actionButton" stdset="0">
+                    <string>true</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnAcaoCadCargo">
+                   <property name="text">
+                    <string>Gerenciar Cargos</string>
                    </property>
                    <property name="actionButton" stdset="0">
                     <string>true</string>
@@ -1130,7 +1140,7 @@ QPushButton[actionButton=&quot;true&quot;]:hover {
                  <item>
                   <widget class="QPushButton" name="btnAcaoRelatorio">
                    <property name="text">
-                    <string>📊   Cadastrar Lote</string>
+                    <string>Ã°Å¸â€œÅ    Cadastrar Lote</string>
                    </property>
                    <property name="actionButton" stdset="0">
                     <string>true</string>
@@ -1178,7 +1188,7 @@ QFrame#frameStatusBar {
           <string notr="true">color: #80ff80; font-size: 11px; font-weight: bold;</string>
          </property>
          <property name="text">
-          <string>● Sistema Online</string>
+          <string>Ã¢â€”Â Sistema Online</string>
          </property>
         </widget>
        </item>
@@ -1234,6 +1244,6 @@ QFrame#frameStatusBar {
    </layout>
   </widget>
  </widget>
- <resources/>
- <connections/>
+ <resources />
+ <connections />
 </ui>

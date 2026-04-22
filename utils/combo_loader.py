@@ -1,12 +1,16 @@
+from collections.abc import Mapping, Sequence
+from typing import Any
+
 from PyQt5.QtWidgets import QComboBox
 
-# Funções para carregar combos com dados do banco e obter o ID selecionado
+ComboItem = Mapping[str, Any]
+
 def popular_combo(
     combo: QComboBox,
-    itens: list[dict],
-    placeholder: str = 'Selecione...',
-    id_key: str = 'id',
-    nome_key: str = 'nome',
+    itens: Sequence[ComboItem],
+    placeholder: str = "Selecione...",
+    id_key: str = "id",
+    nome_key: str = "nome",
 ) -> None:
     combo.blockSignals(True)
     combo.clear()
@@ -18,6 +22,5 @@ def popular_combo(
     combo.setCurrentIndex(0)
     combo.blockSignals(False)
 
-
-def combo_id(combo: QComboBox):
+def combo_id(combo: QComboBox) -> Any:
     return combo.currentData()

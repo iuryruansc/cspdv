@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'CadastroLote.ui'
+# Form implementation generated from reading ui file 'cadastro_lote.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #

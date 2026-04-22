@@ -6,10 +6,10 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from database.connection import close_connection, get_connection_diagnostics
-from models.setup_model import SetupModel
-from views.login.login_view import LoginView
-from views.login.selecao_modo_view import SelecaoModoView
-from views.setup_wizard_view import SetupWizardView
+from modules.auth.views.login_view import LoginView
+from modules.auth.views.selecao_modo_view import SelecaoModoView
+from modules.setup.models.setup_model import SetupModel
+from modules.setup.views.setup_wizard_view import SetupWizardView
 
 load_dotenv(find_dotenv())
 

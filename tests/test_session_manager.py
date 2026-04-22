@@ -2,7 +2,7 @@
     python -m pytest tests/test_session_manager.py -v
 """
 
-from services.session_manager import SessionManager
+from core.session_manager import SessionManager
 
 class TestSessionManager:
     def setup_method(self):

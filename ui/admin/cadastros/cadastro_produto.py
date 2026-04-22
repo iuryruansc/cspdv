@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'CadastroProduto.ui'
+# Form implementation generated from reading ui file 'cadastro_produto.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -541,28 +541,81 @@ class Ui_CadastroProduto(object):
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.rowEstoqueHLayout.addItem(spacerItem2)
         self.camposVLayout.addLayout(self.rowEstoqueHLayout)
-        self.colObsVLayout = QtWidgets.QVBoxLayout()
-        self.colObsVLayout.setSpacing(3)
-        self.colObsVLayout.setObjectName("colObsVLayout")
-        self.lblObservacoes = QtWidgets.QLabel(self.frameCampos)
-        self.lblObservacoes.setStyleSheet("font-size:12px; font-weight:bold; color:#1a3a5c;")
-        self.lblObservacoes.setObjectName("lblObservacoes")
-        self.colObsVLayout.addWidget(self.lblObservacoes)
-        self.plainTextObservacoes = QtWidgets.QPlainTextEdit(self.frameCampos)
-        self.plainTextObservacoes.setStyleSheet("\n"
-"                  QPlainTextEdit {\n"
-"                   background-color: #ffffff;\n"
+        self.colImagemVLayout = QtWidgets.QVBoxLayout()
+        self.colImagemVLayout.setSpacing(6)
+        self.colImagemVLayout.setObjectName("colImagemVLayout")
+        self.lblImagemProduto = QtWidgets.QLabel(self.frameCampos)
+        self.lblImagemProduto.setStyleSheet("font-size:12px; font-weight:bold; color:#1a3a5c;")
+        self.lblImagemProduto.setObjectName("lblImagemProduto")
+        self.colImagemVLayout.addWidget(self.lblImagemProduto)
+        self.lblPreviewImagem = QtWidgets.QLabel(self.frameCampos)
+        self.lblPreviewImagem.setMinimumSize(QtCore.QSize(0, 170))
+        self.lblPreviewImagem.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblPreviewImagem.setStyleSheet("\n"
+"                  QLabel {\n"
+"                   background-color: #f7fbff;\n"
+"                   border: 2px dashed #a8c4d8;\n"
+"                   border-radius: 4px;\n"
+"                   font-size: 12px;\n"
+"                   color: #5e7a94;\n"
+"                   padding: 10px;\n"
+"                  }\n"
+"                 ")
+        self.lblPreviewImagem.setObjectName("lblPreviewImagem")
+        self.colImagemVLayout.addWidget(self.lblPreviewImagem)
+        self.rowImagemHLayout = QtWidgets.QHBoxLayout()
+        self.rowImagemHLayout.setSpacing(8)
+        self.rowImagemHLayout.setObjectName("rowImagemHLayout")
+        self.lineEditImagemProduto = QtWidgets.QLineEdit(self.frameCampos)
+        self.lineEditImagemProduto.setReadOnly(True)
+        self.lineEditImagemProduto.setStyleSheet("\n"
+"                  QLineEdit {\n"
+"                   background-color: #f0f6fc;\n"
 "                   border: 2px solid #a8c4d8;\n"
 "                   border-radius: 4px;\n"
 "                   font-size: 12px;\n"
 "                   color: #1a3a5c;\n"
-"                   padding: 4px 8px;\n"
+"                   padding: 3px 8px;\n"
 "                  }\n"
-"                  QPlainTextEdit:focus { border-color: #3585c8; }\n"
 "                 ")
-        self.plainTextObservacoes.setObjectName("plainTextObservacoes")
-        self.colObsVLayout.addWidget(self.plainTextObservacoes)
-        self.camposVLayout.addLayout(self.colObsVLayout)
+        self.lineEditImagemProduto.setObjectName("lineEditImagemProduto")
+        self.rowImagemHLayout.addWidget(self.lineEditImagemProduto)
+        self.btnSelecionarImagem = QtWidgets.QPushButton(self.frameCampos)
+        self.btnSelecionarImagem.setMinimumSize(QtCore.QSize(150, 34))
+        self.btnSelecionarImagem.setStyleSheet("\n"
+"                  QPushButton {\n"
+"                   background-color: #e8f1f9;\n"
+"                   color: #1a5fa0;\n"
+"                   font-size: 12px;\n"
+"                   font-weight: bold;\n"
+"                   border: 1px solid #a8c4d8;\n"
+"                   border-radius: 5px;\n"
+"                   padding: 5px 12px;\n"
+"                  }\n"
+"                  QPushButton:hover  { background-color: #d9ebfa; }\n"
+"                  QPushButton:pressed{ background-color: #c8def1; }\n"
+"                 ")
+        self.btnSelecionarImagem.setObjectName("btnSelecionarImagem")
+        self.rowImagemHLayout.addWidget(self.btnSelecionarImagem)
+        self.btnRemoverImagem = QtWidgets.QPushButton(self.frameCampos)
+        self.btnRemoverImagem.setMinimumSize(QtCore.QSize(110, 34))
+        self.btnRemoverImagem.setStyleSheet("\n"
+"                  QPushButton {\n"
+"                   background-color: #f0f0f0;\n"
+"                   color: #555555;\n"
+"                   font-size: 12px;\n"
+"                   font-weight: bold;\n"
+"                   border: 1px solid #bbbbbb;\n"
+"                   border-radius: 5px;\n"
+"                   padding: 5px 12px;\n"
+"                  }\n"
+"                  QPushButton:hover  { background-color: #e0e0e0; }\n"
+"                  QPushButton:pressed{ background-color: #cccccc; }\n"
+"                 ")
+        self.btnRemoverImagem.setObjectName("btnRemoverImagem")
+        self.rowImagemHLayout.addWidget(self.btnRemoverImagem)
+        self.colImagemVLayout.addLayout(self.rowImagemHLayout)
+        self.camposVLayout.addLayout(self.colImagemVLayout)
         self.botoesHLayout = QtWidgets.QHBoxLayout()
         self.botoesHLayout.setSpacing(10)
         self.botoesHLayout.setObjectName("botoesHLayout")
@@ -668,8 +721,11 @@ class Ui_CadastroProduto(object):
         self.lineEditQuantidadeEstoque.setPlaceholderText(_translate("CadastroProduto", "0"))
         self.lblStatusProduto.setText(_translate("CadastroProduto", "Status"))
         self.checkBoxAtivo.setText(_translate("CadastroProduto", "Produto ativo"))
-        self.lblObservacoes.setText(_translate("CadastroProduto", "Observações"))
-        self.plainTextObservacoes.setPlaceholderText(_translate("CadastroProduto", "Informações adicionais sobre o produto..."))
+        self.lblImagemProduto.setText(_translate("CadastroProduto", "Imagem do Produto"))
+        self.lblPreviewImagem.setText(_translate("CadastroProduto", "Nenhuma imagem selecionada"))
+        self.lineEditImagemProduto.setPlaceholderText(_translate("CadastroProduto", "Nenhum arquivo selecionado"))
+        self.btnSelecionarImagem.setText(_translate("CadastroProduto", "Selecionar Imagem"))
+        self.btnRemoverImagem.setText(_translate("CadastroProduto", "Remover"))
         self.btnLimpar.setText(_translate("CadastroProduto", "🗑  Limpar"))
         self.btnSalvar.setText(_translate("CadastroProduto", "💾  Salvar"))
         self.btnSalvar.setShortcut(_translate("CadastroProduto", "Return"))
