@@ -7,7 +7,7 @@
   </property>
   <property name="windowTitle"><string>CSPdv - Fechamento de Caixa</string></property>
   <property name="styleSheet">
-   <string notr="true">QWidget { font-family: Arial; background-color: #0f2030; }</string>
+   <string notr="true">QWidget { font-family: Arial; background-color: #102233; } QLabel { background-color: transparent; }</string>
   </property>
 
   <layout class="QVBoxLayout" name="mainVLayout">
@@ -29,12 +29,12 @@
       <item><widget class="QLabel" name="lblHIco"><property name="text"><string>&#128274;</string></property><property name="styleSheet"><string notr="true">font-size:22px;</string></property></widget></item>
       <item>
        <layout class="QVBoxLayout"><property name="spacing"><number>1</number></property>
-        <item><widget class="QLabel" name="lblHTitulo"><property name="text"><string>Fechamento de Caixa</string></property><property name="styleSheet"><string notr="true">color:white;font-size:16px;font-weight:bold;</string></property></widget></item>
-        <item><widget class="QLabel" name="lblHSub"><property name="text"><string>Confira os valores antes de encerrar o caixa</string></property><property name="styleSheet"><string notr="true">color:#4a7a9a;font-size:11px;</string></property></widget></item>
+        <item><widget class="QLabel" name="lblHTitulo"><property name="text"><string>Fechamento de Caixa</string></property><property name="styleSheet"><string notr="true">color:#f5fbff;font-size:16px;font-weight:bold;</string></property></widget></item>
+        <item><widget class="QLabel" name="lblHSub"><property name="text"><string>Confira os valores antes de encerrar o caixa</string></property><property name="styleSheet"><string notr="true">color:#8bb7d8;font-size:11px;</string></property></widget></item>
        </layout>
       </item>
       <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property></spacer></item>
-      <item><widget class="QLabel" name="lblHDataHora"><property name="text"><string>--/--/----  --:--</string></property><property name="styleSheet"><string notr="true">color:#2a5a7a;font-size:12px;</string></property></widget></item>
+      <item><widget class="QLabel" name="lblHDataHora"><property name="text"><string>--/--/----  --:--</string></property><property name="styleSheet"><string notr="true">color:#88b2d3;font-size:12px;font-weight:bold;</string></property></widget></item>
      </layout>
     </widget>
    </item>
@@ -66,20 +66,20 @@
          <item>
           <widget class="QFrame" name="cardVendas">
            <property name="minimumHeight"><number>80</number></property>
-           <property name="styleSheet"><string notr="true">QFrame#cardVendas{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+           <property name="styleSheet"><string notr="true">QFrame#cardVendas{background-color:#12283a;border:1px solid #214b6a;border-radius:12px;}</string></property>
            <layout class="QVBoxLayout" name="cardVendasVL">
             <property name="spacing"><number>4</number></property>
             <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>12</number></property>
             <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>12</number></property>
-            <item><widget class="QLabel" name="lblCardVendasLabel"><property name="text"><string>VENDAS DO DIA</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#1e4a6a;letter-spacing:2px;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblCardVendasLabel"><property name="text"><string>VENDAS DO DIA</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#6da9d4;letter-spacing:2px;</string></property></widget></item>
             <item>
              <layout class="QHBoxLayout">
-              <item><widget class="QLabel" name="lblCardVendasValor"><property name="text"><string>0</string></property><property name="styleSheet"><string notr="true">font-size:28px;font-weight:bold;color:#60a8e0;</string></property></widget></item>
+              <item><widget class="QLabel" name="lblCardVendasValor"><property name="text"><string>0</string></property><property name="styleSheet"><string notr="true">font-size:34px;font-weight:bold;color:#9fd2ff;</string></property></widget></item>
               <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item>
               <item>
                <layout class="QVBoxLayout"><property name="spacing"><number>2</number></property>
                 <item><widget class="QLabel" name="lblCardVendasTotalLabel"><property name="text"><string>Faturamento</string></property><property name="styleSheet"><string notr="true">font-size:10px;color:#2a5a7a;</string></property></widget></item>
-                <item><widget class="QLabel" name="lblCardVendasTotalValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:16px;font-weight:bold;color:#3585c8;</string></property></widget></item>
+                <item><widget class="QLabel" name="lblCardVendasTotalValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:17px;font-weight:bold;color:#8ec9ff;</string></property></widget></item>
                </layout>
               </item>
              </layout>
@@ -92,13 +92,13 @@
          <item>
           <widget class="QFrame" name="cardFundoCaixa">
            <property name="minimumHeight"><number>80</number></property>
-           <property name="styleSheet"><string notr="true">QFrame#cardFundoCaixa{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+           <property name="styleSheet"><string notr="true">QFrame#cardFundoCaixa{background-color:#12283a;border:1px solid #214b6a;border-radius:12px;}</string></property>
            <layout class="QVBoxLayout" name="cardFundoVL">
             <property name="spacing"><number>4</number></property>
             <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>12</number></property>
             <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>12</number></property>
-            <item><widget class="QLabel" name="lblCardFundoLabel"><property name="text"><string>FUNDO DE CAIXA ESPERADO</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#1e4a6a;letter-spacing:2px;</string></property></widget></item>
-            <item><widget class="QLabel" name="lblCardFundoValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:28px;font-weight:bold;color:#60c860;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblCardFundoLabel"><property name="text"><string>FUNDO DE CAIXA ESPERADO</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#6da9d4;letter-spacing:2px;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblCardFundoValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:34px;font-weight:bold;color:#78dd8b;</string></property></widget></item>
            </layout>
           </widget>
          </item>
@@ -107,13 +107,13 @@
          <item>
           <widget class="QFrame" name="cardDiferenca">
            <property name="minimumHeight"><number>80</number></property>
-           <property name="styleSheet"><string notr="true">QFrame#cardDiferenca{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+           <property name="styleSheet"><string notr="true">QFrame#cardDiferenca{background-color:#12283a;border:1px solid #214b6a;border-radius:12px;}</string></property>
            <layout class="QVBoxLayout" name="cardDifVL">
             <property name="spacing"><number>4</number></property>
             <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>12</number></property>
             <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>12</number></property>
-            <item><widget class="QLabel" name="lblCardDifLabel"><property name="text"><string>DIFERENÇA</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#1e4a6a;letter-spacing:2px;</string></property></widget></item>
-            <item><widget class="QLabel" name="lblCardDifValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:28px;font-weight:bold;color:#60c860;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblCardDifLabel"><property name="text"><string>DIFERENÇA</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#6da9d4;letter-spacing:2px;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblCardDifValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:34px;font-weight:bold;color:#78dd8b;</string></property></widget></item>
            </layout>
           </widget>
          </item>
@@ -121,21 +121,21 @@
          <!-- Conferência: valor em caixa -->
          <item>
           <widget class="QFrame" name="frameConferencia">
-           <property name="styleSheet"><string notr="true">QFrame#frameConferencia{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+           <property name="styleSheet"><string notr="true">QFrame#frameConferencia{background-color:#12283a;border:1px solid #214b6a;border-radius:12px;}</string></property>
            <layout class="QVBoxLayout" name="confVLayout">
             <property name="spacing"><number>8</number></property>
             <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property>
             <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>14</number></property>
-            <item><widget class="QLabel" name="lblConfLabel"><property name="text"><string>VALOR CONTADO NO CAIXA</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#1e4a6a;letter-spacing:2px;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblConfLabel"><property name="text"><string>VALOR CONTADO NO CAIXA</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#6da9d4;letter-spacing:2px;</string></property></widget></item>
             <item>
              <widget class="QLineEdit" name="lineEditValorContado">
               <property name="minimumHeight"><number>52</number></property>
               <property name="alignment"><set>Qt::AlignRight|Qt::AlignVCenter</set></property>
               <property name="placeholderText"><string>0,00</string></property>
-              <property name="styleSheet"><string notr="true">QLineEdit{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:26px;font-weight:bold;color:#c0dff4;padding:4px 16px;}QLineEdit:focus{border:2px solid #3585c8;background-color:#0f2840;}</string></property>
+              <property name="styleSheet"><string notr="true">QLineEdit{background-color:#0f1d29;border:2px solid #214b6a;border-radius:10px;font-size:28px;font-weight:bold;color:#f0f7ff;padding:6px 18px;}QLineEdit:focus{border:2px solid #4d96d8;background-color:#13273a;}</string></property>
              </widget>
             </item>
-            <item><widget class="QLabel" name="lblConfDica"><property name="text"><string>Informe o valor fisicamente presente no caixa para conferência</string></property><property name="styleSheet"><string notr="true">font-size:10px;color:#2a5a7a;font-style:italic;</string></property></widget></item>
+            <item><widget class="QLabel" name="lblConfDica"><property name="text"><string>Informe o valor fisicamente presente no caixa para conferência</string></property><property name="styleSheet"><string notr="true">font-size:10px;color:#7fa9c8;font-style:italic;</string></property></widget></item>
            </layout>
           </widget>
          </item>
@@ -143,13 +143,13 @@
          <!-- Observações de fechamento -->
          <item>
           <layout class="QVBoxLayout"><property name="spacing"><number>5</number></property>
-           <item><widget class="QLabel" name="lblObsLabel"><property name="text"><string>OBSERVAÇÕES</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#1e4a6a;letter-spacing:2px;</string></property></widget></item>
+           <item><widget class="QLabel" name="lblObsLabel"><property name="text"><string>OBSERVAÇÕES</string></property><property name="styleSheet"><string notr="true">font-size:10px;font-weight:bold;color:#6da9d4;letter-spacing:2px;</string></property></widget></item>
            <item>
             <widget class="QPlainTextEdit" name="plainTextObs">
              <property name="minimumHeight"><number>52</number></property>
              <property name="maximumHeight"><number>52</number></property>
              <property name="placeholderText"><string>Observações sobre o fechamento...</string></property>
-             <property name="styleSheet"><string notr="true">QPlainTextEdit{background-color:#0d2030;border:2px solid #1a4060;border-radius:6px;font-size:12px;color:#8ab0cc;padding:6px 10px;}QPlainTextEdit:focus{border-color:#3585c8;}</string></property>
+             <property name="styleSheet"><string notr="true">QPlainTextEdit{background-color:#0f1d29;border:2px solid #214b6a;border-radius:10px;font-size:12px;color:#d7e8f6;padding:8px 12px;}QPlainTextEdit:focus{border-color:#4d96d8;}</string></property>
             </widget>
            </item>
           </layout>
@@ -160,7 +160,7 @@
           <widget class="QPushButton" name="btnFecharCaixa">
            <property name="text"><string>&#128274;  Confirmar Fechamento do Caixa</string></property>
            <property name="minimumHeight"><number>50</number></property>
-           <property name="styleSheet"><string notr="true">QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #cc3030,stop:1 #881010);color:white;font-size:14px;font-weight:bold;border:none;border-radius:7px;padding:8px;}QPushButton:hover{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #dd4040,stop:1 #991818);}QPushButton:pressed{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #aa1010,stop:1 #660808);}</string></property>
+           <property name="styleSheet"><string notr="true">QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #d83c3c,stop:1 #8f1717);color:white;font-size:15px;font-weight:bold;border:none;border-radius:10px;padding:12px;}QPushButton:hover{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #dd4040,stop:1 #991818);}QPushButton:pressed{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #aa1010,stop:1 #660808);}</string></property>
           </widget>
          </item>
 
@@ -182,7 +182,7 @@
          <!-- Totais por forma de pagamento -->
          <item>
           <widget class="QFrame" name="frameTotaisPgto">
-           <property name="styleSheet"><string notr="true">QFrame#frameTotaisPgto{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+           <property name="styleSheet"><string notr="true">QFrame#frameTotaisPgto{background-color:#12283a;border:1px solid #214b6a;border-radius:12px;}</string></property>
            <layout class="QVBoxLayout" name="totaisPgtoVL">
             <property name="spacing"><number>0</number></property>
             <property name="leftMargin"><number>0</number></property>
@@ -194,7 +194,7 @@
               <property name="text"><string>Totais por Forma de Pagamento</string></property>
               <property name="minimumHeight"><number>36</number></property>
               <property name="maximumHeight"><number>36</number></property>
-              <property name="styleSheet"><string notr="true">QLabel{background-color:#0a1828;color:#3a6a8a;font-size:12px;font-weight:bold;padding:8px 14px;border-top-left-radius:8px;border-top-right-radius:8px;border-bottom:1px solid #1a3a5a;}</string></property>
+              <property name="styleSheet"><string notr="true">QLabel{background-color:#0f1d29;color:#d7e8f6;font-size:12px;font-weight:bold;padding:10px 14px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom:1px solid #214b6a;}</string></property>
              </widget>
             </item>
             <item>
@@ -202,7 +202,7 @@
               <property name="minimumHeight"><number>160</number></property>
               <property name="styleSheet">
                <string notr="true">
-                QTableWidget{background-color:#081828;alternate-background-color:#0a1e30;border:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;font-size:12px;gridline-color:#1a3a5a;outline:0;color:#a0c8e8;}
+                QTableWidget{background-color:#0f1d29;alternate-background-color:#132637;border:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;font-size:12px;gridline-color:#1b3b56;outline:0;color:#d7e8f6;}
                 QTableWidget::item{padding:5px 10px;}
                 QTableWidget::item:selected{background-color:#1a4a7a;color:white;}
                 QHeaderView::section:horizontal{background-color:#0a1828;color:#2a5a7a;font-size:11px;font-weight:bold;padding:4px 10px;border:none;border-right:1px solid #1a3a5a;border-bottom:1px solid #1a3a5a;}
@@ -241,7 +241,7 @@
          <!-- Resumo de movimentações -->
          <item>
           <widget class="QFrame" name="frameResMovimentacoes">
-           <property name="styleSheet"><string notr="true">QFrame#frameResMovimentacoes{background-color:#0d2030;border:1px solid #1a3a5a;border-radius:8px;}</string></property>
+           <property name="styleSheet"><string notr="true">QFrame#frameResMovimentacoes{background-color:#12283a;border:1px solid #214b6a;border-radius:12px;}</string></property>
            <layout class="QVBoxLayout" name="resMovVL">
             <property name="spacing"><number>0</number></property>
             <property name="leftMargin"><number>0</number></property>
@@ -253,7 +253,7 @@
               <property name="text"><string>Resumo de Movimentações</string></property>
               <property name="minimumHeight"><number>36</number></property>
               <property name="maximumHeight"><number>36</number></property>
-              <property name="styleSheet"><string notr="true">QLabel{background-color:#0a1828;color:#3a6a8a;font-size:12px;font-weight:bold;padding:8px 14px;border-top-left-radius:8px;border-top-right-radius:8px;border-bottom:1px solid #1a3a5a;}</string></property>
+              <property name="styleSheet"><string notr="true">QLabel{background-color:#0f1d29;color:#d7e8f6;font-size:12px;font-weight:bold;padding:10px 14px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom:1px solid #214b6a;}</string></property>
              </widget>
             </item>
             <item>
@@ -265,13 +265,13 @@
                <property name="topMargin"><number>12</number></property>
                <property name="rightMargin"><number>16</number></property>
                <property name="bottomMargin"><number>12</number></property>
-               <item row="0" column="0"><widget class="QLabel" name="lblFundoInicialLabel"><property name="text"><string>Fundo inicial:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#3a6a8a;</string></property></widget></item>
-               <item row="0" column="1"><widget class="QLabel" name="lblFundoInicialValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:#a0c8e8;</string></property></widget></item>
+               <item row="0" column="0"><widget class="QLabel" name="lblFundoInicialLabel"><property name="text"><string>Fundo inicial:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#9bc3df;</string></property></widget></item>
+               <item row="0" column="1"><widget class="QLabel" name="lblFundoInicialValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:#d7e8f6;</string></property></widget></item>
                <item row="1" column="0"><widget class="QLabel" name="lblTotalSangriaLabel"><property name="text"><string>Total sangrias:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#cc4040;</string></property></widget></item>
                <item row="1" column="1"><widget class="QLabel" name="lblTotalSangriaValor"><property name="text"><string>- R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:#ff6060;</string></property></widget></item>
                <item row="2" column="0"><widget class="QLabel" name="lblTotalSupLabel"><property name="text"><string>Total suprimentos:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#40aa40;</string></property></widget></item>
                <item row="2" column="1"><widget class="QLabel" name="lblTotalSupValor"><property name="text"><string>+ R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:#60cc60;</string></property></widget></item>
-               <item row="3" column="0"><widget class="QLabel" name="lblFaturamentoLabel"><property name="text"><string>Faturamento em dinheiro:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#3a6a8a;</string></property></widget></item>
+               <item row="3" column="0"><widget class="QLabel" name="lblFaturamentoLabel"><property name="text"><string>Faturamento em dinheiro:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#9bc3df;</string></property></widget></item>
                <item row="3" column="1"><widget class="QLabel" name="lblFaturamentoValor"><property name="text"><string>+ R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:#3585c8;</string></property></widget></item>
               </layout>
              </widget>
@@ -280,13 +280,13 @@
              <widget class="QFrame" name="frameTotalEsperado">
               <property name="minimumHeight"><number>46</number></property>
               <property name="maximumHeight"><number>46</number></property>
-              <property name="styleSheet"><string notr="true">QFrame#frameTotalEsperado{background-color:#0a1828;border-top:1px solid #1a3a5a;border-bottom-left-radius:8px;border-bottom-right-radius:8px;}</string></property>
+              <property name="styleSheet"><string notr="true">QFrame#frameTotalEsperado{background-color:#0f1d29;border-top:1px solid #214b6a;border-bottom-left-radius:12px;border-bottom-right-radius:12px;}</string></property>
               <layout class="QHBoxLayout" name="totalEspHL">
                <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>6</number></property>
                <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>6</number></property>
-               <item><widget class="QLabel" name="lblTotalEspLabel"><property name="text"><string>Total esperado no caixa:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#3a6a8a;</string></property></widget></item>
+               <item><widget class="QLabel" name="lblTotalEspLabel"><property name="text"><string>Total esperado no caixa:</string></property><property name="styleSheet"><string notr="true">font-size:12px;color:#9bc3df;</string></property></widget></item>
                <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item>
-               <item><widget class="QLabel" name="lblTotalEspValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:18px;font-weight:bold;color:#3585c8;</string></property></widget></item>
+               <item><widget class="QLabel" name="lblTotalEspValor"><property name="text"><string>R$ 0,00</string></property><property name="styleSheet"><string notr="true">font-size:24px;font-weight:bold;color:#8ec9ff;</string></property></widget></item>
               </layout>
              </widget>
             </item>
@@ -311,9 +311,9 @@
      <layout class="QHBoxLayout" name="statusHL">
       <property name="leftMargin"><number>16</number></property><property name="topMargin"><number>0</number></property>
       <property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>0</number></property>
-      <item><widget class="QLabel" name="lblStatus"><property name="text"><string>CSPdv  |  Fechamento de Caixa</string></property><property name="styleSheet"><string notr="true">color:#1a4060;font-size:11px;font-weight:bold;</string></property></widget></item>
+      <item><widget class="QLabel" name="lblStatus"><property name="text"><string>CSPdv  |  Fechamento de Caixa</string></property><property name="styleSheet"><string notr="true">color:#8bb7d8;font-size:11px;font-weight:bold;</string></property></widget></item>
       <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property></spacer></item>
-      <item><widget class="QLabel" name="lblStatusCaixaAberto"><property name="text"><string>&#9679; Caixa Aberto</string></property><property name="styleSheet"><string notr="true">color:#40cc40;font-size:11px;</string></property></widget></item>
+      <item><widget class="QLabel" name="lblStatusCaixaAberto"><property name="text"><string>&#9679; Caixa Aberto</string></property><property name="styleSheet"><string notr="true">color:#72d88f;font-size:11px;font-weight:bold;</string></property></widget></item>
      </layout>
     </widget>
    </item>

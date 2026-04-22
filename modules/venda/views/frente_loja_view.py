@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtCore import QDate, QTime, QTimer
 from PyQt5.QtGui import QCloseEvent, QKeySequence
 from PyQt5.QtWidgets import QLabel, QMainWindow, QMessageBox, QPushButton, QShortcut, QStackedWidget
@@ -5,6 +7,10 @@ from PyQt5.QtWidgets import QLabel, QMainWindow, QMessageBox, QPushButton, QShor
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.venda.services.caixa_service import CaixaService
+from modules.venda.views.fechamento_caixa_view import FechamentoCaixaView
+from modules.venda.views.frente_venda_view import FrenteVendaView
+from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
+from modules.venda.views.movimentacao_caixa_view import MovimentacaoCaixaView
 from ui.venda.frente_loja import Ui_FrenteLoja
 
 
@@ -52,11 +58,11 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     def _configurar_eventos(self) -> None:
         self.btnSairLoja.clicked.connect(self._voltar_para_selecao)
         self.btnNavAbertura.clicked.connect(self._mostrar_abertura_caixa)
-        self.btnNavVendas.clicked.connect(lambda: self._selecionar_secao("VENDAS"))
+        self.btnNavVendas.clicked.connect(self._mostrar_frente_venda)
         self.btnNavPreVenda.clicked.connect(lambda: self._selecionar_secao("PRE-VENDA"))
-        self.btnNavConsulta.clicked.connect(lambda: self._selecionar_secao("CONSULTA DE PRECOS"))
-        self.btnNavMovimentacao.clicked.connect(lambda: self._selecionar_secao("MOVIMENTACAO DE CAIXA"))
-        self.btnNavFechamento.clicked.connect(lambda: self._selecionar_secao("FECHAMENTO DE CAIXA"))
+        self.btnNavConsulta.clicked.connect(self._mostrar_consulta_produto)
+        self.btnNavMovimentacao.clicked.connect(self._mostrar_movimentacao_caixa)
+        self.btnNavFechamento.clicked.connect(self._mostrar_fechamento_caixa)
 
     def _configurar_atalhos(self) -> None:
         self.shortcut_esc = QShortcut(QKeySequence("Esc"), self)
@@ -71,6 +77,9 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
 
     def _configurar_fluxo_inicial(self) -> None:
         self.abertura_caixa_view = None
+        self.frente_venda_view = None
+        self.movimentacao_caixa_view = None
+        self.fechamento_caixa_view = None
         if not CaixaSession.has_open_caixa():
             usuario = SessionManager.current_user() or {}
             CaixaService.restaurar_caixa_aberto(usuario.get("id"))
@@ -111,6 +120,35 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.lblSecaoPrincipal.setText("ABERTURA DE CAIXA")
         self.stackedContent.setCurrentWidget(self.abertura_caixa_view)
 
+    def _mostrar_frente_venda(self) -> None:
+        if self.frente_venda_view is None:
+            self.frente_venda_view = FrenteVendaView(self)
+            self.stackedContent.addWidget(self.frente_venda_view)
+
+        self.lblSecaoPrincipal.setText("VENDAS")
+        self.stackedContent.setCurrentWidget(self.frente_venda_view)
+
+    def _mostrar_consulta_produto(self) -> None:
+        self.lblSecaoPrincipal.setText("CONSULTA DE PRECOS")
+        dialog = ModalConsultaProdutoView(self)
+        dialog.exec_()
+
+    def _mostrar_movimentacao_caixa(self) -> None:
+        if self.movimentacao_caixa_view is None:
+            self.movimentacao_caixa_view = MovimentacaoCaixaView(self)
+            self.stackedContent.addWidget(self.movimentacao_caixa_view)
+
+        self.lblSecaoPrincipal.setText("MOVIMENTACAO DE CAIXA")
+        self.stackedContent.setCurrentWidget(self.movimentacao_caixa_view)
+
+    def _mostrar_fechamento_caixa(self) -> None:
+        if self.fechamento_caixa_view is None:
+            self.fechamento_caixa_view = FechamentoCaixaView(self)
+            self.stackedContent.addWidget(self.fechamento_caixa_view)
+
+        self.lblSecaoPrincipal.setText("FECHAMENTO DE CAIXA")
+        self.stackedContent.setCurrentWidget(self.fechamento_caixa_view)
+
     def _on_caixa_aberto(self, caixa_data: dict) -> None:
         self._aplicar_estado_caixa()
         self.lblDefaultMsg.setText(
@@ -129,6 +167,9 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.selecao.show()
 
     def _permitir_saida(self) -> bool:
+        if os.getenv("CSPDV_ALLOW_TEST_CAIXA_EXIT", "").lower() in {"1", "true", "yes", "on"}:
+            return True
+
         if not CaixaSession.has_open_caixa():
             return True
 

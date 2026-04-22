@@ -14,7 +14,7 @@
    <string>CSPdv - Frente de Venda</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget { font-family: Arial; }</string>
+   <string notr="true">QWidget { font-family: Arial; background-color: #102233; color: #d7e8f6; } QLabel { background-color: transparent; }</string>
   </property>
   <layout class="QVBoxLayout" name="mainVLayout">
    <property name="spacing">
@@ -34,13 +34,14 @@
    </property>
    <item>
     <widget class="QFrame" name="frameInfoVenda">
-     <property name="minimumHeight"><number>40</number></property>
-     <property name="maximumHeight"><number>40</number></property>
+     <property name="minimumHeight"><number>46</number></property>
+     <property name="maximumHeight"><number>46</number></property>
      <property name="styleSheet">
       <string notr="true">
        QFrame#frameInfoVenda {
         background: qlineargradient(x1:0,y1:0,x2:0,y2:1,
-         stop:0 #3585c8, stop:1 #1a5fa0);
+         stop:0 #2f79bf, stop:1 #1c4f7c);
+        border-bottom: 1px solid #2b5f8f;
        }
       </string>
      </property>
@@ -54,7 +55,7 @@
       <!-- Número da venda -->
       <item>
        <widget class="QFrame" name="frameNumVenda">
-        <property name="styleSheet"><string notr="true">QFrame#frameNumVenda{background-color:rgba(255,255,255,15);border:1px solid rgba(255,255,255,30);border-radius:3px;}</string></property>
+        <property name="styleSheet"><string notr="true">QFrame#frameNumVenda{background-color:rgba(255,255,255,12);border:1px solid rgba(255,255,255,20);border-radius:8px;}</string></property>
         <layout class="QHBoxLayout" name="numVendaHL">
          <property name="spacing"><number>5</number></property>
          <property name="leftMargin"><number>8</number></property>
@@ -80,7 +81,7 @@
       <!-- Cliente associado -->
       <item>
        <widget class="QFrame" name="frameClienteVenda">
-        <property name="styleSheet"><string notr="true">QFrame#frameClienteVenda{background-color:rgba(255,255,255,10);border:1px solid rgba(255,255,255,20);border-radius:3px;}</string></property>
+        <property name="styleSheet"><string notr="true">QFrame#frameClienteVenda{background-color:rgba(255,255,255,12);border:1px solid rgba(255,255,255,20);border-radius:8px;}</string></property>
         <layout class="QHBoxLayout" name="clienteVendaHL">
          <property name="spacing"><number>6</number></property>
          <property name="leftMargin"><number>8</number></property>
@@ -95,7 +96,7 @@
            <property name="text"><string>&#9998;</string></property>
            <property name="minimumSize"><size><width>20</width><height>20</height></size></property>
            <property name="maximumSize"><size><width>20</width><height>20</height></size></property>
-           <property name="styleSheet"><string notr="true">QPushButton{background-color:rgba(255,255,255,15);color:white;font-size:11px;border:none;border-radius:3px;}QPushButton:hover{background-color:rgba(255,255,255,30);}QPushButton:pressed{background-color:rgba(255,255,255,10);}</string></property>
+           <property name="styleSheet"><string notr="true">QPushButton{background-color:rgba(255,255,255,14);color:white;font-size:11px;border:none;border-radius:6px;padding:3px 8px;}QPushButton:hover{background-color:rgba(255,255,255,24);}QPushButton:pressed{background-color:rgba(255,255,255,8);}</string></property>
           </widget>
          </item>
         </layout>
@@ -142,19 +143,19 @@
     <widget class="QFrame" name="frameAtalhos">
      <property name="styleSheet">
       <string notr="true">
-       QFrame#frameAtalhos { background-color: #1a5fa0; }
+       QFrame#frameAtalhos { background-color: #15344d; border-bottom: 1px solid #27597f; }
        QPushButton {
-        background-color: #2a70b0;
+        background-color: #214d72;
         color: white;
         font-size: 11px;
         font-weight: bold;
-        border: 1px solid #3585c8;
-        border-radius: 3px;
-        padding: 2px 8px;
-        min-height: 22px;
+        border: 1px solid #2f6b9b;
+        border-radius: 6px;
+        padding: 4px 10px;
+        min-height: 24px;
        }
-       QPushButton:hover  { background-color: #3585c8; }
-       QPushButton:pressed{ background-color: #1a5090; }
+       QPushButton:hover  { background-color: #2a5f8d; }
+       QPushButton:pressed{ background-color: #173f60; }
        QPushButton:disabled{ background-color: #1a3a60; color: #4a6a8a; border-color: #1a3a60; }
        QLabel { color: #a0c8e8; font-size: 11px; }
       </string>
@@ -344,7 +345,7 @@
    <item>
     <widget class="QFrame" name="frameDescricao">
      <property name="styleSheet">
-      <string notr="true">QFrame#frameDescricao { background-color: #9dbfda; }</string>
+      <string notr="true">QFrame#frameDescricao { background-color: #132a3d; border-top: 1px solid #214b6a; border-bottom: 1px solid #214b6a; }</string>
      </property>
      <layout class="QHBoxLayout" name="descricaoHLayout">
       <property name="spacing">
@@ -354,18 +355,18 @@
        <number>10</number>
       </property>
       <property name="topMargin">
-       <number>6</number>
+       <number>8</number>
       </property>
       <property name="rightMargin">
        <number>10</number>
       </property>
       <property name="bottomMargin">
-       <number>6</number>
+       <number>8</number>
       </property>
       <item>
        <widget class="QLabel" name="lblDescricaoLabel">
         <property name="styleSheet">
-         <string notr="true">font-size:12px;font-weight:bold;color:#1a3a5c;min-width:80px;</string>
+         <string notr="true">font-size:10px;font-weight:bold;color:#8fb8d8;letter-spacing:1px;min-width:80px;</string>
         </property>
         <property name="text">
          <string>Descrição:</string>
@@ -374,6 +375,9 @@
       </item>
       <item>
        <widget class="QLineEdit" name="lineEditDescricaoProduto">
+        <property name="placeholderText">
+         <string>Digite o nome do produto ou leia o c?digo de barras...</string>
+        </property>
         <property name="styleSheet">
          <string notr="true">
           QLineEdit {
@@ -396,18 +400,18 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="mainHLayout" stretch="2,1,1">
+    <layout class="QHBoxLayout" name="mainHLayout" stretch="6,3,3">
      <property name="spacing">
-      <number>8</number>
+      <number>10</number>
      </property>
      <property name="leftMargin">
-      <number>8</number>
+      <number>10</number>
      </property>
      <property name="topMargin">
       <number>8</number>
      </property>
      <property name="rightMargin">
-      <number>8</number>
+      <number>10</number>
      </property>
      <property name="bottomMargin">
       <number>8</number>
@@ -415,7 +419,7 @@
      <item>
       <widget class="QFrame" name="frameCupom">
        <property name="styleSheet">
-        <string notr="true">QFrame#frameCupom{background-color:#9dbfda;}</string>
+        <string notr="true">QFrame#frameCupom{background-color:#f7fbff;border:1px solid #c7d8e6;border-radius:12px;}</string>
        </property>
        <layout class="QVBoxLayout" name="cupomVLayout">
         <property name="spacing">
@@ -436,7 +440,7 @@
         <item>
          <widget class="QLabel" name="lblCupomHeader">
           <property name="styleSheet">
-           <string notr="true">QLabel{background-color:#1a5fa0;color:white;font-size:13px;font-weight:bold;padding:4px 8px;border-top-left-radius:4px;border-top-right-radius:4px;}</string>
+           <string notr="true">QLabel{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #2c6a9e,stop:1 #1c4e75);color:#f5fbff;font-size:13px;font-weight:bold;padding:8px 12px;border-top-left-radius:10px;border-top-right-radius:10px;}</string>
           </property>
           <property name="text">
            <string>Cupom de Venda</string>
@@ -450,10 +454,10 @@
          <widget class="QTableWidget" name="tableCupom">
           <property name="styleSheet">
            <string notr="true">
-             QTableWidget{background-color:#ffffff;alternate-background-color:#f2f8fc;border:1px solid #a8c4d8;border-top:none;border-bottom-left-radius:4px;border-bottom-right-radius:4px;font-size:12px;gridline-color:#dce8f0;outline:0;}
-             QTableWidget::item{padding:3px 6px;color:#111111;}
-             QTableWidget::item:selected{background-color:#3585c8;color:#ffffff;}
-             QTableWidget::item:hover:!selected{background-color:#ddeef8;}
+             QTableWidget{background-color:#ffffff;alternate-background-color:#f5f9fc;border:1px solid #214b6a;border-top:none;border-bottom-left-radius:10px;border-bottom-right-radius:10px;font-size:12px;gridline-color:#d8e4ee;outline:0;color:#111111;}
+             QTableWidget::item{padding:4px 8px;color:#111111;}
+             QTableWidget::item:selected{background-color:#2a6fa8;color:#ffffff;}
+             QTableWidget::item:hover:!selected{background-color:#e8f2fa;}
              QHeaderView::section:horizontal{background-color:#ffffff;color:#111111;font-size:12px;font-weight:bold;padding:4px 6px;border:none;border-right:1px solid #dce8f0;border-bottom:2px solid #3585c8;}
              QHeaderView::section:horizontal:last{border-right:none;}
              QHeaderView::section:horizontal:checked{background-color:#ffffff;color:#111111;}
@@ -544,7 +548,7 @@
      <item>
       <widget class="QFrame" name="frameCampos">
        <property name="styleSheet">
-        <string notr="true">QFrame#frameCampos{background-color:#9dbfda;}</string>
+        <string notr="true">QFrame#frameCampos{background-color:#173046;border:1px solid #214b6a;border-radius:12px;}</string>
        </property>
        <layout class="QVBoxLayout" name="camposVLayout">
         <property name="spacing">
@@ -565,7 +569,7 @@
         <item>
          <widget class="QLabel" name="lblCodigoHeader">
           <property name="styleSheet">
-           <string notr="true">QLabel{background-color:#1a5fa0;color:white;font-weight:bold;font-size:12px;padding:4px 8px;border-top-left-radius:4px;border-top-right-radius:4px;}</string>
+           <string notr="true">QLabel{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #255f92,stop:1 #1a4567);color:#f5fbff;font-weight:bold;font-size:12px;padding:6px 10px;border-top-left-radius:8px;border-top-right-radius:8px;}</string>
           </property>
           <property name="text">
            <string>Código / Cód. Barras</string>
@@ -592,7 +596,7 @@
         <item>
          <widget class="QLabel" name="lblQuantidadeHeader">
           <property name="styleSheet">
-           <string notr="true">QLabel{background-color:#1a5fa0;color:white;font-weight:bold;font-size:12px;padding:4px 8px;border-top-left-radius:4px;border-top-right-radius:4px;}</string>
+           <string notr="true">QLabel{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #255f92,stop:1 #1a4567);color:#f5fbff;font-weight:bold;font-size:12px;padding:6px 10px;border-top-left-radius:8px;border-top-right-radius:8px;}</string>
           </property>
           <property name="text">
            <string>Quantidade</string>
@@ -633,8 +637,8 @@
          <widget class="QLineEdit" name="lineEditPrecoUnitario">
           <property name="styleSheet">
            <string notr="true">
-             QLineEdit{background-color:#dceaf4;border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;font-size:20px;font-weight:bold;color:#1a3a5c;padding:4px 10px;}
-             QLineEdit:hover{background-color:#cfe0ee;border-color:#7aafc8;border-top:none;}
+             QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:10px;border-bottom-right-radius:10px;font-size:20px;font-weight:bold;color:#1a1a1a;padding:6px 12px;}
+             QLineEdit:hover{background-color:#f7fbff;border-color:#7aafc8;border-top:none;}
             </string>
           </property>
           <property name="alignment">
@@ -662,8 +666,8 @@
          <widget class="QLineEdit" name="lineEditSubtotalItem">
           <property name="styleSheet">
            <string notr="true">
-             QLineEdit{background-color:#dceaf4;border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;font-size:20px;font-weight:bold;color:#1a3a5c;padding:4px 10px;}
-             QLineEdit:hover{background-color:#cfe0ee;border-color:#7aafc8;border-top:none;}
+             QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:10px;border-bottom-right-radius:10px;font-size:20px;font-weight:bold;color:#1a1a1a;padding:6px 12px;}
+             QLineEdit:hover{background-color:#f7fbff;border-color:#7aafc8;border-top:none;}
             </string>
           </property>
           <property name="alignment">
@@ -710,7 +714,7 @@
      <item>
       <widget class="QFrame" name="frameRightPanel">
        <property name="styleSheet">
-        <string notr="true">QFrame#frameRightPanel{background-color:#9dbfda;}</string>
+        <string notr="true">QFrame#frameRightPanel{background-color:#173046;border:1px solid #214b6a;border-radius:12px;}</string>
        </property>
        <layout class="QVBoxLayout" name="rightPanelVLayout">
         <property name="spacing">
@@ -731,7 +735,7 @@
         <item>
          <widget class="QFrame" name="frameImagem">
           <property name="styleSheet">
-           <string notr="true">QFrame#frameImagem{background-color:#ffffff;border:1px solid #a8c4d8;border-radius:4px;}</string>
+           <string notr="true">QFrame#frameImagem{background-color:#102233;border:1px solid #2a5a80;border-radius:12px;}</string>
           </property>
           <layout class="QVBoxLayout" name="imagemVLayout">
            <property name="spacing">
@@ -752,7 +756,7 @@
            <item>
             <widget class="QLabel" name="lblImagemHeader">
              <property name="styleSheet">
-              <string notr="true">QLabel{background-color:#1a5fa0;color:white;font-weight:bold;font-size:12px;padding:4px 8px;border-top-left-radius:4px;border-top-right-radius:4px;}</string>
+              <string notr="true">QLabel{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #255f92,stop:1 #1a4567);color:#f5fbff;font-weight:bold;font-size:12px;padding:6px 10px;border-top-left-radius:8px;border-top-right-radius:8px;}</string>
              </property>
              <property name="text">
               <string>Imagem do Produto</string>
@@ -765,7 +769,7 @@
            <item>
             <widget class="QLabel" name="lblImagemProduto">
              <property name="styleSheet">
-              <string notr="true">QLabel{background-color:#f4f8fc;}</string>
+              <string notr="true">QLabel{background-color:#18354d;color:#8fb8d8;}</string>
              </property>
              <property name="text">
               <string/>
@@ -784,7 +788,7 @@
         <item>
          <widget class="QFrame" name="frameTotalAPagarGroup">
           <property name="styleSheet">
-           <string notr="true">QFrame#frameTotalAPagarGroup{background-color:#9dbfda;}</string>
+           <string notr="true">QFrame#frameTotalAPagarGroup{background-color:transparent;}</string>
           </property>
           <layout class="QVBoxLayout" name="totalAPagarGroupVLayout">
            <property name="spacing">
@@ -819,7 +823,7 @@
             <widget class="QFrame" name="frameTotalAPagar">
              <property name="styleSheet">
               <string notr="true">
-                QFrame#frameTotalAPagar{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #d6eaf8,stop:1 #b8d8ee);border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;}
+                QFrame#frameTotalAPagar{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #ffffff,stop:1 #eef5fb);border:2px solid #9fc2dc;border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;}
                </string>
              </property>
              <layout class="QHBoxLayout" name="totalAPagarHL">
@@ -838,7 +842,7 @@
               <item>
                <widget class="QLabel" name="lblTotalAPagarValor">
                 <property name="styleSheet">
-                 <string notr="true">font-size:34px;font-weight:bold;color:#1a3a5c;</string>
+                 <string notr="true">font-size:40px;font-weight:bold;color:#173452;</string>
                 </property>
                 <property name="text">
                  <string>0,00</string>
@@ -862,7 +866,7 @@
           <item>
            <widget class="QFrame" name="frameDescontoGroup">
             <property name="styleSheet">
-             <string notr="true">QFrame#frameDescontoGroup{background-color:#9dbfda;}</string>
+             <string notr="true">QFrame#frameDescontoGroup{background-color:transparent;}</string>
             </property>
             <layout class="QVBoxLayout" name="descontoGroupVL">
              <property name="spacing">
@@ -896,7 +900,7 @@
              <item>
               <widget class="QLineEdit" name="lineEditDesconto">
                <property name="styleSheet">
-                <string notr="true">QLineEdit{background-color:#dceaf4;border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:6px;border-bottom-right-radius:6px;font-size:14px;font-weight:bold;color:#1a3a5c;padding:3px 8px;}QLineEdit:hover{background-color:#cfe0ee;}</string>
+                <string notr="true">QLineEdit{background-color:#163047;border:2px solid #29567a;border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;font-size:14px;font-weight:bold;color:#cde5f8;padding:4px 10px;}QLineEdit:hover{background-color:#193650;}</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -915,7 +919,7 @@
           <item>
            <widget class="QFrame" name="frameItensGroup">
             <property name="styleSheet">
-             <string notr="true">QFrame#frameItensGroup{background-color:#9dbfda;}</string>
+             <string notr="true">QFrame#frameItensGroup{background-color:transparent;}</string>
             </property>
             <layout class="QVBoxLayout" name="itensGroupVL">
              <property name="spacing">
@@ -949,7 +953,7 @@
              <item>
               <widget class="QLineEdit" name="lineEditTotalItens">
                <property name="styleSheet">
-                <string notr="true">QLineEdit{background-color:#dceaf4;border:2px solid #a8c4d8;border-top:none;border-bottom-left-radius:6px;border-bottom-right-radius:6px;font-size:14px;font-weight:bold;color:#1a3a5c;padding:3px 8px;}QLineEdit:hover{background-color:#cfe0ee;}</string>
+                <string notr="true">QLineEdit{background-color:#163047;border:2px solid #29567a;border-top:none;border-bottom-left-radius:8px;border-bottom-right-radius:8px;font-size:14px;font-weight:bold;color:#cde5f8;padding:4px 10px;}QLineEdit:hover{background-color:#193650;}</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -994,7 +998,7 @@
          <widget class="QPushButton" name="btnFecharVenda">
           <property name="styleSheet">
            <string notr="true">
-             QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #5cb85c,stop:1 #3a8a3a);color:white;font-size:16px;font-weight:bold;border:none;border-radius:6px;padding:8px;}
+             QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #5eb866,stop:1 #347f3d);color:white;font-size:16px;font-weight:bold;border:none;border-radius:10px;padding:12px;}
              QPushButton:hover{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #68c868,stop:1 #488a48);}
              QPushButton:pressed{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3a8a3a,stop:1 #286028);}
              QPushButton:disabled{background:#9dbfda;color:#c0d8ec;}
@@ -1012,7 +1016,7 @@
          <widget class="QPushButton" name="btnCancelarVenda">
           <property name="styleSheet">
            <string notr="true">
-             QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #fce8e8,stop:1 #f0cccc);color:#6a1a1a;font-size:12px;font-weight:bold;border:1px solid #cc7070;border-radius:5px;padding:5px;}
+             QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #f4d8d8,stop:1 #e9bebe);color:#6a1a1a;font-size:12px;font-weight:bold;border:1px solid #c06a6a;border-radius:10px;padding:10px;}
              QPushButton:hover{background:#f8d8d8;border-color:#aa4444;}
              QPushButton:pressed{background:#e8b8b8;}
             </string>
