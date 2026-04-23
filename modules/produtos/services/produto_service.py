@@ -2,6 +2,17 @@ from modules.produtos.models.produto_model import ProdutoModel
 
 class ProdutoService:
     @staticmethod
+    def buscar_para_venda(termo):
+        termo_limpo = str(termo or "").strip()
+        if len(termo_limpo) < 2:
+            return []
+        try:
+            return ProdutoModel.buscar_para_venda(termo_limpo)
+        except Exception as e:
+            print(f"Erro ao buscar produtos para venda: {e}")
+            return []
+
+    @staticmethod
     def _validar_dados_produto(dados, produto_id=None):
         nome = str(dados.get("nome", "")).strip()
         codigo_barras = str(dados.get("codigo_barras", "")).strip()

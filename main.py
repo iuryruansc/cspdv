@@ -5,7 +5,9 @@ from dotenv import find_dotenv, load_dotenv
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
+from core.session_manager import SessionManager
 from database.connection import close_connection, get_connection_diagnostics
+from modules.auth.models.usuario_model import UsuarioModel
 from modules.auth.views.login_view import LoginView
 from modules.auth.views.selecao_modo_view import SelecaoModoView
 from modules.setup.models.setup_model import SetupModel
@@ -71,10 +73,12 @@ def main():
         _mostrar_erro_conexao(str(exc))
         return 1
 
-    login = LoginView()
-    QTimer.singleShot(0, lambda: _mostrar_dialog(login))
-    if login.exec_() != LoginView.Accepted:
-        return 0
+    autenticado = SessionManager.restore_persisted_session(UsuarioModel.buscar_sessao_por_id)
+    if not autenticado:
+        login = LoginView()
+        QTimer.singleShot(0, lambda: _mostrar_dialog(login))
+        if login.exec_() != LoginView.Accepted:
+            return 0
 
     selecao = SelecaoModoView()
     _mostrar_dialog(selecao)

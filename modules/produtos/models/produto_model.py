@@ -3,6 +3,68 @@ from database.connection import get_connection
 
 class ProdutoModel:
     @staticmethod
+    def buscar_para_venda(termo: str, limite: int = 10) -> List[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        termo_limpo = str(termo or "").strip()
+        termo_nome = f"%{termo_limpo.upper()}%"
+        termo_prefixo = f"{termo_limpo.upper()}%"
+        termo_codigo = f"{termo_limpo}%"
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    p.id,
+                    p.codigo_barras,
+                    p.nome,
+                    p.preco_venda,
+                    p.quantidade_estoque,
+                    p.ativo,
+                    p.imagem_path,
+                    c.nome AS categoria,
+                    m.nome_marca AS marca,
+                    f.nome_fantasia AS fornecedor
+                FROM produtos p
+                LEFT JOIN categorias c ON c.id = p.categoria_id
+                LEFT JOIN marcas m ON m.id = p.marca_id
+                LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                WHERE p.ativo = 'S'
+                  AND (
+                    p.codigo_barras = %s
+                    OR p.codigo_barras LIKE %s
+                    OR UPPER(p.nome) LIKE %s
+                  )
+                ORDER BY
+                    CASE
+                        WHEN p.codigo_barras = %s THEN 0
+                        WHEN UPPER(p.nome) = UPPER(%s) THEN 1
+                        WHEN UPPER(p.nome) LIKE %s THEN 2
+                        WHEN p.codigo_barras LIKE %s THEN 3
+                        ELSE 4
+                    END,
+                    p.nome
+                LIMIT %s
+                """,
+                (
+                    termo_limpo,
+                    termo_codigo,
+                    termo_nome,
+                    termo_limpo,
+                    termo_limpo,
+                    termo_prefixo,
+                    termo_codigo,
+                    limite,
+                ),
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        except Exception as e:
+            print(f"Erro ao buscar produtos para venda: {e}")
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def listar_resumo() -> List[Dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)

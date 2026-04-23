@@ -144,6 +144,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     def _mostrar_fechamento_caixa(self) -> None:
         if self.fechamento_caixa_view is None:
             self.fechamento_caixa_view = FechamentoCaixaView(self)
+            self.fechamento_caixa_view.caixa_fechado.connect(self._on_caixa_fechado)
             self.stackedContent.addWidget(self.fechamento_caixa_view)
 
         self.lblSecaoPrincipal.setText("FECHAMENTO DE CAIXA")
@@ -155,6 +156,27 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             f"Caixa aberto com sucesso para {caixa_data.get('pdv_label', 'o PDV selecionado')}.\n"
             "Os fluxos de venda, pre-venda e consulta ja podem ser conectados."
         )
+
+    def _on_caixa_fechado(self, fechamento: dict) -> None:
+        self._aplicar_estado_caixa()
+        self.lblDefaultMsg.setText(
+            "O caixa foi fechado com sucesso.\n"
+            "Abra um novo caixa para retomar os fluxos de venda."
+        )
+        self._descartar_widget_fluxo("abertura_caixa_view")
+        self._descartar_widget_fluxo("frente_venda_view")
+        self._descartar_widget_fluxo("movimentacao_caixa_view")
+        self._descartar_widget_fluxo("fechamento_caixa_view")
+        self.stackedContent.setCurrentIndex(0)
+        self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+
+    def _descartar_widget_fluxo(self, atributo: str) -> None:
+        widget = getattr(self, atributo, None)
+        if widget is None:
+            return
+        self.stackedContent.removeWidget(widget)
+        widget.deleteLater()
+        setattr(self, atributo, None)
 
     def _voltar_para_selecao(self) -> None:
         if not self._permitir_saida():

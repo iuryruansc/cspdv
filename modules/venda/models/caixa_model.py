@@ -113,7 +113,7 @@ class CaixaModel:
             cursor.execute(
                 """
                 SELECT
-                    DATE_FORMAT(c.data_abertura, '%%d/%%m %%H:%%i') AS data_abertura_fmt,
+                    DATE_FORMAT(c.data_abertura, '%d/%m %H:%i') AS data_abertura_fmt,
                     u.nome AS operador,
                     c.valor_abertura
                 FROM caixas c
@@ -124,6 +124,66 @@ class CaixaModel:
                 (limit,),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def fechar_caixa(
+        caixa_id: int,
+        usuario_fechamento_id: int,
+        valor_fechamento: float,
+        diferenca: float,
+        observacoes: str,
+    ) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SHOW COLUMNS FROM caixas")
+            colunas = {str(coluna[0]) for coluna in cursor.fetchall()}
+
+            atribuicoes = ["status = 'fechado'"]
+            parametros: List[Any] = []
+
+            if "usuario_fechamento_id" in colunas:
+                atribuicoes.append("usuario_fechamento_id = %s")
+                parametros.append(usuario_fechamento_id)
+            if "data_fechamento" in colunas:
+                atribuicoes.append("data_fechamento = NOW()")
+            if "valor_fechamento" in colunas:
+                atribuicoes.append("valor_fechamento = %s")
+                parametros.append(valor_fechamento)
+            if "valor_contado" in colunas:
+                atribuicoes.append("valor_contado = %s")
+                parametros.append(valor_fechamento)
+            if "diferenca_fechamento" in colunas:
+                atribuicoes.append("diferenca_fechamento = %s")
+                parametros.append(diferenca)
+            if "diferenca" in colunas:
+                atribuicoes.append("diferenca = %s")
+                parametros.append(diferenca)
+            if "observacoes_fechamento" in colunas:
+                atribuicoes.append("observacoes_fechamento = %s")
+                parametros.append(observacoes or "")
+            if "observacao_fechamento" in colunas:
+                atribuicoes.append("observacao_fechamento = %s")
+                parametros.append(observacoes or "")
+            if "updatedAt" in colunas:
+                atribuicoes.append("updatedAt = NOW()")
+
+            parametros.append(caixa_id)
+            cursor.execute(
+                f"""
+                UPDATE caixas
+                SET {", ".join(atribuicoes)}
+                WHERE id = %s
+                """,
+                tuple(parametros),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             cursor.close()
             conn.close()

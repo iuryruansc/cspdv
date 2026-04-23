@@ -31,14 +31,6 @@ class LoginView(QDialog, Ui_TelaDeLogin):
         try:
             usuario = UsuarioModel.autenticar(login, senha)
 
-            if usuario:
-                perfil_id = usuario.get("perfil_acesso_id")
-
-                if perfil_id is not None:
-                    usuario["permissoes"] = UsuarioModel.buscar_permissoes(perfil_id)
-                else:
-                    usuario["permissoes"] = []
-
             if usuario is None:
                 self._show_error("Login ou senha invalidos.")
                 return

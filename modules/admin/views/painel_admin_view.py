@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QMessageBox, QPushButton, QShortcut
+from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QMessageBox, QPushButton, QShortcut, QTableWidgetItem
 
 from core.session_manager import SessionManager
 from modules.admin.views.widgets import ManagementPageWidget
@@ -167,6 +167,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.btnAcaoConfig.clicked.connect(self._open_cadastro_categoria)
         self.btnAcaoCadFornecedor.clicked.connect(self._open_cadastro_fornecedor)
         self.btnAcaoCadCliente.clicked.connect(self._open_cadastro_cliente)
+        self.btnFrenteCaixa.clicked.connect(self._open_frente_caixa)
         self.btnSair.clicked.connect(self._exit)
         self.managementPage.btnAtualizar.clicked.connect(self._refresh_current_management_page)
         self.managementPage.btnDetalhes.clicked.connect(self._abrir_detalhes_produto)
@@ -206,6 +207,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.cardClientes.show()
         self.frameUltimasVendas.show()
         self._mark_subnav_button(None)
+        self._load_dashboard_cards()
 
     def _show_management_page(self, key: str) -> None:
         config = self._management_configs[key]
@@ -531,6 +533,80 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def _update_datetime(self) -> None:
         current = QDateTime.currentDateTime()
         self.lblDataHora.setText(current.toString("dd/MM/yyyy  hh:mm:ss"))
+
+    def _load_dashboard_cards(self) -> None:
+        from modules.admin.services.dashboard_service import DashboardAdminService
+
+        try:
+            resumo = DashboardAdminService.carregar_dashboard()
+        except Exception as exc:
+            self.lblVendasHojeValor.setText("0")
+            self.lblFaturamentoValor.setText("R$ 0,00")
+            self.lblProdutosValor.setText("0")
+            self.lblClientesValor.setText("0")
+            self._populate_dashboard_sales([])
+            QMessageBox.warning(
+                self,
+                "Dashboard indisponivel",
+                f"Nao foi possivel carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
+            )
+            return
+
+        self.lblVendasHojeValor.setText(str(resumo["vendas_hoje"]))
+        self.lblFaturamentoValor.setText(str(resumo["faturamento_dia"]))
+        self.lblProdutosValor.setText(str(resumo["produtos_ativos"]))
+        self.lblClientesValor.setText(str(resumo["clientes_ativos"]))
+        self._populate_dashboard_sales(resumo["ultimas_vendas"])
+
+    def _populate_dashboard_sales(self, rows: List[Dict[str, Any]]) -> None:
+        self.tableUltimasVendas.setRowCount(len(rows))
+        headers = self.tableUltimasVendas.horizontalHeader()
+        headers.setStretchLastSection(False)
+
+        for row_index, row in enumerate(rows):
+            values = (
+                str(row.get("numero_venda") or "-"),
+                str(row.get("data_hora") or "-"),
+                str(row.get("operador") or "-"),
+                str(row.get("forma_pagamento") or "-"),
+                str(row.get("total") or "R$ 0,00"),
+            )
+            for column_index, value in enumerate(values):
+                item = QTableWidgetItem(value)
+                self.tableUltimasVendas.setItem(row_index, column_index, item)
+
+        headers.resizeSection(0, 86)
+        headers.resizeSection(1, 120)
+        headers.resizeSection(2, 140)
+        headers.resizeSection(3, 120)
+        headers.setStretchLastSection(True)
+
+    def _open_frente_caixa(self) -> None:
+        if not SessionManager.has_permission("vendas.pdv"):
+            QMessageBox.warning(
+                self,
+                "Acesso negado",
+                "O usuario atual nao possui permissao para abrir a frente de caixa.",
+            )
+            return
+
+        from core.caixa_session import CaixaSession
+        from modules.venda.services.caixa_service import CaixaService
+        from modules.venda.views.abrir_frente_caixa_dialog import AbrirFrenteCaixaDialog
+        from modules.venda.views.frente_loja_view import FrenteLojaView
+
+        usuario = SessionManager.current_user() or {}
+        if not CaixaSession.has_open_caixa():
+            CaixaService.restaurar_caixa_aberto(usuario.get("id"))
+
+        if not CaixaSession.has_open_caixa():
+            dialog = AbrirFrenteCaixaDialog(self)
+            if dialog.exec_() != dialog.Accepted:
+                return
+
+        self.hide()
+        self.frente_loja = FrenteLojaView()
+        self.frente_loja.show()
 
     def _exit(self) -> None:
         from modules.auth.views.selecao_modo_view import SelecaoModoView

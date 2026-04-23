@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.caixa_session import CaixaSession
+from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 
 class CaixaService:
@@ -80,3 +81,74 @@ class CaixaService:
         }
         CaixaSession.open(caixa_data)
         return True, "Caixa aberto com sucesso.", caixa_data
+
+    @staticmethod
+    def obter_resumo_fechamento() -> Dict[str, Any]:
+        caixa = CaixaSession.current() or {}
+        fundo_inicial = float(caixa.get("valor_abertura") or 0.0)
+        total_sangrias = 0.0
+        total_suprimentos = 0.0
+        faturamento_dinheiro = 0.0
+        vendas_dia = 0
+        faturamento_total = 0.0
+        total_esperado = fundo_inicial - total_sangrias + total_suprimentos + faturamento_dinheiro
+
+        return {
+            "caixa_id": caixa.get("id"),
+            "fundo_inicial": fundo_inicial,
+            "total_sangrias": total_sangrias,
+            "total_suprimentos": total_suprimentos,
+            "faturamento_dinheiro": faturamento_dinheiro,
+            "vendas_dia": vendas_dia,
+            "faturamento_total": faturamento_total,
+            "total_esperado": total_esperado,
+            "totais_forma_pagamento": [],
+        }
+
+    @staticmethod
+    def validar_admin_para_diferenca(senha: str) -> bool:
+        if not senha.strip():
+            return False
+        usuario_admin = UsuarioModel.autenticar_admin_por_senha(senha.strip())
+        return usuario_admin is not None
+
+    @staticmethod
+    def fechar_caixa(
+        valor_contado: float,
+        observacoes: str,
+        *,
+        admin_password: str = "",
+    ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+        usuario = CaixaSession.current()
+        operador = UsuarioModel.buscar_sessao_por_id(int(usuario["usuario_id"])) if usuario and usuario.get("usuario_id") else None
+        if not usuario or not usuario.get("id"):
+            return False, "Nao ha caixa aberto para fechar.", None
+        if not operador or operador.get("id") is None:
+            return False, "Nao foi possivel identificar o operador para registrar o fechamento.", None
+
+        resumo = CaixaService.obter_resumo_fechamento()
+        total_esperado = float(resumo["total_esperado"])
+        diferenca = round(valor_contado - total_esperado, 2)
+
+        if abs(diferenca) > 0.009 and not CaixaService.validar_admin_para_diferenca(admin_password):
+            return False, "Diferenca identificada. Informe a senha de um administrador para concluir o fechamento.", None
+
+        try:
+            CaixaModel.fechar_caixa(
+                caixa_id=int(usuario["id"]),
+                usuario_fechamento_id=int(operador["id"]),
+                valor_fechamento=valor_contado,
+                diferenca=diferenca,
+                observacoes=observacoes,
+            )
+        except Exception as exc:
+            return False, f"Erro ao registrar o fechamento do caixa: {exc}", None
+
+        caixa_fechado = {
+            "caixa_id": int(usuario["id"]),
+            "valor_contado": valor_contado,
+            "total_esperado": total_esperado,
+            "diferenca": diferenca,
+        }
+        CaixaSession.close()
+        return True, "Caixa fechado com sucesso.", caixa_fechado
