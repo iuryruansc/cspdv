@@ -7,11 +7,11 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
+from utils.ui_messages import mostrar_aviso
 
 
 class ConfirmarFechamentoCaixaDialog(QDialog):
@@ -171,7 +171,7 @@ class ConfirmarFechamentoCaixaDialog(QDialog):
 
     def _confirmar(self) -> None:
         if abs(self._diferenca) > 0.009 and not self.lineSenhaAdmin.text().strip():
-            QMessageBox.warning(
+            mostrar_aviso(
                 self,
                 "Autorizacao necessaria",
                 "Informe a senha do administrador para concluir o fechamento com diferenca.",

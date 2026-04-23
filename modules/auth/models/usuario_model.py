@@ -18,7 +18,7 @@ class UsuarioModel:
         try:
             cursor.execute(
                 """
-                SELECT id, nome, email, senha, cargo, ativo, perfil_acesso_id
+                SELECT id, funcionario_id, nome, email, senha, cargo, ativo, perfil_acesso_id
                 FROM   usuarios
                 WHERE  (LOWER(nome) = LOWER(%s) OR LOWER(email) = LOWER(%s))
                 LIMIT  1
@@ -80,7 +80,7 @@ class UsuarioModel:
         try:
             cursor.execute(
                 """
-                SELECT id, nome, email, cargo, ativo, perfil_acesso_id
+                SELECT id, funcionario_id, nome, email, cargo, ativo, perfil_acesso_id
                 FROM usuarios
                 WHERE id = %s
                 LIMIT 1
@@ -104,6 +104,7 @@ class UsuarioModel:
                 """
                 SELECT DISTINCT
                     u.id,
+                    u.funcionario_id,
                     u.nome,
                     u.email,
                     u.senha,

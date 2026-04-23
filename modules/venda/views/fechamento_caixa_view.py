@@ -7,7 +7,6 @@ from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
-    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QTableWidget,
@@ -21,6 +20,8 @@ from modules.venda.views.confirmar_fechamento_caixa_dialog import (
     FechamentoRealizadoDialog,
 )
 from ui.venda.tela_fechamento_caixa import Ui_TelaFechamentoCaixa
+from utils.format_utils import aplicar_mascara_monetaria
+from utils.ui_messages import mostrar_aviso
 
 
 class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
@@ -48,6 +49,7 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         self.setupUi(self)
 
         self._resumo: Dict[str, Any] = {}
+        self._ultimo_total_esperado = 0.0
         self._configurar_formulario()
         self._atualizar_data_hora()
         self._carregar_resumo()
@@ -56,10 +58,13 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         self.timer_data_hora.timeout.connect(self._atualizar_data_hora)
         self.timer_data_hora.start(1000)
 
+    def showEvent(self, a0) -> None:
+        super().showEvent(a0)
+        self._carregar_resumo()
+
     def _configurar_formulario(self) -> None:
-        validator = QDoubleValidator(0.0, 9999999.99, 2, self)
-        validator.setNotation(QDoubleValidator.StandardNotation)
-        self.lineEditValorContado.setValidator(validator)
+        aplicar_mascara_monetaria(self.lineEditValorContado)
+        self.lineEditValorContado.setText("0,00")
         self.lineEditValorContado.textChanged.connect(self._atualizar_diferenca)
         self.btnFecharCaixa.clicked.connect(self._confirmar_fechamento)
         self.tableTotaisPgto.verticalHeader().setVisible(False)
@@ -69,15 +74,19 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
 
     def _carregar_resumo(self) -> None:
         self._resumo = CaixaService.obter_resumo_fechamento()
+        total_esperado = float(self._resumo["total_esperado"])
         self.lblCardVendasValor.setText(str(int(self._resumo["vendas_dia"])))
         self.lblCardVendasTotalValor.setText(self._formatar_moeda(float(self._resumo["faturamento_total"])))
-        self.lblCardFundoValor.setText(self._formatar_moeda(float(self._resumo["total_esperado"])))
+        self.lblCardFundoValor.setText(self._formatar_moeda(total_esperado))
         self.lblFundoInicialValor.setText(self._formatar_moeda(float(self._resumo["fundo_inicial"])))
         self.lblTotalSangriaValor.setText(f"- {self._formatar_moeda(float(self._resumo['total_sangrias']))}")
         self.lblTotalSupValor.setText(f"+ {self._formatar_moeda(float(self._resumo['total_suprimentos']))}")
         self.lblFaturamentoValor.setText(f"+ {self._formatar_moeda(float(self._resumo['faturamento_dinheiro']))}")
-        self.lblTotalEspValor.setText(self._formatar_moeda(float(self._resumo["total_esperado"])))
-        self.lineEditValorContado.setText(self._numero_para_campo(float(self._resumo["total_esperado"])))
+        self.lblTotalEspValor.setText(self._formatar_moeda(total_esperado))
+        valor_digitado = self.lineEditValorContado.text().strip()
+        if not valor_digitado or self._valor_contado() == self._ultimo_total_esperado:
+            self.lineEditValorContado.setText(self._numero_para_campo(total_esperado))
+        self._ultimo_total_esperado = total_esperado
         self._popular_totais_pagamento(self._resumo.get("totais_forma_pagamento", []))
         self._atualizar_diferenca()
 
@@ -137,7 +146,7 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
             admin_password=dialog.admin_password,
         )
         if not sucesso or fechamento is None:
-            QMessageBox.warning(self, "Fechamento não realizado", mensagem)
+            mostrar_aviso(self, "Fechamento nao realizado", mensagem)
             return
 
         self.lblStatus.setText(

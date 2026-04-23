@@ -21,6 +21,7 @@ class ProdutoModel:
                     p.quantidade_estoque,
                     p.ativo,
                     p.imagem_path,
+                    COALESCE(uc.sigla, '-') AS unidade,
                     c.nome AS categoria,
                     m.nome_marca AS marca,
                     f.nome_fantasia AS fornecedor
@@ -28,6 +29,7 @@ class ProdutoModel:
                 LEFT JOIN categorias c ON c.id = p.categoria_id
                 LEFT JOIN marcas m ON m.id = p.marca_id
                 LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
                 WHERE p.ativo = 'S'
                   AND (
                     p.codigo_barras = %s
@@ -241,6 +243,12 @@ class ProdutoModel:
                 (nova_quantidade, produto_id),
             )
 
+            ProdutoModel._sincronizar_lotes_quantidade(
+                cursor=cursor,
+                produto_id=produto_id,
+                nova_quantidade=int(nova_quantidade),
+            )
+
             cursor.execute(
                 """
                 INSERT INTO estoque_ajustes (usuario_id, observacoes)
@@ -273,6 +281,65 @@ class ProdutoModel:
         finally:
             cursor.close()
             conn.close()
+
+    @staticmethod
+    def _sincronizar_lotes_quantidade(cursor, produto_id: int, nova_quantidade: int) -> None:
+        cursor.execute(
+            """
+            SELECT id, numero_lote, quantidade
+            FROM lotes
+            WHERE produto_id = %s
+              AND ativo = 'S'
+            ORDER BY
+                CASE WHEN numero_lote LIKE 'AUTO-%%' THEN 0 ELSE 1 END,
+                data_validade DESC,
+                id DESC
+            """,
+            (produto_id,),
+        )
+        lotes = cursor.fetchall()
+        if not lotes:
+            return
+
+        total_lotes = sum(int(lote[2] or 0) for lote in lotes)
+        diferenca = int(nova_quantidade) - total_lotes
+        if diferenca == 0:
+            return
+
+        if diferenca > 0:
+            lote_id = int(lotes[0][0])
+            cursor.execute(
+                """
+                UPDATE lotes
+                SET quantidade = quantidade + %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (diferenca, lote_id),
+            )
+            return
+
+        restante_reduzir = abs(diferenca)
+        for lote in lotes:
+            lote_id = int(lote[0])
+            quantidade_atual = int(lote[2] or 0)
+            if quantidade_atual <= 0:
+                continue
+            reduzir = min(quantidade_atual, restante_reduzir)
+            if reduzir <= 0:
+                continue
+            cursor.execute(
+                """
+                UPDATE lotes
+                SET quantidade = quantidade - %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (reduzir, lote_id),
+            )
+            restante_reduzir -= reduzir
+            if restante_reduzir == 0:
+                break
 
     @staticmethod
     def inserir(dados: Dict[str, Any]) -> Optional[int]:

@@ -3,6 +3,12 @@ from typing import Any, Dict, List, Optional, cast
 from database.connection import get_connection
 
 class CaixaModel:
+    _TIPOS_MOVIMENTACAO = {
+        "sangria": "Sangria",
+        "suprimento": "Suprimento",
+        "troco": "Reforco de Troco",
+    }
+
     @staticmethod
     def listar_pdvs_ativos() -> List[Dict[str, Any]]:
         conn = get_connection()
@@ -187,3 +193,178 @@ class CaixaModel:
         finally:
             cursor.close()
             conn.close()
+
+    @staticmethod
+    def obter_resumo_operacional(caixa_id: int) -> Dict[str, Any]:
+        from modules.venda.models.venda_model import VendaModel
+
+        return VendaModel.obter_resumo_por_caixa(caixa_id)
+
+    @staticmethod
+    def registrar_movimentacao(
+        *,
+        caixa_id: int,
+        usuario_id: int,
+        tipo: str,
+        valor: float,
+        observacao: str,
+    ) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            forma_pagamento_id = CaixaModel._garantir_forma_pagamento_dinheiro(cursor)
+            caixa_motivo_id = CaixaModel._garantir_caixa_motivo(cursor, tipo)
+
+            cursor.execute(
+                """
+                INSERT INTO caixa_movimentacoes
+                    (caixa_id, usuario_id, caixa_motivo_id, valor, data_hora, forma_pagamento_id, observacao, estornado, createdAt, updatedAt, ativo)
+                VALUES
+                    (%s, %s, %s, %s, NOW(), %s, %s, 0, NOW(), NOW(), 'S')
+                """,
+                (
+                    caixa_id,
+                    usuario_id,
+                    caixa_motivo_id,
+                    valor,
+                    forma_pagamento_id,
+                    observacao or None,
+                ),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def listar_movimentacoes(caixa_id: int, tipo: Optional[str] = None) -> List[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            parametros: List[Any] = [caixa_id]
+            filtro_tipo = ""
+            if tipo and tipo.lower() != "todas":
+                filtro_tipo = "AND LOWER(cm_tipo.tipo_padrao) = %s"
+                parametros.append(tipo.lower())
+
+            cursor.execute(
+                f"""
+                SELECT
+                    DATE_FORMAT(cm.data_hora, '%H:%i') AS hora_fmt,
+                    COALESCE(cm_tipo.descricao, 'Movimentacao') AS tipo_descricao,
+                    COALESCE(u.nome, 'Operador') AS operador,
+                    cm.valor,
+                    cm.observacao,
+                    COALESCE(cm_tipo.tipo_padrao, '') AS tipo_padrao
+                FROM caixa_movimentacoes cm
+                LEFT JOIN caixa_motivos cm_tipo ON cm_tipo.id = cm.caixa_motivo_id
+                LEFT JOIN usuarios u ON u.id = cm.usuario_id
+                WHERE cm.caixa_id = %s
+                  AND COALESCE(cm.ativo, 'S') = 'S'
+                  AND COALESCE(cm.estornado, 0) = 0
+                  {filtro_tipo}
+                ORDER BY cm.data_hora DESC, cm.id DESC
+                """,
+                tuple(parametros),
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def obter_resumo_movimentacoes(caixa_id: int) -> Dict[str, float]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    LOWER(COALESCE(cm_tipo.tipo_padrao, '')) AS tipo_padrao,
+                    COALESCE(SUM(cm.valor), 0) AS total
+                FROM caixa_movimentacoes cm
+                LEFT JOIN caixa_motivos cm_tipo ON cm_tipo.id = cm.caixa_motivo_id
+                WHERE cm.caixa_id = %s
+                  AND COALESCE(cm.ativo, 'S') = 'S'
+                  AND COALESCE(cm.estornado, 0) = 0
+                GROUP BY LOWER(COALESCE(cm_tipo.tipo_padrao, ''))
+                """,
+                (caixa_id,),
+            )
+            totais = {str(row.get("tipo_padrao") or ""): float(row.get("total") or 0.0) for row in cursor.fetchall()}
+            total_sangrias = totais.get("sangria", 0.0)
+            total_suprimentos = totais.get("suprimento", 0.0)
+            total_troco = totais.get("troco", 0.0)
+            return {
+                "total_sangrias": total_sangrias,
+                "total_suprimentos": total_suprimentos,
+                "total_troco": total_troco,
+                "total_entradas_manuais": total_suprimentos + total_troco,
+            }
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def _garantir_forma_pagamento_dinheiro(cursor) -> int:
+        cursor.execute(
+            """
+            SELECT id
+            FROM formas_pagamento
+            WHERE UPPER(nome) = 'DINHEIRO'
+            LIMIT 1
+            """
+        )
+        row = cursor.fetchone()
+        if row:
+            return int(row[0])
+
+        cursor.execute(
+            """
+            INSERT INTO formas_pagamento
+                (nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo)
+            VALUES
+                ('Dinheiro', '01', 'N', 0.00, 'S')
+            """
+        )
+        forma_pagamento_id = cursor.lastrowid
+        if forma_pagamento_id is None:
+            raise RuntimeError("Nao foi possivel criar a forma de pagamento Dinheiro.")
+        return int(forma_pagamento_id)
+
+    @staticmethod
+    def _garantir_caixa_motivo(cursor, tipo: str) -> int:
+        tipo_normalizado = str(tipo or "").strip().lower()
+        if tipo_normalizado not in CaixaModel._TIPOS_MOVIMENTACAO:
+            raise ValueError("Tipo de movimentacao invalido.")
+
+        descricao = CaixaModel._TIPOS_MOVIMENTACAO[tipo_normalizado]
+        cursor.execute(
+            """
+            SELECT id
+            FROM caixa_motivos
+            WHERE LOWER(tipo_padrao) = %s
+            LIMIT 1
+            """,
+            (tipo_normalizado,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return int(row[0])
+
+        cursor.execute(
+            """
+            INSERT INTO caixa_motivos
+                (descricao, tipo_padrao, ativo, createdAt, updatedAt)
+            VALUES
+                (%s, %s, 'S', NOW(), NOW())
+            """,
+            (descricao, tipo_normalizado),
+        )
+        motivo_id = cursor.lastrowid
+        if motivo_id is None:
+            raise RuntimeError("Nao foi possivel criar o motivo de caixa.")
+        return int(motivo_id)

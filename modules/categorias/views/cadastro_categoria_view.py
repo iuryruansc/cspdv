@@ -1,11 +1,12 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog
 
 from modules.categorias.models.categoria_model import CategoriaModel
 from modules.categorias.services.categoria_service import CategoriaService
 from ui.admin.cadastros.cadastro_categoria import Ui_CadastroCategoria
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import texto_limpo, texto_maiusculo
+from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
 class CadastroCategoriaView(QDialog, Ui_CadastroCategoria, ValidacaoFormMixin):
     def __init__(self, parent=None, categoria_id=None):
@@ -30,7 +31,7 @@ class CadastroCategoriaView(QDialog, Ui_CadastroCategoria, ValidacaoFormMixin):
 
         categoria = CategoriaModel.buscar_por_id(self._categoria_id)
         if not categoria:
-            QMessageBox.warning(self, "Categoria nao encontrada", "Nao foi possivel carregar a categoria para edicao.")
+            mostrar_aviso(self, "Categoria nao encontrada", "Nao foi possivel carregar a categoria para edicao.")
             self.reject()
             return
 
@@ -49,10 +50,10 @@ class CadastroCategoriaView(QDialog, Ui_CadastroCategoria, ValidacaoFormMixin):
 
         if not nome:
             self.marcar_invalido(self.lineEditNomeCategoria)
-            QMessageBox.warning(
+            mostrar_campos_invalidos(
                 self,
-                "Revise os campos",
-                "Nome da Categoria: preencha o nome principal da categoria.",
+                ["Nome da Categoria: preencha o nome principal da categoria."],
+                cabecalho="Corrija os seguintes pontos:",
             )
             return
 
@@ -66,14 +67,14 @@ class CadastroCategoriaView(QDialog, Ui_CadastroCategoria, ValidacaoFormMixin):
                 {"nome": nome, "ativo": ativo},
             )
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            mostrar_info(self, "Sucesso", mensagem)
             self.accept()
             return
 
         if "nome da categoria" in mensagem.lower():
             self.marcar_invalido(self.lineEditNomeCategoria)
 
-        QMessageBox.warning(self, "Atencao", mensagem)
+        mostrar_aviso(self, "Atencao", mensagem)
 
     def _limpar_campos(self):
         self.limpar_erros()

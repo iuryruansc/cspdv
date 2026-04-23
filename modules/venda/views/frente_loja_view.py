@@ -2,16 +2,20 @@ import os
 
 from PyQt5.QtCore import QDate, QTime, QTimer
 from PyQt5.QtGui import QCloseEvent, QKeySequence
-from PyQt5.QtWidgets import QLabel, QMainWindow, QMessageBox, QPushButton, QShortcut, QStackedWidget
+from PyQt5.QtWidgets import QLabel, QMainWindow, QPushButton, QShortcut, QStackedWidget
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.venda.services.caixa_service import CaixaService
+from modules.venda.services.venda_service import VendaService
 from modules.venda.views.fechamento_caixa_view import FechamentoCaixaView
 from modules.venda.views.frente_venda_view import FrenteVendaView
 from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
 from modules.venda.views.movimentacao_caixa_view import MovimentacaoCaixaView
+from modules.venda.views.pagamento_view import PagamentoView
+from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
 from ui.venda.frente_loja import Ui_FrenteLoja
+from utils.ui_messages import mostrar_aviso, mostrar_info
 
 
 class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
@@ -30,9 +34,10 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     btnNavFechamento: QPushButton
     stackedContent: QStackedWidget
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, admin_view=None):
         super().__init__(parent)
         self.setupUi(self)
+        self._admin_view = admin_view
 
         self._configurar_contexto_usuario()
         self._configurar_eventos()
@@ -50,6 +55,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.lblOpNome.setText(nome)
         self.lblCaixaStatus.setText("CAIXA: AGUARDANDO ABERTURA")
         self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+        self.btnSairLoja.setText("➜ Voltar ao Admin" if self._admin_view is not None else "➜ Sair da Loja")
         self.lblDefaultMsg.setText(
             "A area de vendas foi iniciada pela Frente de Loja.\n"
             "Os fluxos de abertura, venda, pre-venda e consulta serao conectados apos a abertura de caixa."
@@ -75,9 +81,22 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     def _selecionar_secao(self, titulo: str) -> None:
         self.lblSecaoPrincipal.setText(titulo)
 
+    def _atualizar_menu_lateral(self, botao_ativo: QPushButton | None = None) -> None:
+        botoes = (
+            self.btnNavAbertura,
+            self.btnNavVendas,
+            self.btnNavPreVenda,
+            self.btnNavConsulta,
+            self.btnNavMovimentacao,
+            self.btnNavFechamento,
+        )
+        for botao in botoes:
+            botao.setChecked(botao is botao_ativo)
+
     def _configurar_fluxo_inicial(self) -> None:
         self.abertura_caixa_view = None
         self.frente_venda_view = None
+        self.pagamento_view = None
         self.movimentacao_caixa_view = None
         self.fechamento_caixa_view = None
         if not CaixaSession.has_open_caixa():
@@ -105,53 +124,120 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.lblCaixaStatus.setText("CAIXA: AGUARDANDO ABERTURA")
         self.btnNavAbertura.setEnabled(True)
 
+    def _obter_ou_criar_widget_fluxo(
+        self,
+        atributo: str,
+        view_cls,
+        *,
+        signal_name: str | None = None,
+        handler=None,
+    ):
+        widget = getattr(self, atributo, None)
+        if widget is None:
+            widget = view_cls(self)
+            if signal_name and handler is not None:
+                getattr(widget, signal_name).connect(handler)
+            self.stackedContent.addWidget(widget)
+            setattr(self, atributo, widget)
+        return widget
+
+    def _mostrar_widget_fluxo(
+        self,
+        *,
+        widget,
+        botao_ativo: QPushButton,
+        titulo: str,
+    ) -> None:
+        self._atualizar_menu_lateral(botao_ativo)
+        self.lblSecaoPrincipal.setText(titulo)
+        self.stackedContent.setCurrentWidget(widget)
+
     def _mostrar_abertura_caixa(self) -> None:
         from modules.venda.views.abertura_caixa_view import AberturaCaixaView
 
-        if self.abertura_caixa_view is None:
-            self.abertura_caixa_view = AberturaCaixaView(self)
-            self.abertura_caixa_view.caixa_aberto.connect(self._on_caixa_aberto)
-            self.stackedContent.addWidget(self.abertura_caixa_view)
+        self.abertura_caixa_view = self._obter_ou_criar_widget_fluxo(
+            "abertura_caixa_view",
+            AberturaCaixaView,
+            signal_name="caixa_aberto",
+            handler=self._on_caixa_aberto,
+        )
 
         caixa_aberto = CaixaSession.current()
         if caixa_aberto:
             self.abertura_caixa_view.preencher_caixa_existente(caixa_aberto)
 
-        self.lblSecaoPrincipal.setText("ABERTURA DE CAIXA")
-        self.stackedContent.setCurrentWidget(self.abertura_caixa_view)
+        self._mostrar_widget_fluxo(
+            widget=self.abertura_caixa_view,
+            botao_ativo=self.btnNavAbertura,
+            titulo="ABERTURA DE CAIXA",
+        )
 
     def _mostrar_frente_venda(self) -> None:
-        if self.frente_venda_view is None:
-            self.frente_venda_view = FrenteVendaView(self)
-            self.stackedContent.addWidget(self.frente_venda_view)
+        self.frente_venda_view = self._obter_ou_criar_widget_fluxo(
+            "frente_venda_view",
+            FrenteVendaView,
+            signal_name="pagamento_solicitado",
+            handler=self._mostrar_pagamento_venda,
+        )
 
-        self.lblSecaoPrincipal.setText("VENDAS")
-        self.stackedContent.setCurrentWidget(self.frente_venda_view)
+        self._mostrar_widget_fluxo(
+            widget=self.frente_venda_view,
+            botao_ativo=self.btnNavVendas,
+            titulo="VENDAS",
+        )
 
     def _mostrar_consulta_produto(self) -> None:
+        self._atualizar_menu_lateral(self.btnNavConsulta)
         self.lblSecaoPrincipal.setText("CONSULTA DE PRECOS")
         dialog = ModalConsultaProdutoView(self)
         dialog.exec_()
 
     def _mostrar_movimentacao_caixa(self) -> None:
-        if self.movimentacao_caixa_view is None:
-            self.movimentacao_caixa_view = MovimentacaoCaixaView(self)
-            self.stackedContent.addWidget(self.movimentacao_caixa_view)
+        self.movimentacao_caixa_view = self._obter_ou_criar_widget_fluxo(
+            "movimentacao_caixa_view",
+            MovimentacaoCaixaView,
+        )
 
-        self.lblSecaoPrincipal.setText("MOVIMENTACAO DE CAIXA")
-        self.stackedContent.setCurrentWidget(self.movimentacao_caixa_view)
+        self._mostrar_widget_fluxo(
+            widget=self.movimentacao_caixa_view,
+            botao_ativo=self.btnNavMovimentacao,
+            titulo="MOVIMENTACAO DE CAIXA",
+        )
+
+    def _mostrar_pagamento_venda(self, venda_data: dict) -> None:
+        self.pagamento_view = self._obter_ou_criar_widget_fluxo(
+            "pagamento_view",
+            PagamentoView,
+            signal_name="voltar_venda",
+            handler=self._mostrar_frente_venda,
+        )
+        if not hasattr(self.pagamento_view, "_cspdv_finalizacao_conectada"):
+            self.pagamento_view.venda_finalizada.connect(self._on_venda_finalizada)
+            self.pagamento_view._cspdv_finalizacao_conectada = True
+        self.pagamento_view.carregar_venda(venda_data)
+        self._mostrar_widget_fluxo(
+            widget=self.pagamento_view,
+            botao_ativo=self.btnNavVendas,
+            titulo="PAGAMENTO",
+        )
 
     def _mostrar_fechamento_caixa(self) -> None:
-        if self.fechamento_caixa_view is None:
-            self.fechamento_caixa_view = FechamentoCaixaView(self)
-            self.fechamento_caixa_view.caixa_fechado.connect(self._on_caixa_fechado)
-            self.stackedContent.addWidget(self.fechamento_caixa_view)
+        self.fechamento_caixa_view = self._obter_ou_criar_widget_fluxo(
+            "fechamento_caixa_view",
+            FechamentoCaixaView,
+            signal_name="caixa_fechado",
+            handler=self._on_caixa_fechado,
+        )
 
-        self.lblSecaoPrincipal.setText("FECHAMENTO DE CAIXA")
-        self.stackedContent.setCurrentWidget(self.fechamento_caixa_view)
+        self._mostrar_widget_fluxo(
+            widget=self.fechamento_caixa_view,
+            botao_ativo=self.btnNavFechamento,
+            titulo="FECHAMENTO DE CAIXA",
+        )
 
     def _on_caixa_aberto(self, caixa_data: dict) -> None:
         self._aplicar_estado_caixa()
+        self._atualizar_menu_lateral(self.btnNavAbertura)
         self.lblDefaultMsg.setText(
             f"Caixa aberto com sucesso para {caixa_data.get('pdv_label', 'o PDV selecionado')}.\n"
             "Os fluxos de venda, pre-venda e consulta ja podem ser conectados."
@@ -159,16 +245,57 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
 
     def _on_caixa_fechado(self, fechamento: dict) -> None:
         self._aplicar_estado_caixa()
+        self._atualizar_menu_lateral(None)
         self.lblDefaultMsg.setText(
             "O caixa foi fechado com sucesso.\n"
             "Abra um novo caixa para retomar os fluxos de venda."
         )
-        self._descartar_widget_fluxo("abertura_caixa_view")
-        self._descartar_widget_fluxo("frente_venda_view")
-        self._descartar_widget_fluxo("movimentacao_caixa_view")
-        self._descartar_widget_fluxo("fechamento_caixa_view")
+        self._descartar_widgets_fluxo(
+            "abertura_caixa_view",
+            "frente_venda_view",
+            "pagamento_view",
+            "movimentacao_caixa_view",
+            "fechamento_caixa_view",
+        )
         self.stackedContent.setCurrentIndex(0)
         self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+
+    def _on_venda_finalizada(self, venda_data: dict) -> None:
+        sucesso, mensagem, venda_registrada = VendaService.finalizar_venda(venda_data)
+        if not sucesso or venda_registrada is None:
+            mostrar_aviso(self, "Venda nao registrada", mensagem)
+            return
+
+        dialog = PosPagamentoDialog(venda_data=venda_registrada, parent=self)
+        dialog.exec_()
+
+        if dialog.resultado == "imprimir":
+            mostrar_info(
+                self,
+                "Impressão",
+                "A impressão do cupom será conectada na próxima etapa. A venda já foi finalizada com sucesso.",
+            )
+            self._reiniciar_fluxo_venda()
+            return
+
+        if dialog.resultado == "sem_impressao":
+            self._reiniciar_fluxo_venda()
+            return
+
+        self._descartar_widget_fluxo("frente_venda_view")
+        self._descartar_widget_fluxo("pagamento_view")
+        self._atualizar_menu_lateral(None)
+        self.stackedContent.setCurrentIndex(0)
+        self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+        self.lblDefaultMsg.setText(
+            f"Venda n° {venda_registrada.get('numero_venda')} finalizada com sucesso.\n"
+            "Selecione o próximo fluxo operacional."
+        )
+
+    def _reiniciar_fluxo_venda(self) -> None:
+        self._descartar_widget_fluxo("frente_venda_view")
+        self._descartar_widget_fluxo("pagamento_view")
+        self._mostrar_frente_venda()
 
     def _descartar_widget_fluxo(self, atributo: str) -> None:
         widget = getattr(self, atributo, None)
@@ -178,7 +305,18 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         widget.deleteLater()
         setattr(self, atributo, None)
 
+    def _descartar_widgets_fluxo(self, *atributos: str) -> None:
+        for atributo in atributos:
+            self._descartar_widget_fluxo(atributo)
+
     def _voltar_para_selecao(self) -> None:
+        if self._admin_view is not None:
+            self.hide()
+            self._admin_view.show()
+            self._admin_view.raise_()
+            self._admin_view.activateWindow()
+            return
+
         if not self._permitir_saida():
             return
 
@@ -195,7 +333,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         if not CaixaSession.has_open_caixa():
             return True
 
-        QMessageBox.warning(
+        mostrar_aviso(
             self,
             "Caixa aberto",
             "Nao e possivel sair da frente de loja com um caixa aberto.\n\n"

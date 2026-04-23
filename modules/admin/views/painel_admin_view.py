@@ -2,11 +2,12 @@ from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QMessageBox, QPushButton, QShortcut, QTableWidgetItem
+from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem
 
 from core.session_manager import SessionManager
 from modules.admin.views.widgets import ManagementPageWidget
 from ui.admin.painel_admin import Ui_PainelAdmin
+from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
 
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
@@ -261,7 +262,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         )
         self._current_management_key = key
         if error_message:
-            QMessageBox.warning(self, "Falha ao carregar dados", error_message)
+            mostrar_aviso(self, "Falha ao carregar dados", error_message)
 
     def _refresh_current_management_page(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
@@ -296,16 +297,12 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def _open_cadastro_produto(self) -> None:
         from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 
-        self.hide()
-        self.cadastro_produto = CadastroProdutoView(admin_view=self)
-        self.cadastro_produto.show()
+        self._abrir_cadastro_externo(CadastroProdutoView, "cadastro_produto", admin_view=self)
 
     def _open_cadastro_fornecedor(self) -> None:
         from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
 
-        self.hide()
-        self.cadastro_fornecedor = CadastroFornecedorView(admin_view=self)
-        self.cadastro_fornecedor.show()
+        self._abrir_cadastro_externo(CadastroFornecedorView, "cadastro_fornecedor", admin_view=self)
 
     def _open_cadastro_marca(self) -> None:
         from modules.marcas.views.cadastro_marca_view import CadastroMarcaView
@@ -324,21 +321,83 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def _open_cadastro_cliente(self) -> None:
         from modules.clientes.views.cadastro_cliente_view import CadastroClienteView
 
+        self._abrir_cadastro_externo(CadastroClienteView, "cadastro_cliente", admin_view=self)
+
+    def _abrir_cadastro_externo(self, view_cls, attr_name: str, **kwargs) -> None:
         self.hide()
-        self.cadastro_cliente = CadastroClienteView(admin_view=self)
-        self.cadastro_cliente.show()
+        view = view_cls(**kwargs)
+        setattr(self, attr_name, view)
+        view.show()
+
+    def _obter_registro_selecionado(self, titulo: str, mensagem: str) -> Dict[str, Any] | None:
+        row = self.managementPage.selected_row()
+        if row:
+            return row
+        mostrar_info(self, titulo, mensagem)
+        return None
+
+    def _obter_contexto_status(self, current_key: str, row: Dict[str, Any]) -> Dict[str, Any] | None:
+        if current_key == "produtos":
+            from modules.produtos.services.produto_service import ProdutoService
+
+            return {
+                "entity_label": "produto",
+                "nome": str(row.get("nome") or "produto"),
+                "entity_id": row.get("id"),
+                "service_call": ProdutoService.alternar_status,
+                "invalid_title": "Registro invalido",
+            }
+        if current_key == "marcas":
+            from modules.marcas.services.marca_service import MarcaService
+
+            return {
+                "entity_label": "marca",
+                "nome": str(row.get("nome_marca") or "marca"),
+                "entity_id": row.get("id"),
+                "service_call": MarcaService.alternar_status,
+                "invalid_title": "Registro invalido",
+            }
+        if current_key == "categorias":
+            from modules.categorias.services.categoria_service import CategoriaService
+
+            return {
+                "entity_label": "categoria",
+                "nome": str(row.get("nome") or "categoria"),
+                "entity_id": row.get("id"),
+                "service_call": CategoriaService.alternar_status,
+                "invalid_title": "Registro invalido",
+            }
+        if current_key == "fornecedores":
+            from modules.fornecedores.services.fornecedor_service import FornecedorService
+
+            return {
+                "entity_label": "fornecedor",
+                "nome": str(row.get("nome_fantasia") or "fornecedor"),
+                "entity_id": row.get("id_fornecedor"),
+                "service_call": FornecedorService.alternar_status,
+                "invalid_title": "Registro invalido",
+            }
+        if current_key == "clientes":
+            from modules.clientes.services.cliente_service import ClienteService
+
+            return {
+                "entity_label": "cliente",
+                "nome": str(row.get("nome") or "cliente"),
+                "entity_id": row.get("id"),
+                "service_call": ClienteService.alternar_status,
+                "invalid_title": "Registro invalido",
+            }
+        return None
 
     def _open_ajuste_quantidade(self) -> None:
         if getattr(self, "_current_management_key", None) != "produtos":
             return
 
-        produto = self.managementPage.selected_row()
+        produto = self._obter_registro_selecionado(
+            "Selecione um produto",
+            "Escolha um produto na tabela antes de ajustar a quantidade.",
+        )
         if not produto:
-            QMessageBox.information(
-                self,
-                "Selecione um produto",
-                "Escolha um produto na tabela antes de ajustar a quantidade.",
-            )
             return
 
         from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
@@ -351,22 +410,16 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         if getattr(self, "_current_management_key", None) != "produtos":
             return
 
-        produto = self.managementPage.selected_row()
+        produto = self._obter_registro_selecionado(
+            "Selecione um produto",
+            "Escolha um produto na tabela antes de visualizar os detalhes.",
+        )
         if not produto:
-            QMessageBox.information(
-                self,
-                "Selecione um produto",
-                "Escolha um produto na tabela antes de visualizar os detalhes.",
-            )
             return
 
         produto_id = produto.get("id")
         if produto_id is None:
-            QMessageBox.warning(
-                self,
-                "Produto invalido",
-                "Nao foi possivel identificar o produto selecionado.",
-            )
+            mostrar_aviso(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado.")
             return
 
         from modules.produtos.models.produto_model import ProdutoModel
@@ -374,11 +427,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
 
         detalhes = ProdutoModel.buscar_por_id(int(produto_id))
         if not detalhes:
-            QMessageBox.warning(
-                self,
-                "Produto nao encontrado",
-                "Nao foi possivel carregar os detalhes do produto selecionado.",
-            )
+            mostrar_aviso(self, "Produto nao encontrado", "Nao foi possivel carregar os detalhes do produto selecionado.")
             return
 
         dialog = DetalhesProdutoDialog(detalhes, self)
@@ -389,73 +438,42 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes"}:
             return
 
-        row = self.managementPage.selected_row()
+        row = self._obter_registro_selecionado(
+            "Selecione um registro",
+            "Escolha um registro na tabela antes de alterar o status.",
+        )
         if not row:
-            QMessageBox.information(
-                self,
-                "Selecione um registro",
-                "Escolha um registro na tabela antes de alterar o status.",
-            )
             return
 
-        if current_key == "produtos":
-            entity_label = "produto"
-            nome = str(row.get("nome") or "produto")
-            entity_id = row.get("id")
-            from modules.produtos.services.produto_service import ProdutoService
+        contexto = self._obter_contexto_status(current_key, row)
+        if not contexto:
+            return
 
-            service_call = ProdutoService.alternar_status
-        elif current_key == "marcas":
-            entity_label = "marca"
-            nome = str(row.get("nome_marca") or "marca")
-            entity_id = row.get("id")
-            from modules.marcas.services.marca_service import MarcaService
-
-            service_call = MarcaService.alternar_status
-        elif current_key == "categorias":
-            entity_label = "categoria"
-            nome = str(row.get("nome") or "categoria")
-            entity_id = row.get("id")
-            from modules.categorias.services.categoria_service import CategoriaService
-
-            service_call = CategoriaService.alternar_status
-        elif current_key == "fornecedores":
-            entity_label = "fornecedor"
-            nome = str(row.get("nome_fantasia") or "fornecedor")
-            entity_id = row.get("id_fornecedor")
-            from modules.fornecedores.services.fornecedor_service import FornecedorService
-
-            service_call = FornecedorService.alternar_status
-        else:
-            entity_label = "cliente"
-            nome = str(row.get("nome") or "cliente")
-            entity_id = row.get("id")
-            from modules.clientes.services.cliente_service import ClienteService
-
-            service_call = ClienteService.alternar_status
+        entity_label = str(contexto["entity_label"])
+        nome = str(contexto["nome"])
+        entity_id = contexto["entity_id"]
+        service_call = contexto["service_call"]
 
         if entity_id is None:
-            QMessageBox.warning(self, "Registro invalido", "Nao foi possivel identificar o registro selecionado.")
+            mostrar_aviso(self, str(contexto["invalid_title"]), "Nao foi possivel identificar o registro selecionado.")
             return
 
         ativo_atual = str(row.get("ativo") or "N").strip().upper()
         acao = "desativar" if ativo_atual == "S" else "ativar"
-        confirmacao = QMessageBox.question(
+        confirmacao = confirmar_acao(
             self,
             "Confirmar alteracao",
             f"Deseja {acao} o {entity_label} '{nome}'?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
         )
-        if confirmacao != QMessageBox.Yes:
+        if not confirmacao:
             return
 
         sucesso, mensagem = service_call(entity_id)
         if not sucesso:
-            QMessageBox.warning(self, "Status nao alterado", mensagem)
+            mostrar_aviso(self, "Status nao alterado", mensagem)
             return
 
-        QMessageBox.information(self, "Status atualizado", mensagem)
+        mostrar_info(self, "Status atualizado", mensagem)
         self._refresh_current_management_page()
 
     def _editar_registro(self) -> None:
@@ -463,31 +481,32 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes"}:
             return
 
-        row = self.managementPage.selected_row()
+        row = self._obter_registro_selecionado(
+            "Selecione um registro",
+            "Escolha um registro na tabela antes de editar.",
+        )
         if not row:
-            QMessageBox.information(
-                self,
-                "Selecione um registro",
-                "Escolha um registro na tabela antes de editar.",
-            )
             return
 
         if current_key == "produtos":
             registro_id = row.get("id")
             if registro_id is None:
-                QMessageBox.warning(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado para edicao.")
+                mostrar_aviso(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado para edicao.")
                 return
             from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 
-            self.hide()
-            self.cadastro_produto = CadastroProdutoView(produto_id=int(registro_id), admin_view=self)
-            self.cadastro_produto.show()
+            self._abrir_cadastro_externo(
+                CadastroProdutoView,
+                "cadastro_produto",
+                produto_id=int(registro_id),
+                admin_view=self,
+            )
             return
 
         if current_key == "marcas":
             registro_id = row.get("id")
             if registro_id is None:
-                QMessageBox.warning(self, "Marca invalida", "Nao foi possivel identificar a marca selecionada.")
+                mostrar_aviso(self, "Marca invalida", "Nao foi possivel identificar a marca selecionada.")
                 return
             from modules.marcas.views.cadastro_marca_view import CadastroMarcaView
 
@@ -499,7 +518,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         if current_key == "categorias":
             registro_id = row.get("id")
             if registro_id is None:
-                QMessageBox.warning(self, "Categoria invalida", "Nao foi possivel identificar a categoria selecionada.")
+                mostrar_aviso(self, "Categoria invalida", "Nao foi possivel identificar a categoria selecionada.")
                 return
             from modules.categorias.views.cadastro_categoria_view import CadastroCategoriaView
 
@@ -511,24 +530,30 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         if current_key == "clientes":
             registro_id = row.get("id")
             if registro_id is None:
-                QMessageBox.warning(self, "Cliente invalido", "Nao foi possivel identificar o cliente selecionado.")
+                mostrar_aviso(self, "Cliente invalido", "Nao foi possivel identificar o cliente selecionado.")
                 return
             from modules.clientes.views.cadastro_cliente_view import CadastroClienteView
 
-            self.hide()
-            self.cadastro_cliente = CadastroClienteView(cliente_id=int(registro_id), admin_view=self)
-            self.cadastro_cliente.show()
+            self._abrir_cadastro_externo(
+                CadastroClienteView,
+                "cadastro_cliente",
+                cliente_id=int(registro_id),
+                admin_view=self,
+            )
             return
 
         registro_id = row.get("id_fornecedor")
         if registro_id is None:
-            QMessageBox.warning(self, "Fornecedor invalido", "Nao foi possivel identificar o fornecedor selecionado.")
+            mostrar_aviso(self, "Fornecedor invalido", "Nao foi possivel identificar o fornecedor selecionado.")
             return
         from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
 
-        self.hide()
-        self.cadastro_fornecedor = CadastroFornecedorView(fornecedor_id=int(registro_id), admin_view=self)
-        self.cadastro_fornecedor.show()
+        self._abrir_cadastro_externo(
+            CadastroFornecedorView,
+            "cadastro_fornecedor",
+            fornecedor_id=int(registro_id),
+            admin_view=self,
+        )
 
     def _update_datetime(self) -> None:
         current = QDateTime.currentDateTime()
@@ -545,7 +570,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
             self.lblProdutosValor.setText("0")
             self.lblClientesValor.setText("0")
             self._populate_dashboard_sales([])
-            QMessageBox.warning(
+            mostrar_aviso(
                 self,
                 "Dashboard indisponivel",
                 f"Nao foi possivel carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
@@ -583,7 +608,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
 
     def _open_frente_caixa(self) -> None:
         if not SessionManager.has_permission("vendas.pdv"):
-            QMessageBox.warning(
+            mostrar_aviso(
                 self,
                 "Acesso negado",
                 "O usuario atual nao possui permissao para abrir a frente de caixa.",
@@ -605,7 +630,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
                 return
 
         self.hide()
-        self.frente_loja = FrenteLojaView()
+        self.frente_loja = FrenteLojaView(admin_view=self)
         self.frente_loja.show()
 
     def _exit(self) -> None:

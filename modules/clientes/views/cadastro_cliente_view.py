@@ -1,16 +1,18 @@
 from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QIntValidator, QRegularExpressionValidator
-from PyQt5.QtWidgets import QLineEdit, QMessageBox, QWidget
+from PyQt5.QtWidgets import QLineEdit, QWidget
 
 from modules.clientes.models.cliente_model import ClienteModel
 from modules.clientes.services.cliente_service import ClienteService
 from ui.admin.cadastros.cadastro_cliente import Ui_CadastroCliente
 from utils.format_utils import formatar_cep, formatar_telefone
+from utils.admin_return_mixin import RetornoPainelAdminMixin
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto_maiusculo
+from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
 
-class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin):
+class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, RetornoPainelAdminMixin):
     def __init__(self, parent=None, cliente_id=None, admin_view=None):
         super().__init__(None)
         self.setupUi(self)
@@ -84,7 +86,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin):
 
         cliente = ClienteModel.buscar_por_id(self._cliente_id)
         if not cliente:
-            QMessageBox.warning(self, "Cliente nao encontrado", "Nao foi possivel carregar o cliente para edicao.")
+            mostrar_aviso(self, "Cliente nao encontrado", "Nao foi possivel carregar o cliente para edicao.")
             self._cancelar()
             return
 
@@ -140,7 +142,11 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin):
             self.marcar_invalido(self.lineEditEstado)
 
         if erros:
-            QMessageBox.warning(self, "Revise os campos", "Preencha os seguintes campos:\n" + "\n".join(erros))
+            mostrar_campos_invalidos(
+                self,
+                erros,
+                cabecalho="Preencha os seguintes campos:",
+            )
             return None
 
         return {
@@ -170,14 +176,14 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin):
             sucesso, mensagem = ClienteService.atualizar_cliente(self._cliente_id, dados)
 
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            mostrar_info(self, "Sucesso", mensagem)
             if self._cliente_id is None:
                 self._limpar_campos()
             else:
                 self._cancelar(refresh=True)
             return
 
-        QMessageBox.warning(self, "Atencao", mensagem)
+        mostrar_aviso(self, "Atencao", mensagem)
 
     def _limpar_campos(self):
         for campo_texto in self.findChildren(QLineEdit):
@@ -191,13 +197,4 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin):
 
     def _cancelar(self, refresh=False):
         self.hide()
-        if self._parent_admin is not None:
-            self._parent_admin.show()
-            if refresh and hasattr(self._parent_admin, "_refresh_current_management_page"):
-                self._parent_admin._refresh_current_management_page()
-            return
-
-        from modules.admin.views.painel_admin_view import PainelAdminView
-
-        self.painel_admin = PainelAdminView()
-        self.painel_admin.show()
+        self._mostrar_painel_admin(refresh=refresh)

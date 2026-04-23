@@ -3,6 +3,17 @@ from modules.clientes.models.cliente_model import ClienteModel
 
 class ClienteService:
     @staticmethod
+    def buscar_para_venda(termo):
+        termo_limpo = str(termo or "").strip()
+        if len(termo_limpo) < 2:
+            return []
+        try:
+            return ClienteModel.buscar_para_venda(termo_limpo)
+        except Exception as exc:
+            print(f"Erro ao buscar cliente para venda: {exc}")
+            return []
+
+    @staticmethod
     def _validar_dados(dados):
         nome = str(dados.get("nome", "")).strip()
         email = str(dados.get("email", "")).strip()

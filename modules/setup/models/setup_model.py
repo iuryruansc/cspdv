@@ -1,27 +1,34 @@
 import bcrypt
-from typing import Dict, Any
+from typing import Any, Dict
+
 from database.connection import get_connection
 
+
 class SetupModel:
+    _FORMAS_PAGAMENTO_PADRAO = [
+        {"nome": "Dinheiro", "tipo_sefaz": "01", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
+        {"nome": "PIX", "tipo_sefaz": "17", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
+        {"nome": "Cartao Debito", "tipo_sefaz": "04", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
+        {"nome": "Cartao Credito", "tipo_sefaz": "03", "permite_parcelamento": "S", "taxa_administrativa": 0.00},
+        {"nome": "Vale Refeicao", "tipo_sefaz": "10", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
+        {"nome": "Cheque", "tipo_sefaz": "02", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
+    ]
 
     @staticmethod
     def is_first_run() -> bool:
-        print("Verificando se é a primeira execução do sistema...")
         conn = get_connection()
-        print("Conexão estabelecida, verificando tabela config_empresa...")
         cursor = conn.cursor()
         try:
             cursor.execute("SELECT COUNT(*) FROM config_empresa")
             result = cursor.fetchone()
-            
-            if result:
-                if isinstance(result, dict):
-                    count = list(result.values())[0]
-                else:
-                    count = result[0]
-                
-                return count == 0
-            return True
+            if not result:
+                return True
+
+            if isinstance(result, dict):
+                count = list(result.values())[0]
+            else:
+                count = result[0]
+            return count == 0
         finally:
             cursor.close()
             conn.close()
@@ -31,7 +38,6 @@ class SetupModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            # 1. Empresa
             cursor.execute(
                 """
                 INSERT INTO config_empresa
@@ -46,7 +52,6 @@ class SetupModel:
                 empresa,
             )
 
-            # 2. PDV principal
             cursor.execute(
                 """
                 INSERT INTO pdvs (identificacao, descricao, status, createdAt, updatedAt, ativo)
@@ -55,47 +60,44 @@ class SetupModel:
                 pdv,
             )
 
-            # 3. Cargo Administrador
             cursor.execute(
                 "INSERT INTO cargos (nome_cargo, createdAt, updatedAt, ativo) "
                 "VALUES ('Administrador', NOW(), NOW(), 'S')"
             )
             cargo_id = cursor.lastrowid
 
-           # 4. Criar o Perfil 'Administrador Master'
             cursor.execute(
                 """
-                INSERT INTO perfis (nome, descricao, ativo, updateAt) 
-                VALUES ('Admin Master', 'Acesso irrestrito a todos os módulos do sistema', 'S', NOW())
+                INSERT INTO perfis (nome, descricao, ativo, updateAt)
+                VALUES ('Admin Master', 'Acesso irrestrito a todos os modulos do sistema', 'S', NOW())
                 """
             )
             perfil_id = cursor.lastrowid
 
-            # 5. Definir as Permissões Base Iniciais
             permissoes_base = [
-                ('sistema.master', 'Acesso Irrestrito (Master)'),
-                ('vendas.pdv', 'Acesso ao PDV (Frente de Caixa)'),
-                ('estoque.gerenciar', 'Cadastro e Edição de Produtos'),
-                ('financeiro.total', 'Acesso Completo ao Módulo Financeiro'),
-                ('relatorios.ver', 'Visualização de Relatórios e Dashboards'),
+                ("sistema.master", "Acesso Irrestrito (Master)"),
+                ("vendas.pdv", "Acesso ao PDV (Frente de Caixa)"),
+                ("estoque.gerenciar", "Cadastro e Edicao de Produtos"),
+                ("financeiro.total", "Acesso Completo ao Modulo Financeiro"),
+                ("relatorios.ver", "Visualizacao de Relatorios e Dashboards"),
             ]
 
             permissoes_ids = []
             for chave, nome_amigavel in permissoes_base:
                 cursor.execute(
                     "INSERT INTO permissoes (chave, nome_amigavel) VALUES (%s, %s)",
-                    (chave, nome_amigavel)
+                    (chave, nome_amigavel),
                 )
                 permissoes_ids.append(cursor.lastrowid)
 
-            # 6. Vincular todas as permissões criadas ao Perfil Master
             for perm_id in permissoes_ids:
                 cursor.execute(
                     "INSERT INTO perfil_permissoes (perfil_id, permissao_id) VALUES (%s, %s)",
-                    (perfil_id, perm_id)
+                    (perfil_id, perm_id),
                 )
 
-            # 7. Funcionário
+            SetupModel._criar_formas_pagamento_padrao(cursor)
+
             cursor.execute(
                 """
                 INSERT INTO funcionarios
@@ -103,14 +105,11 @@ class SetupModel:
                 VALUES
                     (%(nome_completo)s, '00000000000', %(cargo_id)s, NOW(), NOW(), 'S', CURDATE())
                 """,
-                {**admin, 'cargo_id': cargo_id},
+                {**admin, "cargo_id": cargo_id},
             )
             funcionario_id = cursor.lastrowid
 
-            # 8. Usuário admin
-            password_plain = admin['senha'].encode('utf-8')
-            senha_hash = bcrypt.hashpw(password_plain, bcrypt.gensalt()).decode('utf-8')
-
+            senha_hash = bcrypt.hashpw(admin["senha"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
             cursor.execute(
                 """
                 INSERT INTO usuarios
@@ -120,20 +119,55 @@ class SetupModel:
                      'Administrador', NOW(), NOW(), 'S', %(perfil_id)s)
                 """,
                 {
-                    'funcionario_id': funcionario_id,
-                    'login': admin['login'],
-                    'email': admin.get('email', ''),
-                    'senha_hash': senha_hash,
-                    'perfil_id': perfil_id  # <--- Vinculando o usuário ao perfil
+                    "funcionario_id": funcionario_id,
+                    "login": admin["login"],
+                    "email": admin.get("email", ""),
+                    "senha_hash": senha_hash,
+                    "perfil_id": perfil_id,
                 },
             )
 
             conn.commit()
-
-        except Exception as e:
+        except Exception:
             conn.rollback()
-            print(f"Erro na transação: {e}") # Log para debug
             raise
         finally:
             cursor.close()
             conn.close()
+
+    @staticmethod
+    def _criar_formas_pagamento_padrao(cursor) -> None:
+        cursor.execute("SHOW COLUMNS FROM formas_pagamento")
+        colunas = {str(coluna[0]) for coluna in cursor.fetchall()}
+
+        for forma in SetupModel._FORMAS_PAGAMENTO_PADRAO:
+            cursor.execute(
+                "SELECT id FROM formas_pagamento WHERE UPPER(nome) = UPPER(%s) LIMIT 1",
+                (forma["nome"],),
+            )
+            if cursor.fetchone():
+                continue
+
+            campos = ["nome", "tipo_sefaz", "permite_parcelamento", "taxa_administrativa", "ativo"]
+            valores = ["%s", "%s", "%s", "%s", "'S'"]
+            parametros = [
+                forma["nome"],
+                forma["tipo_sefaz"],
+                forma["permite_parcelamento"],
+                forma["taxa_administrativa"],
+            ]
+
+            if "createdAt" in colunas:
+                campos.append("createdAt")
+                valores.append("NOW()")
+            if "updatedAt" in colunas:
+                campos.append("updatedAt")
+                valores.append("NOW()")
+
+            cursor.execute(
+                f"""
+                INSERT INTO formas_pagamento ({", ".join(campos)})
+                VALUES ({", ".join(valores)})
+                """,
+                tuple(parametros),
+            )

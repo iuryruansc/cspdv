@@ -2,18 +2,20 @@ import os
 
 from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QIntValidator, QRegularExpressionValidator
-from PyQt5.QtWidgets import QLineEdit, QMessageBox, QWidget
+from PyQt5.QtWidgets import QLineEdit, QWidget
 
 from modules.fornecedores.models.fornecedor_model import FornecedorModel
 from modules.fornecedores.services.fornecedor_service import FornecedorService
 from ui.admin.cadastros.cadastro_fornecedor import Ui_CadastroFornecedor
+from utils.admin_return_mixin import RetornoPainelAdminMixin
 from utils.format_utils import formatar_cpf_cnpj, formatar_cep, formatar_telefone
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto_maiusculo
+from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_erro, mostrar_info
 
 UI_DIR = os.path.join(os.path.dirname(__file__), "..", "ui")
 
-class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin):
+class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin, RetornoPainelAdminMixin):
     def __init__(self, parent=None, fornecedor_id=None, admin_view=None):
         super().__init__(None)
         self.setupUi(self)
@@ -59,7 +61,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
 
         fornecedor = FornecedorModel.buscar_por_id(self._fornecedor_id)
         if not fornecedor:
-            QMessageBox.warning(self, "Fornecedor nao encontrado", "Nao foi possivel carregar o fornecedor para edicao.")
+            mostrar_aviso(self, "Fornecedor nao encontrado", "Nao foi possivel carregar o fornecedor para edicao.")
             self._cancelar()
             return
 
@@ -157,10 +159,10 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
             self.marcar_invalido(self.lineEditEstado)
 
         if erros:
-            QMessageBox.warning(
+            mostrar_campos_invalidos(
                 self,
-                "Revise os campos",
-                "Preencha os seguintes campos:\n" + "\n".join(erros),
+                erros,
+                cabecalho="Preencha os seguintes campos:",
             )
             return
 
@@ -182,7 +184,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
                 "observacao": observacao,
             }
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Erro ao coletar dados: {e}")
+            mostrar_erro(self, "Erro", f"Erro ao coletar dados: {e}")
             return
 
         if self._fornecedor_id is None:
@@ -190,13 +192,13 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
         else:
             sucesso, mensagem = FornecedorService.atualizar_fornecedor(self._fornecedor_id, dados)
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            mostrar_info(self, "Sucesso", mensagem)
             if self._fornecedor_id is None:
                 self._limpar_campos()
             else:
                 self._cancelar(refresh=True)
         else:
-            QMessageBox.warning(self, "Atencao", mensagem)
+            mostrar_aviso(self, "Atencao", mensagem)
 
     def _limpar_campos(self):
         for campo_texto in self.findChildren(QLineEdit):
@@ -209,13 +211,4 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
 
     def _cancelar(self, refresh=False):
         self.hide()
-        if self._parent_admin is not None:
-            self._parent_admin.show()
-            if refresh and hasattr(self._parent_admin, "_refresh_current_management_page"):
-                self._parent_admin._refresh_current_management_page()
-            return
-
-        from modules.admin.views.painel_admin_view import PainelAdminView
-
-        self.painel_admin = PainelAdminView()
-        self.painel_admin.show()
+        self._mostrar_painel_admin(refresh=refresh)

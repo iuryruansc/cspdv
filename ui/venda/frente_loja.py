@@ -14,7 +14,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_FrenteLoja(object):
     def setupUi(self, FrenteLoja):
         FrenteLoja.setObjectName("FrenteLoja")
-        FrenteLoja.resize(1376, 744)
+        FrenteLoja.resize(1520, 860)
+        FrenteLoja.setMinimumSize(QtCore.QSize(1460, 820))
         FrenteLoja.setStyleSheet("\n"
 "    QMainWindow { background-color: #0f2030; font-family: Arial; }\n"
 "    QLabel { background-color: transparent; }\n"

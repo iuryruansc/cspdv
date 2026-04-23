@@ -25,7 +25,7 @@ class Ui_PainelAdmin(object):
         self.frameHeader = QtWidgets.QFrame(self.centralWidget)
         self.frameHeader.setStyleSheet("\n"
 "QFrame#frameHeader {\n"
-" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);\n"
+" background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #153552, stop:0.55 #1d4c74, stop:1 #2f75b0);\n"
 "}\n"
 "       ")
         self.frameHeader.setObjectName("frameHeader")
@@ -34,7 +34,7 @@ class Ui_PainelAdmin(object):
         self.headerHLayout.setSpacing(12)
         self.headerHLayout.setObjectName("headerHLayout")
         self.lblLogo = QtWidgets.QLabel(self.frameHeader)
-        self.lblLogo.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        self.lblLogo.setStyleSheet("color: white; font-size: 30px; font-weight: 800;")
         self.lblLogo.setObjectName("lblLogo")
         self.headerHLayout.addWidget(self.lblLogo)
         self.frameSepHeader = QtWidgets.QFrame(self.frameHeader)
@@ -45,13 +45,13 @@ class Ui_PainelAdmin(object):
         self.lblBadgeAdmin = QtWidgets.QLabel(self.frameHeader)
         self.lblBadgeAdmin.setStyleSheet("\n"
 "QLabel {\n"
-" background-color: rgba(255,255,255,30);\n"
-" color: #ffe080;\n"
+" background-color: rgba(255,255,255,0.10);\n"
+" color: #ffe59d;\n"
 " font-size: 12px;\n"
-" font-weight: bold;\n"
-" border: 1px solid rgba(255,255,255,60);\n"
-" border-radius: 4px;\n"
-" padding: 3px 10px;\n"
+" font-weight: 700;\n"
+" border: 1px solid rgba(255,255,255,0.18);\n"
+" border-radius: 8px;\n"
+" padding: 8px 14px;\n"
 "}\n"
 "          ")
         self.lblBadgeAdmin.setObjectName("lblBadgeAdmin")
@@ -59,36 +59,35 @@ class Ui_PainelAdmin(object):
         spacerItem = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.headerHLayout.addItem(spacerItem)
         self.lblOperadorInfo = QtWidgets.QLabel(self.frameHeader)
-        self.lblOperadorInfo.setStyleSheet("color: #d0e8ff; font-size: 11px;")
+        self.lblOperadorInfo.setStyleSheet("color: #dbeaf7; font-size: 12px; font-weight: 600;")
         self.lblOperadorInfo.setObjectName("lblOperadorInfo")
         self.headerHLayout.addWidget(self.lblOperadorInfo)
         self.lblDataHora = QtWidgets.QLabel(self.frameHeader)
         self.lblDataHora.setStyleSheet("\n"
 "QLabel {\n"
-" color: white;\n"
-" font-size: 11px;\n"
-" font-weight: bold;\n"
-" background-color: rgba(0,0,0,30);\n"
-" border-radius: 3px;\n"
-" padding: 3px 8px;\n"
+" color: #dbeaf7;\n"
+" font-size: 12px;\n"
+" font-weight: 600;\n"
+" background-color: transparent;\n"
+" padding: 0px;\n"
 "}\n"
 "          ")
         self.lblDataHora.setObjectName("lblDataHora")
         self.headerHLayout.addWidget(self.lblDataHora)
         self.btnSair = QtWidgets.QPushButton(self.frameHeader)
-        self.btnSair.setMinimumSize(QtCore.QSize(86, 34))
+        self.btnSair.setMinimumSize(QtCore.QSize(86, 42))
         self.btnSair.setStyleSheet("\n"
 "QPushButton {\n"
-" background-color: #cc2222;\n"
+" background-color: #d92b2b;\n"
 " color: white;\n"
-" font-size: 11px;\n"
-" font-weight: bold;\n"
+" font-size: 12px;\n"
+" font-weight: 700;\n"
 " border: none;\n"
-" border-radius: 4px;\n"
-" padding: 4px 12px;\n"
+" border-radius: 10px;\n"
+" padding: 10px 24px;\n"
 "}\n"
-"QPushButton:hover  { background-color: #e03030; }\n"
-"QPushButton:pressed{ background-color: #aa1010; }\n"
+"QPushButton:hover  { background-color: #c11f1f; }\n"
+"QPushButton:pressed{ background-color: #a81818; }\n"
 "          ")
         self.btnSair.setObjectName("btnSair")
         self.headerHLayout.addWidget(self.btnSair)
@@ -501,7 +500,7 @@ class Ui_PainelAdmin(object):
         self.frameStatusBar = QtWidgets.QFrame(self.centralWidget)
         self.frameStatusBar.setStyleSheet("\n"
 "QFrame#frameStatusBar {\n"
-" background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);\n"
+" background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #153552, stop:1 #2f75b0);\n"
 "}\n"
 "       ")
         self.frameStatusBar.setObjectName("frameStatusBar")
@@ -509,19 +508,19 @@ class Ui_PainelAdmin(object):
         self.statusHLayout.setContentsMargins(12, 0, 12, 0)
         self.statusHLayout.setObjectName("statusHLayout")
         self.lblStatusSistema = QtWidgets.QLabel(self.frameStatusBar)
-        self.lblStatusSistema.setStyleSheet("color: #80ff80; font-size: 11px; font-weight: bold;")
+        self.lblStatusSistema.setStyleSheet("color: #8ff09a; font-size: 11px; font-weight: 700;")
         self.lblStatusSistema.setObjectName("lblStatusSistema")
         self.statusHLayout.addWidget(self.lblStatusSistema)
         spacerItem4 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.statusHLayout.addItem(spacerItem4)
         self.lblStatusBar = QtWidgets.QLabel(self.frameStatusBar)
-        self.lblStatusBar.setStyleSheet("color: white; font-size: 11px; font-weight: bold;")
+        self.lblStatusBar.setStyleSheet("color: white; font-size: 11px; font-weight: 600;")
         self.lblStatusBar.setObjectName("lblStatusBar")
         self.statusHLayout.addWidget(self.lblStatusBar)
         spacerItem5 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.statusHLayout.addItem(spacerItem5)
         self.lblStatusVersao = QtWidgets.QLabel(self.frameStatusBar)
-        self.lblStatusVersao.setStyleSheet("color: #a0c8e8; font-size: 11px;")
+        self.lblStatusVersao.setStyleSheet("color: #dbeaf7; font-size: 11px;")
         self.lblStatusVersao.setObjectName("lblStatusVersao")
         self.statusHLayout.addWidget(self.lblStatusVersao)
         self.mainVLayout.addWidget(self.frameStatusBar)

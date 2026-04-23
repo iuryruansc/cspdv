@@ -105,7 +105,7 @@ class DashboardAdminModel:
 
         select_partes = [
             f"v.{coluna_id} AS numero_venda",
-            f"DATE_FORMAT(v.{coluna_data}, '%%d/%%m/%%Y %%H:%%i') AS data_hora",
+            f"DATE_FORMAT(v.{coluna_data}, '%d/%m/%Y %H:%i') AS data_hora",
             f"COALESCE(v.{coluna_total}, 0) AS total",
         ]
         joins: List[str] = []

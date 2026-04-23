@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.caixa_session import CaixaSession
+from core.session_manager import SessionManager
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 
@@ -91,6 +92,27 @@ class CaixaService:
         faturamento_dinheiro = 0.0
         vendas_dia = 0
         faturamento_total = 0.0
+        totais_forma_pagamento: List[Dict[str, Any]] = []
+
+        caixa_id = caixa.get("id")
+        if caixa_id:
+            try:
+                resumo_operacional = CaixaModel.obter_resumo_operacional(int(caixa_id))
+                resumo_movimentacoes = CaixaModel.obter_resumo_movimentacoes(int(caixa_id))
+                faturamento_dinheiro = float(resumo_operacional.get("faturamento_dinheiro") or 0.0)
+                vendas_dia = int(resumo_operacional.get("vendas_dia") or 0)
+                faturamento_total = float(resumo_operacional.get("faturamento_total") or 0.0)
+                totais_forma_pagamento = list(resumo_operacional.get("totais_forma_pagamento") or [])
+                total_sangrias = float(resumo_movimentacoes.get("total_sangrias") or 0.0)
+                total_suprimentos = float(resumo_movimentacoes.get("total_entradas_manuais") or 0.0)
+            except Exception:
+                faturamento_dinheiro = 0.0
+                vendas_dia = 0
+                faturamento_total = 0.0
+                totais_forma_pagamento = []
+                total_sangrias = 0.0
+                total_suprimentos = 0.0
+
         total_esperado = fundo_inicial - total_sangrias + total_suprimentos + faturamento_dinheiro
 
         return {
@@ -102,8 +124,89 @@ class CaixaService:
             "vendas_dia": vendas_dia,
             "faturamento_total": faturamento_total,
             "total_esperado": total_esperado,
-            "totais_forma_pagamento": [],
+            "totais_forma_pagamento": totais_forma_pagamento,
         }
+
+    @staticmethod
+    def listar_movimentacoes(tipo: str = "todas") -> List[Dict[str, Any]]:
+        caixa = CaixaSession.current() or {}
+        caixa_id = caixa.get("id")
+        if not caixa_id:
+            return []
+        return CaixaModel.listar_movimentacoes(int(caixa_id), tipo)
+
+    @staticmethod
+    def obter_resumo_movimentacoes() -> Dict[str, Any]:
+        caixa = CaixaSession.current() or {}
+        caixa_id = caixa.get("id")
+        fundo_inicial = float(caixa.get("valor_abertura") or 0.0)
+        faturamento_dinheiro = 0.0
+        if caixa_id:
+            try:
+                faturamento_dinheiro = float(
+                    CaixaModel.obter_resumo_operacional(int(caixa_id)).get("faturamento_dinheiro") or 0.0
+                )
+                resumo = CaixaModel.obter_resumo_movimentacoes(int(caixa_id))
+            except Exception:
+                resumo = {}
+        else:
+            resumo = {}
+
+        total_sangrias = float(resumo.get("total_sangrias") or 0.0)
+        total_suprimentos = float(resumo.get("total_suprimentos") or 0.0)
+        total_troco = float(resumo.get("total_troco") or 0.0)
+        saldo_atual = fundo_inicial + faturamento_dinheiro + total_suprimentos + total_troco - total_sangrias
+        return {
+            "fundo_inicial": fundo_inicial,
+            "faturamento_dinheiro": faturamento_dinheiro,
+            "total_sangrias": total_sangrias,
+            "total_suprimentos": total_suprimentos,
+            "total_troco": total_troco,
+            "saldo_atual": saldo_atual,
+        }
+
+    @staticmethod
+    def registrar_movimentacao(
+        *,
+        tipo: str,
+        valor: float,
+        observacao: str,
+        admin_password: str,
+    ) -> Tuple[bool, str]:
+        caixa = CaixaSession.current() or {}
+        usuario = SessionManager.current_user() or {}
+        caixa_id = int(caixa.get("id") or 0)
+        usuario_id = int(usuario.get("id") or 0)
+
+        if caixa_id <= 0:
+            return False, "Nao ha caixa aberto para registrar a movimentacao."
+        if usuario_id <= 0:
+            return False, "Nao foi possivel identificar o operador logado."
+        if str(tipo or "").strip().lower() not in {"sangria", "suprimento", "troco"}:
+            return False, "Selecione um tipo de movimentacao valido."
+        if valor <= 0:
+            return False, "Informe um valor maior que zero."
+        if not observacao.strip():
+            return False, "Descreva o motivo da movimentacao."
+        if not CaixaService.validar_admin_para_diferenca(admin_password):
+            return False, "Informe uma senha de administrador valida para autorizar a movimentacao."
+
+        resumo = CaixaService.obter_resumo_movimentacoes()
+        saldo_atual = float(resumo.get("saldo_atual") or 0.0)
+        if str(tipo).lower() == "sangria" and valor > saldo_atual:
+            return False, "A sangria nao pode ser maior que o saldo atual disponivel no caixa."
+
+        try:
+            CaixaModel.registrar_movimentacao(
+                caixa_id=caixa_id,
+                usuario_id=usuario_id,
+                tipo=tipo,
+                valor=valor,
+                observacao=observacao.strip(),
+            )
+            return True, "Movimentacao registrada com sucesso."
+        except Exception as exc:
+            return False, f"Erro ao registrar movimentacao: {exc}"
 
     @staticmethod
     def validar_admin_para_diferenca(senha: str) -> bool:

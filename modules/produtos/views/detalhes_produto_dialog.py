@@ -1,7 +1,4 @@
-from pathlib import Path
-
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QDialog,
     QFormLayout,
@@ -10,6 +7,8 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QVBoxLayout,
 )
+from utils.format_utils import formatar_inteiro, formatar_moeda
+from utils.image_utils import atualizar_preview_label, resolver_caminho_arquivo
 
 
 class DetalhesProdutoDialog(QDialog):
@@ -42,9 +41,9 @@ class DetalhesProdutoDialog(QDialog):
             ("Categoria:", produto.get("categoria_nome")),
             ("Marca:", produto.get("marca_nome")),
             ("Fornecedor:", produto.get("fornecedor_nome")),
-            ("Preco custo:", self._formatar_moeda(produto.get("preco_compra"))),
-            ("Preco venda:", self._formatar_moeda(produto.get("preco_venda"))),
-            ("Estoque:", self._formatar_numero(produto.get("quantidade_estoque"))),
+            ("Preco custo:", formatar_moeda(produto.get("preco_compra"))),
+            ("Preco venda:", formatar_moeda(produto.get("preco_venda"))),
+            ("Estoque:", formatar_inteiro(produto.get("quantidade_estoque"))),
             ("NCM:", produto.get("ncm") or "-"),
             ("CEST:", produto.get("cest") or "-"),
             ("Unidade comercial:", produto.get("unidade_sigla") or "-"),
@@ -79,39 +78,8 @@ class DetalhesProdutoDialog(QDialog):
         buttons_layout.addWidget(self.btnFechar)
         root_layout.addLayout(buttons_layout)
 
-    def _resolver_caminho_imagem(self):
-        imagem_path = self.produto.get("imagem_path")
-        if not imagem_path:
-            return None
-
-        caminho = Path(str(imagem_path))
-        if caminho.is_absolute():
-            return caminho
-
-        return Path(__file__).resolve().parents[3] / caminho
-
     def _carregar_imagem(self):
-        caminho = self._resolver_caminho_imagem()
-        if not caminho or not caminho.exists():
-            return
-
-        pixmap = QPixmap(str(caminho))
-        if pixmap.isNull():
-            return
-
-        self.lblImagem.setText("")
-        self.lblImagem.setPixmap(
-            pixmap.scaled(self.lblImagem.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        atualizar_preview_label(
+            self.lblImagem,
+            resolver_caminho_arquivo(self.produto.get("imagem_path")),
         )
-
-    def _formatar_moeda(self, valor):
-        try:
-            return f"R$ {float(valor or 0):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        except (TypeError, ValueError):
-            return "R$ 0,00"
-
-    def _formatar_numero(self, valor):
-        try:
-            return str(int(float(valor or 0)))
-        except (TypeError, ValueError):
-            return "0"

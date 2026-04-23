@@ -20,6 +20,13 @@ from PyQt5.QtWidgets import (
 from core.session_manager import SessionManager
 from modules.venda.services.caixa_service import CaixaService
 from ui.venda.tela_abertura_caixa import Ui_TelaAberturaCaixa
+from utils.format_utils import (
+    aplicar_mascara_monetaria,
+    formatar_decimal,
+    formatar_moeda,
+    numero_decimal,
+)
+from utils.ui_messages import mostrar_aviso
 
 
 class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
@@ -70,9 +77,8 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         self._atualizar_data_hora()
 
     def _configurar_formulario(self) -> None:
-        validator = QDoubleValidator(0.0, 9999999.99, 2, self)
-        validator.setNotation(QDoubleValidator.StandardNotation)
-        self.lineEditTrocoInicial.setValidator(validator)
+        aplicar_mascara_monetaria(self.lineEditTrocoInicial)
+        self.lineEditTrocoInicial.setText("0,00")
 
         for spin in (
             self.spinNota100,
@@ -133,8 +139,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             + self.spinNota5.value() * 5
             + self.spinNota2.value() * 2
         )
-        valor = f"R$ {total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-        self.lblBreakdownTotalValor.setText(valor)
+        self.lblBreakdownTotalValor.setText(formatar_moeda(total))
 
     def _breakdown(self) -> Dict[str, int]:
         return {
@@ -147,21 +152,11 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         }
 
     def _valor_abertura(self) -> float:
-        texto = self.lineEditTrocoInicial.text().strip().replace(".", "").replace(",", ".")
-        if not texto:
-            return 0.0
-        return float(texto)
+        return numero_decimal(self.lineEditTrocoInicial.text())
 
     @staticmethod
     def _to_float(valor: object) -> float:
-        if valor is None:
-            return 0.0
-        if isinstance(valor, (int, float)):
-            return float(valor)
-        if isinstance(valor, str):
-            texto = valor.strip().replace(".", "").replace(",", ".")
-            return float(texto) if texto else 0.0
-        return 0.0
+        return numero_decimal(valor)
 
     def _abrir_caixa(self) -> None:
         usuario = SessionManager.current_user() or {}
@@ -181,7 +176,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         if pdv_id is None:
             self.lblStatusCaixaFechado.setText("- Selecione um PDV valido antes de abrir o caixa")
             self.lblStatusCaixaFechado.setStyleSheet("color:#ff8a7a;font-size:11px;font-weight:bold;")
-            QMessageBox.warning(
+            mostrar_aviso(
                 self,
                 "PDV obrigatorio",
                 "Selecione um PDV valido antes de iniciar a abertura do caixa.",
@@ -191,7 +186,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         if any(valor > 0 for valor in breakdown.values()) and round(total_breakdown, 2) != round(valor_abertura, 2):
             self.lblStatusCaixaFechado.setText("- O total da composicao deve bater com o troco inicial")
             self.lblStatusCaixaFechado.setStyleSheet("color:#ff8a7a;font-size:11px;font-weight:bold;")
-            QMessageBox.warning(
+            mostrar_aviso(
                 self,
                 "Valores inconsistentes",
                 "Quando houver composicao do fundo, o total calculado deve ser igual ao troco inicial informado.",
@@ -211,7 +206,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         if not sucesso or caixa_data is None:
             self.lblStatusCaixaFechado.setText("- Falha na abertura do caixa")
             self.lblStatusCaixaFechado.setStyleSheet("color:#ff8a7a;font-size:11px;font-weight:bold;")
-            QMessageBox.warning(self, "Abertura nao realizada", mensagem)
+            mostrar_aviso(self, "Abertura nao realizada", mensagem)
             return
 
         self.lblStatus.setText(
@@ -234,7 +229,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             valores = [
                 registro.get("data_abertura_fmt", ""),
                 registro.get("operador", ""),
-                f"{float(registro.get('valor_abertura') or 0):.2f}".replace(".", ","),
+                formatar_decimal(registro.get("valor_abertura")),
             ]
             for col_index, valor in enumerate(valores):
                 self.tableHistoricoAberturas.setItem(row_index, col_index, QTableWidgetItem(str(valor)))
@@ -247,7 +242,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             if index >= 0:
                 self.comboNumCaixa.setCurrentIndex(index)
 
-        self.lineEditTrocoInicial.setText(f"{valor_abertura:.2f}".replace(".", ","))
+        self.lineEditTrocoInicial.setText(formatar_decimal(valor_abertura))
         self.lblStatus.setText(
             f"CSPdv | Caixa {pdv_label} reaberto com fundo R$ {valor_abertura:.2f}"
         )

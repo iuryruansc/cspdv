@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QSpinBox,
     QLabel,
-    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
@@ -16,6 +15,7 @@ from PyQt5.QtWidgets import (
 
 from core.session_manager import SessionManager
 from modules.produtos.services.produto_service import ProdutoService
+from utils.ui_messages import mostrar_aviso, mostrar_info
 
 class AjusteQuantidadeDialog(QDialog):
     def __init__(self, produto: Dict[str, Any], parent=None):
@@ -117,8 +117,8 @@ class AjusteQuantidadeDialog(QDialog):
             usuario_id=usuario.get("id"),
         )
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            mostrar_info(self, "Sucesso", mensagem)
             self.accept()
             return
 
-        QMessageBox.warning(self, "Ajuste nao realizado", mensagem)
+        mostrar_aviso(self, "Ajuste nao realizado", mensagem)

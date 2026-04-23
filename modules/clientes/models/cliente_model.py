@@ -5,6 +5,46 @@ from database.connection import get_connection
 
 class ClienteModel:
     @staticmethod
+    def buscar_para_venda(termo: str, limite: int = 20) -> List[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        termo_limpo = str(termo or "").strip()
+        termo_nome = f"%{termo_limpo.upper()}%"
+        termo_cpf = f"{termo_limpo}%"
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    nome,
+                    cpf,
+                    telefone,
+                    cidade,
+                    estado,
+                    ativo
+                FROM clientes
+                WHERE ativo = 'S'
+                  AND (
+                    UPPER(nome) LIKE %s
+                    OR cpf LIKE %s
+                  )
+                ORDER BY
+                    CASE
+                        WHEN cpf = %s THEN 0
+                        WHEN UPPER(nome) = UPPER(%s) THEN 1
+                        ELSE 2
+                    END,
+                    nome
+                LIMIT %s
+                """,
+                (termo_nome, termo_cpf, termo_limpo, termo_limpo, limite),
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def listar_resumo() -> List[Dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)

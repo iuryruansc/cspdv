@@ -89,47 +89,46 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.layoutContent.removeWidget(self.cardResumo)
         self.layoutContent.addWidget(self.cardResumo, linha_resumo, coluna_resumo)
 
+    def _abrir_modulo(self, view_cls, attr_name: str) -> None:
+        self.hide()
+        view = view_cls()
+        setattr(self, attr_name, view)
+        view.show()
+
     def _open_pdv(self):
         if not self._tem_permissao("vendas.pdv"):
             return
         from modules.venda.views.frente_loja_view import FrenteLojaView
 
-        self.hide()
-        self.frente_loja = FrenteLojaView()
-        self.frente_loja.show()
+        self._abrir_modulo(FrenteLojaView, "frente_loja")
         
     def _open_painel_admin(self):
         if not self._tem_permissao("sistema.master"):
             return
         from modules.admin.views.painel_admin_view import PainelAdminView
 
-        self.hide()
-        self.painel_admin = PainelAdminView()
-        self.painel_admin.show()
+        self._abrir_modulo(PainelAdminView, "painel_admin")
 
     def _open_estoque(self):
         if not self._tem_permissao("estoque.gerenciar"):
             return
         from modules.estoque.views.painel_estoque_view import PainelEstoqueView
-        self.hide()
-        self.painel_estoque = PainelEstoqueView()
-        self.painel_estoque.show()
+
+        self._abrir_modulo(PainelEstoqueView, "painel_estoque")
 
     def _open_financeiro(self):
         if not self._tem_permissao("financeiro.total"):
             return
         from modules.financeiro.views.painel_financeiro_view import PainelFinanceiroView
-        self.hide()
-        self.painel_financeiro = PainelFinanceiroView()
-        self.painel_financeiro.show()
+
+        self._abrir_modulo(PainelFinanceiroView, "painel_financeiro")
 
     def _open_relatorios(self):
         if not self._tem_permissao("relatorios.ver"):
             return
         from modules.relatorios.views.painel_relatorios_view import PainelRelatoriosView
-        self.hide()
-        self.painel_relatorios = PainelRelatoriosView()
-        self.painel_relatorios.show()
+
+        self._abrir_modulo(PainelRelatoriosView, "painel_relatorios")
 
     def _exit(self):
         from modules.auth.views.login_view import LoginView

@@ -1,10 +1,10 @@
-from pathlib import Path
 import shutil
 import uuid
+from pathlib import Path
 
 from PyQt5.QtCore import QRegularExpression, QTimer, Qt
 from PyQt5.QtGui import QDoubleValidator, QIntValidator, QPixmap, QRegularExpressionValidator
-from PyQt5.QtWidgets import QFileDialog, QMessageBox, QWidget, QLineEdit, QComboBox
+from PyQt5.QtWidgets import QFileDialog, QWidget, QLineEdit, QComboBox
 
 from modules.shared.models.combo_models import (
     CategoriaModel,
@@ -16,15 +16,20 @@ from modules.produtos.models.produto_model import ProdutoModel
 from modules.produtos.services.produto_service import ProdutoService
 from ui.admin.cadastros.cadastro_produto import Ui_CadastroProduto
 from utils.combo_loader import popular_combo, combo_id
+from utils.admin_return_mixin import RetornoPainelAdminMixin
+from utils.format_utils import formatar_decimal, numero_decimal
 from utils.form_validation_mixin import ValidacaoFormMixin
+from utils.image_utils import atualizar_preview_label, resolver_caminho_arquivo
+from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
-class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
+class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, RetornoPainelAdminMixin):
     MEDIA_PRODUTOS_DIR = Path(__file__).resolve().parents[3] / "media" / "produtos"
 
-    def __init__(self, parent=None, produto_id=None, admin_view=None):
+    def __init__(self, parent=None, produto_id=None, admin_view=None, return_view=None):
         super().__init__(None)
         self.setupUi(self)
         self._parent_admin = admin_view
+        self._return_view = return_view
         self._produto_id = int(produto_id) if produto_id is not None else None
         self._imagem_produto_path = None
         self._imagem_path_salva = None
@@ -96,7 +101,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
                 placeholder="Igual a comercial",
             )
         except Exception as e:
-            QMessageBox.warning(self, "Atencao", f"Nao foi possivel carregar os dados dos combos:\n{e}")
+            mostrar_aviso(self, "Atencao", f"Nao foi possivel carregar os dados dos combos:\n{e}")
 
     def _configurar_modo(self):
         if self._produto_id is None:
@@ -113,20 +118,10 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
                 combo.setCurrentIndex(index)
                 return
 
-    def _resolver_caminho_imagem(self, caminho_relativo):
-        if not caminho_relativo:
-            return None
-
-        caminho = Path(str(caminho_relativo))
-        if caminho.is_absolute():
-            return str(caminho)
-
-        return str(Path(__file__).resolve().parents[3] / caminho)
-
     def _carregar_produto(self):
         produto = ProdutoModel.buscar_por_id(self._produto_id)
         if not produto:
-            QMessageBox.warning(self, "Produto nao encontrado", "Nao foi possivel carregar o produto para edicao.")
+            mostrar_aviso(self, "Produto nao encontrado", "Nao foi possivel carregar o produto para edicao.")
             self._cancelar()
             return
 
@@ -135,9 +130,9 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
         self.lineEditDescricao.setText(str(produto.get("nome") or ""))
         self.lineEditNcm.setText(str(produto.get("ncm") or ""))
         self.lineEditCest.setText(str(produto.get("cest") or ""))
-        self.lineEditPrecoCusto.setText(f"{float(produto.get('preco_compra') or 0):.2f}")
-        self.lineEditPrecoVenda.setText(f"{float(produto.get('preco_venda') or 0):.2f}")
-        self.lineEditQuantidadeEstoque.setText(str(int(float(produto.get("quantidade_estoque") or 0))))
+        self.lineEditPrecoCusto.setText(formatar_decimal(produto.get("preco_compra")))
+        self.lineEditPrecoVenda.setText(formatar_decimal(produto.get("preco_venda")))
+        self.lineEditQuantidadeEstoque.setText(str(int(numero_decimal(produto.get("quantidade_estoque")))))
         self.checkBoxAtivo.setChecked(str(produto.get("ativo") or "N").upper() == "S")
 
         self._selecionar_combo_por_id(self.comboCategoria, produto.get("categoria_id"))
@@ -147,7 +142,8 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
         self._selecionar_combo_por_id(self.comboUnidadeTributavel, produto.get("unidade_tributavel_id"))
 
         self._imagem_path_salva = produto.get("imagem_path")
-        self._imagem_produto_path = self._resolver_caminho_imagem(self._imagem_path_salva)
+        caminho = resolver_caminho_arquivo(self._imagem_path_salva)
+        self._imagem_produto_path = str(caminho) if caminho else None
         self._atualizar_preview_imagem()
         self._calcular_margem()
 
@@ -209,21 +205,11 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
 
     def _atualizar_preview_imagem(self):
         self.lineEditImagemProduto.setText(self._imagem_produto_path or "")
-
-        if not self._imagem_produto_path:
-            self.lblPreviewImagem.setText("Nenhuma imagem selecionada")
-            self.lblPreviewImagem.setPixmap(QPixmap())
-            return
-
-        pixmap = QPixmap(self._imagem_produto_path)
-        if pixmap.isNull():
-            self.lblPreviewImagem.setText("Nao foi possivel carregar a imagem")
-            self.lblPreviewImagem.setPixmap(QPixmap())
-            return
-
-        self.lblPreviewImagem.setText("")
-        self.lblPreviewImagem.setPixmap(
-            pixmap.scaled(self.lblPreviewImagem.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        texto_padrao = "Nenhuma imagem selecionada" if not self._imagem_produto_path else "Nao foi possivel carregar a imagem"
+        atualizar_preview_label(
+            self.lblPreviewImagem,
+            self._imagem_produto_path,
+            texto_padrao=texto_padrao,
         )
 
     def _copiar_imagem_para_media(self):
@@ -232,8 +218,8 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
 
         origem = Path(self._imagem_produto_path)
         if self._imagem_path_salva:
-            caminho_salvo = self._resolver_caminho_imagem(self._imagem_path_salva)
-            if caminho_salvo and Path(caminho_salvo) == origem:
+            caminho_salvo = resolver_caminho_arquivo(self._imagem_path_salva)
+            if caminho_salvo and caminho_salvo == origem:
                 return self._imagem_path_salva
 
         if not origem.exists():
@@ -248,12 +234,12 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
 
     def _calcular_margem(self):
         try:
-            custo = float(self.lineEditPrecoCusto.text().replace(",", ".") or 0)
-            venda = float(self.lineEditPrecoVenda.text().replace(",", ".") or 0)
+            custo = numero_decimal(self.lineEditPrecoCusto.text())
+            venda = numero_decimal(self.lineEditPrecoVenda.text())
             margem = ((venda - custo) / venda * 100) if venda > 0 else 0.0
-            self.lineEditMargem.setText(f"{margem:.2f}")
+            self.lineEditMargem.setText(formatar_decimal(margem))
         except ValueError:
-            self.lineEditMargem.setText("0.00")
+            self.lineEditMargem.setText("0,00")
 
     def _salvar_produto(self):
         self.limpar_erros()
@@ -308,7 +294,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
             self.marcar_invalido(self.lineEditPrecoVenda)
 
         if erros:
-            QMessageBox.warning(self, "Revise os campos", "Corrija os seguintes pontos:\n" + "\n".join(erros))
+            mostrar_campos_invalidos(self, erros)
             return
 
         try:
@@ -330,13 +316,13 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
                 "imagem_path": imagem_path,
             }
         except FileNotFoundError as e:
-            QMessageBox.warning(self, "Imagem invalida", str(e))
+            mostrar_aviso(self, "Imagem invalida", str(e))
             return
         except OSError as e:
-            QMessageBox.warning(self, "Erro ao copiar imagem", f"Nao foi possivel salvar a imagem:\n{e}")
+            mostrar_aviso(self, "Erro ao copiar imagem", f"Nao foi possivel salvar a imagem:\n{e}")
             return
         except ValueError:
-            QMessageBox.warning(self, "Valores invalidos", "Revise preco de custo, preco de venda e estoque inicial.")
+            mostrar_aviso(self, "Valores invalidos", "Revise preco de custo, preco de venda e estoque inicial.")
             return
 
         if self._produto_id is None:
@@ -345,7 +331,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
             sucesso, mensagem = ProdutoService.atualizar_produto(self._produto_id, dados)
 
         if sucesso:
-            QMessageBox.information(self, "Sucesso", mensagem)
+            mostrar_info(self, "Sucesso", mensagem)
             if self._produto_id is None:
                 self._limpar_campos()
                 return
@@ -366,17 +352,14 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin):
                 self.marcar_invalido(self.comboMarca)
             if "fornecedor" in mensagem.lower():
                 self.marcar_invalido(self.comboBox)
-            QMessageBox.warning(self, "Atencao", mensagem)
+            mostrar_aviso(self, "Atencao", mensagem)
 
     def _cancelar(self):
         self.close()
-        if self._parent_admin is not None:
-            self._parent_admin.show()
 
     def closeEvent(self, a0):
         super().closeEvent(a0)
-        if self._parent_admin is not None:
-            self._parent_admin.show()
+        self._mostrar_painel_admin()
 
     def resizeEvent(self, a0):
         super().resizeEvent(a0)
