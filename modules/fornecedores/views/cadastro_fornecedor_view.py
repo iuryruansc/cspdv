@@ -4,6 +4,7 @@ from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QIntValidator, QRegularExpressionValidator
 from PyQt5.QtWidgets import QLineEdit, QMessageBox, QWidget
 
+from modules.fornecedores.models.fornecedor_model import FornecedorModel
 from modules.fornecedores.services.fornecedor_service import FornecedorService
 from ui.admin.cadastros.cadastro_fornecedor import Ui_CadastroFornecedor
 from utils.format_utils import formatar_cpf_cnpj, formatar_cep, formatar_telefone
@@ -13,9 +14,11 @@ from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto
 UI_DIR = os.path.join(os.path.dirname(__file__), "..", "ui")
 
 class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, parent=None, fornecedor_id=None, admin_view=None):
+        super().__init__(None)
         self.setupUi(self)
+        self._fornecedor_id = int(fornecedor_id) if fornecedor_id is not None else None
+        self._parent_admin = admin_view
 
         self._configurar_validadores()
         self.registrar_estilos([
@@ -45,8 +48,40 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
         )
 
         self.btnSalvar.clicked.connect(self._save_fornecedor)
-        self.btnVoltar.clicked.connect(self._back_to_painel)
+        self.btnVoltar.clicked.connect(self._cancelar)
         self.btnLimpar.clicked.connect(self._limpar_campos)
+        self._configurar_modo()
+
+    def _configurar_modo(self):
+        if self._fornecedor_id is None:
+            self.lineEditCodigo.setText("Auto-gerado")
+            return
+
+        fornecedor = FornecedorModel.buscar_por_id(self._fornecedor_id)
+        if not fornecedor:
+            QMessageBox.warning(self, "Fornecedor nao encontrado", "Nao foi possivel carregar o fornecedor para edicao.")
+            self._cancelar()
+            return
+
+        self.lblBadge.setText("EDICAO DE FORNECEDOR")
+        self.lblTabCadFornecedor.setText("Edicao de Fornecedor")
+        self.lblFormTitle.setText("Dados do Fornecedor")
+        self.lineEditCodigo.setText(str(fornecedor.get("id_fornecedor") or ""))
+        self.lineEditNomeFantasia.setText(str(fornecedor.get("nome_fantasia") or ""))
+        self.lineEditRazaoSocial.setText(str(fornecedor.get("razao_social") or ""))
+        self.lineEditCnpjCpf.setText(str(fornecedor.get("cnpj_cpf") or ""))
+        self.lineEditIe.setText(str(fornecedor.get("ie") or ""))
+        self.lineEditTelefone.setText(str(fornecedor.get("telefone") or ""))
+        self.lineEditEmail.setText(str(fornecedor.get("email") or ""))
+        self.lineEditLogradouro.setText(str(fornecedor.get("logradouro") or ""))
+        self.lineEditNumero.setText(str(fornecedor.get("numero") or ""))
+        self.lineEditCep.setText(str(fornecedor.get("cep") or ""))
+        self.lineEditCidade.setText(str(fornecedor.get("cidade") or ""))
+        self.lineEditEstado.setText(str(fornecedor.get("estado") or ""))
+        self.lineEditBairro.setText(str(fornecedor.get("bairro") or ""))
+        self.checkBoxAtivo.setChecked(str(fornecedor.get("ativo") or "N").upper() == "S")
+        self.plainTextObservacao.setPlainText(str(fornecedor.get("observacao") or ""))
+        self.btnSalvar.setText("Atualizar")
 
     def _configurar_validadores(self):
         validador_documento = QRegularExpressionValidator(
@@ -150,10 +185,16 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
             QMessageBox.critical(self, "Erro", f"Erro ao coletar dados: {e}")
             return
 
-        sucesso, mensagem = FornecedorService.cadastrar_fornecedor(dados)
+        if self._fornecedor_id is None:
+            sucesso, mensagem = FornecedorService.cadastrar_fornecedor(dados)
+        else:
+            sucesso, mensagem = FornecedorService.atualizar_fornecedor(self._fornecedor_id, dados)
         if sucesso:
             QMessageBox.information(self, "Sucesso", mensagem)
-            self._limpar_campos()
+            if self._fornecedor_id is None:
+                self._limpar_campos()
+            else:
+                self._cancelar(refresh=True)
         else:
             QMessageBox.warning(self, "Atencao", mensagem)
 
@@ -166,9 +207,15 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin)
         self.checkBoxAtivo.setChecked(True)
         self.plainTextObservacao.clear()
 
-    def _back_to_painel(self):
+    def _cancelar(self, refresh=False):
+        self.hide()
+        if self._parent_admin is not None:
+            self._parent_admin.show()
+            if refresh and hasattr(self._parent_admin, "_refresh_current_management_page"):
+                self._parent_admin._refresh_current_management_page()
+            return
+
         from modules.admin.views.painel_admin_view import PainelAdminView
 
-        self.hide()
         self.painel_admin = PainelAdminView()
         self.painel_admin.show()

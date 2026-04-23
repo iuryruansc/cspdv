@@ -685,8 +685,8 @@ class Ui_CadastroProduto(object):
 
     def retranslateUi(self, CadastroProduto):
         _translate = QtCore.QCoreApplication.translate
-        CadastroProduto.setWindowTitle(_translate("CadastroProduto", "GR$Pdv - Cadastro de Produto"))
-        self.lblLogo.setText(_translate("CadastroProduto", "GR$Pdv"))
+        CadastroProduto.setWindowTitle(_translate("CadastroProduto", "CSPdv - Cadastro de Produto"))
+        self.lblLogo.setText(_translate("CadastroProduto", "CSPdv"))
         self.lblBadge.setText(_translate("CadastroProduto", "📦  CADASTRO DE PRODUTO"))
         self.btnVoltar.setText(_translate("CadastroProduto", "◀  Voltar"))
         self.lblTabCadProduto.setText(_translate("CadastroProduto", "Cadastro de Produto"))
@@ -729,7 +729,7 @@ class Ui_CadastroProduto(object):
         self.btnLimpar.setText(_translate("CadastroProduto", "🗑  Limpar"))
         self.btnSalvar.setText(_translate("CadastroProduto", "💾  Salvar"))
         self.btnSalvar.setShortcut(_translate("CadastroProduto", "Return"))
-        self.lblStatusBar.setText(_translate("CadastroProduto", "GRPDV - Operador: ADMIN  |  Cadastro de Produto"))
+        self.lblStatusBar.setText(_translate("CadastroProduto", "CSPdv - Operador: ADMIN  |  Cadastro de Produto"))
 
 
 if __name__ == "__main__":

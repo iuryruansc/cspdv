@@ -277,8 +277,8 @@ class Ui_CadastroLote(object):
 
     def retranslateUi(self, CadastroLote):
         _translate = QtCore.QCoreApplication.translate
-        CadastroLote.setWindowTitle(_translate("CadastroLote", "GR$Pdv - Cadastro de Lote"))
-        self.lblLogo.setText(_translate("CadastroLote", "GR$Pdv"))
+        CadastroLote.setWindowTitle(_translate("CadastroLote", "CSPdv - Cadastro de Lote"))
+        self.lblLogo.setText(_translate("CadastroLote", "CSPdv"))
         self.lblBadge.setText(_translate("CadastroLote", "CADASTRO DE LOTE"))
         self.btnVoltar.setText(_translate("CadastroLote", "Voltar"))
         self.lblTab.setText(_translate("CadastroLote", "Cadastro de Lote"))
@@ -307,7 +307,7 @@ class Ui_CadastroLote(object):
         self.btnSalvar.setShortcut(_translate("CadastroLote", "Return"))
         self.lblBuscaLote.setText(_translate("CadastroLote", "Buscar Lote"))
         self.lineEditBuscaLote.setPlaceholderText(_translate("CadastroLote", "Numero do lote ou produto"))
-        self.lblStatusBar.setText(_translate("CadastroLote", "GRPDV - Operador: ADMIN  |  Cadastro de Lote"))
+        self.lblStatusBar.setText(_translate("CadastroLote", "CSPdv - Operador: ADMIN  |  Cadastro de Lote"))
 
 
 if __name__ == "__main__":

@@ -382,16 +382,23 @@ QPushButton:hover { color: #1a5fa0; background-color: rgba(53,133,200,18); }
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btnNavCategorias">
-         <property name="text">
-          <string>(F4) Categorias</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btnNavPerfis">
-         <property name="text">
-          <string>Perfis</string>
+       <widget class="QPushButton" name="btnNavCategorias">
+        <property name="text">
+         <string>(F4) Categorias</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnNavClientesCadastro">
+        <property name="text">
+         <string>(F5) Clientes</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnNavPerfis">
+        <property name="text">
+         <string>Perfis</string>
          </property>
         </widget>
        </item>

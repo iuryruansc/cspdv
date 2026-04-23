@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GR$Pdv - Cadastro de Lote</string>
+   <string>CSPdv - Cadastro de Lote</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget { font-family: Arial; }</string>
@@ -46,7 +46,7 @@
       <item>
        <widget class="QLabel" name="lblLogo">
         <property name="styleSheet"><string notr="true">color:white;font-size:28px;font-weight:bold;</string></property>
-        <property name="text"><string>GR$Pdv</string></property>
+        <property name="text"><string>CSPdv</string></property>
        </widget>
       </item>
       <item>
@@ -258,7 +258,7 @@
      <layout class="QHBoxLayout" name="statusHLayout">
       <property name="leftMargin"><number>12</number></property>
       <property name="rightMargin"><number>12</number></property>
-      <item><widget class="QLabel" name="lblStatusBar"><property name="styleSheet"><string notr="true">color:white;font-size:11px;font-weight:bold;</string></property><property name="text"><string>GRPDV - Operador: ADMIN  |  Cadastro de Lote</string></property></widget></item>
+      <item><widget class="QLabel" name="lblStatusBar"><property name="styleSheet"><string notr="true">color:white;font-size:11px;font-weight:bold;</string></property><property name="text"><string>CSPdv - Operador: ADMIN  |  Cadastro de Lote</string></property></widget></item>
       <item><spacer name="statusSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item>
      </layout>
     </widget>

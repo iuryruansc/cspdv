@@ -3,7 +3,7 @@ from modules.fornecedores.models.fornecedor_model import FornecedorModel
 
 class FornecedorService:
     @staticmethod
-    def cadastrar_fornecedor(dados):
+    def _validar_dados(dados):
         nome = str(dados.get("nome_fantasia", "")).strip()
         email = str(dados.get("email", "")).strip()
         cnpj_cpf = str(dados.get("cnpj_cpf", "")).strip()
@@ -29,6 +29,14 @@ class FornecedorService:
         if cep and len(cep) != 8:
             return False, "CEP: informe os 8 digitos do CEP."
 
+        return True, ""
+
+    @staticmethod
+    def cadastrar_fornecedor(dados):
+        valido, mensagem = FornecedorService._validar_dados(dados)
+        if not valido:
+            return False, mensagem
+
         try:
             fornecedor_id = FornecedorModel.inserir(dados)
         except Exception as exc:
@@ -38,3 +46,39 @@ class FornecedorService:
             return False, "Nao foi possivel cadastrar o fornecedor."
 
         return True, "Fornecedor cadastrado com sucesso!"
+
+    @staticmethod
+    def atualizar_fornecedor(fornecedor_id, dados):
+        valido, mensagem = FornecedorService._validar_dados(dados)
+        if not valido:
+            return False, mensagem
+
+        try:
+            atualizado = FornecedorModel.atualizar(int(fornecedor_id), dados)
+        except Exception as exc:
+            return False, f"Erro ao atualizar fornecedor:\n{exc}"
+
+        if not atualizado:
+            return False, "Nao foi possivel atualizar o fornecedor."
+
+        return True, "Fornecedor atualizado com sucesso!"
+
+    @staticmethod
+    def alternar_status(fornecedor_id):
+        fornecedor = FornecedorModel.buscar_por_id(int(fornecedor_id))
+        if not fornecedor:
+            return False, "Fornecedor nao encontrado."
+
+        ativo_atual = str(fornecedor.get("ativo") or "N").strip().upper()
+        novo_status = "N" if ativo_atual == "S" else "S"
+
+        try:
+            atualizado = FornecedorModel.atualizar_status(int(fornecedor_id), novo_status)
+        except Exception as exc:
+            return False, f"Erro ao atualizar status do fornecedor:\n{exc}"
+
+        if not atualizado:
+            return False, "Nao foi possivel atualizar o status do fornecedor."
+
+        acao = "ativado" if novo_status == "S" else "desativado"
+        return True, f"Fornecedor {acao} com sucesso!"

@@ -59,9 +59,34 @@ class ProdutoModel:
         try:
             cursor.execute(
                 """
-                SELECT id, nome, codigo_barras, quantidade_estoque, ativo
-                FROM produtos
-                WHERE id = %s
+                SELECT
+                    p.id,
+                    p.codigo_barras,
+                    p.nome,
+                    p.ncm,
+                    p.cest,
+                    p.preco_compra,
+                    p.preco_venda,
+                    p.quantidade_estoque,
+                    p.categoria_id,
+                    p.marca_id,
+                    p.fornecedor_id,
+                    p.unidade_id,
+                    p.unidade_tributavel_id,
+                    p.ativo,
+                    p.imagem_path,
+                    c.nome AS categoria_nome,
+                    m.nome_marca AS marca_nome,
+                    f.nome_fantasia AS fornecedor_nome,
+                    uc.sigla AS unidade_sigla,
+                    ut.sigla AS unidade_tributavel_sigla
+                FROM produtos p
+                LEFT JOIN categorias c ON c.id = p.categoria_id
+                LEFT JOIN marcas m ON m.id = p.marca_id
+                LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
+                LEFT JOIN unidades_medida ut ON ut.id = p.unidade_tributavel_id
+                WHERE p.id = %s
                 LIMIT 1
                 """,
                 (produto_id,),
@@ -70,6 +95,64 @@ class ProdutoModel:
             return cast(Optional[Dict[str, Any]], resultado)
         except Exception as e:
             print(f"Erro ao buscar produto por id: {e}")
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def atualizar(produto_id: int, dados: Dict[str, Any]) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE produtos
+                SET
+                    codigo_barras = %(codigo_barras)s,
+                    nome = %(nome)s,
+                    ncm = %(ncm)s,
+                    cest = %(cest)s,
+                    preco_compra = %(preco_compra)s,
+                    preco_venda = %(preco_venda)s,
+                    quantidade_estoque = %(quantidade_estoque)s,
+                    categoria_id = %(categoria_id)s,
+                    marca_id = %(marca_id)s,
+                    fornecedor_id = %(fornecedor_id)s,
+                    unidade_id = %(unidade_id)s,
+                    unidade_tributavel_id = %(unidade_tributavel_id)s,
+                    ativo = %(ativo)s,
+                    imagem_path = %(imagem_path)s
+                WHERE id = %(id)s
+                """,
+                {**dados, "id": produto_id},
+            )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"Erro ao atualizar produto: {e}")
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def atualizar_status(produto_id: int, ativo: str) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE produtos
+                SET ativo = %s
+                WHERE id = %s
+                """,
+                (ativo, produto_id),
+            )
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            print(f"Erro ao atualizar status do produto: {e}")
             raise
         finally:
             cursor.close()

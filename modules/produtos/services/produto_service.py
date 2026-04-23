@@ -2,28 +2,7 @@ from modules.produtos.models.produto_model import ProdutoModel
 
 class ProdutoService:
     @staticmethod
-    def validar_e_buscar_por_codigo(codigo_bruto):
-        codigo = str(codigo_bruto).strip()
-
-        if not codigo:
-            return None, "O campo de codigo esta vazio.", False
-
-        if len(codigo) < 3:
-            return None, "Codigo muito curto para ser valido.", False
-
-        try:
-            produto = ProdutoModel.buscar_por_codigo(codigo)
-
-            if produto:
-                return produto, "Produto encontrado com sucesso!", True
-            return None, "Produto nao localizado no sistema.", False
-
-        except Exception as e:
-            print(f"Erro no ProdutoService: {e}")
-            return None, "Erro tecnico ao consultar o banco de dados.", False
-
-    @staticmethod
-    def cadastrar_produto(dados):
+    def _validar_dados_produto(dados, produto_id=None):
         nome = str(dados.get("nome", "")).strip()
         codigo_barras = str(dados.get("codigo_barras", "")).strip()
         ativo = str(dados.get("ativo", "")).strip().upper()
@@ -52,14 +31,60 @@ class ProdutoService:
         if float(dados.get("preco_venda", 0)) <= 0:
             return False, "O preco de venda deve ser maior que zero."
 
-        if ProdutoModel.buscar_por_codigo(codigo_barras):
+        produto_existente = ProdutoModel.buscar_por_codigo(codigo_barras)
+        if produto_existente and int(produto_existente.get("id")) != int(produto_id or 0):
             return False, "Este codigo de barras ja esta em uso."
+
+        return True, ""
+
+    @staticmethod
+    def validar_e_buscar_por_codigo(codigo_bruto):
+        codigo = str(codigo_bruto).strip()
+
+        if not codigo:
+            return None, "O campo de codigo esta vazio.", False
+
+        if len(codigo) < 3:
+            return None, "Codigo muito curto para ser valido.", False
+
+        try:
+            produto = ProdutoModel.buscar_por_codigo(codigo)
+
+            if produto:
+                return produto, "Produto encontrado com sucesso!", True
+            return None, "Produto nao localizado no sistema.", False
+
+        except Exception as e:
+            print(f"Erro no ProdutoService: {e}")
+            return None, "Erro tecnico ao consultar o banco de dados.", False
+
+    @staticmethod
+    def cadastrar_produto(dados):
+        valido, mensagem = ProdutoService._validar_dados_produto(dados)
+        if not valido:
+            return False, mensagem
 
         try:
             ProdutoModel.inserir(dados)
             return True, "Produto cadastrado com sucesso!"
         except Exception as e:
             return False, f"Erro ao salvar no banco: {str(e)}"
+
+    @staticmethod
+    def atualizar_produto(produto_id, dados):
+        produto = ProdutoModel.buscar_por_id(int(produto_id))
+        if not produto:
+            return False, "Produto nao localizado para edicao."
+
+        valido, mensagem = ProdutoService._validar_dados_produto(dados, produto_id=produto_id)
+        if not valido:
+            return False, mensagem
+
+        try:
+            ProdutoModel.atualizar(int(produto_id), dados)
+            return True, "Produto atualizado com sucesso!"
+        except Exception as e:
+            return False, f"Erro ao atualizar no banco: {str(e)}"
 
     @staticmethod
     def ajustar_quantidade(produto_id, modo, quantidade, observacao, usuario_id):
@@ -88,6 +113,9 @@ class ProdutoService:
         if nova_quantidade < 0:
             return False, "O ajuste resultaria em estoque negativo."
 
+        if nova_quantidade == quantidade_atual:
+            return False, "Nenhuma alteracao foi realizada, pois o estoque final seria igual ao atual."
+
         quantidade_ajuste = nova_quantidade - quantidade_atual
         observacao_final = (
             f"Ajuste manual ({modo_normalizado})"
@@ -107,3 +135,19 @@ class ProdutoService:
             return True, "Quantidade ajustada com sucesso."
         except Exception as e:
             return False, f"Erro ao registrar ajuste de estoque: {str(e)}"
+
+    @staticmethod
+    def alternar_status(produto_id):
+        produto = ProdutoModel.buscar_por_id(int(produto_id))
+        if not produto:
+            return False, "Produto nao localizado."
+
+        ativo_atual = str(produto.get("ativo") or "N").strip().upper()
+        novo_status = "N" if ativo_atual == "S" else "S"
+
+        try:
+            ProdutoModel.atualizar_status(int(produto_id), novo_status)
+            acao = "ativado" if novo_status == "S" else "desativado"
+            return True, f"Produto {acao} com sucesso."
+        except Exception as e:
+            return False, f"Erro ao atualizar status do produto: {str(e)}"

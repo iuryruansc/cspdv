@@ -343,8 +343,8 @@ class Ui_CadastroFornecedor(object):
 
     def retranslateUi(self, CadastroFornecedor):
         _translate = QtCore.QCoreApplication.translate
-        CadastroFornecedor.setWindowTitle(_translate("CadastroFornecedor", "GR$Pdv - Cadastro de Fornecedor"))
-        self.lblLogo.setText(_translate("CadastroFornecedor", "GR$Pdv"))
+        CadastroFornecedor.setWindowTitle(_translate("CadastroFornecedor", "CSPdv - Cadastro de Fornecedor"))
+        self.lblLogo.setText(_translate("CadastroFornecedor", "CSPdv"))
         self.lblBadge.setText(_translate("CadastroFornecedor", "CADASTRO DE FORNECEDOR"))
         self.btnVoltar.setText(_translate("CadastroFornecedor", "Voltar"))
         self.lblTabCadFornecedor.setText(_translate("CadastroFornecedor", "Cadastro de Fornecedor"))
@@ -384,7 +384,7 @@ class Ui_CadastroFornecedor(object):
         self.btnLimpar.setText(_translate("CadastroFornecedor", "Limpar"))
         self.btnSalvar.setText(_translate("CadastroFornecedor", "Salvar"))
         self.btnSalvar.setShortcut(_translate("CadastroFornecedor", "Return"))
-        self.lblStatusBar.setText(_translate("CadastroFornecedor", "GRPDV - Operador: ADMIN  |  Cadastro de Fornecedor"))
+        self.lblStatusBar.setText(_translate("CadastroFornecedor", "CSPdv - Operador: ADMIN  |  Cadastro de Fornecedor"))
 
 
 if __name__ == "__main__":

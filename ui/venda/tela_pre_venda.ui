@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GR$Pdv - Pré-Venda</string>
+   <string>CSPdv - Pré-Venda</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget { font-family: Arial; }</string>
@@ -80,7 +80,7 @@
          </string>
         </property>
         <property name="text">
-         <string>GR$Pdv</string>
+         <string>CSPdv</string>
         </property>
        </widget>
       </item>
@@ -1319,7 +1319,7 @@
          </string>
         </property>
         <property name="text">
-         <string>GRPDV - Operador: ADMIN</string>
+         <string>CSPdv - Operador: ADMIN</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

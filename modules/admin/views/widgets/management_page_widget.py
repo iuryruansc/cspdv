@@ -21,6 +21,10 @@ class ManagementPageWidget(QFrame):
         self._rows: List[Dict[str, Any]] = []
         self._columns: List[tuple[str, str]] = []
         self._displayed_rows: List[Dict[str, Any]] = []
+        self._details_allowed = False
+        self._edit_allowed = False
+        self._toggle_allowed = False
+        self._quantity_adjustment_allowed = False
 
         self.setObjectName("frameManagementPage")
         self.setStyleSheet(
@@ -117,6 +121,10 @@ class ManagementPageWidget(QFrame):
         self.btnNovo.setProperty("primaryButton", True)
         self.btnAtualizar = QPushButton("Atualizar")
         self.btnAtualizar.setProperty("toolbarButton", True)
+        self.btnDetalhes = QPushButton("Detalhes")
+        self.btnDetalhes.setProperty("toolbarButton", True)
+        self.btnDetalhes.setEnabled(False)
+        self.btnDetalhes.hide()
         self.btnEditar = QPushButton("Editar")
         self.btnEditar.setProperty("toolbarButton", True)
         self.btnEditar.setEnabled(False)
@@ -131,6 +139,7 @@ class ManagementPageWidget(QFrame):
 
         toolbar_layout.addWidget(self.lineEditBusca, 1)
         toolbar_layout.addWidget(self.btnAtualizar)
+        toolbar_layout.addWidget(self.btnDetalhes)
         toolbar_layout.addWidget(self.btnEditar)
         toolbar_layout.addWidget(self.btnAjustarQuantidade)
         toolbar_layout.addWidget(self.btnToggleAtivo)
@@ -142,6 +151,7 @@ class ManagementPageWidget(QFrame):
         self.tableResultados.setSelectionBehavior(QTableWidget.SelectRows)
         self.tableResultados.setSelectionMode(QTableWidget.SingleSelection)
         self.tableResultados.verticalHeader().setVisible(False)
+        self.tableResultados.itemSelectionChanged.connect(self._update_action_states)
         header = self.tableResultados.horizontalHeader()
         header.setStretchLastSection(False)
         root_layout.addWidget(self.tableResultados, 1)
@@ -162,7 +172,22 @@ class ManagementPageWidget(QFrame):
         self._populate_table(rows)
 
     def set_quantity_adjustment_enabled(self, visible: bool) -> None:
+        self._quantity_adjustment_allowed = visible
         self.btnAjustarQuantidade.setVisible(visible)
+        self._update_action_states()
+
+    def set_details_enabled(self, enabled: bool) -> None:
+        self._details_allowed = enabled
+        self.btnDetalhes.setVisible(enabled)
+        self._update_action_states()
+
+    def set_edit_enabled(self, enabled: bool) -> None:
+        self._edit_allowed = enabled
+        self._update_action_states()
+
+    def set_toggle_enabled(self, enabled: bool) -> None:
+        self._toggle_allowed = enabled
+        self._update_action_states()
 
     def selected_row(self) -> Dict[str, Any] | None:
         current_row = self.tableResultados.currentRow()
@@ -198,6 +223,15 @@ class ManagementPageWidget(QFrame):
 
         self._apply_column_resize_policy()
         self.lblResumo.setText(f"{len(rows)} registro(s) exibido(s).")
+        self.tableResultados.clearSelection()
+        self._update_action_states()
+
+    def _update_action_states(self) -> None:
+        has_selection = self.selected_row() is not None
+        self.btnDetalhes.setEnabled(self._details_allowed and has_selection)
+        self.btnEditar.setEnabled(self._edit_allowed and has_selection)
+        self.btnToggleAtivo.setEnabled(self._toggle_allowed and has_selection)
+        self.btnAjustarQuantidade.setEnabled(self._quantity_adjustment_allowed and has_selection)
 
     def _apply_column_resize_policy(self) -> None:
         header = self.tableResultados.horizontalHeader()
@@ -219,6 +253,7 @@ class ManagementPageWidget(QFrame):
             "fornecedor",
             "codigo_barras",
             "cnpj_cpf",
+            "cpf",
             "telefone",
             "cidade",
         }

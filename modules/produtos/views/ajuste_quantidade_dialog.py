@@ -4,9 +4,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QComboBox,
     QDialog,
-    QDoubleSpinBox,
     QFormLayout,
     QHBoxLayout,
+    QSpinBox,
     QLabel,
     QMessageBox,
     QPlainTextEdit,
@@ -51,10 +51,10 @@ class AjusteQuantidadeDialog(QDialog):
         self.comboModo.currentTextChanged.connect(self._atualizar_previsao)
         form_layout.addRow("Operacao:", self.comboModo)
 
-        self.spinQuantidade = QDoubleSpinBox()
-        self.spinQuantidade.setDecimals(4)
-        self.spinQuantidade.setRange(0.0001, 999999999.0)
-        self.spinQuantidade.setSingleStep(1.0)
+        self.spinQuantidade = QSpinBox()
+        self.spinQuantidade.setRange(0, 999999999)
+        self.spinQuantidade.setSingleStep(1)
+        self.spinQuantidade.setValue(int(self.quantidade_atual))
         self.spinQuantidade.valueChanged.connect(self._atualizar_previsao)
         form_layout.addRow("Quantidade:", self.spinQuantidade)
 
@@ -88,10 +88,10 @@ class AjusteQuantidadeDialog(QDialog):
         self._atualizar_previsao()
 
     def _formatar_quantidade(self, valor: float) -> str:
-        return f"{valor:.4f}".rstrip("0").rstrip(".") if "." in f"{valor:.4f}" else f"{valor:.4f}"
+        return str(int(valor))
 
     def _saldo_previsto(self) -> float:
-        quantidade = float(self.spinQuantidade.value())
+        quantidade = int(self.spinQuantidade.value())
         modo = self.comboModo.currentText().lower()
         if modo == "definir":
             return quantidade
@@ -112,7 +112,7 @@ class AjusteQuantidadeDialog(QDialog):
         sucesso, mensagem = ProdutoService.ajustar_quantidade(
             produto_id=self.produto["id"],
             modo=self.comboModo.currentText(),
-            quantidade=float(self.spinQuantidade.value()),
+            quantidade=int(self.spinQuantidade.value()),
             observacao=self.textObservacao.toPlainText().strip(),
             usuario_id=usuario.get("id"),
         )

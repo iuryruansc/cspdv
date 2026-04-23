@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>GR$Pdv - Cadastro de Funcionario</string>
+   <string>CSPdv - Cadastro de Funcionario</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget { font-family: Arial; }</string>
@@ -31,7 +31,7 @@
       <property name="topMargin"><number>8</number></property>
       <property name="rightMargin"><number>14</number></property>
       <property name="bottomMargin"><number>8</number></property>
-      <item><widget class="QLabel" name="lblLogo"><property name="styleSheet"><string notr="true">color: white; font-size: 28px; font-weight: bold;</string></property><property name="text"><string>GR$Pdv</string></property></widget></item>
+      <item><widget class="QLabel" name="lblLogo"><property name="styleSheet"><string notr="true">color: white; font-size: 28px; font-weight: bold;</string></property><property name="text"><string>CSPdv</string></property></widget></item>
       <item><widget class="QFrame" name="frameSepHeader"><property name="styleSheet"><string notr="true">background-color: rgba(255,255,255,80);</string></property><property name="frameShape"><enum>QFrame::VLine</enum></property></widget></item>
       <item><widget class="QLabel" name="lblBadge"><property name="styleSheet"><string notr="true">QLabel { background-color: rgba(255,255,255,30); color: #ffe080; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,60); border-radius: 4px; padding: 3px 10px; }</string></property><property name="text"><string>CADASTRO DE FUNCIONARIO</string></property></widget></item>
       <item><spacer name="headerSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item>
@@ -99,7 +99,7 @@
       <property name="topMargin"><number>0</number></property>
       <property name="rightMargin"><number>12</number></property>
       <property name="bottomMargin"><number>0</number></property>
-      <item><widget class="QLabel" name="lblStatusBar"><property name="styleSheet"><string notr="true">color: white; font-size: 11px; font-weight: bold;</string></property><property name="text"><string>GRPDV - Operador: ADMIN  |  Cadastro de Funcionario</string></property></widget></item>
+      <item><widget class="QLabel" name="lblStatusBar"><property name="styleSheet"><string notr="true">color: white; font-size: 11px; font-weight: bold;</string></property><property name="text"><string>CSPdv - Operador: ADMIN  |  Cadastro de Funcionario</string></property></widget></item>
       <item><spacer name="statusSpacer"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item>
      </layout>
     </widget>
