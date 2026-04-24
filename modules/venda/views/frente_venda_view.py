@@ -130,6 +130,9 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
 
     def _configurar_interface(self) -> None:
         self.setFocusPolicy(Qt.StrongFocus)
+        for botao in self.findChildren(QPushButton):
+            botao.setAutoDefault(False)
+            botao.setDefault(False)
         self.lineEditDescricaoProduto.setReadOnly(False)
         self.lineEditDescricaoProduto.setPlaceholderText(
             "Digite o nome do produto ou leia o código de barras..."

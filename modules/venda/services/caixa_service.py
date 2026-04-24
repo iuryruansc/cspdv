@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.caixa_session import CaixaSession
@@ -6,6 +7,19 @@ from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 
 class CaixaService:
+    @staticmethod
+    def _formatar_data_hora(valor: Any) -> str:
+        if isinstance(valor, datetime):
+            return valor.strftime("%d/%m/%Y %H:%M")
+        if isinstance(valor, str):
+            for formato in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S.%f", "%d/%m/%Y %H:%M"):
+                try:
+                    return datetime.strptime(valor, formato).strftime("%d/%m/%Y %H:%M")
+                except ValueError:
+                    continue
+            return valor
+        return "-"
+
     @staticmethod
     def listar_pdvs_ativos() -> List[Dict[str, Any]]:
         return CaixaModel.listar_pdvs_ativos()
@@ -125,6 +139,38 @@ class CaixaService:
             "faturamento_total": faturamento_total,
             "total_esperado": total_esperado,
             "totais_forma_pagamento": totais_forma_pagamento,
+        }
+
+    @staticmethod
+    def obter_resumo_caixa_atual() -> Optional[Dict[str, Any]]:
+        caixa = CaixaSession.current() or {}
+        caixa_id = caixa.get("id")
+        if not caixa_id:
+            return None
+
+        detalhes = CaixaModel.buscar_caixa_por_id(int(caixa_id))
+        if not detalhes:
+            return None
+
+        resumo_fechamento = CaixaService.obter_resumo_fechamento()
+        resumo_movimentacoes = CaixaService.obter_resumo_movimentacoes()
+
+        return {
+            "caixa_id": int(detalhes["id"]),
+            "pdv_label": f"{detalhes['identificacao']} - {detalhes['descricao']}",
+            "operador": str(detalhes.get("usuario_nome") or caixa.get("usuario_nome") or "Operador"),
+            "data_abertura": CaixaService._formatar_data_hora(detalhes.get("data_abertura")),
+            "status": str(detalhes.get("status") or "aberto").capitalize(),
+            "fundo_inicial": float(resumo_fechamento.get("fundo_inicial") or 0.0),
+            "vendas_dia": int(resumo_fechamento.get("vendas_dia") or 0),
+            "faturamento_total": float(resumo_fechamento.get("faturamento_total") or 0.0),
+            "faturamento_dinheiro": float(resumo_fechamento.get("faturamento_dinheiro") or 0.0),
+            "total_sangrias": float(resumo_movimentacoes.get("total_sangrias") or 0.0),
+            "total_suprimentos": float(resumo_movimentacoes.get("total_suprimentos") or 0.0),
+            "total_troco": float(resumo_movimentacoes.get("total_troco") or 0.0),
+            "saldo_atual": float(resumo_movimentacoes.get("saldo_atual") or 0.0),
+            "total_esperado": float(resumo_fechamento.get("total_esperado") or 0.0),
+            "totais_forma_pagamento": list(resumo_fechamento.get("totais_forma_pagamento") or []),
         }
 
     @staticmethod

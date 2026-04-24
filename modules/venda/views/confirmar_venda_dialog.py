@@ -59,6 +59,87 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
 
     def _configurar_interface(self) -> None:
         self.setWindowTitle("CSPdv - Confirmar Venda")
+        self.setStyleSheet(
+            """
+            QDialog {
+                background-color: #eef4f8;
+            }
+            QLabel#lblTitulo {
+                color: #ffffff;
+                font-weight: 800;
+            }
+            QFrame#frameHeader {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #153552, stop:0.55 #1d4c74, stop:1 #2f75b0);
+                border-radius: 10px;
+            }
+            QFrame#frameDadosVenda,
+            QFrame#frameResumo,
+            QFrame#frameRodape {
+                background-color: #ffffff;
+                border: 1px solid #d6e2ec;
+                border-radius: 10px;
+            }
+            QFrame#frameTotal {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #1d5b95, stop:1 #2f75b0);
+                border: none;
+                border-radius: 12px;
+            }
+            QLabel {
+                color: #16324f;
+            }
+            QLabel#lblTotalLabel,
+            QLabel#lblTotalValor {
+                color: white;
+                font-weight: 800;
+            }
+            QLabel#lblAvisoVazio {
+                color: #946200;
+                background-color: #fff4d6;
+                border: 1px solid #f1d48b;
+                border-radius: 8px;
+                padding: 8px 10px;
+            }
+            QTableWidget {
+                background-color: white;
+                border: 1px solid #dbe7f0;
+                border-radius: 10px;
+                gridline-color: #e6eef5;
+                color: #16324f;
+            }
+            QHeaderView::section {
+                background-color: #f2f7fb;
+                color: #315676;
+                font-size: 11px;
+                font-weight: 700;
+                border: none;
+                border-right: 1px solid #dce7ef;
+                border-bottom: 1px solid #dce7ef;
+                padding: 8px;
+            }
+            QPushButton#btnVoltarCorrigir {
+                background-color: #edf3f8;
+                color: #16324f;
+                border: 1px solid #c8d8e8;
+                border-radius: 8px;
+                font-weight: 700;
+                padding: 8px 14px;
+            }
+            QPushButton#btnVoltarCorrigir:hover {
+                background-color: #e3edf6;
+            }
+            QPushButton#btnConfirmarPagamento {
+                background: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #53b45b, stop:1 #389643);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 800;
+                padding: 8px 14px;
+            }
+            QPushButton#btnConfirmarPagamento:hover {
+                background: qlineargradient(x1:0,y1:0,x2:0,y2:1, stop:0 #62c26a, stop:1 #40a24c);
+            }
+            """
+        )
         self.lblTitulo.setText("Confirmar Venda  -  F4")
         self.btnFechar.setText("x")
         self.lblNumVendaLabel.setText("Venda n°")

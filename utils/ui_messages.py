@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from PyQt5.QtWidgets import QMessageBox, QWidget
+from PyQt5.QtWidgets import QMessageBox, QStyleFactory, QWidget
 
 
 def _criar_message_box(
@@ -11,21 +11,22 @@ def _criar_message_box(
     mensagem: str,
 ) -> QMessageBox:
     box = QMessageBox(parent)
+    box.setStyle(QStyleFactory.create("Fusion"))
     box.setIcon(icon)
     box.setWindowTitle(titulo)
     box.setText(mensagem)
     box.setStandardButtons(QMessageBox.Ok)
     box.setStyleSheet(
         """
-        QMessageBox {
+        QWidget {
             background-color: #f4f8fc;
         }
-        QMessageBox QLabel {
+        QLabel {
             color: #16324f;
             font-size: 13px;
-            min-width: 240px;
+            min-width: 320px;
         }
-        QMessageBox QPushButton {
+        QPushButton {
             min-width: 88px;
             min-height: 30px;
             padding: 4px 12px;
@@ -35,7 +36,7 @@ def _criar_message_box(
             color: white;
             font-weight: bold;
         }
-        QMessageBox QPushButton:hover {
+        QPushButton:hover {
             background-color: #2f72b4;
         }
         """
@@ -65,13 +66,10 @@ def confirmar_acao(
     padrao: QMessageBox.StandardButton = QMessageBox.No,
 ) -> bool:
     botoes = QMessageBox.StandardButtons(texto_confirmar | texto_cancelar)
-    resposta = QMessageBox.question(
-        parent,
-        titulo,
-        mensagem,
-        botoes,
-        padrao,
-    )
+    box = _criar_message_box(parent, icon=QMessageBox.Question, titulo=titulo, mensagem=mensagem)
+    box.setStandardButtons(botoes)
+    box.setDefaultButton(padrao)
+    resposta = box.exec_()
     return resposta == texto_confirmar
 
 

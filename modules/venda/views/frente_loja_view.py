@@ -1,6 +1,6 @@
 import os
 
-from PyQt5.QtCore import QDate, QTime, QTimer
+from PyQt5.QtCore import QDate, QTime, QTimer, Qt
 from PyQt5.QtGui import QCloseEvent, QKeySequence
 from PyQt5.QtWidgets import QLabel, QMainWindow, QPushButton, QShortcut, QStackedWidget
 
@@ -14,6 +14,7 @@ from modules.venda.views.modal_consulta_produto_view import ModalConsultaProduto
 from modules.venda.views.movimentacao_caixa_view import MovimentacaoCaixaView
 from modules.venda.views.pagamento_view import PagamentoView
 from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
+from modules.venda.views.resumo_caixa_atual_dialog import ResumoCaixaAtualDialog
 from ui.venda.frente_loja import Ui_FrenteLoja
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
@@ -54,7 +55,10 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         nome = str(usuario.get("nome", "Operador")).upper()
         self.lblOpNome.setText(nome)
         self.lblCaixaStatus.setText("CAIXA: AGUARDANDO ABERTURA")
-        self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+        self.lblCaixaStatus.setCursor(Qt.PointingHandCursor)
+        self.lblCaixaStatus.setToolTip("Clique para ver o resumo do caixa atual")
+        self.lblCaixaStatus.mousePressEvent = self._abrir_resumo_caixa_atual_evento
+        self.lblSecaoPrincipal.setText("VENDAS")
         self.btnSairLoja.setText("➜ Voltar ao Admin" if self._admin_view is not None else "➜ Sair da Loja")
         self.lblDefaultMsg.setText(
             "A area de vendas foi iniciada pela Frente de Loja.\n"
@@ -79,7 +83,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.lblSidebarHora.setText(QTime.currentTime().toString("HH:mm:ss"))
 
     def _selecionar_secao(self, titulo: str) -> None:
-        self.lblSecaoPrincipal.setText(titulo)
+        self.lblSecaoPrincipal.setText("VENDAS")
 
     def _atualizar_menu_lateral(self, botao_ativo: QPushButton | None = None) -> None:
         botoes = (
@@ -124,6 +128,22 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.lblCaixaStatus.setText("CAIXA: AGUARDANDO ABERTURA")
         self.btnNavAbertura.setEnabled(True)
 
+    def _abrir_resumo_caixa_atual_evento(self, _event) -> None:
+        self._mostrar_resumo_caixa_atual()
+
+    def _mostrar_resumo_caixa_atual(self) -> None:
+        resumo = CaixaService.obter_resumo_caixa_atual()
+        if resumo is None:
+            mostrar_aviso(
+                self,
+                "Resumo do caixa",
+                "Nao ha um caixa aberto nesta sessao para exibir o resumo operacional.",
+            )
+            return
+
+        dialog = ResumoCaixaAtualDialog(resumo, self)
+        dialog.exec_()
+
     def _obter_ou_criar_widget_fluxo(
         self,
         atributo: str,
@@ -149,7 +169,6 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         titulo: str,
     ) -> None:
         self._atualizar_menu_lateral(botao_ativo)
-        self.lblSecaoPrincipal.setText(titulo)
         self.stackedContent.setCurrentWidget(widget)
 
     def _mostrar_abertura_caixa(self) -> None:
@@ -188,7 +207,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
 
     def _mostrar_consulta_produto(self) -> None:
         self._atualizar_menu_lateral(self.btnNavConsulta)
-        self.lblSecaoPrincipal.setText("CONSULTA DE PRECOS")
+        self.lblSecaoPrincipal.setText("VENDAS")
         dialog = ModalConsultaProdutoView(self)
         dialog.exec_()
 
@@ -258,7 +277,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             "fechamento_caixa_view",
         )
         self.stackedContent.setCurrentIndex(0)
-        self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+        self.lblSecaoPrincipal.setText("VENDAS")
 
     def _on_venda_finalizada(self, venda_data: dict) -> None:
         sucesso, mensagem, venda_registrada = VendaService.finalizar_venda(venda_data)
@@ -286,7 +305,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self._descartar_widget_fluxo("pagamento_view")
         self._atualizar_menu_lateral(None)
         self.stackedContent.setCurrentIndex(0)
-        self.lblSecaoPrincipal.setText("FRENTE DE LOJA")
+        self.lblSecaoPrincipal.setText("VENDAS")
         self.lblDefaultMsg.setText(
             f"Venda n° {venda_registrada.get('numero_venda')} finalizada com sucesso.\n"
             "Selecione o próximo fluxo operacional."
@@ -317,7 +336,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             self._admin_view.activateWindow()
             return
 
-        if not self._permitir_saida():
+        if not self._permitir_navegacao():
             return
 
         from modules.auth.views.selecao_modo_view import SelecaoModoView
@@ -326,7 +345,34 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.selecao = SelecaoModoView()
         self.selecao.show()
 
-    def _permitir_saida(self) -> bool:
+    def _usuario_tem_acessos_multiplos(self) -> bool:
+        usuario = SessionManager.current_user() or {}
+        permissoes = {
+            str(permissao).strip()
+            for permissao in usuario.get("permissoes", [])
+            if str(permissao).strip()
+        }
+        return "sistema.master" in permissoes or len(permissoes) > 1
+
+    def _permitir_navegacao(self) -> bool:
+        if os.getenv("CSPDV_ALLOW_TEST_CAIXA_EXIT", "").lower() in {"1", "true", "yes", "on"}:
+            return True
+
+        if not CaixaSession.has_open_caixa():
+            return True
+
+        if self._usuario_tem_acessos_multiplos():
+            return True
+
+        mostrar_aviso(
+            self,
+            "Caixa aberto",
+            "Nao e possivel sair da frente de loja enquanto houver um caixa aberto.\n\n"
+            "Feche o caixa primeiro ou acesse outro modulo com um usuario que tenha mais de uma permissao operacional.",
+        )
+        return False
+
+    def _permitir_fechamento_programa(self) -> bool:
         if os.getenv("CSPDV_ALLOW_TEST_CAIXA_EXIT", "").lower() in {"1", "true", "yes", "on"}:
             return True
 
@@ -336,13 +382,13 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         mostrar_aviso(
             self,
             "Caixa aberto",
-            "Nao e possivel sair da frente de loja com um caixa aberto.\n\n"
+            "Nao e possivel fechar o programa enquanto houver um caixa aberto.\n\n"
             "Feche o caixa primeiro para encerrar a operacao com seguranca.",
         )
         return False
 
     def closeEvent(self, a0: QCloseEvent) -> None:
-        if self._permitir_saida():
+        if self._permitir_fechamento_programa():
             super().closeEvent(a0)
             return
 

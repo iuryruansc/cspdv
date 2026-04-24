@@ -17,12 +17,36 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
 
         self._management_configs: Dict[str, Dict[str, Any]] = {}
         self._setup_user_context()
+        self._setup_dashboard_actions()
         self._setup_datetime()
         self._setup_management_area()
         self._setup_navigation()
         self._setup_actions()
         self._setup_shortcuts()
         self._show_dashboard()
+
+    def _setup_dashboard_actions(self) -> None:
+        self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self.centralWidget)
+        self.btnFecharCaixaDashboard.setMinimumSize(172, 38)
+        self.btnFecharCaixaDashboard.setStyleSheet(
+            """
+QPushButton {
+ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #f5b23c, stop:1 #dc9215);
+ color: #173a5f;
+ font-size: 12px;
+ font-weight: bold;
+ border: none;
+ border-radius: 5px;
+ padding: 6px 16px;
+}
+QPushButton:hover {
+ background: #c9820a;
+ color: white;
+}
+            """
+        )
+        self.sectionTitleHLayout.addWidget(self.btnFecharCaixaDashboard)
+        self.btnFecharCaixaDashboard.hide()
 
     def _setup_user_context(self) -> None:
         usuario = SessionManager.current_user()
@@ -169,6 +193,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.btnAcaoCadFornecedor.clicked.connect(self._open_cadastro_fornecedor)
         self.btnAcaoCadCliente.clicked.connect(self._open_cadastro_cliente)
         self.btnFrenteCaixa.clicked.connect(self._open_frente_caixa)
+        self.btnFecharCaixaDashboard.clicked.connect(self._open_fechamento_caixa_dashboard)
         self.btnSair.clicked.connect(self._exit)
         self.managementPage.btnAtualizar.clicked.connect(self._refresh_current_management_page)
         self.managementPage.btnDetalhes.clicked.connect(self._abrir_detalhes_produto)
@@ -201,6 +226,8 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.btnNavDashboard.setChecked(True)
         self.lblSectionTitle.setText("Dashboard Administrativo")
         self.btnFrenteCaixa.show()
+        self.btnFecharCaixaDashboard.show()
+        self._atualizar_acao_caixa_dashboard()
         self.managementPage.hide()
         self.cardVendasHoje.show()
         self.cardFaturamento.show()
@@ -215,6 +242,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self._select_primary_nav(key)
         self.lblSectionTitle.setText(config["section_title"])
         self.btnFrenteCaixa.hide()
+        self.btnFecharCaixaDashboard.hide()
         self.cardVendasHoje.hide()
         self.cardFaturamento.hide()
         self.cardProdutos.hide()
@@ -582,6 +610,26 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.lblProdutosValor.setText(str(resumo["produtos_ativos"]))
         self.lblClientesValor.setText(str(resumo["clientes_ativos"]))
         self._populate_dashboard_sales(resumo["ultimas_vendas"])
+        self._atualizar_acao_caixa_dashboard()
+
+    def _atualizar_acao_caixa_dashboard(self) -> None:
+        from core.caixa_session import CaixaSession
+        from modules.venda.services.caixa_service import CaixaService
+
+        usuario = SessionManager.current_user() or {}
+        if not CaixaSession.has_open_caixa():
+            CaixaService.restaurar_caixa_aberto(usuario.get("id"))
+
+        if CaixaSession.has_open_caixa():
+            self.btnFrenteCaixa.setText("Venda Rápida")
+            self.btnFrenteCaixa.setToolTip("Abre o fluxo compacto de venda sem sair do painel admin.")
+            self.btnFecharCaixaDashboard.show()
+            self.btnFecharCaixaDashboard.setToolTip("Abre o fechamento do caixa atual diretamente no painel admin.")
+            return
+
+        self.btnFrenteCaixa.setText("Abrir Frente de Caixa")
+        self.btnFrenteCaixa.setToolTip("Abre o caixa para habilitar as vendas no contexto administrativo.")
+        self.btnFecharCaixaDashboard.hide()
 
     def _populate_dashboard_sales(self, rows: List[Dict[str, Any]]) -> None:
         self.tableUltimasVendas.setRowCount(len(rows))
@@ -618,20 +666,52 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         from core.caixa_session import CaixaSession
         from modules.venda.services.caixa_service import CaixaService
         from modules.venda.views.abrir_frente_caixa_dialog import AbrirFrenteCaixaDialog
-        from modules.venda.views.frente_loja_view import FrenteLojaView
+        from modules.venda.views.venda_rapida_dialog import VendaRapidaDialog
 
         usuario = SessionManager.current_user() or {}
         if not CaixaSession.has_open_caixa():
             CaixaService.restaurar_caixa_aberto(usuario.get("id"))
 
         if not CaixaSession.has_open_caixa():
+            confirmar = confirmar_acao(
+                self,
+                "Abrir caixa",
+                "Deseja abrir o caixa agora pelo painel administrativo?\n\n"
+                "Depois da abertura, a Venda Rapida ficara disponivel neste mesmo painel.",
+            )
+            if not confirmar:
+                return
             dialog = AbrirFrenteCaixaDialog(self)
             if dialog.exec_() != dialog.Accepted:
                 return
+            self._atualizar_acao_caixa_dashboard()
+            mostrar_info(
+                self,
+                "Caixa aberto",
+                "Caixa aberto com sucesso. Agora voce ja pode usar Venda Rapida sem sair do painel administrativo.",
+            )
+            return
 
-        self.hide()
-        self.frente_loja = FrenteLojaView(admin_view=self)
-        self.frente_loja.show()
+        self.venda_rapida_dialog = VendaRapidaDialog(self)
+        self.venda_rapida_dialog.exec_()
+        self._load_dashboard_cards()
+
+    def _open_fechamento_caixa_dashboard(self) -> None:
+        from core.caixa_session import CaixaSession
+        from modules.venda.views.fechar_caixa_dialog import FecharCaixaDialog
+
+        if not CaixaSession.has_open_caixa():
+            mostrar_aviso(
+                self,
+                "Caixa nao encontrado",
+                "Nao ha um caixa aberto no momento para encerrar pelo painel administrativo.",
+            )
+            self._atualizar_acao_caixa_dashboard()
+            return
+
+        self.fechar_caixa_dialog = FecharCaixaDialog(self)
+        self.fechar_caixa_dialog.exec_()
+        self._load_dashboard_cards()
 
     def _exit(self) -> None:
         from modules.auth.views.selecao_modo_view import SelecaoModoView

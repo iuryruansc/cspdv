@@ -81,6 +81,36 @@ class CaixaModel:
             conn.close()
 
     @staticmethod
+    def buscar_caixa_por_id(caixa_id: int) -> Optional[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    c.id,
+                    c.pdv_id,
+                    c.usuario_abertura_id,
+                    c.data_abertura,
+                    c.valor_abertura,
+                    c.status,
+                    p.identificacao,
+                    p.descricao,
+                    u.nome AS usuario_nome
+                FROM caixas c
+                INNER JOIN pdvs p ON p.id = c.pdv_id
+                INNER JOIN usuarios u ON u.id = c.usuario_abertura_id
+                WHERE c.id = %s
+                LIMIT 1
+                """,
+                (caixa_id,),
+            )
+            return cast(Optional[Dict[str, Any]], cursor.fetchone())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def abrir_caixa(
         pdv_id: int,
         usuario_id: int,
