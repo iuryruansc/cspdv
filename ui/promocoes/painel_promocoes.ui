@@ -1,0 +1,842 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PainelPromocoes</class>
+ <widget class="QMainWindow" name="PainelPromocoes">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1440</width>
+    <height>860</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1320</width>
+    <height>820</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>CSPdv - Promocoes</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true">QWidget#centralWidget {
+    background-color: #eef4f8;
+    color: #18324a;
+    font-family: &quot;Segoe UI&quot;;
+}
+QFrame#frameHeader {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #153552, stop:0.55 #1d4c74, stop:1 #2f75b0);
+    border-bottom: 1px solid rgba(255,255,255,28);
+}
+QLabel#lblLogo {
+    color: white;
+    font-size: 30px;
+    font-weight: 800;
+}
+QLabel#lblModulo {
+    color: #ffe59d;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+}
+QLabel#lblOperadorInfo, QLabel#lblDataHora {
+    color: #dbeaf7;
+    font-size: 12px;
+    font-weight: 600;
+}
+QPushButton#btnVoltarSelecao {
+    background-color: #d92b2b;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-size: 12px;
+    font-weight: 700;
+}
+QPushButton#btnVoltarSelecao:hover {
+    background-color: #c11f1f;
+}
+QFrame#toolbarCard, QFrame#framePromocoes, QFrame#frameAgenda {
+    background-color: white;
+    border: 1px solid #d6e2ec;
+    border-radius: 16px;
+}
+QLineEdit, QComboBox {
+    min-height: 42px;
+    background-color: #f7fafc;
+    border: 1px solid #c8d7e6;
+    border-radius: 10px;
+    padding: 0 14px;
+    font-size: 12px;
+    color: #18324a;
+}
+QLineEdit:focus, QComboBox:focus {
+    border: 2px solid #3a8ad3;
+    background-color: white;
+}
+QPushButton {
+    min-height: 42px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 700;
+}
+QPushButton#btnAtualizar {
+    background-color: #e9f3fb;
+    color: #205d8f;
+    border: 1px solid #b8d3ea;
+}
+QPushButton#btnAtualizar:hover {
+    background-color: #d8ebfa;
+}
+QPushButton#btnNovaPromocao, QPushButton#btnDuplicarPromocao {
+    background-color: #2f80c9;
+    color: white;
+}
+QPushButton#btnNovaPromocao:hover, QPushButton#btnDuplicarPromocao:hover {
+    background-color: #276faa;
+}
+QPushButton#btnVincularProdutos {
+    background-color: #f4a329;
+    color: #1f2a36;
+}
+QPushButton#btnVincularProdutos:hover {
+    background-color: #e19215;
+}
+QFrame[metricCard=&quot;true&quot;] {
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+QLabel[metricValue=&quot;true&quot;] {
+    font-size: 34px;
+    font-weight: 800;
+}
+QLabel[metricTitle=&quot;true&quot;] {
+    font-size: 12px;
+    font-weight: 600;
+}
+QLabel[sectionTitle=&quot;true&quot;] {
+    font-size: 14px;
+    font-weight: 800;
+    color: #153552;
+    background-color: transparent;
+}
+QLabel[sectionHint=&quot;true&quot;] {
+    font-size: 11px;
+    color: #65829b;
+    background-color: transparent;
+}
+QTableWidget {
+    background-color: #fbfdff;
+    border: 1px solid #e3edf4;
+    border-radius: 12px;
+    gridline-color: #e6eef5;
+    font-size: 12px;
+    color: #18324a;
+    selection-background-color: #d9ecfb;
+    selection-color: #153552;
+}
+QHeaderView::section {
+    background-color: #f2f7fb;
+    color: #315676;
+    font-size: 11px;
+    font-weight: 700;
+    border: none;
+    border-right: 1px solid #dce7ef;
+    border-bottom: 1px solid #dce7ef;
+    padding: 8px 8px;
+}
+QFrame#frameStatusBar {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #153552, stop:1 #2f75b0);
+}
+QLabel#lblStatusSistema {
+    color: #8ff09a;
+    font-size: 11px;
+    font-weight: 700;
+}
+QLabel#lblStatusBar {
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+}</string>
+   </property>
+   <layout class="QVBoxLayout" name="mainVLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="frameHeader">
+      <layout class="QHBoxLayout" name="headerHLayout">
+       <property name="leftMargin">
+        <number>18</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>18</number>
+       </property>
+       <property name="bottomMargin">
+        <number>12</number>
+       </property>
+       <property name="spacing">
+        <number>14</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblLogo">
+         <property name="text">
+          <string>CSPdv</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameSepHeader">
+         <property name="frameShape">
+          <enum>QFrame::VLine</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(255,255,255,0.25);</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblModulo">
+         <property name="text">
+          <string>PROMOCOES E CAMPANHAS</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblOperadorInfo">
+         <property name="text">
+          <string>Operador: ---</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblDataHora">
+         <property name="text">
+          <string>--/--/---- --:--:--</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnVoltarSelecao">
+         <property name="minimumSize">
+          <size>
+           <width>140</width>
+           <height>42</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Voltar</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="contentWrap">
+      <layout class="QVBoxLayout" name="contentWrapLayout">
+       <property name="spacing">
+        <number>14</number>
+       </property>
+       <property name="leftMargin">
+        <number>18</number>
+       </property>
+       <property name="topMargin">
+        <number>18</number>
+       </property>
+       <property name="rightMargin">
+        <number>18</number>
+       </property>
+       <property name="bottomMargin">
+        <number>18</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="toolbarCard">
+         <layout class="QHBoxLayout" name="toolbarLayout">
+          <property name="leftMargin">
+           <number>14</number>
+          </property>
+          <property name="topMargin">
+           <number>14</number>
+          </property>
+          <property name="rightMargin">
+           <number>14</number>
+          </property>
+          <property name="bottomMargin">
+           <number>14</number>
+          </property>
+          <property name="spacing">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLineEdit" name="txtBuscaPromocao">
+            <property name="minimumSize">
+             <size>
+              <width>420</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="placeholderText">
+             <string>Buscar por nome da promocao, codigo, campanha ou produto vinculado</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="cmbStatusFiltro">
+            <property name="minimumSize">
+             <size>
+              <width>180</width>
+              <height>0</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>Todos os status</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Ativas</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Agendadas</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Encerradas</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="cmbTipoFiltro">
+            <property name="minimumSize">
+             <size>
+              <width>180</width>
+              <height>0</height>
+             </size>
+            </property>
+            <item>
+             <property name="text">
+              <string>Todos os tipos</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Desconto por percentual</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Desconto por valor</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Preco promocional</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnAtualizar">
+            <property name="text">
+             <string>Atualizar</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnNovaPromocao">
+            <property name="text">
+             <string>Nova Promocao</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnDuplicarPromocao">
+            <property name="text">
+             <string>Duplicar</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnVincularProdutos">
+            <property name="text">
+             <string>Vincular Produtos</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="cardsLayout">
+         <property name="spacing">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="cardPromocoesAtivas">
+           <property name="metricCard" stdset="0">
+            <string>true</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QFrame#cardPromocoesAtivas { background-color: #2f80c9; }
+QLabel { color: white; background-color: transparent; }
+QLabel[metricTitle=&quot;true&quot;] { color: #dceeff; }</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="leftMargin">
+             <number>18</number>
+            </property>
+            <property name="topMargin">
+             <number>16</number>
+            </property>
+            <property name="rightMargin">
+             <number>18</number>
+            </property>
+            <property name="bottomMargin">
+             <number>16</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPromocoesAtivasValor">
+              <property name="metricValue" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblPromocoesAtivasTitulo">
+              <property name="metricTitle" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Promocoes Ativas</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="cardAgendadas">
+           <property name="metricCard" stdset="0">
+            <string>true</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QFrame#cardAgendadas { background-color: #46b464; }
+QLabel { color: white; background-color: transparent; }
+QLabel[metricTitle=&quot;true&quot;] { color: #dff7e6; }</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="leftMargin">
+             <number>18</number>
+            </property>
+            <property name="topMargin">
+             <number>16</number>
+            </property>
+            <property name="rightMargin">
+             <number>18</number>
+            </property>
+            <property name="bottomMargin">
+             <number>16</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAgendadasValor">
+              <property name="metricValue" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblAgendadasTitulo">
+              <property name="metricTitle" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Campanhas Agendadas</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="cardProdutosPromocao">
+           <property name="metricCard" stdset="0">
+            <string>true</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QFrame#cardProdutosPromocao { background-color: #f0a126; }
+QLabel { color: #13283d; background-color: transparent; }
+QLabel[metricTitle=&quot;true&quot;] { color: #5b4312; }</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <property name="leftMargin">
+             <number>18</number>
+            </property>
+            <property name="topMargin">
+             <number>16</number>
+            </property>
+            <property name="rightMargin">
+             <number>18</number>
+            </property>
+            <property name="bottomMargin">
+             <number>16</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblProdutosPromocaoValor">
+              <property name="metricValue" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblProdutosPromocaoTitulo">
+              <property name="metricTitle" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Produtos em Promocao</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="cardEncerradas">
+           <property name="metricCard" stdset="0">
+            <string>true</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QFrame#cardEncerradas { background-color: #697da3; }
+QLabel { color: white; background-color: transparent; }
+QLabel[metricTitle=&quot;true&quot;] { color: #e0e6f5; }</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <property name="leftMargin">
+             <number>18</number>
+            </property>
+            <property name="topMargin">
+             <number>16</number>
+            </property>
+            <property name="rightMargin">
+             <number>18</number>
+            </property>
+            <property name="bottomMargin">
+             <number>16</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblEncerradasValor">
+              <property name="metricValue" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblEncerradasTitulo">
+              <property name="metricTitle" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Promocoes Encerradas</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="mainGridLayout">
+         <property name="spacing">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="framePromocoes">
+           <layout class="QVBoxLayout" name="framePromocoesLayout">
+            <property name="leftMargin">
+             <number>16</number>
+            </property>
+            <property name="topMargin">
+             <number>16</number>
+            </property>
+            <property name="rightMargin">
+             <number>16</number>
+            </property>
+            <property name="bottomMargin">
+             <number>16</number>
+            </property>
+            <property name="spacing">
+             <number>12</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblPromocoesSection">
+              <property name="sectionTitle" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Promocoes Cadastradas</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblPromocoesHint">
+              <property name="sectionHint" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Gerencie campanhas, vigencias e regras promocionais em um painel unico.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTableWidget" name="tablePromocoes">
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+              <property name="editTriggers">
+               <set>QAbstractItemView::NoEditTriggers</set>
+              </property>
+              <column>
+               <property name="text">
+                <string>Codigo</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Promocao</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Tipo</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Vigencia</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Status</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Alcance</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frameAgenda">
+           <property name="minimumSize">
+            <size>
+             <width>430</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>500</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <layout class="QVBoxLayout" name="frameAgendaLayout">
+            <property name="leftMargin">
+             <number>16</number>
+            </property>
+            <property name="topMargin">
+             <number>16</number>
+            </property>
+            <property name="rightMargin">
+             <number>16</number>
+            </property>
+            <property name="bottomMargin">
+             <number>16</number>
+            </property>
+            <property name="spacing">
+             <number>12</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="lblAgendaSection">
+              <property name="sectionTitle" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Itens Vinculados</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="lblAgendaHint">
+              <property name="sectionHint" stdset="0">
+               <string>true</string>
+              </property>
+              <property name="text">
+               <string>Visualize rapidamente os produtos ou grupos afetados pela promocao selecionada.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTableWidget" name="tableItensPromocao">
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+              <property name="editTriggers">
+               <set>QAbstractItemView::NoEditTriggers</set>
+              </property>
+              <column>
+               <property name="text">
+                <string>Produto</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Preco Atual</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Preco Promo</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Desconto</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Observacao</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frameStatusBar">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>32</height>
+       </size>
+      </property>
+      <layout class="QHBoxLayout" name="statusLayout">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="lblStatusSistema">
+         <property name="text">
+          <string>Sistema online</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="lblStatusBar">
+         <property name="text">
+          <string>CSPdv - Modulo de Promocoes</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

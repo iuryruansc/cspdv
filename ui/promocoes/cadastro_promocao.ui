@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CadastroPromocao</class>
+ <widget class="QDialog" name="CadastroPromocao">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>860</width>
+    <height>720</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>820</width>
+    <height>680</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>CSPdv - Cadastro de Promocao</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+    background-color: #eef4f8;
+    color: #18324a;
+    font-family: &quot;Segoe UI&quot;;
+}
+QFrame#frameHeader {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #153552, stop:0.55 #1d4c74, stop:1 #2f75b0);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+QLabel#lblBadge {
+    color: #ffe59d;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+}
+QLabel#lblFormTitle, QLabel#lblFormHint {
+    color: white;
+}
+QLabel#lblFormTitle {
+    font-size: 24px;
+    font-weight: 800;
+}
+QLabel#lblFormHint {
+    font-size: 12px;
+}
+QFrame#frameCard {
+    background-color: white;
+    border: 1px solid #d6e2ec;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+QLabel[sectionLabel=&quot;true&quot;] {
+    color: #244866;
+    font-size: 12px;
+    font-weight: 700;
+}
+QLabel[sectionTitle=&quot;true&quot;] {
+    color: #153552;
+    font-size: 13px;
+    font-weight: 800;
+}
+QLineEdit, QComboBox, QDateTimeEdit, QTextEdit {
+    background-color: #f7fafc;
+    border: 1px solid #c8d7e6;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #18324a;
+}
+QLineEdit, QComboBox, QDateTimeEdit {
+    min-height: 42px;
+}
+QTextEdit {
+    min-height: 96px;
+}
+QLineEdit:focus, QComboBox:focus, QDateTimeEdit:focus, QTextEdit:focus {
+    border: 2px solid #3a8ad3;
+    background-color: white;
+}
+QCheckBox {
+    font-size: 12px;
+    font-weight: 600;
+    color: #244866;
+}
+QPushButton {
+    min-height: 40px;
+    border: none;
+    border-radius: 10px;
+    padding: 0 18px;
+    font-size: 12px;
+    font-weight: 700;
+}
+QPushButton#btnSalvar {
+    background-color: #2f80c9;
+    color: white;
+}
+QPushButton#btnSalvar:hover {
+    background-color: #276faa;
+}
+QPushButton#btnLimpar {
+    background-color: #eef3f8;
+    color: #315676;
+    border: 1px solid #c6d6e5;
+}
+QPushButton#btnVoltar {
+    background-color: #d92b2b;
+    color: white;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="frameHeader">
+     <layout class="QVBoxLayout" name="headerLayout">
+      <property name="leftMargin">
+       <number>24</number>
+      </property>
+      <property name="topMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>24</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblBadge">
+        <property name="text">
+         <string>CADASTRO DE PROMOCAO</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblFormTitle">
+        <property name="text">
+         <string>Nova Promocao</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblFormHint">
+        <property name="text">
+         <string>Cadastre a base da promocao ou campanha antes de vincular produtos e regras avancadas.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameCard">
+     <layout class="QVBoxLayout" name="cardLayout">
+      <property name="spacing">
+       <number>20</number>
+      </property>
+      <property name="leftMargin">
+       <number>26</number>
+      </property>
+      <property name="topMargin">
+       <number>24</number>
+      </property>
+      <property name="rightMargin">
+       <number>26</number>
+      </property>
+      <property name="bottomMargin">
+       <number>24</number>
+      </property>
+      <item>
+       <layout class="QGridLayout" name="gridCabecalho">
+        <property name="horizontalSpacing">
+         <number>14</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>12</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblCodigo">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Codigo</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="lineEditCodigo">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Auto-gerado</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1" colspan="3">
+         <widget class="QLabel" name="lblNomePromocao">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Nome da Promocao *</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1" colspan="3">
+         <widget class="QLineEdit" name="lineEditNomePromocao">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="lblClassificacao">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Classificacao *</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QComboBox" name="comboClassificacao">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>PROMOCAO</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CAMPANHA</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLabel" name="lblTipoDesconto">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Tipo de Desconto *</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="comboTipoDesconto">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>PERCENTUAL</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>VALOR</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PRECO_FIXO</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="2" column="2">
+         <widget class="QLabel" name="lblStatus">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Status *</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="2">
+         <widget class="QComboBox" name="comboStatus">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>RASCUNHO</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>AGENDADA</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ATIVA</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ENCERRADA</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>CANCELADA</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <property name="rowMinimumHeight">
+          <number>48</number>
+         </property>
+        </item>
+        <item row="3" column="0">
+         <property name="rowMinimumHeight">
+          <number>48</number>
+         </property>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblSecaoVigencia">
+        <property name="sectionTitle" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Vigencia</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridVigencia">
+        <property name="horizontalSpacing">
+         <number>14</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>12</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblDataInicio">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Inicio *</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QDateTimeEdit" name="dateTimeInicio">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="lblDataFim">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Fim *</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QDateTimeEdit" name="dateTimeFim">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QCheckBox" name="checkBoxCumulativa">
+          <property name="text">
+           <string>Promocao cumulativa</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3">
+         <widget class="QCheckBox" name="checkBoxAtiva">
+          <property name="text">
+           <string>Registro ativo</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblSecaoValores">
+        <property name="sectionTitle" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Regra Financeira</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridValores">
+        <property name="horizontalSpacing">
+         <number>14</number>
+        </property>
+        <property name="verticalSpacing">
+         <number>12</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblDescontoPercentual">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Desconto Percentual (%)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLineEdit" name="lineEditDescontoPercentual">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="lblDescontoValor">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Desconto em Valor (R$)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="lineEditDescontoValor">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLabel" name="lblPrecoFixo">
+          <property name="sectionLabel" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Preco Fixo Promocional (R$)</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="lineEditPrecoFixo">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblDescricao">
+        <property name="sectionLabel" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Descricao</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextEdit" name="textEditDescricao"/>
+      </item>
+      <item>
+       <widget class="QLabel" name="lblObservacao">
+        <property name="sectionLabel" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Observacao</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextEdit" name="textEditObservacao"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="buttonsLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnLimpar">
+          <property name="text">
+           <string>Limpar</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnVoltar">
+          <property name="text">
+           <string>Voltar</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnSalvar">
+          <property name="text">
+           <string>Salvar</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

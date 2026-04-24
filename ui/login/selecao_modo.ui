@@ -566,7 +566,7 @@ QLabel#lblOperadorNome {
         <item>
          <widget class="QLabel" name="lblBadgeRelatorios">
           <property name="text">
-           <string>F5 • RELATÓRIOS</string>
+           <string>F5 • PROMOÇÕES</string>
           </property>
           <property name="moduleBadge" stdset="0">
            <string>true</string>
@@ -576,7 +576,7 @@ QLabel#lblOperadorNome {
         <item>
          <widget class="QLabel" name="lblTitleRelatorios">
           <property name="text">
-           <string>Relatórios</string>
+           <string>Promoções</string>
           </property>
           <property name="moduleTitle" stdset="0">
            <string>true</string>
@@ -586,7 +586,7 @@ QLabel#lblOperadorNome {
         <item>
          <widget class="QLabel" name="lblRelatorios">
           <property name="text">
-           <string>Indicadores, rankings, ticket médio e visão gerencial.</string>
+           <string>Campanhas, ofertas e ações promocionais para apoiar as vendas.</string>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -612,10 +612,10 @@ QLabel#lblOperadorNome {
         <item>
          <widget class="QPushButton" name="btnRelatorios">
           <property name="toolTip">
-           <string>[F5] Relatórios</string>
+           <string>[F5] Promoções</string>
           </property>
           <property name="text">
-           <string>Acessar Relatórios</string>
+           <string>Acessar Promoções</string>
           </property>
           <property name="moduleCard" stdset="0">
            <string>true</string>

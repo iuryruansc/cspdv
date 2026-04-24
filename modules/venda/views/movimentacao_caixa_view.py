@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from PyQt5.QtCore import QDateTime, QTimer
+from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
 from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QButtonGroup,
@@ -22,6 +22,7 @@ from utils.ui_messages import mostrar_aviso, mostrar_info
 
 
 class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
+    movimentacao_registrada = pyqtSignal()
     lblSaldoValor: QLabel
     lblSaldoAtualValor2: QLabel
     lblTotalSangriaValor: QLabel
@@ -142,6 +143,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
 
         mostrar_info(self, "Sucesso", mensagem)
         self._recarregar_tela()
+        self.movimentacao_registrada.emit()
 
     @staticmethod
     def _formatar_moeda(valor: float) -> str:

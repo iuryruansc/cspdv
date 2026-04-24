@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConsultaVendaDialog</class>
+ <widget class="QDialog" name="ConsultaVendaDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>980</width>
+    <height>720</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>920</width>
+    <height>680</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Consulta da Venda</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background: #eef5fb; }
+QWidget[card=&quot;true&quot;] { background: white; border: 1px solid #c8d8ea; border-radius: 14px; }
+QLabel[title=&quot;true&quot;] { color: #173a5f; font-size: 16px; font-weight: bold; }
+QLabel[caption=&quot;true&quot;] { color: #4c6b8b; font-size: 11px; font-weight: bold; }
+QLabel[value=&quot;true&quot;] { color: #173a5f; font-size: 18px; font-weight: bold; }
+QTableWidget { background: white; border: 1px solid #c8d8ea; border-radius: 10px; gridline-color: #d9e6f2; color: #173a5f; }
+QHeaderView::section { background: #e7f0f8; color: #1e4e79; padding: 8px; border: none; border-right: 1px solid #d1e0ee; border-bottom: 1px solid #d1e0ee; font-weight: bold; }
+QPushButton { background: #2f75b0; color: white; border: none; border-radius: 10px; padding: 10px 20px; font-weight: bold; }
+QPushButton:hover { background: #225d8e; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>14</number>
+   </property>
+   <property name="leftMargin">
+    <number>18</number>
+   </property>
+   <property name="topMargin">
+    <number>18</number>
+   </property>
+   <property name="rightMargin">
+    <number>18</number>
+   </property>
+   <property name="bottomMargin">
+    <number>18</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="headerCard" native="true">
+     <property name="card" stdset="0">
+      <string>true</string>
+     </property>
+     <layout class="QVBoxLayout" name="headerLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>18</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblHeaderTitulo">
+        <property name="title" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Venda #-</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="infoGrid">
+        <property name="spacing">
+         <number>28</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="clienteLayout">
+          <item>
+           <widget class="QLabel" name="lblClienteCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>CLIENTE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblCliente">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="operadorLayout">
+          <item>
+           <widget class="QLabel" name="lblOperadorCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>OPERADOR</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblOperador">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="dataHoraLayout">
+          <item>
+           <widget class="QLabel" name="lblDataHoraCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>DATA / HORA</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblDataHora">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="pdvLayout">
+          <item>
+           <widget class="QLabel" name="lblPdvCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>PDV</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblPdv">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="statusLayout">
+          <item>
+           <widget class="QLabel" name="lblStatusCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>STATUS</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblStatus">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="totalLayout">
+          <item>
+           <widget class="QLabel" name="lblTotalCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>TOTAL</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblTotal">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="itensCard" native="true">
+     <property name="card" stdset="0">
+      <string>true</string>
+     </property>
+     <layout class="QVBoxLayout" name="itensCardLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>16</number>
+      </property>
+      <property name="topMargin">
+       <number>16</number>
+      </property>
+      <property name="rightMargin">
+       <number>16</number>
+      </property>
+      <property name="bottomMargin">
+       <number>16</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblItensSection">
+        <property name="title" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Itens da Venda</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="tableItens">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::NoSelection</enum>
+        </property>
+        <column>
+         <property name="text">
+          <string>Código</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Descrição</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Qtd.</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Vl. Unit.</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Total</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="tablesRow">
+     <property name="spacing">
+      <number>14</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="pagamentosCard" native="true">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="pagamentosCardLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>16</number>
+        </property>
+        <property name="topMargin">
+         <number>16</number>
+        </property>
+        <property name="rightMargin">
+         <number>16</number>
+        </property>
+        <property name="bottomMargin">
+         <number>16</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblPagamentosSection">
+          <property name="title" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Pagamentos</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tablePagamentos">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::NoSelection</enum>
+          </property>
+          <column>
+           <property name="text">
+            <string>Forma</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Valor</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Data</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QWidget" name="reembolsosCard" native="true">
+       <property name="card" stdset="0">
+        <string>true</string>
+       </property>
+       <layout class="QVBoxLayout" name="reembolsosCardLayout">
+        <property name="spacing">
+         <number>12</number>
+        </property>
+        <property name="leftMargin">
+         <number>16</number>
+        </property>
+        <property name="topMargin">
+         <number>16</number>
+        </property>
+        <property name="rightMargin">
+         <number>16</number>
+        </property>
+        <property name="bottomMargin">
+         <number>16</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="lblReembolsosSection">
+          <property name="title" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Reembolsos</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tableReembolsos">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::NoSelection</enum>
+          </property>
+          <column>
+           <property name="text">
+            <string>Tipo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Motivo</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Status</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Valor</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="footerLayout">
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnFechar">
+       <property name="text">
+        <string>Fechar</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

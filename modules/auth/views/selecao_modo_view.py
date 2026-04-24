@@ -47,7 +47,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.shortcut_f4.activated.connect(self._open_financeiro)
 
         self.shortcut_f5 = QShortcut(QKeySequence("F5"), self)
-        self.shortcut_f5.activated.connect(self._open_relatorios)
+        self.shortcut_f5.activated.connect(self._open_promocoes)
 
         self.shortcut_esc = QShortcut(QKeySequence("Esc"), self)
         self.shortcut_esc.activated.connect(self._exit)
@@ -57,7 +57,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.btnPainelAdmin.clicked.connect(self._open_painel_admin)
         self.btnEstoque.clicked.connect(self._open_estoque)
         self.btnFinanceiro.clicked.connect(self._open_financeiro)
-        self.btnRelatorios.clicked.connect(self._open_relatorios)
+        self.btnRelatorios.clicked.connect(self._open_promocoes)
         self.btnSairSessao.clicked.connect(self._exit)
 
     def _tem_permissao(self, chave_requerida):
@@ -123,12 +123,12 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
 
         self._abrir_modulo(PainelFinanceiroView, "painel_financeiro")
 
-    def _open_relatorios(self):
+    def _open_promocoes(self):
         if not self._tem_permissao("relatorios.ver"):
             return
-        from modules.relatorios.views.painel_relatorios_view import PainelRelatoriosView
+        from modules.promocoes.views.painel_promocoes_view import PainelPromocoesView
 
-        self._abrir_modulo(PainelRelatoriosView, "painel_relatorios")
+        self._abrir_modulo(PainelPromocoesView, "painel_promocoes")
 
     def _exit(self):
         from modules.auth.views.login_view import LoginView

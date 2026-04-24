@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NovoReembolsoDialog</class>
+ <widget class="QDialog" name="NovoReembolsoDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>980</width>
+    <height>760</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>940</width>
+    <height>720</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Novo Reembolso</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background: #eef5fb; }
+QFrame[card=&quot;true&quot;] { background: white; border: 1px solid #c8d8ea; border-radius: 14px; }
+QLabel[title=&quot;true&quot;] { color: #173a5f; font-size: 16px; font-weight: bold; }
+QLabel[caption=&quot;true&quot;] { color: #4c6b8b; font-size: 11px; font-weight: bold; }
+QLabel[value=&quot;true&quot;] { color: #173a5f; font-size: 18px; font-weight: bold; }
+QTableWidget { background: white; border: 1px solid #c8d8ea; border-radius: 10px; gridline-color: #d9e6f2; color: #173a5f; }
+QHeaderView::section { background: #e7f0f8; color: #1e4e79; padding: 8px; border: none; border-right: 1px solid #d1e0ee; border-bottom: 1px solid #d1e0ee; font-weight: bold; }
+QLineEdit, QTextEdit { background: white; border: 1px solid #bcd0e4; border-radius: 10px; padding: 8px 10px; color: #173a5f; }
+QRadioButton { color: #173a5f; font-weight: bold; }
+QSpinBox { background: white; border: 1px solid #bcd0e4; border-radius: 8px; padding: 4px; color: #173a5f; }
+QPushButton#btnConfirmar { background: #d9534f; color: white; border: none; border-radius: 10px; padding: 10px 20px; font-weight: bold; }
+QPushButton#btnConfirmar:hover { background: #c64542; }
+QPushButton#btnCancelar { background: #dfe9f3; color: #173a5f; border: 1px solid #c2d5e8; border-radius: 10px; padding: 10px 20px; font-weight: bold; }
+QPushButton#btnCancelar:hover { background: #d1dfec; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>14</number>
+   </property>
+   <property name="leftMargin">
+    <number>18</number>
+   </property>
+   <property name="topMargin">
+    <number>18</number>
+   </property>
+   <property name="rightMargin">
+    <number>18</number>
+   </property>
+   <property name="bottomMargin">
+    <number>18</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="headerCard">
+     <property name="card" stdset="0">
+      <string>true</string>
+     </property>
+     <layout class="QVBoxLayout" name="headerLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>18</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblHeaderTitulo">
+        <property name="title" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Reembolso da Venda #-</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="headerInfoRow">
+        <property name="spacing">
+         <number>24</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="clienteLayout">
+          <item>
+           <widget class="QLabel" name="lblClienteCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>CLIENTE</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblCliente">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="dataHoraLayout">
+          <item>
+           <widget class="QLabel" name="lblDataHoraCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>DATA / HORA</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblDataHora">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="totalVendaLayout">
+          <item>
+           <widget class="QLabel" name="lblTotalVendaCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>TOTAL DA VENDA</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblTotalVenda">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="statusLayout">
+          <item>
+           <widget class="QLabel" name="lblStatusCaption">
+            <property name="caption" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>STATUS</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lblStatus">
+            <property name="value" stdset="0">
+             <string>true</string>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="modeCard">
+     <property name="card" stdset="0">
+      <string>true</string>
+     </property>
+     <layout class="QVBoxLayout" name="modeLayout">
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <property name="leftMargin">
+       <number>18</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblTipoSection">
+        <property name="title" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Tipo de Reembolso</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="modeRow">
+        <item>
+         <widget class="QRadioButton" name="radioTotal">
+          <property name="text">
+           <string>Reembolso total</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radioParcial">
+          <property name="text">
+           <string>Reembolso parcial por item</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="tableItens">
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <column>
+         <property name="text">
+          <string>Código</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Descrição</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Disponível</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Selecionada</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Vl. Unit.</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Total</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="formCard">
+     <property name="card" stdset="0">
+      <string>true</string>
+     </property>
+     <layout class="QVBoxLayout" name="formLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>18</number>
+      </property>
+      <property name="topMargin">
+       <number>18</number>
+      </property>
+      <property name="rightMargin">
+       <number>18</number>
+      </property>
+      <property name="bottomMargin">
+       <number>18</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="lblJustificativaSection">
+        <property name="title" stdset="0">
+         <string>true</string>
+        </property>
+        <property name="text">
+         <string>Justificativa</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="inputMotivo">
+        <property name="placeholderText">
+         <string>Informe o motivo do reembolso</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTextEdit" name="inputObservacao">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>88</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>88</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>Observações adicionais sobre o reembolso...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="summaryRow">
+        <item>
+         <widget class="QLabel" name="lblTotalReembolsoCaption">
+          <property name="caption" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>Valor a reembolsar</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblTotalReembolso">
+          <property name="value" stdset="0">
+           <string>true</string>
+          </property>
+          <property name="text">
+           <string>R$ 0,00</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="footerLayout">
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCancelar">
+       <property name="text">
+        <string>Cancelar</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnConfirmar">
+       <property name="text">
+        <string>Confirmar Reembolso</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

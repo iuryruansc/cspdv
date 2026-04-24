@@ -23,30 +23,52 @@ class Ui_PainelFinanceiro(object):
         self.mainVLayout.setObjectName("mainVLayout")
         self.frameHeader = QtWidgets.QFrame(self.centralWidget)
         self.frameHeader.setStyleSheet("\n"
-"QFrame#frameHeader { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0); }\n"
-"QLabel#lblLogo { color: white; font-size: 28px; font-weight: bold; }\n"
+"QFrame#frameHeader {\n"
+" background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 #153552, stop:0.55 #1d4c74, stop:1 #2f75b0);\n"
+" border-bottom: 1px solid rgba(255,255,255,28);\n"
+"}\n"
+"QLabel#lblLogo {\n"
+" color: white;\n"
+" font-size: 30px;\n"
+" font-weight: 800;\n"
+"}\n"
 "QLabel#lblModulo {\n"
-" color: #ffe39a; font-size: 12px; font-weight: bold;\n"
-" background-color: rgba(255,255,255,30);\n"
-" border: 1px solid rgba(255,255,255,60);\n"
-" border-radius: 4px; padding: 3px 10px;\n"
+" color: #ffe59d;\n"
+" font-size: 12px;\n"
+" font-weight: 700;\n"
+" padding: 8px 14px;\n"
+" border-radius: 8px;\n"
+" background-color: rgba(255,255,255,0.10);\n"
+" border: 1px solid rgba(255,255,255,0.18);\n"
 "}\n"
-"QLabel#lblOperadorInfo, QLabel#lblDataHora { color: #d9ebfb; font-size: 11px; }\n"
+"QLabel#lblOperadorInfo, QLabel#lblDataHora {\n"
+" color: #dbeaf7;\n"
+" font-size: 12px;\n"
+" font-weight: 600;\n"
+"}\n"
 "QPushButton#btnVoltarSelecao {\n"
-" background-color: #cc2222; color: white; border: none; border-radius: 4px;\n"
-" padding: 6px 12px; font-size: 11px; font-weight: bold;\n"
+" background-color: #d92b2b;\n"
+" color: white;\n"
+" border: none;\n"
+" border-radius: 10px;\n"
+" padding: 10px 24px;\n"
+" font-size: 12px;\n"
+" font-weight: 700;\n"
 "}\n"
-"QPushButton#btnVoltarSelecao:hover { background-color: #e03030; }\n"
+"QPushButton#btnVoltarSelecao:hover {\n"
+" background-color: #c11f1f;\n"
+"}\n"
 "       ")
         self.frameHeader.setObjectName("frameHeader")
         self.headerHLayout = QtWidgets.QHBoxLayout(self.frameHeader)
-        self.headerHLayout.setContentsMargins(14, 8, 14, 8)
+        self.headerHLayout.setContentsMargins(18, 12, 18, 12)
+        self.headerHLayout.setSpacing(14)
         self.headerHLayout.setObjectName("headerHLayout")
         self.lblLogo = QtWidgets.QLabel(self.frameHeader)
         self.lblLogo.setObjectName("lblLogo")
         self.headerHLayout.addWidget(self.lblLogo)
         self.frameSepHeader = QtWidgets.QFrame(self.frameHeader)
-        self.frameSepHeader.setStyleSheet("background-color: rgba(255,255,255,80);")
+        self.frameSepHeader.setStyleSheet("background-color: rgba(255,255,255,0.25);")
         self.frameSepHeader.setFrameShape(QtWidgets.QFrame.VLine)
         self.frameSepHeader.setObjectName("frameSepHeader")
         self.headerHLayout.addWidget(self.frameSepHeader)
@@ -62,6 +84,7 @@ class Ui_PainelFinanceiro(object):
         self.lblDataHora.setObjectName("lblDataHora")
         self.headerHLayout.addWidget(self.lblDataHora)
         self.btnVoltarSelecao = QtWidgets.QPushButton(self.frameHeader)
+        self.btnVoltarSelecao.setMinimumSize(QtCore.QSize(140, 42))
         self.btnVoltarSelecao.setObjectName("btnVoltarSelecao")
         self.headerHLayout.addWidget(self.btnVoltarSelecao)
         self.mainVLayout.addWidget(self.frameHeader)
@@ -73,11 +96,21 @@ class Ui_PainelFinanceiro(object):
 " background-color: white; border: 1px solid #b8cde0; border-radius: 4px;\n"
 " padding: 6px 8px; font-size: 12px;\n"
 "}\n"
+"QLabel[filterLabel=\"true\"] {\n"
+" color: #56728c;\n"
+" font-size: 11px;\n"
+" font-weight: 700;\n"
+" padding: 0 2px;\n"
+"}\n"
 "QPushButton {\n"
 " background-color: #3585c8; color: white; border: none; border-radius: 4px;\n"
 " padding: 6px 12px; font-size: 12px; font-weight: bold;\n"
 "}\n"
 "QPushButton:hover { background-color: #2b74b4; }\n"
+"QPushButton#btnConsultarVenda { background-color: #5b6f86; }\n"
+"QPushButton#btnConsultarVenda:hover { background-color: #4a5d73; }\n"
+"QPushButton#btnRegistrarReembolso { background-color: #d9534f; }\n"
+"QPushButton#btnRegistrarReembolso:hover { background-color: #c64542; }\n"
 "QPushButton#btnRegistrarMovimento { background-color: #5cb85c; }\n"
 "QPushButton#btnRegistrarMovimento:hover { background-color: #4aa14a; }\n"
 "       ")
@@ -93,10 +126,16 @@ class Ui_PainelFinanceiro(object):
         self.cmbFormaPagamentoFiltro.setObjectName("cmbFormaPagamentoFiltro")
         self.cmbFormaPagamentoFiltro.addItem("")
         self.toolbarLayout.addWidget(self.cmbFormaPagamentoFiltro)
+        self.lblPeriodoDe = QtWidgets.QLabel(self.frameToolbar)
+        self.lblPeriodoDe.setObjectName("lblPeriodoDe")
+        self.toolbarLayout.addWidget(self.lblPeriodoDe)
         self.dateInicial = QtWidgets.QDateEdit(self.frameToolbar)
         self.dateInicial.setCalendarPopup(True)
         self.dateInicial.setObjectName("dateInicial")
         self.toolbarLayout.addWidget(self.dateInicial)
+        self.lblPeriodoAte = QtWidgets.QLabel(self.frameToolbar)
+        self.lblPeriodoAte.setObjectName("lblPeriodoAte")
+        self.toolbarLayout.addWidget(self.lblPeriodoAte)
         self.dateFinal = QtWidgets.QDateEdit(self.frameToolbar)
         self.dateFinal.setCalendarPopup(True)
         self.dateFinal.setObjectName("dateFinal")
@@ -104,6 +143,12 @@ class Ui_PainelFinanceiro(object):
         self.btnAtualizar = QtWidgets.QPushButton(self.frameToolbar)
         self.btnAtualizar.setObjectName("btnAtualizar")
         self.toolbarLayout.addWidget(self.btnAtualizar)
+        self.btnConsultarVenda = QtWidgets.QPushButton(self.frameToolbar)
+        self.btnConsultarVenda.setObjectName("btnConsultarVenda")
+        self.toolbarLayout.addWidget(self.btnConsultarVenda)
+        self.btnRegistrarReembolso = QtWidgets.QPushButton(self.frameToolbar)
+        self.btnRegistrarReembolso.setObjectName("btnRegistrarReembolso")
+        self.toolbarLayout.addWidget(self.btnRegistrarReembolso)
         self.btnAbrirCaixa = QtWidgets.QPushButton(self.frameToolbar)
         self.btnAbrirCaixa.setObjectName("btnAbrirCaixa")
         self.toolbarLayout.addWidget(self.btnAbrirCaixa)
@@ -237,7 +282,7 @@ class Ui_PainelFinanceiro(object):
         self.frameCaixaMovimentacoesLayout.addWidget(self.tableCaixaMovimentacoes)
         self.tablesLayout.addWidget(self.frameCaixaMovimentacoes)
         self.frameRecebimentos = QtWidgets.QFrame(self.centralWidget)
-        self.frameRecebimentos.setMinimumSize(QtCore.QSize(430, 0))
+        self.frameRecebimentos.setMinimumSize(QtCore.QSize(520, 0))
         self.frameRecebimentos.setObjectName("frameRecebimentos")
         self.frameRecebimentosLayout = QtWidgets.QVBoxLayout(self.frameRecebimentos)
         self.frameRecebimentosLayout.setContentsMargins(0, 0, 0, 0)
@@ -267,7 +312,7 @@ class Ui_PainelFinanceiro(object):
         self.frameRecebimentosLayout.addWidget(self.lblReembolsosSection)
         self.tableReembolsos = QtWidgets.QTableWidget(self.frameRecebimentos)
         self.tableReembolsos.setRowCount(0)
-        self.tableReembolsos.setColumnCount(4)
+        self.tableReembolsos.setColumnCount(5)
         self.tableReembolsos.setObjectName("tableReembolsos")
         item = QtWidgets.QTableWidgetItem()
         self.tableReembolsos.setHorizontalHeaderItem(0, item)
@@ -277,6 +322,8 @@ class Ui_PainelFinanceiro(object):
         self.tableReembolsos.setHorizontalHeaderItem(2, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableReembolsos.setHorizontalHeaderItem(3, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableReembolsos.setHorizontalHeaderItem(4, item)
         self.tableReembolsos.horizontalHeader().setStretchLastSection(True)
         self.frameRecebimentosLayout.addWidget(self.tableReembolsos)
         self.tablesLayout.addWidget(self.frameRecebimentos)
@@ -308,22 +355,28 @@ class Ui_PainelFinanceiro(object):
 
     def retranslateUi(self, PainelFinanceiro):
         _translate = QtCore.QCoreApplication.translate
-        PainelFinanceiro.setWindowTitle(_translate("PainelFinanceiro", "CSPdv - Financeiro"))
+        PainelFinanceiro.setWindowTitle(_translate("PainelFinanceiro", "CSPdv - Financeiro e Reembolsos"))
         self.lblLogo.setText(_translate("PainelFinanceiro", "CSPdv"))
-        self.lblModulo.setText(_translate("PainelFinanceiro", "FINANCEIRO E CAIXA"))
+        self.lblModulo.setText(_translate("PainelFinanceiro", "FINANCEIRO, CAIXA E REEMBOLSOS"))
         self.lblOperadorInfo.setText(_translate("PainelFinanceiro", "Operador: ---"))
         self.lblDataHora.setText(_translate("PainelFinanceiro", "--/--/---- --:--:--"))
         self.btnVoltarSelecao.setText(_translate("PainelFinanceiro", "Voltar"))
         self.cmbPdvFiltro.setItemText(0, _translate("PainelFinanceiro", "Todos os PDVs"))
         self.cmbFormaPagamentoFiltro.setItemText(0, _translate("PainelFinanceiro", "Todas as formas de pagamento"))
+        self.lblPeriodoDe.setProperty("filterLabel", _translate("PainelFinanceiro", "true"))
+        self.lblPeriodoDe.setText(_translate("PainelFinanceiro", "De"))
+        self.lblPeriodoAte.setProperty("filterLabel", _translate("PainelFinanceiro", "true"))
+        self.lblPeriodoAte.setText(_translate("PainelFinanceiro", "Até"))
         self.btnAtualizar.setText(_translate("PainelFinanceiro", "Atualizar"))
+        self.btnConsultarVenda.setText(_translate("PainelFinanceiro", "Consultar Venda"))
+        self.btnRegistrarReembolso.setText(_translate("PainelFinanceiro", "Novo Reembolso"))
         self.btnAbrirCaixa.setText(_translate("PainelFinanceiro", "Abrir Caixa"))
         self.btnFecharCaixa.setText(_translate("PainelFinanceiro", "Fechar Caixa"))
-        self.btnRegistrarMovimento.setText(_translate("PainelFinanceiro", "Registrar Sangria/Suprimento"))
+        self.btnRegistrarMovimento.setText(_translate("PainelFinanceiro", "Registrar Movimentação"))
         self.lblSaldoCaixaValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblSaldoCaixaValor.setText(_translate("PainelFinanceiro", "R$ 0,00"))
         self.lblSaldoCaixaTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
-        self.lblSaldoCaixaTitulo.setText(_translate("PainelFinanceiro", "Saldo Atual do Caixa"))
+        self.lblSaldoCaixaTitulo.setText(_translate("PainelFinanceiro", "Dinheiro em Caixas Abertos"))
         self.lblEntradasDiaValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblEntradasDiaValor.setText(_translate("PainelFinanceiro", "R$ 0,00"))
         self.lblEntradasDiaTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
@@ -335,9 +388,9 @@ class Ui_PainelFinanceiro(object):
         self.lblPagamentosPendentesValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblPagamentosPendentesValor.setText(_translate("PainelFinanceiro", "0"))
         self.lblPagamentosPendentesTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
-        self.lblPagamentosPendentesTitulo.setText(_translate("PainelFinanceiro", "Parcelas Pendentes"))
+        self.lblPagamentosPendentesTitulo.setText(_translate("PainelFinanceiro", "Reembolsos do Dia"))
         self.lblCaixaMovimentacoesSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
-        self.lblCaixaMovimentacoesSection.setText(_translate("PainelFinanceiro", "Movimentacoes de Caixa"))
+        self.lblCaixaMovimentacoesSection.setText(_translate("PainelFinanceiro", "Movimentações de Caixa"))
         item = self.tableCaixaMovimentacoes.horizontalHeaderItem(0)
         item.setText(_translate("PainelFinanceiro", "Data/Hora"))
         item = self.tableCaixaMovimentacoes.horizontalHeaderItem(1)
@@ -351,29 +404,31 @@ class Ui_PainelFinanceiro(object):
         item = self.tableCaixaMovimentacoes.horizontalHeaderItem(5)
         item.setText(_translate("PainelFinanceiro", "Valor"))
         self.lblRecebimentosSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
-        self.lblRecebimentosSection.setText(_translate("PainelFinanceiro", "Pagamentos e Parcelas"))
+        self.lblRecebimentosSection.setText(_translate("PainelFinanceiro", "Recebimentos da Operação"))
         item = self.tablePagamentos.horizontalHeaderItem(0)
         item.setText(_translate("PainelFinanceiro", "Venda"))
         item = self.tablePagamentos.horizontalHeaderItem(1)
-        item.setText(_translate("PainelFinanceiro", "Forma"))
+        item.setText(_translate("PainelFinanceiro", "Cliente"))
         item = self.tablePagamentos.horizontalHeaderItem(2)
-        item.setText(_translate("PainelFinanceiro", "Parcelas"))
+        item.setText(_translate("PainelFinanceiro", "Forma"))
         item = self.tablePagamentos.horizontalHeaderItem(3)
         item.setText(_translate("PainelFinanceiro", "Status"))
         item = self.tablePagamentos.horizontalHeaderItem(4)
         item.setText(_translate("PainelFinanceiro", "Total"))
         self.lblReembolsosSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
-        self.lblReembolsosSection.setText(_translate("PainelFinanceiro", "Reembolsos"))
+        self.lblReembolsosSection.setText(_translate("PainelFinanceiro", "Reembolsos Registrados"))
         item = self.tableReembolsos.horizontalHeaderItem(0)
         item.setText(_translate("PainelFinanceiro", "Venda"))
         item = self.tableReembolsos.horizontalHeaderItem(1)
         item.setText(_translate("PainelFinanceiro", "Tipo"))
         item = self.tableReembolsos.horizontalHeaderItem(2)
-        item.setText(_translate("PainelFinanceiro", "Status"))
+        item.setText(_translate("PainelFinanceiro", "Motivo"))
         item = self.tableReembolsos.horizontalHeaderItem(3)
+        item.setText(_translate("PainelFinanceiro", "Status"))
+        item = self.tableReembolsos.horizontalHeaderItem(4)
         item.setText(_translate("PainelFinanceiro", "Valor"))
         self.lblStatusSistema.setText(_translate("PainelFinanceiro", "Sistema online"))
-        self.lblStatusBar.setText(_translate("PainelFinanceiro", "CSPdv - Modulo Financeiro"))
+        self.lblStatusBar.setText(_translate("PainelFinanceiro", "CSPdv - Módulo Financeiro"))
 
 
 if __name__ == "__main__":
