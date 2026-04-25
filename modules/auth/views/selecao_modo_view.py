@@ -131,6 +131,13 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self._abrir_modulo(PainelPromocoesView, "painel_promocoes")
 
     def _exit(self):
+        from utils.ui_messages import confirmar_acao
+
+        usuario = self._usuario_atual()
+        nome = usuario.get("nome", "") if usuario else ""
+        if not confirmar_acao(self, "Confirmar Logout", f"Deseja realmente sair da sessão de {nome}?"):
+            return
+
         from modules.auth.views.login_view import LoginView
 
         SessionManager.logout()
