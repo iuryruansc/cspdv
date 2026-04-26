@@ -677,7 +677,7 @@ QPushButton:hover {
                 self,
                 "Abrir caixa",
                 "Deseja abrir o caixa agora pelo painel administrativo?\n\n"
-                "Depois da abertura, a Venda Rapida ficara disponivel neste mesmo painel.",
+                "Depois da abertura, a Venda Rapida ficara disponivel.",
             )
             if not confirmar:
                 return
@@ -688,7 +688,7 @@ QPushButton:hover {
             mostrar_info(
                 self,
                 "Caixa aberto",
-                "Caixa aberto com sucesso. Agora voce ja pode usar Venda Rapida sem sair do painel administrativo.",
+                "Caixa aberto com sucesso.",
             )
             return
 

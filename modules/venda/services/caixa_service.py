@@ -235,7 +235,7 @@ class CaixaService:
         if not observacao.strip():
             return False, "Descreva o motivo da movimentacao."
         if not CaixaService.validar_admin_para_diferenca(admin_password):
-            return False, "Informe uma senha de administrador valida para autorizar a movimentacao."
+            return False, "Informe uma senha de administrador valida."
 
         resumo = CaixaService.obter_resumo_movimentacoes()
         saldo_atual = float(resumo.get("saldo_atual") or 0.0)

@@ -189,7 +189,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             mostrar_aviso(
                 self,
                 "Valores inconsistentes",
-                "Quando houver composicao do fundo, o total calculado deve ser igual ao troco inicial informado.",
+                "A composição total deve ser igual ao troco informado.",
             )
             return
 
