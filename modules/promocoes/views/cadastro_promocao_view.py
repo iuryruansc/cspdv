@@ -10,11 +10,13 @@ from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_i
 
 
 class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, promocao_id: int | None = None):
         super().__init__(parent)
         self.setupUi(self)
         self.setModal(True)
         self.setWindowModality(Qt.WindowModal)
+        self.promocao_id = int(promocao_id or 0)
+        self._dados_carregados: dict | None = None
 
         self._configurar_campos()
         self.registrar_estilos(
@@ -35,14 +37,46 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.btnLimpar.clicked.connect(self._limpar_campos)
 
     def _configurar_campos(self) -> None:
-        self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
         agora = QDateTime.currentDateTime()
         self.dateTimeInicio.setDisplayFormat("dd/MM/yyyy HH:mm")
         self.dateTimeFim.setDisplayFormat("dd/MM/yyyy HH:mm")
-        self.dateTimeInicio.setDateTime(agora)
-        self.dateTimeFim.setDateTime(agora.addDays(7))
-        self.checkBoxAtiva.setChecked(True)
         self.comboTipoDesconto.currentTextChanged.connect(self._ajustar_campos_por_tipo)
+        if self.promocao_id > 0:
+            self._carregar_promocao()
+        else:
+            self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
+            self.dateTimeInicio.setDateTime(agora)
+            self.dateTimeFim.setDateTime(agora.addDays(7))
+            self.checkBoxAtiva.setChecked(True)
+            self._ajustar_campos_por_tipo()
+
+    def _carregar_promocao(self) -> None:
+        promocao = PromocaoService.buscar_promocao(self.promocao_id)
+        if not promocao:
+            mostrar_aviso(self, "Promoções", "Não foi possível carregar a promoção selecionada para edição.")
+            self.reject()
+            return
+
+        self._dados_carregados = dict(promocao)
+        self.setWindowTitle("CSPdv - Editar Promoção")
+        self.lblFormTitle.setText("Editar Promoção")
+        self.lblFormHint.setText("Atualize os dados da promoção antes de revisar vínculos e regras aplicadas.")
+        self.btnSalvar.setText("Atualizar")
+
+        self.lineEditCodigo.setText(str(promocao.get("codigo") or ""))
+        self.lineEditNomePromocao.setText(str(promocao.get("nome") or ""))
+        self.comboClassificacao.setCurrentText(str(promocao.get("classificacao") or "PROMOCAO"))
+        self.comboTipoDesconto.setCurrentText(str(promocao.get("tipo_desconto") or "PERCENTUAL"))
+        self.comboStatus.setCurrentText(str(promocao.get("status") or "RASCUNHO"))
+        self.dateTimeInicio.setDateTime(QDateTime(promocao.get("data_inicio")))
+        self.dateTimeFim.setDateTime(QDateTime(promocao.get("data_fim")))
+        self.lineEditDescontoPercentual.setText(str(promocao.get("desconto_percentual") or 0))
+        self.lineEditDescontoValor.setText(str(promocao.get("desconto_valor") or 0))
+        self.lineEditPrecoFixo.setText(str(promocao.get("preco_fixo") or 0))
+        self.textEditDescricao.setPlainText(str(promocao.get("descricao") or ""))
+        self.textEditObservacao.setPlainText(str(promocao.get("observacao") or ""))
+        self.checkBoxCumulativa.setChecked(str(promocao.get("cumulativa") or "N").upper() == "S")
+        self.checkBoxAtiva.setChecked(str(promocao.get("ativo") or "N").upper() == "S")
         self._ajustar_campos_por_tipo()
 
     def _ajustar_campos_por_tipo(self) -> None:
@@ -87,7 +121,10 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             "ativo": self.checkBoxAtiva.isChecked(),
         }
 
-        sucesso, mensagem = PromocaoService.cadastrar_promocao(dados)
+        if self.promocao_id > 0:
+            sucesso, mensagem = PromocaoService.atualizar_promocao(self.promocao_id, dados)
+        else:
+            sucesso, mensagem = PromocaoService.cadastrar_promocao(dados)
         if sucesso:
             mostrar_info(self, "Sucesso", mensagem)
             self.accept()
@@ -109,20 +146,23 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
 
     def _limpar_campos(self) -> None:
         self.limpar_erros()
-        self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
-        self.lineEditNomePromocao.clear()
-        self.comboClassificacao.setCurrentIndex(0)
-        self.comboTipoDesconto.setCurrentIndex(0)
-        self.comboStatus.setCurrentIndex(0)
-        self.lineEditDescontoPercentual.setText("0")
-        self.lineEditDescontoValor.setText("0")
-        self.lineEditPrecoFixo.setText("0")
-        self.textEditDescricao.clear()
-        self.textEditObservacao.clear()
-        self.checkBoxCumulativa.setChecked(False)
-        self.checkBoxAtiva.setChecked(True)
-        agora = QDateTime.currentDateTime()
-        self.dateTimeInicio.setDateTime(agora)
-        self.dateTimeFim.setDateTime(agora.addDays(7))
-        self._ajustar_campos_por_tipo()
+        if self.promocao_id > 0:
+            self._carregar_promocao()
+        else:
+            self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
+            self.lineEditNomePromocao.clear()
+            self.comboClassificacao.setCurrentIndex(0)
+            self.comboTipoDesconto.setCurrentIndex(0)
+            self.comboStatus.setCurrentIndex(0)
+            self.lineEditDescontoPercentual.setText("0")
+            self.lineEditDescontoValor.setText("0")
+            self.lineEditPrecoFixo.setText("0")
+            self.textEditDescricao.clear()
+            self.textEditObservacao.clear()
+            self.checkBoxCumulativa.setChecked(False)
+            self.checkBoxAtiva.setChecked(True)
+            agora = QDateTime.currentDateTime()
+            self.dateTimeInicio.setDateTime(agora)
+            self.dateTimeFim.setDateTime(agora.addDays(7))
+            self._ajustar_campos_por_tipo()
         self.lineEditNomePromocao.setFocus()

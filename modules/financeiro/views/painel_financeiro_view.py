@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PyQt5.QtCore import QDate, Qt
-from PyQt5.QtWidgets import QComboBox, QHeaderView, QMainWindow, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QComboBox, QMainWindow, QTableWidget, QTableWidgetItem
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
@@ -38,31 +38,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._carregar_painel()
 
     def _configurar_tabelas(self) -> None:
-        header_caixa = self.tableCaixaMovimentacoes.horizontalHeader()
-        header_caixa.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header_caixa.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header_caixa.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header_caixa.setSectionResizeMode(3, QHeaderView.Stretch)
-        header_caixa.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        header_caixa.setSectionResizeMode(5, QHeaderView.ResizeToContents)
-
-        header_pagamentos = self.tablePagamentos.horizontalHeader()
-        header_pagamentos.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header_pagamentos.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_pagamentos.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header_pagamentos.setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        header_pagamentos.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        self.tablePagamentos.setSelectionBehavior(QTableWidget.SelectRows)
-        self.tablePagamentos.setSelectionMode(QTableWidget.SingleSelection)
-
-        header_reembolsos = self.tableReembolsos.horizontalHeader()
-        header_reembolsos.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header_reembolsos.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        header_reembolsos.setSectionResizeMode(2, QHeaderView.Stretch)
-        header_reembolsos.setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        header_reembolsos.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        self.tableReembolsos.setSelectionBehavior(QTableWidget.SelectRows)
-        self.tableReembolsos.setSelectionMode(QTableWidget.SingleSelection)
+        return None
 
     def _configurar_filtros_iniciais(self) -> None:
         self._configurar_periodo_padrao()
@@ -245,7 +221,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             return
 
         sucesso, mensagem, resultado = ReembolsoService.registrar_reembolso(dialog.resultado)
-        if not sucesso:
+        if not sucesso or resultado is None:
             mostrar_aviso(self, "Reembolso não registrado", mensagem)
             return
 
@@ -291,6 +267,9 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             data_final=self.dateFinal.date().toPyDate(),
             pdv_id=self._combo_data_int(self.cmbPdvFiltro),
         )
+
+        registros.sort(key=lambda r: r.get("data_hora") or 0, reverse=True)
+
         self.tableCaixaMovimentacoes.setRowCount(len(registros))
         for row, registro in enumerate(registros):
             self._set_table_item(self.tableCaixaMovimentacoes, row, 0, self._formatar_data_hora(registro.get("data_hora")))
@@ -306,6 +285,42 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
 
+    @staticmethod
+    def _agrupar_por_venda(registros: list) -> list:
+        agrupado: dict = {}
+        for reg in registros:
+            vid = int(reg.get("venda_id") or 0)
+            if vid == 0:
+                continue
+
+            if vid not in agrupado:
+                agrupado[vid] = {
+                    "venda_id":       vid,
+                    "cliente":        reg.get("cliente") or "-",
+                    "status":         reg.get("status") or "-",
+                    "valor_pago":     float(reg.get("valor_pago") or 0),
+                    "_formas":        set(),
+                }
+
+            # Acumular valor
+            agrupado[vid]["valor_pago"] += float(reg.get("valor_pago") or 0)
+
+            # Coletar formas distintas (ignora None / vazio)
+            forma = str(reg.get("forma_pagamento") or "").strip()
+            if forma:
+                agrupado[vid]["_formas"].add(forma)
+
+        # Montar forma_pagamento final e limpar campo auxiliar
+        resultado = []
+        for entrada in agrupado.values():
+            formas_ordenadas = sorted(entrada.pop("_formas"))
+            entrada["forma_pagamento"] = " + ".join(formas_ordenadas) if formas_ordenadas else "-"
+            resultado.append(entrada)
+
+        # Manter ordenação por venda_id
+        resultado.sort(key=lambda r: r["venda_id"], reverse=True)
+        return resultado
+
     def _carregar_recebimentos(self) -> None:
         registros = FinanceiroService.listar_recebimentos(
             data_inicial=self.dateInicial.date().toPyDate(),
@@ -313,24 +328,27 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             pdv_id=self._combo_data_int(self.cmbPdvFiltro),
             forma_pagamento=self._forma_pagamento_filtro(),
         )
-        self.tablePagamentos.setRowCount(len(registros))
-        for row, registro in enumerate(registros):
+
+        agrupados = self._agrupar_por_venda(registros)
+
+        self.tablePagamentos.setRowCount(len(agrupados))
+        for row, registro in enumerate(agrupados):
             item_venda = self._set_table_item(
                 self.tablePagamentos,
                 row,
                 0,
-                str(registro.get("venda_id") or "-"),
+                str(registro["venda_id"]),
                 alignment=Qt.AlignCenter,
             )
-            item_venda.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
-            self._set_table_item(self.tablePagamentos, row, 1, str(registro.get("cliente") or "-"))
-            self._set_table_item(self.tablePagamentos, row, 2, str(registro.get("forma_pagamento") or "-"))
-            self._set_table_item(self.tablePagamentos, row, 3, str(registro.get("status") or "-"), alignment=Qt.AlignCenter)
+            item_venda.setData(Qt.UserRole, registro["venda_id"])
+            self._set_table_item(self.tablePagamentos, row, 1, str(registro["cliente"]))
+            self._set_table_item(self.tablePagamentos, row, 2, str(registro["forma_pagamento"]))
+            self._set_table_item(self.tablePagamentos, row, 3, str(registro["status"]), alignment=Qt.AlignCenter)
             self._set_table_item(
                 self.tablePagamentos,
                 row,
                 4,
-                formatar_moeda(registro.get("valor_pago")),
+                formatar_moeda(registro["valor_pago"]),
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
 
@@ -340,6 +358,13 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             data_final=self.dateFinal.date().toPyDate(),
             pdv_id=self._combo_data_int(self.cmbPdvFiltro),
             forma_pagamento=self._forma_pagamento_filtro(),
+        )
+        registros.sort(
+            key=lambda r: (
+                r.get("data_hora") or 0,
+                int(r.get("reembolso_id") or 0),
+            ),
+            reverse=True,
         )
         self.tableReembolsos.setRowCount(len(registros))
         for row, registro in enumerate(registros):
@@ -384,7 +409,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         column: int,
         value: str,
         *,
-        alignment: int = Qt.AlignLeft | Qt.AlignVCenter,
+        alignment: Any = Qt.AlignLeft | Qt.AlignVCenter,
     ) -> QTableWidgetItem:
         item = QTableWidgetItem(value)
         item.setTextAlignment(int(alignment))

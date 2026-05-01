@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
-from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QButtonGroup,
     QComboBox,
@@ -67,10 +66,6 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
     def _configurar_formulario(self) -> None:
         aplicar_mascara_monetaria(self.lineEditValor)
         self.lineEditValor.setText("0,00")
-        self.tableHistorico.verticalHeader().setVisible(False)
-        self.lblHSub.setText("Sangria, suprimento e reforco de troco - requer autorizacao")
-        self.btnTipoTroco.setText("Reforco de Troco")
-        self.comboFiltroHist.setItemText(3, "Reforco de Troco")
 
     def _conectar_sinais(self) -> None:
         self.btnTipoSangria.clicked.connect(lambda: self._definir_tipo("sangria"))

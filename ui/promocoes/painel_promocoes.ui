@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>PainelPromocoes</class>
  <widget class="QMainWindow" name="PainelPromocoes">
@@ -379,7 +379,7 @@ QLabel#lblStatusBar {
           <item>
            <widget class="QPushButton" name="btnAtualizar">
             <property name="text">
-             <string>Atualizar</string>
+             <string>Editar</string>
             </property>
            </widget>
           </item>
@@ -840,3 +840,5 @@ QLabel[metricTitle=&quot;true&quot;] { color: #e0e6f5; }</string>
  <resources/>
  <connections/>
 </ui>
+
+

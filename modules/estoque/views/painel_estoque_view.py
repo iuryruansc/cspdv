@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import QComboBox, QHeaderView, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QComboBox, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
 
 from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
 from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
@@ -34,7 +34,6 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         self._configurar_operador()
         self._configurar_relogio()
         self._conectar_retorno_selecao()
-        self._configurar_tabelas()
         self._conectar_eventos()
         self._carregar_filtros()
         self._carregar_painel()
@@ -42,24 +41,6 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
     def showEvent(self, a0) -> None:
         super().showEvent(a0)
         self._carregar_painel()
-
-    def _configurar_tabelas(self) -> None:
-        self.tableProdutosEstoque.setColumnWidth(0, 110)
-        self.tableProdutosEstoque.setColumnWidth(2, 140)
-        self.tableProdutosEstoque.setColumnWidth(3, 140)
-        self.tableProdutosEstoque.setColumnWidth(4, 120)
-        self.tableProdutosEstoque.setColumnWidth(5, 110)
-        self.tableProdutosEstoque.setColumnWidth(6, 80)
-        self.tableProdutosEstoque.setColumnWidth(7, 110)
-        header_produtos = self.tableProdutosEstoque.horizontalHeader()
-        header_produtos.setSectionResizeMode(1, QHeaderView.Stretch)
-
-        header_mov = self.tableMovimentacoesEstoque.horizontalHeader()
-        header_mov.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header_mov.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_mov.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header_mov.setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        header_mov.setSectionResizeMode(4, QHeaderView.ResizeToContents)
 
     def _conectar_eventos(self) -> None:
         self.btnFiltrar.clicked.connect(self._carregar_painel)

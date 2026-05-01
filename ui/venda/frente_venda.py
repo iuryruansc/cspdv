@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Python\cspdv\ui\venda\frente_venda.ui'
+# Form implementation generated from reading ui file 'frente_venda.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.11
 #
@@ -21,8 +21,6 @@ class Ui_FrenteVenda(object):
         self.mainVLayout.setSpacing(0)
         self.mainVLayout.setObjectName("mainVLayout")
         self.frameInfoVenda = QtWidgets.QFrame(FrenteVenda)
-        self.frameInfoVenda.setMinimumHeight(46)
-        self.frameInfoVenda.setMaximumHeight(46)
         self.frameInfoVenda.setStyleSheet("\n"
 "       QFrame#frameInfoVenda {\n"
 "        background: qlineargradient(x1:0,y1:0,x2:0,y2:1,\n"
@@ -52,8 +50,6 @@ class Ui_FrenteVenda(object):
         self.numVendaHL.addWidget(self.lblNumVendaValor)
         self.infoVendaHL.addWidget(self.frameNumVenda)
         self.frameSepInfo1 = QtWidgets.QFrame(self.frameInfoVenda)
-        self.frameSepInfo1.setMinimumWidth(1)
-        self.frameSepInfo1.setMaximumWidth(1)
         self.frameSepInfo1.setStyleSheet("background-color:rgba(255,255,255,30);")
         self.frameSepInfo1.setFrameShape(QtWidgets.QFrame.VLine)
         self.frameSepInfo1.setObjectName("frameSepInfo1")
@@ -85,8 +81,6 @@ class Ui_FrenteVenda(object):
         self.clienteVendaHL.addWidget(self.btnAlterarCliente)
         self.infoVendaHL.addWidget(self.frameClienteVenda)
         self.frameSepInfo2 = QtWidgets.QFrame(self.frameInfoVenda)
-        self.frameSepInfo2.setMinimumWidth(1)
-        self.frameSepInfo2.setMaximumWidth(1)
         self.frameSepInfo2.setStyleSheet("background-color:rgba(255,255,255,30);")
         self.frameSepInfo2.setFrameShape(QtWidgets.QFrame.VLine)
         self.frameSepInfo2.setObjectName("frameSepInfo2")
@@ -139,27 +133,6 @@ class Ui_FrenteVenda(object):
         self.lblSep2.setStyleSheet("color:rgba(255,255,255,30);")
         self.lblSep2.setObjectName("lblSep2")
         self.atalhosHLayout.addWidget(self.lblSep2)
-        self.btnAtalhoF4 = QtWidgets.QPushButton(self.frameAtalhos)
-        self.btnAtalhoF4.setObjectName("btnAtalhoF4")
-        self.atalhosHLayout.addWidget(self.btnAtalhoF4)
-        self.lblSep3 = QtWidgets.QLabel(self.frameAtalhos)
-        self.lblSep3.setStyleSheet("color:rgba(255,255,255,30);")
-        self.lblSep3.setObjectName("lblSep3")
-        self.atalhosHLayout.addWidget(self.lblSep3)
-        self.btnAtalhoF5 = QtWidgets.QPushButton(self.frameAtalhos)
-        self.btnAtalhoF5.setObjectName("btnAtalhoF5")
-        self.atalhosHLayout.addWidget(self.btnAtalhoF5)
-        self.lblSep4 = QtWidgets.QLabel(self.frameAtalhos)
-        self.lblSep4.setStyleSheet("color:rgba(255,255,255,30);")
-        self.lblSep4.setObjectName("lblSep4")
-        self.atalhosHLayout.addWidget(self.lblSep4)
-        self.btnAtalhoF6 = QtWidgets.QPushButton(self.frameAtalhos)
-        self.btnAtalhoF6.setObjectName("btnAtalhoF6")
-        self.atalhosHLayout.addWidget(self.btnAtalhoF6)
-        self.lblSep5 = QtWidgets.QLabel(self.frameAtalhos)
-        self.lblSep5.setStyleSheet("color:rgba(255,255,255,30);")
-        self.lblSep5.setObjectName("lblSep5")
-        self.atalhosHLayout.addWidget(self.lblSep5)
         self.btnAtalhoF8 = QtWidgets.QPushButton(self.frameAtalhos)
         self.btnAtalhoF8.setObjectName("btnAtalhoF8")
         self.atalhosHLayout.addWidget(self.btnAtalhoF8)
@@ -203,7 +176,7 @@ class Ui_FrenteVenda(object):
 "           padding: 2px 10px;\n"
 "          }\n"
 "         ")
-        self.lineEditDescricaoProduto.setReadOnly(True)
+        self.lineEditDescricaoProduto.setReadOnly(False)
         self.lineEditDescricaoProduto.setObjectName("lineEditDescricaoProduto")
         self.descricaoHLayout.addWidget(self.lineEditDescricaoProduto)
         self.mainVLayout.addWidget(self.frameDescricao)
@@ -264,7 +237,7 @@ class Ui_FrenteVenda(object):
         self.tableCupom.horizontalHeader().setDefaultSectionSize(90)
         self.tableCupom.horizontalHeader().setHighlightSections(False)
         self.tableCupom.horizontalHeader().setStretchLastSection(True)
-        self.tableCupom.verticalHeader().setVisible(True)
+        self.tableCupom.verticalHeader().setVisible(False)
         self.tableCupom.verticalHeader().setDefaultSectionSize(24)
         self.tableCupom.verticalHeader().setHighlightSections(True)
         self.cupomVLayout.addWidget(self.tableCupom)
@@ -367,8 +340,10 @@ class Ui_FrenteVenda(object):
         self.lblImagemProduto.setText("")
         self.lblImagemProduto.setScaledContents(False)
         self.lblImagemProduto.setAlignment(QtCore.Qt.AlignCenter)
+        self.lblImagemProduto.setMinimumHeight(250)
         self.lblImagemProduto.setObjectName("lblImagemProduto")
         self.imagemVLayout.addWidget(self.lblImagemProduto)
+        self.frameImagem.setMinimumHeight(320)
         self.rightPanelVLayout.addWidget(self.frameImagem)
         self.frameTotalAPagarGroup = QtWidgets.QFrame(self.frameRightPanel)
         self.frameTotalAPagarGroup.setStyleSheet("QFrame#frameTotalAPagarGroup{background-color:transparent;}")
@@ -491,6 +466,7 @@ class Ui_FrenteVenda(object):
 "            ")
         self.lblStatusVenda.setAlignment(QtCore.Qt.AlignCenter)
         self.lblStatusVenda.setObjectName("lblStatusVenda")
+        self.lblStatusVenda.setHidden(True)
         self.rightPanelVLayout.addWidget(self.lblStatusVenda)
         self.btnFecharVenda = QtWidgets.QPushButton(self.frameRightPanel)
         self.btnFecharVenda.setStyleSheet("\n"
@@ -516,6 +492,9 @@ class Ui_FrenteVenda(object):
         self.mainVLayout.addLayout(self.mainHLayout)
 
         self.retranslateUi(FrenteVenda)
+        for button in FrenteVenda.findChildren(QtWidgets.QPushButton):
+            button.setAutoDefault(False)
+            button.setDefault(False)
         QtCore.QMetaObject.connectSlotsByName(FrenteVenda)
 
     def retranslateUi(self, FrenteVenda):
@@ -535,15 +514,6 @@ class Ui_FrenteVenda(object):
         self.btnAtalhoF3.setText(_translate("FrenteVenda", "F3  Quantidade"))
         self.btnAtalhoF3.setShortcut(_translate("FrenteVenda", "F3"))
         self.lblSep2.setText(_translate("FrenteVenda", "|"))
-        self.btnAtalhoF4.setText(_translate("FrenteVenda", "F4  Fechar Venda"))
-        self.btnAtalhoF4.setShortcut(_translate("FrenteVenda", "F4"))
-        self.lblSep3.setText(_translate("FrenteVenda", "|"))
-        self.btnAtalhoF5.setText(_translate("FrenteVenda", "F5  Cancelar Item"))
-        self.btnAtalhoF5.setShortcut(_translate("FrenteVenda", "F5"))
-        self.lblSep4.setText(_translate("FrenteVenda", "|"))
-        self.btnAtalhoF6.setText(_translate("FrenteVenda", "F6  Cancelar Venda"))
-        self.btnAtalhoF6.setShortcut(_translate("FrenteVenda", "F6"))
-        self.lblSep5.setText(_translate("FrenteVenda", "|"))
         self.btnAtalhoF8.setText(_translate("FrenteVenda", "F8  Pré-Venda"))
         self.btnAtalhoF8.setShortcut(_translate("FrenteVenda", "F8"))
         self.lblSep6.setText(_translate("FrenteVenda", "|"))
@@ -553,7 +523,7 @@ class Ui_FrenteVenda(object):
         self.btnAtalhoF10.setText(_translate("FrenteVenda", "F10  Desconto"))
         self.btnAtalhoF10.setShortcut(_translate("FrenteVenda", "F10"))
         self.lblDescricaoLabel.setText(_translate("FrenteVenda", "Descrição:"))
-        self.lineEditDescricaoProduto.setPlaceholderText(_translate("FrenteVenda", "Digite o nome do produto ou leia o c?digo de barras..."))
+        self.lineEditDescricaoProduto.setPlaceholderText(_translate("FrenteVenda", "Digite o nome do produto ou leia o código de barras..."))
         self.lblCupomHeader.setText(_translate("FrenteVenda", "Cupom de Venda"))
         self.tableCupom.setSortingEnabled(False)
         item = self.tableCupom.horizontalHeaderItem(0)
@@ -590,3 +560,13 @@ class Ui_FrenteVenda(object):
         self.btnFecharVenda.setShortcut(_translate("FrenteVenda", "F4"))
         self.btnCancelarVenda.setText(_translate("FrenteVenda", "✕  Cancelar Venda  (F6)"))
         self.btnCancelarVenda.setShortcut(_translate("FrenteVenda", "F6"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    FrenteVenda = QtWidgets.QWidget()
+    ui = Ui_FrenteVenda()
+    ui.setupUi(FrenteVenda)
+    FrenteVenda.show()
+    sys.exit(app.exec_())

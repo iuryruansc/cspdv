@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
-from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -67,7 +66,6 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         self.lineEditValorContado.setText("0,00")
         self.lineEditValorContado.textChanged.connect(self._atualizar_diferenca)
         self.btnFecharCaixa.clicked.connect(self._confirmar_fechamento)
-        self.tableTotaisPgto.verticalHeader().setVisible(False)
 
     def _atualizar_data_hora(self) -> None:
         self.lblHDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm"))
@@ -122,9 +120,9 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
             cor = "#ff7c7c"
             texto_status = "● Diferença negativa identificada"
 
-        self.lblCardDifValor.setStyleSheet(f"font-size:34px;font-weight:bold;color:{cor};")
+        self._aplicar_estilo_diferenca(cor)
         self.lblStatusCaixaAberto.setText(texto_status)
-        self.lblStatusCaixaAberto.setStyleSheet(f"color:{cor};font-size:11px;font-weight:bold;")
+        self._aplicar_status_caixa(cor)
 
     def _confirmar_fechamento(self) -> None:
         valor_contado = self._valor_contado()
@@ -153,7 +151,7 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
             f"CSPdv | Caixa fechado com valor contado {self._formatar_moeda(float(fechamento['valor_contado']))}"
         )
         self.lblStatusCaixaAberto.setText("● Caixa fechado")
-        self.lblStatusCaixaAberto.setStyleSheet("color:#72d88f;font-size:11px;font-weight:bold;")
+        self._aplicar_status_caixa("#72d88f")
         self.btnFecharCaixa.setEnabled(False)
         self.lineEditValorContado.setEnabled(False)
         self.plainTextObs.setEnabled(False)
@@ -170,3 +168,9 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
     @staticmethod
     def _numero_para_campo(valor: float) -> str:
         return f"{valor:.2f}".replace(".", ",")
+
+    def _aplicar_estilo_diferenca(self, cor: str) -> None:
+        self.lblCardDifValor.setStyleSheet(f"font-size:34px;font-weight:bold;color:{cor};")
+
+    def _aplicar_status_caixa(self, cor: str) -> None:
+        self.lblStatusCaixaAberto.setStyleSheet(f"color:{cor};font-size:11px;font-weight:bold;")

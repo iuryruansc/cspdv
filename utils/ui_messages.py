@@ -1,7 +1,7 @@
 from typing import Iterable
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMessageBox, QStyleFactory, QWidget
-
 
 def _criar_message_box(
     parent: QWidget,
@@ -15,6 +15,7 @@ def _criar_message_box(
     box.setIcon(icon)
     box.setWindowTitle(titulo)
     box.setText(mensagem)
+    box.setTextFormat(Qt.PlainText)
     box.setStandardButtons(QMessageBox.Ok)
     box.setStyleSheet(
         """
@@ -24,7 +25,8 @@ def _criar_message_box(
         QLabel {
             color: #16324f;
             font-size: 13px;
-            min-width: 320px;
+            min-width: 520px;
+            max-width: 620px;
         }
         QPushButton {
             min-width: 88px;
@@ -41,6 +43,7 @@ def _criar_message_box(
         }
         """
     )
+    box.setMinimumWidth(620)
     return box
 
 

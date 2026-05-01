@@ -94,20 +94,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._atualizar_resumo()
 
     def _configurar_interface(self) -> None:
-        self.btnVoltar.setText("Voltar")
-        self.lblNumVendaLabel.setText("Venda n°")
-        self.lblStatusBar.setText("CSPdv  |  Pagamento")
-        self.tableFormasPagamento.verticalHeader().setVisible(False)
-        self.tableFormasPagamento.setHorizontalHeaderLabels(["Forma de Pagamento", "Valor (R$)", "Ação"])
         self.btnFecharPedido.setToolTip("Finalizar pagamento")
-        self.lineEditValor.setPlaceholderText("0,00")
-        self.btnDinheiro.setText("💸  Dinheiro   (F1)")
-        self.btnPix.setText("⚡  PIX   (F2)")
-        self.btnCartaoDebito.setText("💳  Cartão Débito   (F3)")
-        self.btnCartaoCredito.setText("💳  Cartão Crédito   (F4)")
-        self.btnValeRefeicao.setText("🍴  Vale Refeição   (F5)")
-        self.btnCheque.setText("📄  Cheque   (F6)")
-        self.lblAtalhoHint.setText("F1 – F6 para selecionar")
 
     def _conectar_sinais(self) -> None:
         self.btnVoltar.clicked.connect(self.voltar_venda.emit)

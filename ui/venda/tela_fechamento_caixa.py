@@ -229,7 +229,7 @@ class Ui_TelaFechamentoCaixa(object):
         self.tableTotaisPgto.horizontalHeader().setVisible(True)
         self.tableTotaisPgto.horizontalHeader().setHighlightSections(False)
         self.tableTotaisPgto.horizontalHeader().setStretchLastSection(True)
-        self.tableTotaisPgto.verticalHeader().setVisible(True)
+        self.tableTotaisPgto.verticalHeader().setVisible(False)
         self.tableTotaisPgto.verticalHeader().setDefaultSectionSize(28)
         self.tableTotaisPgto.verticalHeader().setHighlightSections(False)
         self.totaisPgtoVL.addWidget(self.tableTotaisPgto)

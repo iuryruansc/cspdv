@@ -34,8 +34,6 @@
    </property>
    <item>
     <widget class="QFrame" name="frameInfoVenda">
-     <property name="minimumHeight"><number>46</number></property>
-     <property name="maximumHeight"><number>46</number></property>
      <property name="styleSheet">
       <string notr="true">
        QFrame#frameInfoVenda {
@@ -46,96 +44,194 @@
       </string>
      </property>
      <layout class="QHBoxLayout" name="infoVendaHL">
-      <property name="spacing"><number>10</number></property>
-      <property name="leftMargin"><number>12</number></property>
-      <property name="topMargin"><number>0</number></property>
-      <property name="rightMargin"><number>12</number></property>
-      <property name="bottomMargin"><number>0</number></property>
-
-      <!-- Número da venda -->
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <property name="leftMargin">
+       <number>12</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>12</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QFrame" name="frameNumVenda">
-        <property name="styleSheet"><string notr="true">QFrame#frameNumVenda{background-color:rgba(255,255,255,12);border:1px solid rgba(255,255,255,20);border-radius:8px;}</string></property>
+        <property name="styleSheet">
+         <string notr="true">QFrame#frameNumVenda{background-color:rgba(255,255,255,12);border:1px solid rgba(255,255,255,20);border-radius:8px;}</string>
+        </property>
         <layout class="QHBoxLayout" name="numVendaHL">
-         <property name="spacing"><number>5</number></property>
-         <property name="leftMargin"><number>8</number></property>
-         <property name="topMargin"><number>3</number></property>
-         <property name="rightMargin"><number>8</number></property>
-         <property name="bottomMargin"><number>3</number></property>
-         <item><widget class="QLabel" name="lblNumVendaLabel"><property name="text"><string>Venda n&#186;</string></property><property name="styleSheet"><string notr="true">font-size:10px;color:#a0c8e8;</string></property></widget></item>
-         <item><widget class="QLabel" name="lblNumVendaValor"><property name="text"><string>---</string></property><property name="styleSheet"><string notr="true">font-size:13px;font-weight:bold;color:white;</string></property></widget></item>
-        </layout>
-       </widget>
-      </item>
-
-      <!-- Separador -->
-      <item>
-       <widget class="QFrame" name="frameSepInfo1">
-        <property name="minimumWidth"><number>1</number></property>
-        <property name="maximumWidth"><number>1</number></property>
-        <property name="styleSheet"><string notr="true">background-color:rgba(255,255,255,30);</string></property>
-        <property name="frameShape"><enum>QFrame::VLine</enum></property>
-       </widget>
-      </item>
-
-      <!-- Cliente associado -->
-      <item>
-       <widget class="QFrame" name="frameClienteVenda">
-        <property name="styleSheet"><string notr="true">QFrame#frameClienteVenda{background-color:rgba(255,255,255,12);border:1px solid rgba(255,255,255,20);border-radius:8px;}</string></property>
-        <layout class="QHBoxLayout" name="clienteVendaHL">
-         <property name="spacing"><number>6</number></property>
-         <property name="leftMargin"><number>8</number></property>
-         <property name="topMargin"><number>3</number></property>
-         <property name="rightMargin"><number>8</number></property>
-         <property name="bottomMargin"><number>3</number></property>
-         <item><widget class="QLabel" name="lblClienteIcon"><property name="text"><string>&#128100;</string></property><property name="styleSheet"><string notr="true">font-size:13px;</string></property></widget></item>
-         <item><widget class="QLabel" name="lblClienteLabel"><property name="text"><string>Cliente:</string></property><property name="styleSheet"><string notr="true">font-size:10px;color:#a0c8e8;</string></property></widget></item>
-         <item><widget class="QLabel" name="lblClienteNome"><property name="text"><string>Consumidor Final</string></property><property name="styleSheet"><string notr="true">font-size:12px;font-weight:bold;color:white;</string></property></widget></item>
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>8</number>
+         </property>
+         <property name="topMargin">
+          <number>3</number>
+         </property>
+         <property name="rightMargin">
+          <number>8</number>
+         </property>
+         <property name="bottomMargin">
+          <number>3</number>
+         </property>
          <item>
-          <widget class="QPushButton" name="btnAlterarCliente">
-           <property name="text"><string>&#9998;</string></property>
-           <property name="minimumSize"><size><width>20</width><height>20</height></size></property>
-           <property name="maximumSize"><size><width>20</width><height>20</height></size></property>
-           <property name="styleSheet"><string notr="true">QPushButton{background-color:rgba(255,255,255,14);color:white;font-size:11px;border:none;border-radius:6px;padding:3px 8px;}QPushButton:hover{background-color:rgba(255,255,255,24);}QPushButton:pressed{background-color:rgba(255,255,255,8);}</string></property>
+          <widget class="QLabel" name="lblNumVendaLabel">
+           <property name="styleSheet">
+            <string notr="true">font-size:10px;color:#a0c8e8;</string>
+           </property>
+           <property name="text">
+            <string>Venda nº</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblNumVendaValor">
+           <property name="styleSheet">
+            <string notr="true">font-size:13px;font-weight:bold;color:white;</string>
+           </property>
+           <property name="text">
+            <string>---</string>
+           </property>
           </widget>
          </item>
         </layout>
        </widget>
       </item>
-
-      <!-- Separador -->
+      <item>
+       <widget class="QFrame" name="frameSepInfo1">
+        <property name="styleSheet">
+         <string notr="true">background-color:rgba(255,255,255,30);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::VLine</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frameClienteVenda">
+        <property name="styleSheet">
+         <string notr="true">QFrame#frameClienteVenda{background-color:rgba(255,255,255,12);border:1px solid rgba(255,255,255,20);border-radius:8px;}</string>
+        </property>
+        <layout class="QHBoxLayout" name="clienteVendaHL">
+         <property name="spacing">
+          <number>6</number>
+         </property>
+         <property name="leftMargin">
+          <number>8</number>
+         </property>
+         <property name="topMargin">
+          <number>3</number>
+         </property>
+         <property name="rightMargin">
+          <number>8</number>
+         </property>
+         <property name="bottomMargin">
+          <number>3</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="lblClienteIcon">
+           <property name="styleSheet">
+            <string notr="true">font-size:13px;</string>
+           </property>
+           <property name="text">
+            <string>👤</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblClienteLabel">
+           <property name="styleSheet">
+            <string notr="true">font-size:10px;color:#a0c8e8;</string>
+           </property>
+           <property name="text">
+            <string>Cliente:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblClienteNome">
+           <property name="styleSheet">
+            <string notr="true">font-size:12px;font-weight:bold;color:white;</string>
+           </property>
+           <property name="text">
+            <string>Consumidor Final</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnAlterarCliente">
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton{background-color:rgba(255,255,255,14);color:white;font-size:11px;border:none;border-radius:6px;padding:3px 8px;}QPushButton:hover{background-color:rgba(255,255,255,24);}QPushButton:pressed{background-color:rgba(255,255,255,8);}</string>
+           </property>
+           <property name="text">
+            <string>✎</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
       <item>
        <widget class="QFrame" name="frameSepInfo2">
-        <property name="minimumWidth"><number>1</number></property>
-        <property name="maximumWidth"><number>1</number></property>
-        <property name="styleSheet"><string notr="true">background-color:rgba(255,255,255,30);</string></property>
-        <property name="frameShape"><enum>QFrame::VLine</enum></property>
+        <property name="styleSheet">
+         <string notr="true">background-color:rgba(255,255,255,30);</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::VLine</enum>
+        </property>
        </widget>
       </item>
-
-      <!-- Data/hora -->
       <item>
        <widget class="QLabel" name="lblDataHora">
-        <property name="text"><string>--/--/----  --:--</string></property>
-        <property name="styleSheet"><string notr="true">font-size:11px;color:#a0c8e8;</string></property>
+        <property name="styleSheet">
+         <string notr="true">font-size:11px;color:#a0c8e8;</string>
+        </property>
+        <property name="text">
+         <string>--/--/----  --:--</string>
+        </property>
        </widget>
       </item>
-
       <item>
        <spacer name="infoVendaSpacer">
-        <property name="orientation"><enum>Qt::Horizontal</enum></property>
-        <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>10</height>
+         </size>
+        </property>
        </spacer>
       </item>
-
-      <!-- Status da venda atual -->
       <item>
        <widget class="QLabel" name="lblInfoStatusVenda">
-        <property name="text"><string>&#9679; Venda em aberto</string></property>
-        <property name="styleSheet"><string notr="true">font-size:11px;font-weight:bold;color:#80ff80;</string></property>
+        <property name="styleSheet">
+         <string notr="true">font-size:11px;font-weight:bold;color:#80ff80;</string>
+        </property>
+        <property name="text">
+         <string>● Venda em aberto</string>
+        </property>
        </widget>
       </item>
-
      </layout>
     </widget>
    </item>
@@ -208,66 +304,6 @@
       </item>
       <item>
        <widget class="QLabel" name="lblSep2">
-        <property name="styleSheet">
-         <string notr="true">color:rgba(255,255,255,30);</string>
-        </property>
-        <property name="text">
-         <string>|</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnAtalhoF4">
-        <property name="text">
-         <string>F4  Fechar Venda</string>
-        </property>
-        <property name="shortcut">
-         <string>F4</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblSep3">
-        <property name="styleSheet">
-         <string notr="true">color:rgba(255,255,255,30);</string>
-        </property>
-        <property name="text">
-         <string>|</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnAtalhoF5">
-        <property name="text">
-         <string>F5  Cancelar Item</string>
-        </property>
-        <property name="shortcut">
-         <string>F5</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblSep4">
-        <property name="styleSheet">
-         <string notr="true">color:rgba(255,255,255,30);</string>
-        </property>
-        <property name="text">
-         <string>|</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnAtalhoF6">
-        <property name="text">
-         <string>F6  Cancelar Venda</string>
-        </property>
-        <property name="shortcut">
-         <string>F6</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblSep5">
         <property name="styleSheet">
          <string notr="true">color:rgba(255,255,255,30);</string>
         </property>
@@ -375,9 +411,6 @@
       </item>
       <item>
        <widget class="QLineEdit" name="lineEditDescricaoProduto">
-        <property name="placeholderText">
-         <string>Digite o nome do produto ou leia o c?digo de barras...</string>
-        </property>
         <property name="styleSheet">
          <string notr="true">
           QLineEdit {
@@ -393,6 +426,9 @@
         </property>
         <property name="readOnly">
          <bool>true</bool>
+        </property>
+        <property name="placeholderText">
+         <string>Digite o nome do produto ou leia o c?digo de barras...</string>
         </property>
        </widget>
       </item>

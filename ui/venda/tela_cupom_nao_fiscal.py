@@ -175,6 +175,31 @@ class Ui_CupomNaoFiscal(object):
 "           ")
         self.btnImprimir.setObjectName("btnImprimir")
         self.botoesHLayout.addWidget(self.btnImprimir)
+        self.btnFinalizarSemImpressao = QtWidgets.QPushButton(self.frameConteudo)
+        self.btnFinalizarSemImpressao.setMinimumSize(QtCore.QSize(210, 36))
+        self.btnFinalizarSemImpressao.setStyleSheet("\n"
+"            QPushButton {\n"
+"             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"              stop:0 #eef8ee, stop:1 #d6efd6);\n"
+"             border: 1px solid #79ad79;\n"
+"             border-radius: 4px;\n"
+"             font-size: 12px;\n"
+"             font-weight: bold;\n"
+"             color: #245224;\n"
+"             padding: 4px 16px;\n"
+"            }\n"
+"            QPushButton:hover {\n"
+"             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"              stop:0 #e0f4e0, stop:1 #c0e6c0);\n"
+"             border-color: #4c914c;\n"
+"            }\n"
+"            QPushButton:pressed {\n"
+"             background: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"              stop:0 #c8e6c8, stop:1 #a8d6a8);\n"
+"            }\n"
+"           ")
+        self.btnFinalizarSemImpressao.setObjectName("btnFinalizarSemImpressao")
+        self.botoesHLayout.addWidget(self.btnFinalizarSemImpressao)
         self.btnSair = QtWidgets.QPushButton(self.frameConteudo)
         self.btnSair.setMinimumSize(QtCore.QSize(100, 36))
         self.btnSair.setStyleSheet("\n"
@@ -244,5 +269,6 @@ class Ui_CupomNaoFiscal(object):
 "    CONFERENCIA DE PRODUTOS"))
         self.btnImprimir.setText(_translate("CupomNaoFiscal", "   Imprimir"))
         self.btnImprimir.setShortcut(_translate("CupomNaoFiscal", "Return"))
+        self.btnFinalizarSemImpressao.setText(_translate("CupomNaoFiscal", "Finalizar sem impressao"))
         self.btnSair.setText(_translate("CupomNaoFiscal", "   Sair"))
         self.btnSair.setShortcut(_translate("CupomNaoFiscal", "Escape"))

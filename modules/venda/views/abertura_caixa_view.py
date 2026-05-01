@@ -1,14 +1,11 @@
 from typing import Dict, Optional
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
-from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QComboBox,
     QFrame,
-    QHeaderView,
     QLabel,
     QLineEdit,
-    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QSpinBox,
@@ -92,15 +89,6 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
 
         self.btnAbrirCaixa.clicked.connect(self._abrir_caixa)
 
-        self.tableHistoricoAberturas.setColumnCount(3)
-        self.tableHistoricoAberturas.setHorizontalHeaderLabels(["Data", "Operador", "Fundo (R$)"])
-        self.tableHistoricoAberturas.verticalHeader().setVisible(False)
-        header = self.tableHistoricoAberturas.horizontalHeader()
-        header.setStretchLastSection(False)
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-
     def _carregar_contexto_inicial(self) -> None:
         usuario = SessionManager.current_user() or {}
         self.lineEditOperador.setText(str(usuario.get("nome", "")).upper())
@@ -175,7 +163,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
 
         if pdv_id is None:
             self.lblStatusCaixaFechado.setText("- Selecione um PDV valido antes de abrir o caixa")
-            self.lblStatusCaixaFechado.setStyleSheet("color:#ff8a7a;font-size:11px;font-weight:bold;")
+            self._aplicar_status_caixa("#ff8a7a")
             mostrar_aviso(
                 self,
                 "PDV obrigatorio",
@@ -185,7 +173,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
 
         if any(valor > 0 for valor in breakdown.values()) and round(total_breakdown, 2) != round(valor_abertura, 2):
             self.lblStatusCaixaFechado.setText("- O total da composicao deve bater com o troco inicial")
-            self.lblStatusCaixaFechado.setStyleSheet("color:#ff8a7a;font-size:11px;font-weight:bold;")
+            self._aplicar_status_caixa("#ff8a7a")
             mostrar_aviso(
                 self,
                 "Valores inconsistentes",
@@ -205,7 +193,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
 
         if not sucesso or caixa_data is None:
             self.lblStatusCaixaFechado.setText("- Falha na abertura do caixa")
-            self.lblStatusCaixaFechado.setStyleSheet("color:#ff8a7a;font-size:11px;font-weight:bold;")
+            self._aplicar_status_caixa("#ff8a7a")
             mostrar_aviso(self, "Abertura nao realizada", mensagem)
             return
 
@@ -213,7 +201,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             f"CSPdv | Caixa {caixa_data['pdv_label']} aberto com fundo R$ {caixa_data['valor_abertura']:.2f}"
         )
         self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operacoes")
-        self.lblStatusCaixaFechado.setStyleSheet("color:#72d88f;font-size:11px;font-weight:bold;")
+        self._aplicar_status_caixa("#72d88f")
         self.btnAbrirCaixa.setEnabled(False)
         self.comboNumCaixa.setEnabled(False)
         self.lineEditTrocoInicial.setEnabled(False)
@@ -247,8 +235,11 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             f"CSPdv | Caixa {pdv_label} reaberto com fundo R$ {valor_abertura:.2f}"
         )
         self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operacoes")
-        self.lblStatusCaixaFechado.setStyleSheet("color:#72d88f;font-size:11px;font-weight:bold;")
+        self._aplicar_status_caixa("#72d88f")
         self.btnAbrirCaixa.setEnabled(False)
         self.comboNumCaixa.setEnabled(False)
         self.lineEditTrocoInicial.setEnabled(False)
         self.plainTextObs.setEnabled(False)
+
+    def _aplicar_status_caixa(self, cor: str) -> None:
+        self.lblStatusCaixaFechado.setStyleSheet(f"color:{cor};font-size:11px;font-weight:bold;")

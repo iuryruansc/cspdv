@@ -74,7 +74,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                 WHERE pp.data_pagamento >= %s
                   AND pp.data_pagamento < %s
-                  AND v.status = 'CONCLUIDA'
+                  AND v.status IN ('CONCLUIDA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                   {pdv_clause}
                   {forma_clause}
                 """,
@@ -270,7 +270,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                 WHERE pp.data_pagamento >= %s
                   AND pp.data_pagamento < %s
-                  AND v.status = 'CONCLUIDA'
+                  AND v.status IN ('CONCLUIDA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                   {pdv_clause}
                   {forma_clause}
                 ORDER BY pp.data_pagamento DESC, pp.id DESC
@@ -315,11 +315,13 @@ class FinanceiroModel:
             cursor.execute(
                 f"""
                 SELECT
+                    vr.id AS reembolso_id,
                     vr.venda_id,
                     vr.tipo,
                     vr.motivo,
                     vr.status,
-                    vr.valor_total
+                    vr.valor_total,
+                    vr.data_hora
                 FROM venda_reembolsos vr
                 INNER JOIN vendas v ON v.id = vr.venda_id
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
@@ -468,7 +470,7 @@ class FinanceiroModel:
             FROM pagamento_parcial pp
             INNER JOIN vendas v ON v.id = pp.venda_id
             WHERE v.caixa_id = %s
-              AND v.status = 'CONCLUIDA'
+              AND v.status IN ('CONCLUIDA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
               AND LOWER(TRIM(pp.forma_pagamento)) = 'dinheiro'
             """,
             (caixa_id,),
