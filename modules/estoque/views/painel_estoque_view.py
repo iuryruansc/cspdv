@@ -31,6 +31,7 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         self._busca_timer.setInterval(250)
         self._busca_timer.timeout.connect(self._carregar_produtos_lotes)
 
+        self._configurar_tamanho_responsivo()
         self._configurar_operador()
         self._configurar_relogio()
         self._conectar_retorno_selecao()

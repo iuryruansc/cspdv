@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from datetime import datetime
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Optional
 
 from PyQt5.QtCore import QDate, Qt
-from PyQt5.QtWidgets import QComboBox, QMainWindow, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QComboBox, QMainWindow, QPushButton, QTableWidget, QTableWidgetItem
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
-from modules.financeiro.services.reembolso_service import ReembolsoService
 from modules.financeiro.services.financeiro_service import FinanceiroService
+from modules.financeiro.services.reembolso_service import ReembolsoService
 from ui.financeiro.painel_financeiro import Ui_PainelFinanceiro
 from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
@@ -23,8 +25,11 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.cmbFormaPagamentoFiltro: QComboBox
         self.tableCaixaMovimentacoes: QTableWidget
         self.tablePagamentos: QTableWidget
+        self.tableContasReceber: QTableWidget
         self.tableReembolsos: QTableWidget
+        self.btnReceberPendencia: QPushButton
 
+        self._configurar_tamanho_responsivo()
         self._configurar_operador()
         self._configurar_relogio()
         self._conectar_retorno_selecao()
@@ -48,6 +53,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     def _conectar_eventos(self) -> None:
         self.btnAtualizar.clicked.connect(self._carregar_painel)
         self.btnConsultarVenda.clicked.connect(self._consultar_venda)
+        self.btnReceberPendencia.clicked.connect(self._receber_pendencia)
         self.btnRegistrarReembolso.clicked.connect(self._novo_reembolso)
         self.btnAbrirCaixa.clicked.connect(self._abrir_caixa_financeiro)
         self.btnFecharCaixa.clicked.connect(self._fechar_caixa_financeiro)
@@ -56,10 +62,11 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     def _configurar_periodo_padrao(self) -> None:
         hoje = QDate.currentDate()
         inicio_mes = hoje.addDays(1 - hoje.day())
+        fim_mes = QDate(hoje.year(), hoje.month(), hoje.daysInMonth())
         self.dateInicial.setDisplayFormat("dd/MM/yyyy")
         self.dateFinal.setDisplayFormat("dd/MM/yyyy")
         self.dateInicial.setDate(inicio_mes)
-        self.dateFinal.setDate(hoje)
+        self.dateFinal.setDate(fim_mes)
 
     def _carregar_pdvs(self) -> None:
         self.cmbPdvFiltro.clear()
@@ -79,12 +86,14 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     def _carregar_painel(self) -> None:
         self._carregar_cards()
         self._carregar_movimentacoes_caixa()
-        self._carregar_recebimentos()
+        self._carregar_vendas_registradas()
+        self._carregar_contas_receber()
         self._carregar_reembolsos()
         self.lblStatusBar.setText(
-            "CSPdv - Módulo Financeiro | "
-            f"{self.tableCaixaMovimentacoes.rowCount()} movimentação(ões), "
-            f"{self.tablePagamentos.rowCount()} recebimento(s), "
+            "CSPdv - Modulo Financeiro | "
+            f"{self.tableCaixaMovimentacoes.rowCount()} movimentacao(oes), "
+            f"{self.tablePagamentos.rowCount()} venda(s), "
+            f"{self.tableContasReceber.rowCount()} conta(s), "
             f"{self.tableReembolsos.rowCount()} reembolso(s)"
         )
 
@@ -93,7 +102,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             mostrar_aviso(
                 self,
                 "Acesso negado",
-                "O usuário atual não possui permissão para abrir caixa por este módulo.",
+                "O usuario atual nao possui permissao para abrir caixa por este modulo.",
             )
             return
 
@@ -106,8 +115,8 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         if CaixaSession.has_open_caixa():
             mostrar_info(
                 self,
-                "Caixa já aberto",
-                "Já existe um caixa aberto nesta sessão. Você pode acompanhar os dados e fechar o caixa por aqui quando necessário.",
+                "Caixa ja aberto",
+                "Ja existe um caixa aberto nesta sessao. Voce pode acompanhar os dados e fechar o caixa por aqui quando necessario.",
             )
             self._carregar_painel()
             return
@@ -115,7 +124,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         confirmar = confirmar_acao(
             self,
             "Abrir caixa",
-            "Deseja abrir o caixa agora sem sair do módulo financeiro?",
+            "Deseja abrir o caixa agora sem sair do modulo financeiro?",
         )
         if not confirmar:
             return
@@ -130,15 +139,15 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         mostrar_info(
             self,
             "Caixa aberto",
-            "Caixa aberto com sucesso. O módulo financeiro foi atualizado com a sessão atual.",
+            "Caixa aberto com sucesso. O modulo financeiro foi atualizado com a sessao atual.",
         )
 
     def _fechar_caixa_financeiro(self) -> None:
         if not CaixaSession.has_open_caixa():
             mostrar_aviso(
                 self,
-                "Caixa não encontrado",
-                "Não há um caixa aberto no momento para encerrar por este módulo.",
+                "Caixa nao encontrado",
+                "Nao ha um caixa aberto no momento para encerrar por este modulo.",
             )
             self._carregar_painel()
             return
@@ -153,15 +162,15 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         mostrar_info(
             self,
             "Caixa fechado",
-            "Caixa encerrado com sucesso. O módulo financeiro foi recarregado.",
+            "Caixa encerrado com sucesso. O modulo financeiro foi recarregado.",
         )
 
     def _registrar_movimentacao_financeiro(self) -> None:
         if not CaixaSession.has_open_caixa():
             mostrar_aviso(
                 self,
-                "Caixa não encontrado",
-                "Abra um caixa antes de registrar sangria, suprimento ou reforço de troco.",
+                "Caixa nao encontrado",
+                "Abra um caixa antes de registrar sangria, suprimento ou reforco de troco.",
             )
             return
 
@@ -177,7 +186,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             mostrar_aviso(
                 self,
                 "Selecione uma venda",
-                "Escolha uma linha em Recebimentos da Operação ou Reembolsos Registrados para consultar os detalhes da venda.",
+                "Escolha uma linha em Vendas Registradas, Contas a Receber ou Reembolsos Registrados para consultar os detalhes da venda.",
             )
             return
 
@@ -185,8 +194,8 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         if not detalhes:
             mostrar_aviso(
                 self,
-                "Venda não encontrada",
-                "Não foi possível localizar os detalhes da venda selecionada.",
+                "Venda nao encontrada",
+                "Nao foi possivel localizar os detalhes da venda selecionada.",
             )
             return
 
@@ -195,13 +204,74 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         dialog = ConsultaVendaDialog(detalhes, self)
         dialog.exec_()
 
+    def _receber_pendencia(self) -> None:
+        if not CaixaSession.has_open_caixa():
+            mostrar_aviso(
+                self,
+                "Caixa nao encontrado",
+                "Abra um caixa antes de registrar recebimentos de pendencias.",
+            )
+            return
+
+        conta_id = self._obter_conta_id_selecionada()
+        if not conta_id:
+            mostrar_aviso(
+                self,
+                "Selecione uma conta",
+                "Escolha uma linha em Contas a Receber para registrar o recebimento.",
+            )
+            return
+
+        conta_detalhada = FinanceiroService.obter_conta_receber_detalhada(conta_id)
+        if not conta_detalhada:
+            mostrar_aviso(
+                self,
+                "Conta nao encontrada",
+                "Nao foi possivel localizar os dados da conta selecionada.",
+            )
+            return
+
+        from modules.financeiro.views.receber_pendencia_dialog import ReceberPendenciaDialog
+
+        dialog = ReceberPendenciaDialog(conta_detalhada, self)
+        if dialog.exec_() != dialog.Accepted or not dialog.resultado:
+            return
+
+        usuario = SessionManager.current_user() or {}
+        caixa = CaixaSession.current() or {}
+        try:
+            resultado = FinanceiroService.registrar_recebimento_conta(
+                conta_id=int(dialog.resultado["conta_id"]),
+                usuario_id=int(usuario.get("id") or 0),
+                caixa_id=int(caixa.get("id") or 0),
+                forma_pagamento_id=int(dialog.resultado["forma_pagamento_id"]),
+                valor_recebido=Decimal(str(dialog.resultado["valor_recebido"])).quantize(
+                    Decimal("0.01"),
+                    rounding=ROUND_HALF_UP,
+                ),
+                observacao=str(dialog.resultado.get("observacao") or "").strip(),
+                data_recebimento=dialog.resultado.get("data_recebimento") or datetime.now(),
+            )
+        except Exception as exc:
+            mostrar_aviso(self, "Recebimento nao registrado", str(exc))
+            return
+
+        self._carregar_painel()
+        mostrar_info(
+            self,
+            "Recebimento registrado",
+            f"Conta #{resultado['conta_id']} | Venda #{resultado['venda_id']} | "
+            f"Recebido {formatar_moeda(resultado['valor_recebido'])} | "
+            f"Saldo {formatar_moeda(resultado['valor_aberto'])}",
+        )
+
     def _novo_reembolso(self) -> None:
         venda_id = self._obter_venda_id_selecionada()
         if not venda_id:
             mostrar_aviso(
                 self,
                 "Selecione uma venda",
-                "Escolha uma linha em Recebimentos da Operação para iniciar um novo reembolso.",
+                "Escolha uma linha em Vendas Registradas, Contas a Receber ou Reembolsos Registrados para iniciar um novo reembolso.",
             )
             return
 
@@ -209,8 +279,8 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         if not detalhes:
             mostrar_aviso(
                 self,
-                "Venda não encontrada",
-                "Não foi possível localizar os detalhes da venda selecionada.",
+                "Venda nao encontrada",
+                "Nao foi possivel localizar os detalhes da venda selecionada.",
             )
             return
 
@@ -222,7 +292,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
 
         sucesso, mensagem, resultado = ReembolsoService.registrar_reembolso(dialog.resultado)
         if not sucesso or resultado is None:
-            mostrar_aviso(self, "Reembolso não registrado", mensagem)
+            mostrar_aviso(self, "Reembolso nao registrado", mensagem)
             return
 
         self._carregar_painel()
@@ -233,7 +303,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         )
 
     def _obter_venda_id_selecionada(self) -> Optional[int]:
-        for table in (self.tablePagamentos, self.tableReembolsos):
+        for table in (self.tablePagamentos, self.tableContasReceber, self.tableReembolsos):
             row = table.currentRow()
             if row < 0:
                 continue
@@ -249,6 +319,20 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 return venda_id
         return None
 
+    def _obter_conta_id_selecionada(self) -> Optional[int]:
+        row = self.tableContasReceber.currentRow()
+        if row < 0:
+            return None
+        item = self.tableContasReceber.item(row, 0)
+        if not item:
+            return None
+        value = item.data(Qt.UserRole + 1)
+        try:
+            conta_id = int(value)
+        except (TypeError, ValueError):
+            return None
+        return conta_id if conta_id > 0 else None
+
     def _carregar_cards(self) -> None:
         resumo = FinanceiroService.obter_resumo_financeiro(
             data_inicial=self.dateInicial.date().toPyDate(),
@@ -259,7 +343,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.lblSaldoCaixaValor.setText(formatar_moeda(resumo.get("saldo_atual_caixa")))
         self.lblEntradasDiaValor.setText(formatar_moeda(resumo.get("entradas_periodo")))
         self.lblSaidasDiaValor.setText(formatar_moeda(resumo.get("saidas_periodo")))
-        self.lblPagamentosPendentesValor.setText(formatar_inteiro(resumo.get("reembolsos_periodo")))
+        self.lblPagamentosPendentesValor.setText(formatar_inteiro(resumo.get("contas_abertas_periodo")))
 
     def _carregar_movimentacoes_caixa(self) -> None:
         registros = FinanceiroService.listar_movimentacoes_caixa(
@@ -285,70 +369,79 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
 
-    @staticmethod
-    def _agrupar_por_venda(registros: list) -> list:
-        agrupado: dict = {}
-        for reg in registros:
-            vid = int(reg.get("venda_id") or 0)
-            if vid == 0:
-                continue
-
-            if vid not in agrupado:
-                agrupado[vid] = {
-                    "venda_id":       vid,
-                    "cliente":        reg.get("cliente") or "-",
-                    "status":         reg.get("status") or "-",
-                    "valor_pago":     float(reg.get("valor_pago") or 0),
-                    "_formas":        set(),
-                }
-
-            # Acumular valor
-            agrupado[vid]["valor_pago"] += float(reg.get("valor_pago") or 0)
-
-            # Coletar formas distintas (ignora None / vazio)
-            forma = str(reg.get("forma_pagamento") or "").strip()
-            if forma:
-                agrupado[vid]["_formas"].add(forma)
-
-        # Montar forma_pagamento final e limpar campo auxiliar
-        resultado = []
-        for entrada in agrupado.values():
-            formas_ordenadas = sorted(entrada.pop("_formas"))
-            entrada["forma_pagamento"] = " + ".join(formas_ordenadas) if formas_ordenadas else "-"
-            resultado.append(entrada)
-
-        # Manter ordenação por venda_id
-        resultado.sort(key=lambda r: r["venda_id"], reverse=True)
-        return resultado
-
-    def _carregar_recebimentos(self) -> None:
-        registros = FinanceiroService.listar_recebimentos(
+    def _carregar_vendas_registradas(self) -> None:
+        registros = FinanceiroService.listar_vendas_registradas(
             data_inicial=self.dateInicial.date().toPyDate(),
             data_final=self.dateFinal.date().toPyDate(),
             pdv_id=self._combo_data_int(self.cmbPdvFiltro),
             forma_pagamento=self._forma_pagamento_filtro(),
         )
 
-        agrupados = self._agrupar_por_venda(registros)
-
-        self.tablePagamentos.setRowCount(len(agrupados))
-        for row, registro in enumerate(agrupados):
+        self.tablePagamentos.setRowCount(len(registros))
+        for row, registro in enumerate(registros):
             item_venda = self._set_table_item(
                 self.tablePagamentos,
                 row,
                 0,
-                str(registro["venda_id"]),
+                str(registro.get("venda_id") or "-"),
                 alignment=Qt.AlignCenter,
             )
-            item_venda.setData(Qt.UserRole, registro["venda_id"])
-            self._set_table_item(self.tablePagamentos, row, 1, str(registro["cliente"]))
-            self._set_table_item(self.tablePagamentos, row, 2, str(registro["forma_pagamento"]))
-            self._set_table_item(self.tablePagamentos, row, 3, str(registro["status"]), alignment=Qt.AlignCenter)
+            item_venda.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
+            self._set_table_item(self.tablePagamentos, row, 1, str(registro.get("cliente") or "-"))
+            self._set_table_item(self.tablePagamentos, row, 2, str(registro.get("forma_pagamento") or "-"))
+            self._set_table_item(
+                self.tablePagamentos,
+                row,
+                3,
+                str(registro.get("status") or "-"),
+                alignment=Qt.AlignCenter,
+            )
             self._set_table_item(
                 self.tablePagamentos,
                 row,
                 4,
-                formatar_moeda(registro["valor_pago"]),
+                formatar_moeda(registro.get("valor_total")),
+                alignment=Qt.AlignRight | Qt.AlignVCenter,
+            )
+
+    def _carregar_contas_receber(self) -> None:
+        registros = FinanceiroService.listar_contas_receber(
+            data_inicial=self.dateInicial.date().toPyDate(),
+            data_final=self.dateFinal.date().toPyDate(),
+            pdv_id=self._combo_data_int(self.cmbPdvFiltro),
+        )
+
+        self.tableContasReceber.setRowCount(len(registros))
+        for row, registro in enumerate(registros):
+            item_conta = self._set_table_item(
+                self.tableContasReceber,
+                row,
+                0,
+                str(registro.get("conta_id") or "-"),
+                alignment=Qt.AlignCenter,
+            )
+            item_conta.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
+            item_conta.setData(Qt.UserRole + 1, int(registro.get("conta_id") or 0))
+            self._set_table_item(self.tableContasReceber, row, 1, str(registro.get("cliente") or "-"))
+            self._set_table_item(
+                self.tableContasReceber,
+                row,
+                2,
+                self._formatar_data(registro.get("data_vencimento")),
+                alignment=Qt.AlignCenter,
+            )
+            self._set_table_item(
+                self.tableContasReceber,
+                row,
+                3,
+                str(registro.get("status") or "-"),
+                alignment=Qt.AlignCenter,
+            )
+            self._set_table_item(
+                self.tableContasReceber,
+                row,
+                4,
+                formatar_moeda(registro.get("valor_aberto")),
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
 
@@ -421,3 +514,9 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         if hasattr(value, "strftime"):
             return value.strftime("%d/%m/%Y %H:%M")
         return "-"
+
+    @staticmethod
+    def _formatar_data(value: Any) -> str:
+        if hasattr(value, "strftime"):
+            return value.strftime("%d/%m/%Y")
+        return str(value or "-")

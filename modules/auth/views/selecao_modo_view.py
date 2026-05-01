@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QShortcut, QWidget
 
 from core.session_manager import SessionManager
 from ui.login.selecao_modo import Ui_SelecaoModo
+from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 class SelecaoModoView(QWidget, Ui_SelecaoModo):
     COLUNAS_CARDS = 3
@@ -10,6 +11,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        aplicar_tamanho_proporcional_tela(self, proporcao_largura=0.88, proporcao_altura=0.86)
         self._configurar_atalhos()
         self._cards_modulos = [
             ("vendas.pdv", self.cardFrenteCaixa, self.shortcut_f1),

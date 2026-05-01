@@ -5,15 +5,18 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem
 
 from core.session_manager import SessionManager
+from modules.admin.views.configuracoes_view import ConfiguracoesView
 from modules.admin.views.widgets import ManagementPageWidget
 from ui.admin.painel_admin import Ui_PainelAdmin
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
+from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        aplicar_tamanho_proporcional_tela(self)
 
         self._management_configs: Dict[str, Dict[str, Any]] = {}
         self._setup_user_context()
@@ -68,6 +71,9 @@ QPushButton:hover {
         self.managementPage = ManagementPageWidget(self.centralWidget)
         self.managementPage.hide()
         self.mainContentVLayout.addWidget(self.managementPage)
+        self.configuracoesPage = ConfiguracoesView(self.centralWidget)
+        self.configuracoesPage.hide()
+        self.mainContentVLayout.addWidget(self.configuracoesPage)
 
         self._management_configs = {
             "produtos": {
@@ -181,6 +187,7 @@ QPushButton:hover {
         self.btnNavDashboard.clicked.connect(lambda _=False: self._show_dashboard())
         self.btnNavProdutos.clicked.connect(lambda _=False: self._show_management_page("produtos"))
         self.btnNavClientes.clicked.connect(lambda _=False: self._show_management_page("clientes"))
+        self.btnNavConfiguracoes.clicked.connect(lambda _=False: self._show_configuracoes())
 
         for key, config in self._management_configs.items():
             button = config["button"]
@@ -229,6 +236,7 @@ QPushButton:hover {
         self.btnFecharCaixaDashboard.show()
         self._atualizar_acao_caixa_dashboard()
         self.managementPage.hide()
+        self.configuracoesPage.hide()
         self.cardVendasHoje.show()
         self.cardFaturamento.show()
         self.cardProdutos.show()
@@ -249,6 +257,7 @@ QPushButton:hover {
         self.cardClientes.hide()
         self.frameUltimasVendas.hide()
         self.managementPage.show()
+        self.configuracoesPage.hide()
         self.managementPage.btnNovo.setText(config["new_label"])
         self.managementPage.set_details_enabled(key == "produtos")
         self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
@@ -261,6 +270,20 @@ QPushButton:hover {
         self.managementPage.btnNovo.clicked.connect(config["new_action"])
         self._mark_subnav_button(config["button"])
         self._populate_management_page(key)
+
+    def _show_configuracoes(self) -> None:
+        self.btnNavConfiguracoes.setChecked(True)
+        self.lblSectionTitle.setText("Configurações do Sistema")
+        self.btnFrenteCaixa.hide()
+        self.btnFecharCaixaDashboard.hide()
+        self.cardVendasHoje.hide()
+        self.cardFaturamento.hide()
+        self.cardProdutos.hide()
+        self.cardClientes.hide()
+        self.frameUltimasVendas.hide()
+        self.managementPage.hide()
+        self.configuracoesPage.show()
+        self._mark_subnav_button(None)
 
     def _mark_subnav_button(self, active_button: QPushButton | None) -> None:
         for config in self._management_configs.values():

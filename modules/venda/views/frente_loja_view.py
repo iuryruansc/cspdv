@@ -17,6 +17,7 @@ from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
 from modules.venda.views.resumo_caixa_atual_dialog import ResumoCaixaAtualDialog
 from ui.venda.frente_loja import Ui_FrenteLoja
 from utils.ui_messages import mostrar_aviso, mostrar_info
+from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 
 class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
@@ -38,6 +39,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     def __init__(self, parent=None, *, admin_view=None):
         super().__init__(parent)
         self.setupUi(self)
+        aplicar_tamanho_proporcional_tela(self, proporcao_largura=0.94, proporcao_altura=0.9)
         self._admin_view = admin_view
 
         self._configurar_contexto_usuario()

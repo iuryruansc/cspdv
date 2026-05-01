@@ -74,7 +74,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                 WHERE pp.data_pagamento >= %s
                   AND pp.data_pagamento < %s
-                  AND v.status IN ('CONCLUIDA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                   {pdv_clause}
                   {forma_clause}
                 """,
@@ -184,6 +184,12 @@ class FinanceiroModel:
                 "entradas_periodo": total_entradas,
                 "saidas_periodo": total_saidas,
                 "reembolsos_periodo": int(reembolsos.get("quantidade") or 0),
+                "contas_abertas_periodo": FinanceiroModel._contar_contas_abertas(
+                    cursor,
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    pdv_id=pdv_id,
+                ),
             }
         finally:
             cursor.close()
@@ -270,7 +276,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                 WHERE pp.data_pagamento >= %s
                   AND pp.data_pagamento < %s
-                  AND v.status IN ('CONCLUIDA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                   {pdv_clause}
                   {forma_clause}
                 ORDER BY pp.data_pagamento DESC, pp.id DESC
@@ -279,6 +285,287 @@ class FinanceiroModel:
                 tuple(params),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def listar_vendas_registradas(
+        *,
+        data_inicial: date,
+        data_final: date,
+        pdv_id: Optional[int] = None,
+        forma_pagamento: Optional[str] = None,
+        limite: int = 100,
+    ) -> List[Dict[str, Any]]:
+        inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            pdv_clause, pdv_params = FinanceiroModel._pdv_clause("v.caixa_id", pdv_id, alias_caixa="cx")
+            params: List[Any] = [inicio, fim]
+            params.extend(pdv_params)
+            forma_clause = ""
+            if forma_pagamento:
+                forma_clause = " AND pp.forma_pagamento = %s"
+                params.append(forma_pagamento)
+            params.append(int(limite))
+
+            cursor.execute(
+                f"""
+                SELECT
+                    v.id AS venda_id,
+                    COALESCE(c.nome, 'Consumidor Final') AS cliente,
+                    COALESCE(GROUP_CONCAT(DISTINCT pp.forma_pagamento ORDER BY pp.id SEPARATOR ' + '), '-') AS forma_pagamento,
+                    v.status,
+                    v.valor_total
+                FROM vendas v
+                LEFT JOIN clientes c ON c.id = v.cliente_id
+                LEFT JOIN pagamento_parcial pp ON pp.venda_id = v.id
+                LEFT JOIN caixas cx ON cx.id = v.caixa_id
+                WHERE pp.data_pagamento >= %s
+                  AND pp.data_pagamento < %s
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  {pdv_clause}
+                  {forma_clause}
+                GROUP BY v.id, c.nome, v.status, v.valor_total
+                ORDER BY MAX(pp.data_pagamento) DESC, v.id DESC
+                LIMIT %s
+                """,
+                tuple(params),
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def listar_contas_receber(
+        *,
+        data_inicial: date,
+        data_final: date,
+        pdv_id: Optional[int] = None,
+        limite: int = 100,
+    ) -> List[Dict[str, Any]]:
+        inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            pdv_clause, pdv_params = FinanceiroModel._pdv_clause("cr.caixa_id", pdv_id, alias_caixa="cx")
+            params: List[Any] = [inicio.date(), fim.date()]
+            params.extend(pdv_params)
+            params.append(int(limite))
+            cursor.execute(
+                f"""
+                SELECT
+                    cr.id AS conta_id,
+                    cr.venda_id,
+                    COALESCE(c.nome, 'Consumidor Final') AS cliente,
+                    cr.data_vencimento,
+                    cr.status,
+                    cr.valor_total,
+                    cr.valor_recebido,
+                    cr.valor_aberto
+                FROM contas_receber cr
+                LEFT JOIN clientes c ON c.id = cr.cliente_id
+                LEFT JOIN caixas cx ON cx.id = cr.caixa_id
+                WHERE cr.ativo = 'S'
+                  AND cr.data_vencimento >= %s
+                  AND cr.data_vencimento < %s
+                  AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+                  {pdv_clause}
+                ORDER BY cr.data_vencimento ASC, cr.id DESC
+                LIMIT %s
+                """,
+                tuple(params),
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def obter_conta_receber_detalhada(conta_id: int) -> Optional[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    cr.id,
+                    cr.venda_id,
+                    cr.cliente_id,
+                    COALESCE(c.nome, 'Consumidor Final') AS cliente,
+                    cr.descricao,
+                    cr.observacao,
+                    cr.valor_total,
+                    cr.valor_recebido,
+                    cr.valor_aberto,
+                    cr.data_emissao,
+                    cr.data_vencimento,
+                    cr.status
+                FROM contas_receber cr
+                LEFT JOIN clientes c ON c.id = cr.cliente_id
+                WHERE cr.id = %s
+                  AND cr.ativo = 'S'
+                LIMIT 1
+                """,
+                (int(conta_id),),
+            )
+            conta = cursor.fetchone()
+            if not conta:
+                return None
+
+            cursor.execute(
+                """
+                SELECT
+                    crr.data_recebimento,
+                    COALESCE(fp.nome, '-') AS forma_pagamento,
+                    crr.valor_recebido,
+                    COALESCE(u.nome, '-') AS operador,
+                    COALESCE(crr.observacao, '') AS observacao
+                FROM contas_receber_recebimentos crr
+                LEFT JOIN formas_pagamento fp ON fp.id = crr.forma_pagamento_id
+                LEFT JOIN usuarios u ON u.id = crr.usuario_id
+                WHERE crr.conta_receber_id = %s
+                  AND crr.ativo = 'S'
+                ORDER BY crr.data_recebimento DESC, crr.id DESC
+                """,
+                (int(conta_id),),
+            )
+            recebimentos = list(cursor.fetchall())
+            return {"conta": conta, "recebimentos": recebimentos}
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def registrar_recebimento_conta(
+        *,
+        conta_id: int,
+        usuario_id: int,
+        caixa_id: int,
+        forma_pagamento_id: int,
+        valor_recebido: Decimal,
+        observacao: str,
+        data_recebimento: datetime,
+    ) -> Dict[str, Any]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    cr.id,
+                    cr.venda_id,
+                    cr.valor_total,
+                    cr.valor_recebido,
+                    cr.valor_aberto,
+                    cr.status
+                FROM contas_receber cr
+                WHERE cr.id = %s
+                  AND cr.ativo = 'S'
+                LIMIT 1
+                """,
+                (int(conta_id),),
+            )
+            conta = cursor.fetchone()
+            if not conta:
+                raise ValueError("Conta a receber não encontrada.")
+
+            aberto_atual = Decimal(str(conta.get("valor_aberto") or 0))
+            if valor_recebido <= Decimal("0.00"):
+                raise ValueError("Informe um valor maior que zero para o recebimento.")
+            if valor_recebido > aberto_atual:
+                raise ValueError("O valor informado é maior que o saldo em aberto da conta.")
+
+            cursor.execute(
+                """
+                SELECT id, nome
+                FROM formas_pagamento
+                WHERE id = %s
+                LIMIT 1
+                """,
+                (int(forma_pagamento_id),),
+            )
+            forma = cursor.fetchone()
+            if not forma:
+                raise ValueError("Forma de pagamento não encontrada.")
+
+            cursor.execute(
+                """
+                INSERT INTO contas_receber_recebimentos
+                    (conta_receber_id, usuario_id, caixa_id, forma_pagamento_id, valor_recebido, data_recebimento, observacao, ativo, createdAt, updatedAt)
+                VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, 'S', NOW(), NOW())
+                """,
+                (
+                    int(conta_id),
+                    int(usuario_id),
+                    int(caixa_id),
+                    int(forma_pagamento_id),
+                    float(valor_recebido),
+                    data_recebimento,
+                    observacao or None,
+                ),
+            )
+
+            cursor.execute(
+                """
+                INSERT INTO pagamento_parcial
+                    (venda_id, data_pagamento, valor_pago, forma_pagamento, observacao, createdAt, updatedAt)
+                VALUES
+                    (%s, %s, %s, %s, %s, NOW(), NOW())
+                """,
+                (
+                    int(conta["venda_id"]),
+                    data_recebimento,
+                    float(valor_recebido),
+                    str(forma.get("nome") or "Forma"),
+                    observacao or "Recebimento posterior de pendência",
+                ),
+            )
+
+            novo_recebido = Decimal(str(conta.get("valor_recebido") or 0)) + valor_recebido
+            novo_aberto = aberto_atual - valor_recebido
+            novo_status = "QUITADA" if novo_aberto <= Decimal("0.00") else "PARCIALMENTE_RECEBIDA"
+
+            cursor.execute(
+                """
+                UPDATE contas_receber
+                SET valor_recebido = %s,
+                    valor_aberto = %s,
+                    status = %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (float(novo_recebido), float(novo_aberto), novo_status, int(conta_id)),
+            )
+
+            if novo_status == "QUITADA":
+                cursor.execute(
+                    """
+                    UPDATE vendas
+                    SET status = 'CONCLUIDA',
+                        updatedAt = NOW()
+                    WHERE id = %s
+                      AND status = 'CONCLUIDA_COM_PENDENCIA'
+                    """,
+                    (int(conta["venda_id"]),),
+                )
+
+            conn.commit()
+            return {
+                "conta_id": int(conta_id),
+                "venda_id": int(conta["venda_id"]),
+                "valor_recebido": valor_recebido,
+                "valor_aberto": novo_aberto,
+                "status": novo_status,
+                "forma_pagamento": str(forma.get("nome") or "Forma"),
+            }
+        except Exception:
+            conn.rollback()
+            raise
         finally:
             cursor.close()
             conn.close()
@@ -470,7 +757,7 @@ class FinanceiroModel:
             FROM pagamento_parcial pp
             INNER JOIN vendas v ON v.id = pp.venda_id
             WHERE v.caixa_id = %s
-              AND v.status IN ('CONCLUIDA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+              AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
               AND LOWER(TRIM(pp.forma_pagamento)) = 'dinheiro'
             """,
             (caixa_id,),
@@ -511,3 +798,31 @@ class FinanceiroModel:
         )
         row = cursor.fetchone() or {}
         return Decimal(row.get("total") or 0)
+
+    @staticmethod
+    def _contar_contas_abertas(
+        cursor: Any,
+        *,
+        data_inicial: date,
+        data_final: date,
+        pdv_id: Optional[int],
+    ) -> int:
+        inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
+        params: List[Any] = [inicio.date(), fim.date()]
+        if pdv_id:
+            params.append(int(pdv_id))
+        cursor.execute(
+            f"""
+            SELECT COUNT(*) AS total
+            FROM contas_receber cr
+            LEFT JOIN caixas cx ON cx.id = cr.caixa_id
+            WHERE cr.ativo = 'S'
+              AND cr.data_vencimento >= %s
+              AND cr.data_vencimento < %s
+              AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+              {FinanceiroModel._pdv_clause('cr.caixa_id', pdv_id, alias_caixa='cx')[0]}
+            """,
+            tuple(params),
+        )
+        row = cursor.fetchone() or {}
+        return int(row.get("total") or 0)

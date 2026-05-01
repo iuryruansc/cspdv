@@ -604,7 +604,13 @@ QLabel[metricTitle=&quot;true&quot;] { color: #e0e6f5; }</string>
           <number>14</number>
          </property>
          <item>
-          <widget class="QFrame" name="framePromocoes">
+         <widget class="QFrame" name="framePromocoes">
+           <property name="minimumSize">
+            <size>
+             <width>860</width>
+             <height>0</height>
+            </size>
+           </property>
            <layout class="QVBoxLayout" name="framePromocoesLayout">
             <property name="leftMargin">
              <number>16</number>

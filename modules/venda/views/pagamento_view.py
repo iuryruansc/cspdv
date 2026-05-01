@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
 )
 
 from ui.venda.tela_pagamento import Ui_TelaPagamento
+from modules.venda.views.finalizar_pendencia_dialog import FinalizarPendenciaDialog
 from utils.format_utils import formatar_moeda, numero_decimal
 from utils.ui_messages import mostrar_info
 
@@ -54,6 +55,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
     btnEnter: QPushButton
     btnPagamentoExato: QPushButton
     btnFecharPedido: QPushButton
+    btnFinalizarPendencia: QPushButton
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -95,6 +97,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
 
     def _configurar_interface(self) -> None:
         self.btnFecharPedido.setToolTip("Finalizar pagamento")
+        self.btnFinalizarPendencia.setToolTip("Concluir a venda com saldo em aberto para recebimento posterior")
 
     def _conectar_sinais(self) -> None:
         self.btnVoltar.clicked.connect(self.voltar_venda.emit)
@@ -124,6 +127,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.btnEnter.clicked.connect(self._lancar_pagamento)
         self.btnPagamentoExato.clicked.connect(self._usar_pagamento_exato)
         self.btnFecharPedido.clicked.connect(self._finalizar_pagamento)
+        self.btnFinalizarPendencia.clicked.connect(self._finalizar_com_pendencia)
         self.tableFormasPagamento.cellClicked.connect(self._ao_clicar_pagamento)
 
     def _atualizar_forma_selecionada(self, forma: str) -> None:
@@ -174,6 +178,8 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.lblRestanteValor.setText(formatar_moeda(restante))
         self.lblTrocoValor.setText(formatar_moeda(troco))
         self.btnFecharPedido.setEnabled(total > 0 and pagamentos >= total)
+        cliente_id = int((self._venda_data or {}).get("cliente_id") or 0)
+        self.btnFinalizarPendencia.setEnabled(total > 0 and 0 < pagamentos < total and cliente_id > 0)
 
     def _valor_restante(self) -> float:
         total = numero_decimal((self._venda_data or {}).get("total"))
@@ -210,6 +216,60 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
                     sum(numero_decimal(item["valor"]) for item in self._pagamentos)
                     - numero_decimal(self._venda_data.get("total")),
                 ),
+            }
+        )
+
+    def _finalizar_com_pendencia(self) -> None:
+        if not self._venda_data:
+            return
+
+        total = numero_decimal(self._venda_data.get("total"))
+        pagamentos = sum(numero_decimal(item["valor"]) for item in self._pagamentos)
+        restante = max(0.0, total - pagamentos)
+        cliente_id = int(self._venda_data.get("cliente_id") or 0)
+
+        if cliente_id <= 0:
+            mostrar_info(
+                self,
+                "Cliente obrigatório",
+                "Selecione um cliente antes de finalizar a venda com pendência.",
+            )
+            return
+
+        if pagamentos <= 0 or restante <= 0:
+            mostrar_info(
+                self,
+                "Pendência inválida",
+                "Lance um pagamento parcial antes de concluir a venda com pendência.",
+            )
+            return
+
+        dialog = FinalizarPendenciaDialog(
+            venda_data=self._venda_data,
+            valor_pago=pagamentos,
+            parent=self,
+        )
+        if dialog.exec_() != dialog.Accepted or not dialog.resultado:
+            return
+
+        self.venda_finalizada.emit(
+            {
+                "numero_venda": self._venda_data.get("numero_venda"),
+                "cliente_id": self._venda_data.get("cliente_id"),
+                "cliente_nome": self._venda_data.get("cliente_nome"),
+                "data_hora_venda": QDateTime.currentDateTime().toString("dd/MM/yyyy HH:mm:ss"),
+                "itens": list(self._venda_data.get("itens") or []),
+                "subtotal": self._venda_data.get("subtotal"),
+                "desconto_global": self._venda_data.get("desconto_global"),
+                "desconto_itens": self._venda_data.get("desconto_itens"),
+                "desconto_total": self._venda_data.get("desconto_total"),
+                "total": self._venda_data.get("total"),
+                "pagamentos": list(self._pagamentos),
+                "troco": 0.0,
+                "finalizar_com_pendencia": True,
+                "valor_em_aberto": restante,
+                "data_vencimento": dialog.resultado.get("data_vencimento"),
+                "observacao_pendencia": dialog.resultado.get("observacao"),
             }
         )
 

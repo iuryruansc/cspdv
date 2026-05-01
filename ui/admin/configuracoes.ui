@@ -1,2351 +1,365 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>TelaConfiguracoes</class>
- <widget class="QWidget" name="TelaConfiguracoes">
+ <class>ConfiguracoesWidget</class>
+ <widget class="QWidget" name="ConfiguracoesWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1376</width>
-    <height>744</height>
+    <width>1280</width>
+    <height>780</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>CSPdv - Configurações</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QWidget { font-family: Arial; }</string>
-  </property>
-  <layout class="QVBoxLayout" name="mainVLayout">
-   <property name="spacing">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="rootLayout">
    <property name="leftMargin">
-    <number>0</number>
+    <number>16</number>
    </property>
    <property name="topMargin">
-    <number>0</number>
+    <number>16</number>
    </property>
    <property name="rightMargin">
-    <number>0</number>
+    <number>16</number>
    </property>
    <property name="bottomMargin">
-    <number>0</number>
+    <number>16</number>
+   </property>
+   <property name="spacing">
+    <number>12</number>
    </property>
    <item>
-    <widget class="QFrame" name="frameHeader">
-     <property name="styleSheet">
-      <string notr="true">QFrame#frameHeader{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3585c8,stop:1 #1a5fa0);}</string>
+    <widget class="QLabel" name="lblTitle">
+     <property name="text">
+      <string>Configurações do Sistema</string>
      </property>
-     <layout class="QHBoxLayout" name="headerHL">
-      <property name="spacing">
-       <number>12</number>
-      </property>
-      <property name="leftMargin">
-       <number>14</number>
-      </property>
-      <property name="topMargin">
-       <number>8</number>
-      </property>
-      <property name="rightMargin">
-       <number>14</number>
-      </property>
-      <property name="bottomMargin">
-       <number>8</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="lblLogo">
-        <property name="styleSheet">
-         <string notr="true">color:white;font-size:28px;font-weight:bold;</string>
-        </property>
-        <property name="text">
-         <string>CSPdv</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QFrame" name="frameSep">
-        <property name="styleSheet">
-         <string notr="true">background-color:rgba(255,255,255,80);</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::VLine</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblBadge">
-        <property name="styleSheet">
-         <string notr="true">QLabel{background-color:rgba(255,255,255,30);color:#ffe080;font-size:12px;font-weight:bold;border:1px solid rgba(255,255,255,60);border-radius:4px;padding:3px 10px;}</string>
-        </property>
-        <property name="text">
-         <string>⚙  CONFIGURAÇÕES</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>10</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnVoltar">
-        <property name="minimumSize">
-         <size>
-          <width>90</width>
-          <height>32</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton{background-color:rgba(255,255,255,25);color:white;font-size:11px;font-weight:bold;border:1px solid rgba(255,255,255,60);border-radius:4px;padding:4px 12px;}QPushButton:hover{background-color:rgba(255,255,255,40);}QPushButton:pressed{background-color:rgba(255,255,255,15);}</string>
-        </property>
-        <property name="text">
-         <string>◀  Voltar</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QFrame" name="frameNavBar">
-     <property name="styleSheet">
-      <string notr="true">
-       QFrame#frameNavBar { background-color: #1a5fa0; }
-       QPushButton {
-        background-color: transparent;
-        color: #c8dff4;
-        font-size: 12px;
-        font-weight: bold;
-        border: none;
-        border-bottom: 3px solid transparent;
-        min-height: 44px;
-        padding: 6px 18px;
-       }
-       QPushButton:hover {
-        color: white;
-        background-color: rgba(255,255,255,15);
-        border-bottom: 3px solid rgba(255,255,255,60);
-       }
-       QPushButton:checked {
-        color: white;
-        background-color: rgba(255,255,255,20);
-        border-bottom: 3px solid #ffe080;
-       }
-       /* Sub-itens de catálogo (marcas/fornec/categ) — fonte menor */
-       QPushButton[navSub=&quot;true&quot;] {
-        font-size: 11px;
-        padding: 4px 12px;
-        color: #a8d4f0;
-       }
-       QPushButton[navSub=&quot;true&quot;]:hover  { color: white; }
-       QPushButton[navSub=&quot;true&quot;]:checked { color: white; }
-      </string>
+    <widget class="QLabel" name="lblHint">
+     <property name="text">
+      <string>Organize parâmetros iniciais de empresa, vendas, caixa, promoções e segurança sem sair do painel administrativo.</string>
      </property>
-     <layout class="QHBoxLayout" name="navHLayout">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="leftMargin">
-       <number>8</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QPushButton" name="btnNavDashboard">
-        <property name="text">
-         <string>⊞  Dashboard</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavVendas">
-        <property name="text">
-         <string>🛒  Vendas</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavProdutos">
-        <property name="text">
-         <string>📦  Produtos</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavClientes">
-        <property name="text">
-         <string>👥  Clientes</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavLotes">
-        <property name="text">
-         <string>📋  Lotes</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavUsuarios">
-        <property name="text">
-         <string>🔑  Usuários</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QFrame" name="navSeparator">
-        <property name="styleSheet">
-         <string notr="true">background-color:rgba(255,255,255,40);</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::VLine</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavMarcas">
-        <property name="text">
-         <string>🏷  Marcas</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavFornecedores">
-        <property name="text">
-         <string>🚚  Fornecedores</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavCategorias">
-        <property name="text">
-         <string>📂  Categorias</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnNavConfiguracoes">
-        <property name="text">
-         <string>⚙  Configurações</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="navSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>10</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="conteudoHL">
-     <property name="spacing">
-      <number>0</number>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QFrame" name="frameMenuSecoes">
-       <property name="styleSheet">
-        <string notr="true">
-          QFrame#frameMenuSecoes {
-           background-color: #c8dcea;
-           border-right: 1px solid #a8c4d8;
-          }
-          QPushButton {
-           background-color: transparent;
-           color: #3a6a8a;
-           font-size: 12px;
-           font-weight: bold;
-           border: none;
-           border-left: 3px solid transparent;
-           border-radius: 0px;
-           padding: 10px 14px;
-           text-align: left;
-           min-height: 42px;
-          }
-          QPushButton:hover {
-           background-color: rgba(53,133,200,12);
-           color: #1a5fa0;
-           border-left: 3px solid rgba(53,133,200,40);
-          }
-          QPushButton:checked {
-           background-color: rgba(53,133,200,18);
-           color: #1a5fa0;
-           border-left: 3px solid #3585c8;
-          }
-         </string>
+     <widget class="QWidget" name="scrollContent">
+      <layout class="QVBoxLayout" name="scrollLayout">
+       <property name="leftMargin">
+        <number>4</number>
        </property>
-       <layout class="QVBoxLayout" name="menuSecoesVL">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>8</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>8</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="btnSecEmpresa">
-          <property name="text">
-           <string>🏢  Empresa</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSecCaixa">
-          <property name="text">
-           <string>💲  Caixa</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSecImpressao">
-          <property name="text">
-           <string>🖶  Impressão</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSecEstoque">
-          <property name="text">
-           <string>📦  Estoque</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSecSeguranca">
-          <property name="text">
-           <string>🔒  Segurança</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSecSistema">
-          <property name="text">
-           <string>⚙  Sistema</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer>
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>10</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QStackedWidget" name="stackedConfigs">
-       <property name="styleSheet">
-        <string notr="true">QStackedWidget{background-color:#dce8f4;}</string>
+       <property name="topMargin">
+        <number>4</number>
        </property>
-       <property name="currentIndex">
-        <number>0</number>
+       <property name="rightMargin">
+        <number>4</number>
        </property>
-       <widget class="QWidget" name="pageEmpresa">
-        <layout class="QVBoxLayout" name="pageEmpresaVL">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QScrollArea" name="scrollEmpresa">
-           <property name="styleSheet">
-            <string notr="true">QScrollArea{background-color:#dce8f4;border:none;}QScrollBar:vertical{background:#dce8f4;width:10px;margin:0;}QScrollBar::handle:vertical{background:#a8c4d8;border-radius:4px;min-height:20px;}QScrollBar::handle:vertical:hover{background:#3585c8;}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}</string>
-           </property>
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollEmpresaContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>1174</width>
-              <height>546</height>
-             </rect>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <property name="spacing">
+        <number>14</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="frameEmpresa">
+         <layout class="QGridLayout" name="gridEmpresa">
+          <item row="0" column="0" colspan="3">
+           <widget class="QLabel" name="lblEmpresaTitulo">
+            <property name="text">
+             <string>Empresa e PDV</string>
             </property>
-            <layout class="QVBoxLayout" name="scrollEmpresaVL">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>16</number>
-             </property>
-             <property name="rightMargin">
-              <number>20</number>
-             </property>
-             <property name="bottomMargin">
-              <number>16</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblEmpresaTitle">
-               <property name="styleSheet">
-                <string notr="true">font-size:11px;font-weight:bold;color:#1a3a5c;border-bottom:2px solid #3585c8;padding-bottom:4px;letter-spacing:1px;</string>
-               </property>
-               <property name="text">
-                <string>DADOS DA EMPRESA</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlNomeEmpresa">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblNomeEmpresa">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Nome da empresa:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leNomeEmpresa">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlCNPJEmpresa">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblCNPJEmpresa">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>CNPJ:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leCNPJEmpresa">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlEnderecoEmp">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblEnderecoEmp">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Endereço:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leEnderecoEmp">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlTelefoneEmp">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblTelefoneEmp">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Telefone:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leTelefoneEmp">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlEmailEmp">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblEmailEmp">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>E-mail:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leEmailEmp">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlLogotipoEmp">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblLogotipoEmp">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Logotipo:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leLogotipoPath">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#f0f6fc;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}</string>
-                 </property>
-                 <property name="readOnly">
-                  <bool>true</bool>
-                 </property>
-                 <property name="placeholderText">
-                  <string>Caminho do arquivo...</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="btnEscolherLogotipo">
-                 <property name="minimumSize">
-                  <size>
-                   <width>90</width>
-                   <height>32</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3585c8,stop:1 #1a5fa0);color:white;font-size:12px;font-weight:bold;border:none;border-radius:4px;padding:4px 10px;}QPushButton:hover{background:#2a74b8;}QPushButton:pressed{background:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>📂 Escolher</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer>
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
            </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblRazaoSocial">
+            <property name="text">
+             <string>Razão Social</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="lblPdvPadrao">
+            <property name="text">
+             <string>PDV Padrão</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="lblMoeda">
+            <property name="text">
+             <string>Moeda</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLineEdit" name="lineEditRazaoSocial"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboPdvPadrao"/>
+          </item>
+          <item row="2" column="2">
+           <widget class="QComboBox" name="comboMoeda"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameVendas">
+         <layout class="QGridLayout" name="gridVendas">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="lblVendasTitulo">
+            <property name="text">
+             <string>Parâmetros de Venda</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblClientePadrao">
+            <property name="text">
+             <string>Cliente Padrão</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="lblRegraDesconto">
+            <property name="text">
+             <string>Regra de Desconto</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QComboBox" name="comboClientePadrao"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboRegraDesconto"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkVendaRapidaAdmin">
+            <property name="text">
+             <string>Habilitar Venda Rápida no painel admin</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="checkPermitirVendaSemEstoque">
+            <property name="text">
+             <string>Permitir venda sem estoque</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameCaixa">
+         <layout class="QGridLayout" name="gridCaixa">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="lblCaixaTitulo">
+            <property name="text">
+             <string>Parâmetros de Caixa</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblFundoSugerido">
+            <property name="text">
+             <string>Fundo Inicial Sugerido</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLineEdit" name="lineEditFundoSugerido"/>
+          </item>
+          <item row="1" column="1" rowspan="3">
+           <layout class="QVBoxLayout" name="boxCaixaChecks">
+            <item>
+             <widget class="QCheckBox" name="checkExigirAdminSangria">
+              <property name="text">
+               <string>Exigir admin em sangria</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkExigirAdminReembolso">
+              <property name="text">
+               <string>Exigir admin em reembolso</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkExigirAdminDiferenca">
+              <property name="text">
+               <string>Exigir admin em diferença no fechamento</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="framePromocoes">
+         <layout class="QGridLayout" name="gridPromocoes">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lblPromocoesTitulo">
+            <property name="text">
+             <string>Promoções</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblPrioridadePromocao">
+            <property name="text">
+             <string>Prioridade Promocional</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QComboBox" name="comboPrioridadePromocao"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkBloquearPromocoesSimultaneas">
+            <property name="text">
+             <string>Bloquear promoções simultâneas por produto</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="checkAtivarPorVigencia">
+            <property name="text">
+             <string>Ativar promoções automaticamente pela vigência</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameSeguranca">
+         <layout class="QGridLayout" name="gridSeguranca">
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="lblSegurancaTitulo">
+            <property name="text">
+             <string>Segurança e Sessão</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblHorasSessao">
+            <property name="text">
+             <string>Horas de Sessão Persistida</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLineEdit" name="lineEditHorasSessao"/>
+          </item>
+          <item row="1" column="1" rowspan="2">
+           <layout class="QVBoxLayout" name="boxSegurancaChecks">
+            <item>
+             <widget class="QCheckBox" name="checkRestaurarLogin">
+              <property name="text">
+               <string>Restaurar login automaticamente quando válido</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBloquearFecharAppCaixa">
+              <property name="text">
+               <string>Bloquear fechamento do programa com caixa aberto</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frameSistema">
+         <layout class="QGridLayout" name="gridSistema">
+          <item row="0" column="0" colspan="3">
+           <widget class="QLabel" name="lblSistemaTitulo">
+            <property name="text">
+             <string>Sistema</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lblIntervaloBackup">
+            <property name="text">
+             <string>Intervalo de Backup (h)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="lblPerfilLog">
+            <property name="text">
+             <string>Perfil de Log</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="lblVersaoReferencia">
+            <property name="text">
+             <string>Versão de Referência</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLineEdit" name="lineEditIntervaloBackup"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboPerfilLog"/>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLineEdit" name="lineEditVersaoReferencia"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="buttonLayout">
+         <item>
+          <spacer>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnRestaurarPadroes">
+           <property name="text">
+            <string>Restaurar padrões</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSalvarParametros">
+           <property name="text">
+            <string>Salvar parâmetros</string>
+           </property>
           </widget>
          </item>
         </layout>
-       </widget>
-       <widget class="QWidget" name="pageCaixa">
-        <layout class="QVBoxLayout" name="pageCaixaVL">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QScrollArea" name="scrollCaixa">
-           <property name="styleSheet">
-            <string notr="true">QScrollArea{background-color:#dce8f4;border:none;}QScrollBar:vertical{background:#dce8f4;width:10px;margin:0;}QScrollBar::handle:vertical{background:#a8c4d8;border-radius:4px;min-height:20px;}QScrollBar::handle:vertical:hover{background:#3585c8;}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}</string>
-           </property>
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollCaixaContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>523</width>
-              <height>268</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="scrollCaixaVL">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>16</number>
-             </property>
-             <property name="rightMargin">
-              <number>20</number>
-             </property>
-             <property name="bottomMargin">
-              <number>16</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblCaixaTitle">
-               <property name="styleSheet">
-                <string notr="true">font-size:11px;font-weight:bold;color:#1a3a5c;border-bottom:2px solid #3585c8;padding-bottom:4px;letter-spacing:1px;</string>
-               </property>
-               <property name="text">
-                <string>OPERAÇÕES DE CAIXA</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlNumCaixas">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblNumCaixas">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Número de caixas:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinNumCaixas">
-                 <property name="styleSheet">
-                  <string notr="true">QSpinBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QSpinBox:focus{border-color:#3585c8;}</string>
-                 </property>
-                 <property name="suffix">
-                  <string> caixas</string>
-                 </property>
-                 <property name="maximum">
-                  <number>20</number>
-                 </property>
-                 <property name="value">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlTrocoMinimo">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblTrocoMinimo">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Fundo mínimo de abertura:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leTrocoMinimo">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlSenhaSangria">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblSenhaSangria">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Exigir senha para sangria:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkSenhaSangria">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Sim, exigir senha do administrador</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlLimiteSangria">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblLimiteSangria">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Limite de sangria por operação:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leLimiteSangria">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlConfirmarVenda">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblConfirmarVenda">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Modal de confirmação de venda:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkConfirmarVenda">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Exibir resumo antes de ir para pagamento</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer>
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="pageImpressao">
-        <layout class="QVBoxLayout" name="pageImpressaoVL">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QScrollArea" name="scrollImpressao">
-           <property name="styleSheet">
-            <string notr="true">QScrollArea{background-color:#dce8f4;border:none;}QScrollBar:vertical{background:#dce8f4;width:10px;margin:0;}QScrollBar::handle:vertical{background:#a8c4d8;border-radius:4px;min-height:20px;}QScrollBar::handle:vertical:hover{background:#3585c8;}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}</string>
-           </property>
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollImpressaoContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>551</width>
-              <height>268</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="scrollImpressaoVL">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>16</number>
-             </property>
-             <property name="rightMargin">
-              <number>20</number>
-             </property>
-             <property name="bottomMargin">
-              <number>16</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblImpressaoTitle">
-               <property name="styleSheet">
-                <string notr="true">font-size:11px;font-weight:bold;color:#1a3a5c;border-bottom:2px solid #3585c8;padding-bottom:4px;letter-spacing:1px;</string>
-               </property>
-               <property name="text">
-                <string>IMPRESSÃO</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlImpressora">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblImpressora">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Impressora padrão:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QComboBox" name="comboImpressora">
-                 <property name="styleSheet">
-                  <string notr="true">QComboBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QComboBox:focus{border-color:#3585c8;}QComboBox::drop-down{border:none;width:22px;}QComboBox QAbstractItemView{background-color:#ffffff;border:1px solid #a8c4d8;selection-background-color:#3585c8;selection-color:white;}</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Selecionar impressora...</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlLarguraCupom">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblLarguraCupom">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Largura do cupom:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QComboBox" name="comboLarguraCupom">
-                 <property name="styleSheet">
-                  <string notr="true">QComboBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QComboBox:focus{border-color:#3585c8;}QComboBox::drop-down{border:none;width:22px;}QComboBox QAbstractItemView{background-color:#ffffff;border:1px solid #a8c4d8;selection-background-color:#3585c8;selection-color:white;}</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>58mm</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>80mm</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlColunasCupom">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblColunasCupom">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Colunas do cupom:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinColunasCupom">
-                 <property name="styleSheet">
-                  <string notr="true">QSpinBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QSpinBox:focus{border-color:#3585c8;}</string>
-                 </property>
-                 <property name="suffix">
-                  <string> colunas</string>
-                 </property>
-                 <property name="maximum">
-                  <number>80</number>
-                 </property>
-                 <property name="value">
-                  <number>48</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlImprimirAuto">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblImprimirAuto">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Imprimir automaticamente:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkImprimirAuto">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Imprimir cupom ao finalizar pagamento</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlGavetaDinheiro">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblGavetaDinheiro">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Acionar gaveta:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkGavetaDinheiro">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Abrir gaveta de dinheiro ao receber em espécie</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer>
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="pageEstoque">
-        <layout class="QVBoxLayout" name="pageEstoqueVL">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QScrollArea" name="scrollEstoque">
-           <property name="styleSheet">
-            <string notr="true">QScrollArea{background-color:#dce8f4;border:none;}QScrollBar:vertical{background:#dce8f4;width:10px;margin:0;}QScrollBar::handle:vertical{background:#a8c4d8;border-radius:4px;min-height:20px;}QScrollBar::handle:vertical:hover{background:#3585c8;}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}</string>
-           </property>
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollEstoqueContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>529</width>
-              <height>256</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="scrollEstoqueVL">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>16</number>
-             </property>
-             <property name="rightMargin">
-              <number>20</number>
-             </property>
-             <property name="bottomMargin">
-              <number>16</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblEstoqueTitle">
-               <property name="styleSheet">
-                <string notr="true">font-size:11px;font-weight:bold;color:#1a3a5c;border-bottom:2px solid #3585c8;padding-bottom:4px;letter-spacing:1px;</string>
-               </property>
-               <property name="text">
-                <string>CONTROLE DE ESTOQUE</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlAlertaEstoqueMin">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblAlertaEstoqueMin">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Alerta de estoque mínimo:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkAlertaEstoqueMin">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Alertar quando estoque atingir mínimo</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlEstoqueMinPadrao">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblEstoqueMinPadrao">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Quantidade mínima padrão:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinEstoqueMinPadrao">
-                 <property name="styleSheet">
-                  <string notr="true">QSpinBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QSpinBox:focus{border-color:#3585c8;}</string>
-                 </property>
-                 <property name="suffix">
-                  <string> un.</string>
-                 </property>
-                 <property name="maximum">
-                  <number>9999</number>
-                 </property>
-                 <property name="value">
-                  <number>5</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlAlertaVencimento">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblAlertaVencimento">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Alerta de vencimento de lotes:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkAlertaVencimento">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Alertar sobre lotes próximos ao vencimento</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlDiasAntesVenc">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblDiasAntesVenc">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Alertar com antecedência de:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinDiasAntesVenc">
-                 <property name="styleSheet">
-                  <string notr="true">QSpinBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QSpinBox:focus{border-color:#3585c8;}</string>
-                 </property>
-                 <property name="suffix">
-                  <string> dias</string>
-                 </property>
-                 <property name="maximum">
-                  <number>365</number>
-                 </property>
-                 <property name="value">
-                  <number>30</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlBaixaAutomatica">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblBaixaAutomatica">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Baixa automática de estoque:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkBaixaAutomatica">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Dar baixa ao confirmar a venda</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer>
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="pageSeguranca">
-        <layout class="QVBoxLayout" name="pageSegurancaVL">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QScrollArea" name="scrollSeguranca">
-           <property name="styleSheet">
-            <string notr="true">QScrollArea{background-color:#dce8f4;border:none;}QScrollBar:vertical{background:#dce8f4;width:10px;margin:0;}QScrollBar::handle:vertical{background:#a8c4d8;border-radius:4px;min-height:20px;}QScrollBar::handle:vertical:hover{background:#3585c8;}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}</string>
-           </property>
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollSegurancaContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>522</width>
-              <height>224</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="scrollSegurancaVL">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>16</number>
-             </property>
-             <property name="rightMargin">
-              <number>20</number>
-             </property>
-             <property name="bottomMargin">
-              <number>16</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblSegurancaTitle">
-               <property name="styleSheet">
-                <string notr="true">font-size:11px;font-weight:bold;color:#1a3a5c;border-bottom:2px solid #3585c8;padding-bottom:4px;letter-spacing:1px;</string>
-               </property>
-               <property name="text">
-                <string>SEGURANÇA</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlSessaoTimeout">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblSessaoTimeout">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Tempo de inatividade:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinSessaoTimeout">
-                 <property name="styleSheet">
-                  <string notr="true">QSpinBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QSpinBox:focus{border-color:#3585c8;}</string>
-                 </property>
-                 <property name="suffix">
-                  <string> min</string>
-                 </property>
-                 <property name="maximum">
-                  <number>480</number>
-                 </property>
-                 <property name="value">
-                  <number>30</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlLogAuditoria">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblLogAuditoria">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Log de auditoria:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkLogAuditoria">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Registrar todas as ações dos operadores</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlSenhaDesconto">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblSenhaDesconto">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Senha para descontos:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkSenhaDesconto">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Exigir autorização para aplicar desconto</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlPercMaxDesconto">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblPercMaxDesconto">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Desconto máximo sem senha:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinPercMaxDesconto">
-                 <property name="styleSheet">
-                  <string notr="true">QSpinBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QSpinBox:focus{border-color:#3585c8;}</string>
-                 </property>
-                 <property name="suffix">
-                  <string> %</string>
-                 </property>
-                 <property name="maximum">
-                  <number>100</number>
-                 </property>
-                 <property name="value">
-                  <number>10</number>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer>
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="pageSistema">
-        <layout class="QVBoxLayout" name="pageSistemaVL">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QScrollArea" name="scrollSistema">
-           <property name="styleSheet">
-            <string notr="true">QScrollArea{background-color:#dce8f4;border:none;}QScrollBar:vertical{background:#dce8f4;width:10px;margin:0;}QScrollBar::handle:vertical{background:#a8c4d8;border-radius:4px;min-height:20px;}QScrollBar::handle:vertical:hover{background:#3585c8;}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0px;}</string>
-           </property>
-           <property name="widgetResizable">
-            <bool>true</bool>
-           </property>
-           <widget class="QWidget" name="scrollSistemaContents">
-            <property name="geometry">
-             <rect>
-              <x>0</x>
-              <y>0</y>
-              <width>546</width>
-              <height>280</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="scrollSistemaVL">
-             <property name="spacing">
-              <number>10</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>16</number>
-             </property>
-             <property name="rightMargin">
-              <number>20</number>
-             </property>
-             <property name="bottomMargin">
-              <number>16</number>
-             </property>
-             <item>
-              <widget class="QLabel" name="lblSistemaTitle">
-               <property name="styleSheet">
-                <string notr="true">font-size:11px;font-weight:bold;color:#1a3a5c;border-bottom:2px solid #3585c8;padding-bottom:4px;letter-spacing:1px;</string>
-               </property>
-               <property name="text">
-                <string>SISTEMA</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlMoedaSimbolo">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblMoedaSimbolo">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Símbolo da moeda:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leMoedaSimbolo">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlFormatoData">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblFormatoData">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Formato de data:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QComboBox" name="comboFormatoData">
-                 <property name="styleSheet">
-                  <string notr="true">QComboBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QComboBox:focus{border-color:#3585c8;}QComboBox::drop-down{border:none;width:22px;}QComboBox QAbstractItemView{background-color:#ffffff;border:1px solid #a8c4d8;selection-background-color:#3585c8;selection-color:white;}</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>dd/MM/yyyy</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>MM/dd/yyyy</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlBackupAutomatico">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblBackupAutomatico">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Backup automático:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="checkBackupAutomatico">
-                 <property name="styleSheet">
-                  <string notr="true">QCheckBox{font-size:12px;color:#1a3a5c;spacing:6px;}QCheckBox::indicator{width:16px;height:16px;border:2px solid #a8c4d8;border-radius:3px;background:#ffffff;}QCheckBox::indicator:checked{background-color:#3585c8;border-color:#1a5fa0;}</string>
-                 </property>
-                 <property name="text">
-                  <string>Realizar backup diário dos dados</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlCaminhoBackup">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblCaminhoBackup">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Destino do backup:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="leCaminhoBackup">
-                 <property name="styleSheet">
-                  <string notr="true">QLineEdit{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QLineEdit:focus{border-color:#3585c8;}</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="hlTema">
-               <property name="spacing">
-                <number>12</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="lblTema">
-                 <property name="styleSheet">
-                  <string notr="true">font-size:12px;color:#1a3a5c;</string>
-                 </property>
-                 <property name="text">
-                  <string>Tema da interface:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <spacer>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>10</width>
-                   <height>10</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QComboBox" name="comboTema">
-                 <property name="styleSheet">
-                  <string notr="true">QComboBox{background-color:#ffffff;border:2px solid #a8c4d8;border-radius:4px;font-size:12px;color:#1a3a5c;padding:3px 8px;}QComboBox:focus{border-color:#3585c8;}QComboBox::drop-down{border:none;width:22px;}QComboBox QAbstractItemView{background-color:#ffffff;border:1px solid #a8c4d8;selection-background-color:#3585c8;selection-color:white;}</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Claro (padrão)</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Escuro</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer>
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>10</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QFrame" name="frameRodape">
-     <property name="styleSheet">
-      <string notr="true">
-       QFrame#frameRodape {
-        background-color: #ffffff;
-        border-top: 2px solid #a8c4d8;
-       }
-      </string>
-     </property>
-     <layout class="QHBoxLayout" name="rodapeHL">
-      <property name="spacing">
-       <number>10</number>
-      </property>
-      <property name="leftMargin">
-       <number>20</number>
-      </property>
-      <property name="topMargin">
-       <number>8</number>
-      </property>
-      <property name="rightMargin">
-       <number>20</number>
-      </property>
-      <property name="bottomMargin">
-       <number>8</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="lblAlteracoesPendentes">
-        <property name="visible">
-         <bool>false</bool>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">
-          QLabel {
-           background-color: #fff8e0;
-           border: 1px solid #e0c040;
-           border-radius: 4px;
-           font-size: 12px;
-           font-weight: bold;
-           color: #806000;
-           padding: 4px 12px;
-          }
-         </string>
-        </property>
-        <property name="text">
-         <string>ⓘ  Alterações não salvas</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>10</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnRestaurarPadroes">
-        <property name="minimumSize">
-         <size>
-          <width>160</width>
-          <height>36</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">
-          QPushButton{background-color:#f0f0f0;color:#555555;font-size:12px;font-weight:bold;border:1px solid #bbbbbb;border-radius:5px;padding:5px 14px;}
-          QPushButton:hover{background-color:#e0e0e0;}
-          QPushButton:pressed{background-color:#cccccc;}
-         </string>
-        </property>
-        <property name="text">
-         <string>↻  Restaurar Padrões</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnCancelar">
-        <property name="minimumSize">
-         <size>
-          <width>120</width>
-          <height>36</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">
-          QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #fce8e8,stop:1 #f0cccc);color:#6a1a1a;font-size:12px;font-weight:bold;border:1px solid #cc7070;border-radius:5px;padding:5px 14px;}
-          QPushButton:hover{background:#f8d8d8;border-color:#aa4444;}
-          QPushButton:pressed{background:#e8b8b8;}
-         </string>
-        </property>
-        <property name="text">
-         <string>✕  Cancelar</string>
-        </property>
-        <property name="shortcut">
-         <string>Esc</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnSalvar">
-        <property name="minimumSize">
-         <size>
-          <width>180</width>
-          <height>36</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">
-          QPushButton{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3585c8,stop:1 #1a5fa0);color:white;font-size:12px;font-weight:bold;border:none;border-radius:5px;padding:5px 14px;}
-          QPushButton:hover{background:#2a74b8;}
-          QPushButton:pressed{background:#1a5fa0;}
-         </string>
-        </property>
-        <property name="text">
-         <string>💾  Salvar Configurações</string>
-        </property>
-        <property name="shortcut">
-         <string>Return</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QFrame" name="frameStatusBar">
-     <property name="styleSheet">
-      <string notr="true">QFrame#frameStatusBar{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,stop:0 #3585c8,stop:1 #1a5fa0);}</string>
-     </property>
-     <layout class="QHBoxLayout" name="statusHL">
-      <property name="leftMargin">
-       <number>12</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>12</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="lblStatusBar">
-        <property name="styleSheet">
-         <string notr="true">color:white;font-size:11px;font-weight:bold;</string>
-        </property>
-        <property name="text">
-         <string>CSPdv - Operador: ADMIN  |  Configurações</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>10</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QLabel" name="lblVersao">
-        <property name="styleSheet">
-         <string notr="true">color:#a0c8e8;font-size:11px;</string>
-        </property>
-        <property name="text">
-         <string>CSPdv v1.0.0</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>

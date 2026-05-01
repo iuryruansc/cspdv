@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, Iterable, List, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 from database.connection import get_connection
 
@@ -30,6 +30,8 @@ class VendaModel:
         desconto_global: float,
         valor_total: float,
         data_hora: datetime,
+        status_venda: str = "CONCLUIDA",
+        conta_receber: Optional[Dict[str, Any]] = None,
     ) -> int:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
@@ -41,6 +43,7 @@ class VendaModel:
                 caixa_id=caixa_id,
                 valor_total=valor_total,
                 data_hora=data_hora,
+                status_venda=status_venda,
             )
 
             totais_finais = VendaModel._ratear_total_final_itens(
@@ -142,6 +145,17 @@ class VendaModel:
                     (venda_id, data_hora, float(valor_pago), forma_pagamento),
                 )
 
+            if conta_receber:
+                VendaModel._inserir_conta_receber(
+                    cursor=cursor,
+                    venda_id=venda_id,
+                    cliente_id=int(conta_receber.get("cliente_id") or 0),
+                    usuario_id=usuario_id,
+                    caixa_id=caixa_id,
+                    data_hora=data_hora,
+                    dados=conta_receber,
+                )
+
             conn.commit()
             return venda_id
         except Exception:
@@ -163,7 +177,7 @@ class VendaModel:
                     COALESCE(SUM(valor_total), 0) AS faturamento_total
                 FROM vendas
                 WHERE caixa_id = %s
-                  AND status = 'CONCLUIDA'
+                  AND status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA')
                 """,
                 (caixa_id,),
             )
@@ -178,7 +192,7 @@ class VendaModel:
                 FROM pagamento_parcial pp
                 INNER JOIN vendas v ON v.id = pp.venda_id
                 WHERE v.caixa_id = %s
-                  AND v.status = 'CONCLUIDA'
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA')
                 GROUP BY pp.forma_pagamento
                 ORDER BY pp.forma_pagamento
                 """,
@@ -192,7 +206,7 @@ class VendaModel:
                 FROM pagamento_parcial pp
                 INNER JOIN vendas v ON v.id = pp.venda_id
                 WHERE v.caixa_id = %s
-                  AND v.status = 'CONCLUIDA'
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA')
                   AND LOWER(pp.forma_pagamento) = 'dinheiro'
                 """,
                 (caixa_id,),
@@ -218,20 +232,68 @@ class VendaModel:
         caixa_id: int,
         valor_total: float,
         data_hora: datetime,
+        status_venda: str,
     ) -> int:
         cursor.execute(
             """
             INSERT INTO vendas
                 (data_hora, cliente_id, usuario_id, caixa_id, valor_total, status, createdAt, updatedAt)
             VALUES
-                (%s, %s, %s, %s, %s, 'CONCLUIDA', NOW(), NOW())
+                (%s, %s, %s, %s, %s, %s, NOW(), NOW())
             """,
-            (data_hora, cliente_id, usuario_id, caixa_id, valor_total),
+            (data_hora, cliente_id, usuario_id, caixa_id, valor_total, status_venda),
         )
         venda_id = cursor.lastrowid
         if venda_id is None:
             raise RuntimeError("Nao foi possivel obter o ID da venda registrada.")
         return int(venda_id)
+
+    @staticmethod
+    def _inserir_conta_receber(
+        *,
+        cursor,
+        venda_id: int,
+        cliente_id: int,
+        usuario_id: int,
+        caixa_id: int,
+        data_hora: datetime,
+        dados: Dict[str, Any],
+    ) -> None:
+        if cliente_id <= 0:
+            raise ValueError("Cliente inválido para gerar conta a receber.")
+
+        valor_total = Decimal(str(dados.get("valor_total") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
+        valor_recebido = Decimal(str(dados.get("valor_recebido") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
+        valor_aberto = Decimal(str(dados.get("valor_aberto") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
+        data_vencimento = str(dados.get("data_vencimento") or "").strip()
+        if not data_vencimento:
+            raise ValueError("Informe a data de vencimento da pendência.")
+
+        cursor.execute(
+            """
+            INSERT INTO contas_receber
+                (
+                    venda_id, cliente_id, usuario_id, caixa_id, descricao, observacao,
+                    valor_total, valor_recebido, valor_aberto, data_emissao, data_vencimento,
+                    status, ativo, createdAt, updatedAt
+                )
+            VALUES
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE', 'S', NOW(), NOW())
+            """,
+            (
+                venda_id,
+                cliente_id,
+                usuario_id,
+                caixa_id,
+                f"Saldo pendente da venda #{venda_id}",
+                str(dados.get("observacao") or "").strip() or None,
+                float(valor_total),
+                float(valor_recebido),
+                float(valor_aberto),
+                data_hora,
+                data_vencimento,
+            ),
+        )
 
     @staticmethod
     def _alocar_lotes_saida(*, cursor, produto_id: int, quantidade: int) -> List[LoteAlocacao]:

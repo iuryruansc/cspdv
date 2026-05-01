@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Dict, List
 
 from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
@@ -75,6 +76,25 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
                 f"Subtotal: {formatar_moeda(self._venda_data.get('subtotal') or 0.0)}",
                 f"Desconto: {formatar_moeda(self._venda_data.get('desconto_total') or 0.0)}",
                 f"Total:    {formatar_moeda(self._venda_data.get('total') or 0.0)}",
+            ]
+        )
+        valor_em_aberto = float(self._venda_data.get("valor_em_aberto") or 0.0)
+        if valor_em_aberto > 0:
+            vencimento = str(self._venda_data.get("data_vencimento") or "").strip()
+            if vencimento:
+                try:
+                    vencimento = datetime.strptime(vencimento, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except ValueError:
+                    pass
+            linhas.extend(
+                [
+                    f"Em aberto: {formatar_moeda(valor_em_aberto)}",
+                    f"Vencimento: {vencimento or '--/--/----'}",
+                    f"Status: {str(self._venda_data.get('status') or 'CONCLUIDA_COM_PENDENCIA').replace('_', ' ')}",
+                ]
+            )
+        linhas.extend(
+            [
                 "-" * 40,
                 "PAGAMENTOS",
                 "-" * 40,

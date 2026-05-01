@@ -26,6 +26,7 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
         self._cadastro_promocao_dialog = None
         self._vincular_produtos_dialog = None
 
+        self._configurar_tamanho_responsivo()
         self._configurar_operador()
         self._configurar_relogio()
         self._conectar_retorno_selecao()
