@@ -159,7 +159,14 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lblInfoStatusVenda.setText("● Venda em aberto")
 
     def _abrir_consulta_produto(self) -> None:
-        ModalConsultaProdutoView(self).exec_()
+        dialog = ModalConsultaProdutoView(self)
+        if dialog.exec_() != dialog.Accepted or not dialog.produto_selecionado:
+            return
+
+        self._produto_atual = dialog.produto_selecionado
+        self.lineEditDescricaoProduto.setText(str(self._produto_atual.get("nome") or ""))
+        self._preencher_preview_produto(self._produto_atual)
+        self._adicionar_produto_pelo_enter()
 
     def _alterar_cliente(self) -> None:
         dialog = SelecionarClienteDialog(self)

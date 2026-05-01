@@ -305,18 +305,7 @@ class Ui_CadastroPromocao(object):
         row.setSpacing(16)
         row.addLayout(self._criar_campo_data(self.frameVigencia, "lblDataInicio", "dateTimeInicio"), 4)
         row.addLayout(self._criar_campo_data(self.frameVigencia, "lblDataFim", "dateTimeFim"), 4)
-
-        checksWrap = QtWidgets.QVBoxLayout()
-        checksWrap.setSpacing(10)
-        checksWrap.setContentsMargins(0, 24, 0, 0)
-        self.checkBoxCumulativa = QtWidgets.QCheckBox(self.frameVigencia)
-        self.checkBoxCumulativa.setObjectName("checkBoxCumulativa")
-        checksWrap.addWidget(self.checkBoxCumulativa)
-        self.checkBoxAtiva = QtWidgets.QCheckBox(self.frameVigencia)
-        self.checkBoxAtiva.setObjectName("checkBoxAtiva")
-        checksWrap.addWidget(self.checkBoxAtiva)
-        checksWrap.addStretch()
-        row.addLayout(checksWrap, 3)
+        row.addStretch(1)
         layout.addLayout(row)
 
     def _montar_regra_financeira(self):
@@ -380,8 +369,6 @@ class Ui_CadastroPromocao(object):
         self.lblSecaoVigencia.setText(_translate("CadastroPromocao", "Vigencia"))
         self.lblDataInicio.setText(_translate("CadastroPromocao", "Inicio *"))
         self.lblDataFim.setText(_translate("CadastroPromocao", "Fim *"))
-        self.checkBoxCumulativa.setText(_translate("CadastroPromocao", "Promocao cumulativa"))
-        self.checkBoxAtiva.setText(_translate("CadastroPromocao", "Registro ativo"))
         self.lblSecaoValores.setText(_translate("CadastroPromocao", "Regra Financeira"))
         self.lblDescontoPercentual.setText(_translate("CadastroPromocao", "Desconto Percentual (%)"))
         self.lblDescontoValor.setText(_translate("CadastroPromocao", "Desconto em Valor (R$)"))

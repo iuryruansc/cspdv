@@ -47,7 +47,6 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
             self.dateTimeInicio.setDateTime(agora)
             self.dateTimeFim.setDateTime(agora.addDays(7))
-            self.checkBoxAtiva.setChecked(True)
             self._ajustar_campos_por_tipo()
 
     def _carregar_promocao(self) -> None:
@@ -75,8 +74,6 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.lineEditPrecoFixo.setText(str(promocao.get("preco_fixo") or 0))
         self.textEditDescricao.setPlainText(str(promocao.get("descricao") or ""))
         self.textEditObservacao.setPlainText(str(promocao.get("observacao") or ""))
-        self.checkBoxCumulativa.setChecked(str(promocao.get("cumulativa") or "N").upper() == "S")
-        self.checkBoxAtiva.setChecked(str(promocao.get("ativo") or "N").upper() == "S")
         self._ajustar_campos_por_tipo()
 
     def _ajustar_campos_por_tipo(self) -> None:
@@ -117,8 +114,8 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             "preco_fixo": self.lineEditPrecoFixo.text().strip(),
             "data_inicio": self.dateTimeInicio.dateTime().toPyDateTime(),
             "data_fim": self.dateTimeFim.dateTime().toPyDateTime(),
-            "cumulativa": self.checkBoxCumulativa.isChecked(),
-            "ativo": self.checkBoxAtiva.isChecked(),
+            "cumulativa": False,
+            "ativo": True,
         }
 
         if self.promocao_id > 0:
@@ -159,8 +156,6 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             self.lineEditPrecoFixo.setText("0")
             self.textEditDescricao.clear()
             self.textEditObservacao.clear()
-            self.checkBoxCumulativa.setChecked(False)
-            self.checkBoxAtiva.setChecked(True)
             agora = QDateTime.currentDateTime()
             self.dateTimeInicio.setDateTime(agora)
             self.dateTimeFim.setDateTime(agora.addDays(7))

@@ -471,20 +471,6 @@ QPushButton#btnVoltar {
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="QCheckBox" name="checkBoxCumulativa">
-          <property name="text">
-           <string>Promocao cumulativa</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="3">
-         <widget class="QCheckBox" name="checkBoxAtiva">
-          <property name="text">
-           <string>Registro ativo</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item>

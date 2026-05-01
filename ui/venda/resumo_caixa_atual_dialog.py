@@ -6,8 +6,8 @@ from PyQt5 import QtCore, QtWidgets
 class Ui_ResumoCaixaAtualDialog(object):
     def setupUi(self, ResumoCaixaAtualDialog):
         ResumoCaixaAtualDialog.setObjectName("ResumoCaixaAtualDialog")
-        ResumoCaixaAtualDialog.resize(860, 600)
-        ResumoCaixaAtualDialog.setMinimumSize(QtCore.QSize(820, 580))
+        ResumoCaixaAtualDialog.resize(880, 700)
+        ResumoCaixaAtualDialog.setMinimumSize(QtCore.QSize(840, 660))
         ResumoCaixaAtualDialog.setStyleSheet(
             """
             QDialog {
