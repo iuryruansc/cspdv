@@ -57,8 +57,11 @@ class ProdutoModel:
                         FROM promocao_produtos pp2
                         INNER JOIN promocoes pr2 ON pr2.id = pp2.promocao_id
                         WHERE pp2.produto_id = p.id
-                          AND {filtro_promocao}
-                        ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
+                          AND pp2.ativo = 'S'
+                          AND pr2.ativo = 'S'
+                          AND pr2.status = 'ATIVA'
+                          AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim
+                        ORDER BY pr2.data_inicio DESC, pp2.id DESC
                         LIMIT 1
                     )
                 LEFT JOIN promocoes promo ON promo.id = ppromo.promocao_id

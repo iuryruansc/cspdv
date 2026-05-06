@@ -6,16 +6,7 @@ from typing import Any, Optional
 
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtGui import QColor, QBrush, QFont
-from PyQt5.QtWidgets import (
-    QComboBox,
-    QInputDialog,
-    QLabel,
-    QLineEdit,
-    QMainWindow,
-    QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-)
+from PyQt5.QtWidgets import QLabel, QComboBox, QLineEdit, QMainWindow, QPushButton, QTableWidget, QTableWidgetItem
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
