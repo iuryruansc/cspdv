@@ -21,9 +21,9 @@ class VendaService:
         pagamentos = list(venda_data.get("pagamentos") or [])
 
         if usuario_id <= 0 or funcionario_id <= 0:
-            return False, "Nao foi possivel identificar o operador da venda.", None
+            return False, "Não foi possível identificar o operador da venda.", None
         if caixa_id <= 0:
-            return False, "Nao ha caixa aberto para registrar a venda.", None
+            return False, "Não há caixa aberto para registrar a venda.", None
         if not itens:
             return False, "Adicione pelo menos um item antes de finalizar a venda.", None
         if not pagamentos:

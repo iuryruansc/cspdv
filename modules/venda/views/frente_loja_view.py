@@ -139,7 +139,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             mostrar_aviso(
                 self,
                 "Resumo do caixa",
-                "Nao ha um caixa aberto nesta sessao para exibir o resumo operacional.",
+                "Não há um caixa aberto nesta sessão para exibir o resumo operacional.",
             )
             return
 
@@ -284,7 +284,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     def _on_venda_finalizada(self, venda_data: dict) -> None:
         sucesso, mensagem, venda_registrada = VendaService.finalizar_venda(venda_data)
         if not sucesso or venda_registrada is None:
-            mostrar_aviso(self, "Venda nao registrada", mensagem)
+            mostrar_aviso(self, "Venda não registrada", mensagem)
             return
 
         dialog = PosPagamentoDialog(venda_data=venda_registrada, parent=self)
@@ -369,8 +369,8 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         mostrar_aviso(
             self,
             "Caixa aberto",
-            "Nao e possivel sair da frente de loja enquanto houver um caixa aberto.\n\n"
-            "Feche o caixa primeiro ou acesse outro modulo com um usuario que tenha mais de uma permissao operacional.",
+            "Não é possível sair da frente de loja enquanto houver um caixa aberto.\n\n"
+            "Feche o caixa primeiro ou acesse outro módulo com um usuário que tenha mais de uma permissão operacional.",
         )
         return False
 
@@ -384,7 +384,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         mostrar_aviso(
             self,
             "Caixa aberto",
-            "Nao e possivel fechar o programa enquanto houver um caixa aberto.\n\n"
+            "Não é possível fechar o programa enquanto houver um caixa aberto.\n\n"
             "Feche o caixa primeiro para encerrar a operacao com seguranca.",
         )
         return False

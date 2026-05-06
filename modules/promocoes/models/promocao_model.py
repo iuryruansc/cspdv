@@ -88,6 +88,123 @@ class PromocaoModel:
             conn.close()
 
     @staticmethod
+    def duplicar(promocao_id: int, novo_codigo: str) -> int | None:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    codigo,
+                    nome,
+                    classificacao,
+                    tipo_desconto,
+                    descricao,
+                    observacao,
+                    desconto_percentual,
+                    desconto_valor,
+                    preco_fixo,
+                    data_inicio,
+                    data_fim,
+                    cumulativa,
+                    ativo,
+                    usuario_id
+                FROM promocoes
+                WHERE id = %s
+                LIMIT 1
+                """,
+                (int(promocao_id),),
+            )
+            promocao = cursor.fetchone()
+            if not promocao:
+                return None
+
+            cursor.execute(
+                """
+                INSERT INTO promocoes
+                    (codigo, nome, classificacao, tipo_desconto, status, descricao, observacao,
+                     desconto_percentual, desconto_valor, preco_fixo, data_inicio, data_fim,
+                     cumulativa, aplica_em_todos_pdvs, ativo, usuario_id, createdAt, updatedAt)
+                VALUES
+                    (%s, %s, %s, %s, 'RASCUNHO', %s, %s,
+                     %s, %s, %s, %s, %s,
+                     %s, 'S', %s, %s, NOW(), NOW())
+                """,
+                (
+                    str(novo_codigo).strip().upper(),
+                    str(promocao.get("nome") or ""),
+                    str(promocao.get("classificacao") or "PROMOCAO"),
+                    str(promocao.get("tipo_desconto") or "PERCENTUAL"),
+                    str(promocao.get("descricao") or ""),
+                    str(promocao.get("observacao") or ""),
+                    float(promocao.get("desconto_percentual") or 0),
+                    float(promocao.get("desconto_valor") or 0),
+                    float(promocao.get("preco_fixo") or 0),
+                    promocao.get("data_inicio"),
+                    promocao.get("data_fim"),
+                    str(promocao.get("cumulativa") or "N"),
+                    str(promocao.get("ativo") or "S"),
+                    int(promocao.get("usuario_id") or 0),
+                ),
+            )
+            novo_id = int(cursor.lastrowid or 0)
+            if novo_id <= 0:
+                conn.rollback()
+                return None
+
+            cursor.execute(
+                """
+                INSERT INTO promocao_produtos
+                    (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
+                SELECT
+                    %s,
+                    produto_id,
+                    preco_original,
+                    preco_promocional,
+                    desconto_aplicado,
+                    observacao,
+                    ativo,
+                    NOW(),
+                    NOW()
+                FROM promocao_produtos
+                WHERE promocao_id = %s
+                  AND ativo = 'S'
+                """,
+                (novo_id, int(promocao_id)),
+            )
+            conn.commit()
+            return novo_id
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def atualizar_status(promocao_id: int, status: str) -> bool:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE promocoes
+                SET status = %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (str(status).strip().upper(), int(promocao_id)),
+            )
+            conn.commit()
+            return cursor.rowcount > 0
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def listar(*, busca: str = "", status: str = "", tipo: str = "") -> list[dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)

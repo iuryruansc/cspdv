@@ -29,7 +29,7 @@ class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
         usuario = SessionManager.current_user() or {}
         caixa = CaixaSession.current() or {}
         self.lblOperador.setText(f"Operador: {str(usuario.get('nome') or '---').upper()}")
-        self.lblCaixa.setText(f"Caixa: {str(caixa.get('pdv_label') or 'Nao identificado')}")
+        self.lblCaixa.setText(f"Caixa: {str(caixa.get('pdv_label') or 'Não identificado')}")
 
     def _configurar_fluxo(self) -> None:
         self.frente_venda_view = FrenteVendaView(self)
@@ -53,7 +53,7 @@ class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
     def _finalizar_venda(self, venda_data: Dict[str, Any]) -> None:
         sucesso, mensagem, venda_registrada = VendaService.finalizar_venda(venda_data)
         if not sucesso or venda_registrada is None:
-            mostrar_aviso(self, "Venda nao registrada", mensagem)
+            mostrar_aviso(self, "Venda não registrada", mensagem)
             return
 
         dialog = PosPagamentoDialog(venda_data=venda_registrada, parent=self)

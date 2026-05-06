@@ -20,6 +20,11 @@ class DashboardAdminModel:
                 cursor,
                 "SELECT COUNT(*) AS total FROM clientes WHERE ativo = 'S'",
             )
+            usuarios_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "usuarios")
+            perfis_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "perfis")
+            pdvs_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "pdvs")
+            formas_pagamento_ativas = DashboardAdminModel._contar_ativos_ou_total(cursor, "formas_pagamento")
+            caixas_abertos = DashboardAdminModel._contar_caixas_abertos(cursor)
 
             vendas_hoje = 0
             faturamento_dia = Decimal("0")
@@ -72,6 +77,11 @@ class DashboardAdminModel:
                 "faturamento_dia": faturamento_dia,
                 "produtos_ativos": produtos_ativos,
                 "clientes_ativos": clientes_ativos,
+                "usuarios_ativos": usuarios_ativos,
+                "perfis_ativos": perfis_ativos,
+                "pdvs_ativos": pdvs_ativos,
+                "formas_pagamento_ativas": formas_pagamento_ativas,
+                "caixas_abertos": caixas_abertos,
                 "ultimas_vendas": ultimas_vendas,
             }
         finally:
@@ -139,6 +149,39 @@ class DashboardAdminModel:
     @staticmethod
     def _contar(cursor: Any, sql: str) -> int:
         cursor.execute(sql)
+        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        return int(resultado.get("total") or 0)
+
+    @staticmethod
+    def _contar_ativos_ou_total(cursor: Any, tabela: str) -> int:
+        if not DashboardAdminModel._tabela_existe(cursor, tabela):
+            return 0
+
+        colunas = DashboardAdminModel._listar_colunas(cursor, tabela)
+        if "ativo" in colunas:
+            cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela} WHERE ativo = 'S'")
+        else:
+            cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela}")
+        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        return int(resultado.get("total") or 0)
+
+    @staticmethod
+    def _contar_caixas_abertos(cursor: Any) -> int:
+        if not DashboardAdminModel._tabela_existe(cursor, "caixas"):
+            return 0
+
+        colunas = DashboardAdminModel._listar_colunas(cursor, "caixas")
+        where_partes = []
+        if "status" in colunas:
+            where_partes.append("LOWER(status) = 'aberto'")
+        if "ativo" in colunas:
+            where_partes.append("ativo = 'S'")
+
+        if where_partes:
+            cursor.execute(f"SELECT COUNT(*) AS total FROM caixas WHERE {' AND '.join(where_partes)}")
+        else:
+            cursor.execute("SELECT COUNT(*) AS total FROM caixas")
+
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 

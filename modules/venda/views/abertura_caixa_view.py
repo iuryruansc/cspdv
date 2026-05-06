@@ -109,7 +109,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             return
 
         self.btnAbrirCaixa.setEnabled(True)
-        self.lblStatusCaixaFechado.setText("- Caixa nao iniciado")
+        self.lblStatusCaixaFechado.setText("- Caixa não iniciado")
         for index, pdv in enumerate(pdvs):
             label = f"{pdv['identificacao']} - {pdv['descricao']}"
             self.comboNumCaixa.addItem(label)
@@ -194,7 +194,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         if not sucesso or caixa_data is None:
             self.lblStatusCaixaFechado.setText("- Falha na abertura do caixa")
             self._aplicar_status_caixa("#ff8a7a")
-            mostrar_aviso(self, "Abertura nao realizada", mensagem)
+            mostrar_aviso(self, "Abertura não realizada", mensagem)
             return
 
         self.lblStatus.setText(

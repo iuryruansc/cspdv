@@ -190,7 +190,7 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         mostrar_info(
             self,
             "Cadastro de lotes",
-            "O cadastro manual de lotes ainda nao esta disponivel nesta etapa. Por enquanto, o estoque esta sendo controlado diretamente pelos produtos.",
+            "O cadastro manual de lotes ainda não está disponível nesta etapa. Por enquanto, o estoque está sendo controlado diretamente pelos produtos.",
         )
 
     def _abrir_ajuste_estoque(self) -> None:

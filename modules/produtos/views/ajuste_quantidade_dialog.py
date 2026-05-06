@@ -71,4 +71,4 @@ class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
             self.accept()
             return
 
-        mostrar_aviso(self, "Ajuste nao realizado", mensagem)
+        mostrar_aviso(self, "Ajuste não realizado", mensagem)

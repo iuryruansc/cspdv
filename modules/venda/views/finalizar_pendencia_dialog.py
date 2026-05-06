@@ -45,7 +45,7 @@ class FinalizarPendenciaDialog(QDialog, Ui_FinalizarPendenciaDialog):
 
     def _confirmar(self) -> None:
         if self._valor_aberto <= 0:
-            mostrar_aviso(self, "Pendencia", "Nao ha saldo em aberto para gerar uma pendencia.")
+            mostrar_aviso(self, "Pendência", "Não há saldo em aberto para gerar uma pendência.")
             return
 
         self.resultado = {

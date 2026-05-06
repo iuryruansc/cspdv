@@ -43,7 +43,7 @@ class AplicarDescontoDialog(QDialog, Ui_AplicarDescontoDialog):
 
         valor = float(self.spinValor.value())
         if valor <= 0:
-            mostrar_aviso(self, "Desconto invalido", "Informe um desconto maior que zero.")
+            mostrar_aviso(self, "Desconto inválido", "Informe um desconto maior que zero.")
             return
 
         self.resultado = {

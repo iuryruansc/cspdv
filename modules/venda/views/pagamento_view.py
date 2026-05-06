@@ -154,7 +154,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
     def _lancar_pagamento(self) -> None:
         valor = numero_decimal(self.lineEditValor.text())
         if valor <= 0:
-            mostrar_info(self, "Valor invalido", "Informe um valor maior que zero para lancar o pagamento.")
+            mostrar_info(self, "Valor inválido", "Informe um valor maior que zero para lançar o pagamento.")
             return
 
         self._pagamentos.append({"forma": self._forma_selecionada, "valor": valor})

@@ -63,7 +63,7 @@ class ProdutoService:
 
             if produto:
                 return produto, "Produto encontrado com sucesso!", True
-            return None, "Produto nao localizado no sistema.", False
+            return None, "Produto não localizado no sistema.", False
 
         except Exception as e:
             print(f"Erro no ProdutoService: {e}")
@@ -85,7 +85,7 @@ class ProdutoService:
     def atualizar_produto(produto_id, dados):
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
-            return False, "Produto nao localizado para edicao."
+            return False, "Produto não localizado para edição."
 
         valido, mensagem = ProdutoService._validar_dados_produto(dados, produto_id=produto_id)
         if not valido:
@@ -100,14 +100,14 @@ class ProdutoService:
     @staticmethod
     def ajustar_quantidade(produto_id, modo, quantidade, observacao, usuario_id):
         if not usuario_id:
-            return False, "Nao foi possivel identificar o usuario logado para registrar o ajuste."
+            return False, "Não foi possível identificar o usuário logado para registrar o ajuste."
 
         if quantidade <= 0:
             return False, "Informe uma quantidade maior que zero para o ajuste."
 
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
-            return False, "Produto nao localizado para ajuste."
+            return False, "Produto não localizado para ajuste."
 
         quantidade_atual = float(produto.get("quantidade_estoque") or 0)
         modo_normalizado = str(modo).strip().lower()
@@ -119,7 +119,7 @@ class ProdutoService:
         elif modo_normalizado == "subtrair":
             nova_quantidade = quantidade_atual - quantidade
         else:
-            return False, "Modo de ajuste invalido."
+            return False, "Modo de ajuste inválido."
 
         if nova_quantidade < 0:
             return False, "O ajuste resultaria em estoque negativo."
@@ -151,7 +151,7 @@ class ProdutoService:
     def alternar_status(produto_id):
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
-            return False, "Produto nao localizado."
+            return False, "Produto não localizado."
 
         ativo_atual = str(produto.get("ativo") or "N").strip().upper()
         novo_status = "N" if ativo_atual == "S" else "S"

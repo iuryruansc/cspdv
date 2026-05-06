@@ -296,6 +296,7 @@ class FinanceiroModel:
         data_final: date,
         pdv_id: Optional[int] = None,
         forma_pagamento: Optional[str] = None,
+        busca: Optional[str] = None,
         limite: int = 100,
     ) -> List[Dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
@@ -309,6 +310,16 @@ class FinanceiroModel:
             if forma_pagamento:
                 forma_clause = " AND pp.forma_pagamento = %s"
                 params.append(forma_pagamento)
+            busca_clause = ""
+            if busca:
+                busca_clause = """
+                    AND (
+                          COALESCE(c.nome, 'Consumidor Final') LIKE %s
+                          OR CAST(v.id AS CHAR) LIKE %s
+                    )
+                """
+                termo = f"%{busca.strip()}%"
+                params.extend([termo, termo])
             params.append(int(limite))
 
             cursor.execute(
@@ -323,12 +334,13 @@ class FinanceiroModel:
                 LEFT JOIN clientes c ON c.id = v.cliente_id
                 LEFT JOIN pagamento_parcial pp ON pp.venda_id = v.id
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
-                WHERE pp.data_pagamento >= %s
-                  AND pp.data_pagamento < %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
-                  {pdv_clause}
-                  {forma_clause}
-                GROUP BY v.id, c.nome, v.status, v.valor_total
+                  WHERE pp.data_pagamento >= %s
+                    AND pp.data_pagamento < %s
+                    AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                    {pdv_clause}
+                    {forma_clause}
+                    {busca_clause}
+                  GROUP BY v.id, c.nome, v.status, v.valor_total
                 ORDER BY MAX(pp.data_pagamento) DESC, v.id DESC
                 LIMIT %s
                 """,
@@ -345,6 +357,8 @@ class FinanceiroModel:
         data_inicial: date,
         data_final: date,
         pdv_id: Optional[int] = None,
+        busca: Optional[str] = None,
+        status_filtro: Optional[str] = None,
         limite: int = 100,
     ) -> List[Dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
@@ -354,6 +368,24 @@ class FinanceiroModel:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("cr.caixa_id", pdv_id, alias_caixa="cx")
             params: List[Any] = [inicio.date(), fim.date()]
             params.extend(pdv_params)
+            busca_clause = ""
+            if busca:
+                busca_clause = """
+                  AND (
+                        c.nome LIKE %s
+                        OR CAST(cr.id AS CHAR) LIKE %s
+                        OR CAST(cr.venda_id AS CHAR) LIKE %s
+                  )
+                """
+                termo = f"%{busca.strip()}%"
+                params.extend([termo, termo, termo])
+            status_clause = ""
+            if status_filtro == "PENDENTE":
+                status_clause = " AND cr.status = 'PENDENTE'"
+            elif status_filtro == "PARCIALMENTE_RECEBIDA":
+                status_clause = " AND cr.status = 'PARCIALMENTE_RECEBIDA'"
+            elif status_filtro == "VENCIDA":
+                status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()"
             params.append(int(limite))
             cursor.execute(
                 f"""
@@ -365,7 +397,11 @@ class FinanceiroModel:
                     cr.status,
                     cr.valor_total,
                     cr.valor_recebido,
-                    cr.valor_aberto
+                    cr.valor_aberto,
+                    CASE
+                        WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE() THEN 1
+                        ELSE 0
+                    END AS vencida
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
                 LEFT JOIN caixas cx ON cx.id = cr.caixa_id
@@ -374,6 +410,8 @@ class FinanceiroModel:
                   AND cr.data_vencimento < %s
                   AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
                   {pdv_clause}
+                  {busca_clause}
+                  {status_clause}
                 ORDER BY cr.data_vencimento ASC, cr.id DESC
                 LIMIT %s
                 """,

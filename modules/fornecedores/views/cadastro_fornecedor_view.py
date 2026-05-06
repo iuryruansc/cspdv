@@ -61,7 +61,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin,
 
         fornecedor = FornecedorModel.buscar_por_id(self._fornecedor_id)
         if not fornecedor:
-            mostrar_aviso(self, "Fornecedor nao encontrado", "Nao foi possivel carregar o fornecedor para edicao.")
+            mostrar_aviso(self, "Fornecedor não encontrado", "Não foi possível carregar o fornecedor para edição.")
             self._cancelar()
             return
 
@@ -198,7 +198,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin,
             else:
                 self._cancelar(refresh=True)
         else:
-            mostrar_aviso(self, "Atencao", mensagem)
+            mostrar_aviso(self, "Atenção", mensagem)
 
     def _limpar_campos(self):
         for campo_texto in self.findChildren(QLineEdit):

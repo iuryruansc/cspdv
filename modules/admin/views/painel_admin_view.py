@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+﻿from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
@@ -58,7 +58,7 @@ QPushButton:hover {
             self.lblOperadorInfo.setText(f"Operador: {nome}")
             self.lblStatusBar.setText(f"CSPdv - Operador: {nome}  |  Painel Administrativo")
         else:
-            self.lblOperadorInfo.setText("Operador: Nao logado")
+            self.lblOperadorInfo.setText("Operador: Não logado")
             self.lblStatusBar.setText("CSPdv - Painel Administrativo")
 
     def _setup_datetime(self) -> None:
@@ -303,7 +303,7 @@ QPushButton:hover {
         except Exception as exc:
             rows = []
             error_message = (
-                f"Nao foi possivel consultar {config['title'].lower()} agora.\n\nDetalhes: {exc}"
+                f"Não foi possível consultar {config['title'].lower()} agora.\n\nDetalhes: {exc}"
             )
         self.managementPage.configure(
             title=config["title"],
@@ -396,7 +396,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome") or "produto"),
                 "entity_id": row.get("id"),
                 "service_call": ProdutoService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "marcas":
             from modules.marcas.services.marca_service import MarcaService
@@ -406,7 +406,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome_marca") or "marca"),
                 "entity_id": row.get("id"),
                 "service_call": MarcaService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "categorias":
             from modules.categorias.services.categoria_service import CategoriaService
@@ -416,7 +416,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome") or "categoria"),
                 "entity_id": row.get("id"),
                 "service_call": CategoriaService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "fornecedores":
             from modules.fornecedores.services.fornecedor_service import FornecedorService
@@ -426,7 +426,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome_fantasia") or "fornecedor"),
                 "entity_id": row.get("id_fornecedor"),
                 "service_call": FornecedorService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "clientes":
             from modules.clientes.services.cliente_service import ClienteService
@@ -436,7 +436,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome") or "cliente"),
                 "entity_id": row.get("id"),
                 "service_call": ClienteService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         return None
 
@@ -470,7 +470,7 @@ QPushButton:hover {
 
         produto_id = produto.get("id")
         if produto_id is None:
-            mostrar_aviso(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado.")
+            mostrar_aviso(self, "Produto inválido", "Não foi possível identificar o produto selecionado.")
             return
 
         from modules.produtos.models.produto_model import ProdutoModel
@@ -478,7 +478,7 @@ QPushButton:hover {
 
         detalhes = ProdutoModel.buscar_por_id(int(produto_id))
         if not detalhes:
-            mostrar_aviso(self, "Produto nao encontrado", "Nao foi possivel carregar os detalhes do produto selecionado.")
+            mostrar_aviso(self, "Produto não encontrado", "Não foi possível carregar os detalhes do produto selecionado.")
             return
 
         dialog = DetalhesProdutoDialog(detalhes, self)
@@ -506,14 +506,14 @@ QPushButton:hover {
         service_call = contexto["service_call"]
 
         if entity_id is None:
-            mostrar_aviso(self, str(contexto["invalid_title"]), "Nao foi possivel identificar o registro selecionado.")
+            mostrar_aviso(self, str(contexto["invalid_title"]), "Não foi possível identificar o registro selecionado.")
             return
 
         ativo_atual = str(row.get("ativo") or "N").strip().upper()
         acao = "desativar" if ativo_atual == "S" else "ativar"
         confirmacao = confirmar_acao(
             self,
-            "Confirmar alteracao",
+            "Confirmar alteração",
             f"Deseja {acao} o {entity_label} '{nome}'?",
         )
         if not confirmacao:
@@ -521,7 +521,7 @@ QPushButton:hover {
 
         sucesso, mensagem = service_call(entity_id)
         if not sucesso:
-            mostrar_aviso(self, "Status nao alterado", mensagem)
+            mostrar_aviso(self, "Status não alterado", mensagem)
             return
 
         mostrar_info(self, "Status atualizado", mensagem)
@@ -542,7 +542,7 @@ QPushButton:hover {
         if current_key == "produtos":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado para edicao.")
+                mostrar_aviso(self, "Produto inválido", "Não foi possível identificar o produto selecionado para edição.")
                 return
             from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 
@@ -557,7 +557,7 @@ QPushButton:hover {
         if current_key == "marcas":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Marca invalida", "Nao foi possivel identificar a marca selecionada.")
+                mostrar_aviso(self, "Marca inválida", "Não foi possível identificar a marca selecionada.")
                 return
             from modules.marcas.views.cadastro_marca_view import CadastroMarcaView
 
@@ -569,7 +569,7 @@ QPushButton:hover {
         if current_key == "categorias":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Categoria invalida", "Nao foi possivel identificar a categoria selecionada.")
+                mostrar_aviso(self, "Categoria inválida", "Não foi possível identificar a categoria selecionada.")
                 return
             from modules.categorias.views.cadastro_categoria_view import CadastroCategoriaView
 
@@ -581,7 +581,7 @@ QPushButton:hover {
         if current_key == "clientes":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Cliente invalido", "Nao foi possivel identificar o cliente selecionado.")
+                mostrar_aviso(self, "Cliente inválido", "Não foi possível identificar o cliente selecionado.")
                 return
             from modules.clientes.views.cadastro_cliente_view import CadastroClienteView
 
@@ -595,7 +595,7 @@ QPushButton:hover {
 
         registro_id = row.get("id_fornecedor")
         if registro_id is None:
-            mostrar_aviso(self, "Fornecedor invalido", "Nao foi possivel identificar o fornecedor selecionado.")
+            mostrar_aviso(self, "Fornecedor inválido", "Não foi possível identificar o fornecedor selecionado.")
             return
         from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
 
@@ -620,11 +620,12 @@ QPushButton:hover {
             self.lblFaturamentoValor.setText("R$ 0,00")
             self.lblProdutosValor.setText("0")
             self.lblClientesValor.setText("0")
+            self._atualizar_resumo_estrutura({})
             self._populate_dashboard_sales([])
             mostrar_aviso(
                 self,
-                "Dashboard indisponivel",
-                f"Nao foi possivel carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
+                "Dashboard indisponível",
+                f"Não foi possível carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
             )
             return
 
@@ -632,8 +633,18 @@ QPushButton:hover {
         self.lblFaturamentoValor.setText(str(resumo["faturamento_dia"]))
         self.lblProdutosValor.setText(str(resumo["produtos_ativos"]))
         self.lblClientesValor.setText(str(resumo["clientes_ativos"]))
+        self._atualizar_resumo_estrutura(resumo)
         self._populate_dashboard_sales(resumo["ultimas_vendas"])
         self._atualizar_acao_caixa_dashboard()
+
+    def _atualizar_resumo_estrutura(self, resumo: Dict[str, Any]) -> None:
+        self.lblResumoUsuarios.setText(f"Usuários ativos: {int(resumo.get('usuarios_ativos') or 0)}")
+        self.lblResumoPerfis.setText(f"Perfis ativos: {int(resumo.get('perfis_ativos') or 0)}")
+        self.lblResumoPdvs.setText(f"PDVs ativos: {int(resumo.get('pdvs_ativos') or 0)}")
+        self.lblResumoCaixas.setText(f"Caixas abertos: {int(resumo.get('caixas_abertos') or 0)}")
+        self.lblResumoFormasPagamento.setText(
+            f"Formas de pagamento: {int(resumo.get('formas_pagamento_ativas') or 0)}"
+        )
 
     def _atualizar_acao_caixa_dashboard(self) -> None:
         from core.caixa_session import CaixaSession
@@ -682,7 +693,7 @@ QPushButton:hover {
             mostrar_aviso(
                 self,
                 "Acesso negado",
-                "O usuario atual nao possui permissao para abrir a frente de caixa.",
+                "O usuário atual não possui permissão para abrir a frente de caixa.",
             )
             return
 
@@ -700,7 +711,7 @@ QPushButton:hover {
                 self,
                 "Abrir caixa",
                 "Deseja abrir o caixa agora pelo painel administrativo?\n\n"
-                "Depois da abertura, a Venda Rapida ficara disponivel.",
+                "Depois da abertura, a Venda Rápida ficará disponível.",
             )
             if not confirmar:
                 return
@@ -726,8 +737,8 @@ QPushButton:hover {
         if not CaixaSession.has_open_caixa():
             mostrar_aviso(
                 self,
-                "Caixa nao encontrado",
-                "Nao ha um caixa aberto no momento para encerrar pelo painel administrativo.",
+                "Caixa não encontrado",
+                "Não há um caixa aberto no momento para encerrar pelo painel administrativo.",
             )
             self._atualizar_acao_caixa_dashboard()
             return
@@ -742,3 +753,4 @@ QPushButton:hover {
         self.hide()
         self.selecao = SelecaoModoView()
         self.selecao.show()
+

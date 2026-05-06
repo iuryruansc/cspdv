@@ -128,7 +128,7 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             return
 
         self._marcar_campos_por_mensagem(mensagem)
-        mostrar_aviso(self, "Atencao", mensagem)
+        mostrar_aviso(self, "Atenção", mensagem)
 
     def _marcar_campos_por_mensagem(self, mensagem: str) -> None:
         texto = mensagem.lower()

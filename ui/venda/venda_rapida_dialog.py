@@ -93,8 +93,8 @@ class Ui_VendaRapidaDialog(object):
 
     def retranslateUi(self, VendaRapidaDialog):
         _translate = QtCore.QCoreApplication.translate
-        VendaRapidaDialog.setWindowTitle(_translate("VendaRapidaDialog", "CSPdv - Venda Rapida"))
-        self.lblTitulo.setText(_translate("VendaRapidaDialog", "Venda Rapida"))
+        VendaRapidaDialog.setWindowTitle(_translate("VendaRapidaDialog", "CSPdv - Venda Rápida"))
+        self.lblTitulo.setText(_translate("VendaRapidaDialog", "Venda Rápida"))
         self.lblSubtitulo.setText(_translate("VendaRapidaDialog", "Fluxo compacto de venda sem sair do painel administrativo."))
         self.lblOperador.setText(_translate("VendaRapidaDialog", "Operador: ---"))
         self.lblCaixa.setText(_translate("VendaRapidaDialog", "Caixa: ---"))
