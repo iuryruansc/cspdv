@@ -32,7 +32,7 @@ class LoginView(QDialog, Ui_TelaDeLogin):
             usuario = UsuarioModel.autenticar(login, senha)
 
             if usuario is None:
-                self._show_error("Login ou senha invalidos.")
+                self._show_error("Login ou senha inválidos.")
                 return
 
             SessionManager.login(usuario)

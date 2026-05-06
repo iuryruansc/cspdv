@@ -56,7 +56,7 @@ class VendaModel:
                 produto_id = int(item.get("id") or 0)
                 quantidade = int(item.get("quantidade") or 0)
                 if produto_id <= 0 or quantidade <= 0:
-                    raise ValueError("Existe item invalido na venda.")
+                    raise ValueError("Existe item inválido na venda.")
 
                 alocacoes = VendaModel._alocar_lotes_saida(
                     cursor=cursor,
@@ -245,7 +245,7 @@ class VendaModel:
         )
         venda_id = cursor.lastrowid
         if venda_id is None:
-            raise RuntimeError("Nao foi possivel obter o ID da venda registrada.")
+            raise RuntimeError("Não foi possível obter o ID da venda registrada.")
         return int(venda_id)
 
     @staticmethod
@@ -334,7 +334,7 @@ class VendaModel:
                 break
 
         if restante > 0:
-            raise ValueError(f"Nao foi possivel alocar lotes suficientes para o produto ID {produto_id}.")
+            raise ValueError(f"Não foi possível alocar lotes suficientes para o produto ID {produto_id}.")
 
         return alocacoes
 
@@ -351,7 +351,7 @@ class VendaModel:
         )
         produto = cursor.fetchone()
         if not produto:
-            raise ValueError(f"Produto ID {produto_id} nao encontrado.")
+            raise ValueError(f"Produto ID {produto_id} não encontrado.")
         if str(produto.get("ativo") or "N") != "S":
             raise ValueError(f"O produto ID {produto_id} esta inativo.")
         return produto

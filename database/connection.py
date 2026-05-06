@@ -66,7 +66,7 @@ def get_connection_pool():
                 **config,
             )
         except Error as exc:
-            raise ConnectionError(f"Nao foi possivel criar o pool de conexoes: {exc}")
+            raise ConnectionError(f"Não foi possível criar o pool de conexões: {exc}")
 
     return _connection_pool
 
@@ -76,7 +76,7 @@ def get_connection():
             return get_connection_pool().get_connection()
         return mysql.connector.connect(**_db_config())
     except Error as exc:
-        raise ConnectionError(f"Nao foi possivel conectar ao banco de dados: {exc}")
+        raise ConnectionError(f"Não foi possível conectar ao banco de dados: {exc}")
 
 def close_connection():
     global _connection_pool

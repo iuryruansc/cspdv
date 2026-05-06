@@ -31,7 +31,7 @@ class CadastroCategoriaView(QDialog, Ui_CadastroCategoria, ValidacaoFormMixin):
 
         categoria = CategoriaModel.buscar_por_id(self._categoria_id)
         if not categoria:
-            mostrar_aviso(self, "Categoria nao encontrada", "Nao foi possivel carregar a categoria para edicao.")
+            mostrar_aviso(self, "Categoria não encontrada", "Não foi possível carregar a categoria para edição.")
             self.reject()
             return
 
@@ -74,7 +74,7 @@ class CadastroCategoriaView(QDialog, Ui_CadastroCategoria, ValidacaoFormMixin):
         if "nome da categoria" in mensagem.lower():
             self.marcar_invalido(self.lineEditNomeCategoria)
 
-        mostrar_aviso(self, "Atencao", mensagem)
+        mostrar_aviso(self, "Atenção", mensagem)
 
     def _limpar_campos(self):
         self.limpar_erros()

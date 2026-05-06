@@ -25,7 +25,7 @@ class PainelOperacionalMixin:
             nome = str(usuario.get("nome", "Operador")).upper()
             host.lblOperadorInfo.setText(f"Operador: {nome}")
             return
-        host.lblOperadorInfo.setText("Operador: Nao logado")
+        host.lblOperadorInfo.setText("Operador: Não logado")
 
     def _configurar_relogio(self) -> None:
         if not isinstance(getattr(self, "lblDataHora", None), QLabel):

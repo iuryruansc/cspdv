@@ -144,7 +144,7 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
             admin_password=dialog.admin_password,
         )
         if not sucesso or fechamento is None:
-            mostrar_aviso(self, "Fechamento nao realizado", mensagem)
+            mostrar_aviso(self, "Fechamento não realizado", mensagem)
             return
 
         self.lblStatus.setText(

@@ -66,12 +66,14 @@ class FinanceiroService:
         data_final,
         pdv_id=None,
         forma_pagamento=None,
+        busca=None,
     ) -> List[Dict[str, Any]]:
         return FinanceiroModel.listar_vendas_registradas(
             data_inicial=data_inicial,
             data_final=data_final,
             pdv_id=pdv_id,
             forma_pagamento=forma_pagamento,
+            busca=busca,
         )
 
     @staticmethod
@@ -99,11 +101,15 @@ class FinanceiroService:
         data_inicial,
         data_final,
         pdv_id=None,
+        busca=None,
+        status_filtro=None,
     ) -> List[Dict[str, Any]]:
         return FinanceiroModel.listar_contas_receber(
             data_inicial=data_inicial,
             data_final=data_final,
             pdv_id=pdv_id,
+            busca=busca,
+            status_filtro=status_filtro,
         )
 
     @staticmethod

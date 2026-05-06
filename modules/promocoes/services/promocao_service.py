@@ -63,6 +63,61 @@ class PromocaoService:
         return True, "Promoção atualizada com sucesso."
 
     @staticmethod
+    def duplicar_promocao(promocao_id: int) -> tuple[bool, str, int | None]:
+        promocao = PromocaoModel.buscar_por_id(int(promocao_id))
+        if not promocao:
+            return False, "Promoção não localizada para duplicação.", None
+
+        try:
+            novo_id = PromocaoModel.duplicar(int(promocao_id), PromocaoModel.gerar_proximo_codigo())
+        except Exception as exc:
+            return False, f"Erro ao duplicar a promoção: {exc}", None
+
+        if not novo_id:
+            return False, "Não foi possível concluir a duplicação da promoção.", None
+        return True, "Promoção duplicada com sucesso em status Rascunho.", int(novo_id)
+
+    @staticmethod
+    def encerrar_promocao(promocao_id: int) -> tuple[bool, str]:
+        promocao = PromocaoModel.buscar_por_id(int(promocao_id))
+        if not promocao:
+            return False, "Promoção não localizada para encerramento."
+
+        status_atual = str(promocao.get("status") or "").strip().upper()
+        if status_atual == "ENCERRADA":
+            return False, "A promoção selecionada já está encerrada."
+        if status_atual == "CANCELADA":
+            return False, "Promoções canceladas não podem ser encerradas."
+
+        try:
+            atualizado = PromocaoModel.atualizar_status(int(promocao_id), "ENCERRADA")
+        except Exception as exc:
+            return False, f"Erro ao encerrar a promoção: {exc}"
+        if not atualizado:
+            return False, "Não foi possível encerrar a promoção selecionada."
+        return True, "Promoção encerrada com sucesso."
+
+    @staticmethod
+    def cancelar_promocao(promocao_id: int) -> tuple[bool, str]:
+        promocao = PromocaoModel.buscar_por_id(int(promocao_id))
+        if not promocao:
+            return False, "Promoção não localizada para cancelamento."
+
+        status_atual = str(promocao.get("status") or "").strip().upper()
+        if status_atual == "CANCELADA":
+            return False, "A promoção selecionada já está cancelada."
+        if status_atual == "ENCERRADA":
+            return False, "Promoções encerradas não podem ser canceladas."
+
+        try:
+            atualizado = PromocaoModel.atualizar_status(int(promocao_id), "CANCELADA")
+        except Exception as exc:
+            return False, f"Erro ao cancelar a promoção: {exc}"
+        if not atualizado:
+            return False, "Não foi possível cancelar a promoção selecionada."
+        return True, "Promoção cancelada com sucesso."
+
+    @staticmethod
     def vincular_produto(promocao_id: int, produto_id: int, observacao: str = "") -> tuple[bool, str]:
         promocao = PromocaoModel.buscar_por_id(int(promocao_id))
         if not promocao:

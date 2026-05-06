@@ -245,7 +245,7 @@ class Ui_CupomNaoFiscal(object):
         self.btnMaximizar.setText(_translate("CupomNaoFiscal", "□"))
         self.btnFechar.setText(_translate("CupomNaoFiscal", "✕"))
         self.btnFechar.setShortcut(_translate("CupomNaoFiscal", "Escape"))
-        self.textCupom.setPlainText(_translate("CupomNaoFiscal", "*****DOCUMENTO NAO FISCAL *****\n"
+        self.textCupom.setPlainText(_translate("CupomNaoFiscal", "*****DOCUMENTO NÃO FISCAL *****\n"
 "         VIDA NATURAL\n"
 "    CONFERENCIA DE PRODUTOS\n"
 "N. da venda: 0\n"
@@ -269,6 +269,6 @@ class Ui_CupomNaoFiscal(object):
 "    CONFERENCIA DE PRODUTOS"))
         self.btnImprimir.setText(_translate("CupomNaoFiscal", "   Imprimir"))
         self.btnImprimir.setShortcut(_translate("CupomNaoFiscal", "Return"))
-        self.btnFinalizarSemImpressao.setText(_translate("CupomNaoFiscal", "Finalizar sem impressao"))
+        self.btnFinalizarSemImpressao.setText(_translate("CupomNaoFiscal", "Finalizar sem impressão"))
         self.btnSair.setText(_translate("CupomNaoFiscal", "   Sair"))
         self.btnSair.setShortcut(_translate("CupomNaoFiscal", "Escape"))

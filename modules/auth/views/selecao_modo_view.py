@@ -33,7 +33,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
             nome = usuario.get("nome", "Utilizador").upper()
             self.lblOperadorNome.setText(f"OPERADOR: {nome}")
         else:
-            self.lblOperadorNome.setText("OPERADOR: NAO LOGADO")
+            self.lblOperadorNome.setText("OPERADOR: NÃO LOGADO")
 
     def _configurar_atalhos(self):
         self.shortcut_f1 = QShortcut(QKeySequence("F1"), self)

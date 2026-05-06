@@ -94,7 +94,7 @@ QLabel {
           </string>
          </property>
          <property name="text">
-          <string>ADMINISTRAÃƒâ€¡ÃƒÆ’O CENTRAL</string>
+          <string>ADMINISTRAÇÃO CENTRAL</string>
          </property>
         </widget>
        </item>
@@ -292,7 +292,7 @@ QPushButton:checked {
        <item>
         <widget class="QPushButton" name="btnNavConfiguracoes">
          <property name="text">
-          <string>ConfiguraÃƒÂ§ÃƒÂµes</string>
+          <string>Configurações</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -405,7 +405,7 @@ QPushButton:hover { color: #1a5fa0; background-color: rgba(53,133,200,18); }
        <item>
         <widget class="QPushButton" name="btnNavPermissoes">
          <property name="text">
-          <string>PermissÃƒÂµes</string>
+          <string>Permissões</string>
          </property>
         </widget>
        </item>
@@ -433,7 +433,7 @@ QPushButton:hover { color: #1a5fa0; background-color: rgba(53,133,200,18); }
        <item>
         <widget class="QPushButton" name="btnNavFiscal">
          <property name="text">
-          <string>ParÃƒÂ¢metros Fiscais</string>
+          <string>Parâmetros Fiscais</string>
          </property>
         </widget>
        </item>
@@ -678,7 +678,7 @@ QPushButton:hover { background: #2a74b8; }
               <string notr="true">font-size: 22px; color: #1f2a36;</string>
              </property>
              <property name="text">
-              <string>Ã°Å¸â€œÂ¦</string>
+              <string>📦</string>
              </property>
             </widget>
            </item>
@@ -732,7 +732,7 @@ QPushButton:hover { background: #2a74b8; }
               <string notr="true">font-size: 22px; color: white;</string>
              </property>
              <property name="text">
-              <string>Ã°Å¸â€˜Â¥</string>
+              <string>👥</string>
              </property>
             </widget>
            </item>
@@ -854,7 +854,7 @@ QPushButton[actionButton="true"]:hover {
               <item>
                <widget class="QLabel" name="lblUltimasVendasTitle">
                 <property name="text">
-                 <string>ÃƒÅ¡ltimas Vendas</string>
+                 <string>Últimas Vendas</string>
                 </property>
                 <property name="panelTitle" stdset="0">
                  <string>true</string>
@@ -929,7 +929,7 @@ QPushButton[actionButton="true"]:hover {
               <item>
                <widget class="QLabel" name="lblAcoesTitle">
                 <property name="text">
-                 <string>AÃƒÂ§ÃƒÂµes RÃƒÂ¡pidas</string>
+                 <string>Ações Rápidas</string>
                 </property>
                 <property name="panelTitle" stdset="0">
                  <string>true</string>
@@ -1154,7 +1154,7 @@ QPushButton[actionButton="true"]:hover {
                  <item>
                   <widget class="QPushButton" name="btnAcaoRelatorio">
                    <property name="text">
-                    <string>Ã°Å¸â€œÅ    Cadastrar Lote</string>
+                    <string>📊   Cadastrar Lote</string>
                    </property>
                    <property name="actionButton" stdset="0">
                     <string>true</string>
@@ -1202,7 +1202,7 @@ QFrame#frameStatusBar {
           <string notr="true">color: #80ff80; font-size: 11px; font-weight: bold;</string>
          </property>
          <property name="text">
-          <string>Ã¢â€”Â Sistema Online</string>
+          <string>● Sistema Online</string>
          </property>
         </widget>
        </item>

@@ -76,7 +76,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
 
     def _atualizar_data_hora(self) -> None:
         self.lblStatus.setText(
-            "CSPdv  |  Movimentacao de Caixa  |  "
+            "CSPdv  |  Movimentação de Caixa  |  "
             + QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss")
         )
 
@@ -133,7 +133,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
             admin_password=self.lineEditSenhaAdmin.text().strip(),
         )
         if not sucesso:
-            mostrar_aviso(self, "Movimentacao nao registrada", mensagem)
+            mostrar_aviso(self, "Movimentação não registrada", mensagem)
             return
 
         mostrar_info(self, "Sucesso", mensagem)

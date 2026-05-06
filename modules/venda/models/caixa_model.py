@@ -132,7 +132,7 @@ class CaixaModel:
             conn.commit()
             lastrowid = cursor.lastrowid
             if lastrowid is None:
-                raise RuntimeError("Nao foi possivel obter o ID da abertura de caixa criada.")
+                raise RuntimeError("Não foi possível obter o ID da abertura de caixa criada.")
             return int(lastrowid)
         except Exception:
             conn.rollback()
@@ -362,14 +362,14 @@ class CaixaModel:
         )
         forma_pagamento_id = cursor.lastrowid
         if forma_pagamento_id is None:
-            raise RuntimeError("Nao foi possivel criar a forma de pagamento Dinheiro.")
+            raise RuntimeError("Não foi possível criar a forma de pagamento Dinheiro.")
         return int(forma_pagamento_id)
 
     @staticmethod
     def _garantir_caixa_motivo(cursor, tipo: str) -> int:
         tipo_normalizado = str(tipo or "").strip().lower()
         if tipo_normalizado not in CaixaModel._TIPOS_MOVIMENTACAO:
-            raise ValueError("Tipo de movimentacao invalido.")
+            raise ValueError("Tipo de movimentação inválido.")
 
         descricao = CaixaModel._TIPOS_MOVIMENTACAO[tipo_normalizado]
         cursor.execute(
@@ -396,5 +396,5 @@ class CaixaModel:
         )
         motivo_id = cursor.lastrowid
         if motivo_id is None:
-            raise RuntimeError("Nao foi possivel criar o motivo de caixa.")
+            raise RuntimeError("Não foi possível criar o motivo de caixa.")
         return int(motivo_id)

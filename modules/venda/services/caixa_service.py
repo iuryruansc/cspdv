@@ -62,13 +62,13 @@ class CaixaService:
         breakdown: Dict[str, int],
     ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         if not usuario_id:
-            return False, "Nao foi possivel identificar o operador logado.", None
+            return False, "Não foi possível identificar o operador logado.", None
 
         if pdv_id is None:
             return False, "Selecione um PDV valido para a abertura.", None
 
         if valor_abertura < 0:
-            return False, "O valor de abertura nao pode ser negativo.", None
+            return False, "O valor de abertura não pode ser negativo.", None
 
         caixa_existente = CaixaModel.buscar_caixa_aberto_por_pdv(int(pdv_id))
         if caixa_existente:
@@ -225,22 +225,22 @@ class CaixaService:
         usuario_id = int(usuario.get("id") or 0)
 
         if caixa_id <= 0:
-            return False, "Nao ha caixa aberto para registrar a movimentacao."
+            return False, "Não há caixa aberto para registrar a movimentação."
         if usuario_id <= 0:
-            return False, "Nao foi possivel identificar o operador logado."
+            return False, "Não foi possível identificar o operador logado."
         if str(tipo or "").strip().lower() not in {"sangria", "suprimento", "troco"}:
-            return False, "Selecione um tipo de movimentacao valido."
+            return False, "Selecione um tipo de movimentação válido."
         if valor <= 0:
             return False, "Informe um valor maior que zero."
         if not observacao.strip():
-            return False, "Descreva o motivo da movimentacao."
+            return False, "Descreva o motivo da movimentação."
         if not CaixaService.validar_admin_para_diferenca(admin_password):
             return False, "Informe uma senha de administrador valida."
 
         resumo = CaixaService.obter_resumo_movimentacoes()
         saldo_atual = float(resumo.get("saldo_atual") or 0.0)
         if str(tipo).lower() == "sangria" and valor > saldo_atual:
-            return False, "A sangria nao pode ser maior que o saldo atual disponivel no caixa."
+            return False, "A sangria não pode ser maior que o saldo atual disponível no caixa."
 
         try:
             CaixaModel.registrar_movimentacao(
@@ -250,9 +250,9 @@ class CaixaService:
                 valor=valor,
                 observacao=observacao.strip(),
             )
-            return True, "Movimentacao registrada com sucesso."
+            return True, "Movimentação registrada com sucesso."
         except Exception as exc:
-            return False, f"Erro ao registrar movimentacao: {exc}"
+            return False, f"Erro ao registrar movimentação: {exc}"
 
     @staticmethod
     def validar_admin_para_diferenca(senha: str) -> bool:
@@ -271,9 +271,9 @@ class CaixaService:
         usuario = CaixaSession.current()
         operador = UsuarioModel.buscar_sessao_por_id(int(usuario["usuario_id"])) if usuario and usuario.get("usuario_id") else None
         if not usuario or not usuario.get("id"):
-            return False, "Nao ha caixa aberto para fechar.", None
+            return False, "Não há caixa aberto para fechar.", None
         if not operador or operador.get("id") is None:
-            return False, "Nao foi possivel identificar o operador para registrar o fechamento.", None
+            return False, "Não foi possível identificar o operador para registrar o fechamento.", None
 
         resumo = CaixaService.obter_resumo_fechamento()
         total_esperado = float(resumo["total_esperado"])

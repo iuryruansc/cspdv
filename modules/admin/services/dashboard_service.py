@@ -17,6 +17,11 @@ class DashboardAdminService:
             ),
             "produtos_ativos": int(resumo.get("produtos_ativos") or 0),
             "clientes_ativos": int(resumo.get("clientes_ativos") or 0),
+            "usuarios_ativos": int(resumo.get("usuarios_ativos") or 0),
+            "perfis_ativos": int(resumo.get("perfis_ativos") or 0),
+            "pdvs_ativos": int(resumo.get("pdvs_ativos") or 0),
+            "formas_pagamento_ativas": int(resumo.get("formas_pagamento_ativas") or 0),
+            "caixas_abertos": int(resumo.get("caixas_abertos") or 0),
             "ultimas_vendas": DashboardAdminService._formatar_ultimas_vendas(
                 resumo.get("ultimas_vendas") or []
             ),

@@ -17,7 +17,7 @@ load_dotenv(find_dotenv())
 
 def _excepthook(tipo, valor, tb):
     print("\n" + "=" * 60)
-    print("ERRO NAO TRATADO:")
+    print("ERRO NÃO TRATADO:")
     traceback.print_exception(tipo, valor, tb)
     print("=" * 60 + "\n")
 
@@ -41,8 +41,8 @@ def _mostrar_erro_conexao(mensagem):
         f"Modo: {diagnostics['mode']}",
         f"Host: {diagnostics['host']}:{diagnostics['port']}",
         f"Banco: {diagnostics['database']}",
-        f"Pool habilitado: {'sim' if diagnostics['pool_enabled'] else 'nao'}",
-        f"Pool inicializado: {'sim' if diagnostics['pool_initialized'] else 'nao'}",
+        f"Pool habilitado: {'sim' if diagnostics['pool_enabled'] else 'não'}",
+        f"Pool inicializado: {'sim' if diagnostics['pool_initialized'] else 'não'}",
         f"Timeout: {diagnostics['connection_timeout']}s",
     ]
 
@@ -54,7 +54,7 @@ def _mostrar_erro_conexao(mensagem):
         None,
         "Falha na conexao com o banco",
         (
-            "Nao foi possivel iniciar o sistema porque a conexao com o banco falhou.\n\n"
+            "Não foi possível iniciar o sistema porque a conexão com o banco falhou.\n\n"
             f"{mensagem}\n\n"
             + "\n".join(detalhes)
         ),

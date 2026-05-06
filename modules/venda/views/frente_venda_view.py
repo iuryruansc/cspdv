@@ -468,8 +468,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             if desconto >= subtotal_bruto:
                 mostrar_aviso(
                     self,
-                    "Desconto invalido",
-                    "O desconto do item nao pode ser maior ou igual ao valor do item.",
+                    "Desconto inválido",
+                    "O desconto do item não pode ser maior ou igual ao valor do item.",
                 )
                 return
 
@@ -495,8 +495,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if desconto_global >= subtotal_venda:
             mostrar_aviso(
                 self,
-                "Desconto invalido",
-                "O desconto da venda nao pode ser maior ou igual ao total atual.",
+                "Desconto inválido",
+                "O desconto da venda não pode ser maior ou igual ao total atual.",
             )
             return
 

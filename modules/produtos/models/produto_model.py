@@ -17,7 +17,12 @@ class ProdutoModel:
                     p.id,
                     p.codigo_barras,
                     p.nome,
-                    p.preco_venda,
+                    COALESCE(ppromo.preco_promocional, p.preco_venda) AS preco_venda,
+                    p.preco_venda AS preco_venda_base,
+                    ppromo.preco_original AS preco_original_promocao,
+                    ppromo.preco_promocional,
+                    promo.id AS promocao_id,
+                    promo.nome AS promocao_nome,
                     p.quantidade_estoque,
                     p.ativo,
                     p.imagem_path,
@@ -26,6 +31,20 @@ class ProdutoModel:
                     m.nome_marca AS marca,
                     f.nome_fantasia AS fornecedor
                 FROM produtos p
+                LEFT JOIN promocao_produtos ppromo
+                    ON ppromo.id = (
+                        SELECT pp2.id
+                        FROM promocao_produtos pp2
+                        INNER JOIN promocoes pr2 ON pr2.id = pp2.promocao_id
+                        WHERE pp2.produto_id = p.id
+                          AND pp2.ativo = 'S'
+                          AND pr2.ativo = 'S'
+                          AND pr2.status = 'ATIVA'
+                          AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim
+                        ORDER BY pr2.data_inicio DESC, pp2.id DESC
+                        LIMIT 1
+                    )
+                LEFT JOIN promocoes promo ON promo.id = ppromo.promocao_id
                 LEFT JOIN categorias c ON c.id = p.categoria_id
                 LEFT JOIN marcas m ON m.id = p.marca_id
                 LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
