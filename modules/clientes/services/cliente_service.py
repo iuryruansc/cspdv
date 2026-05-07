@@ -1,4 +1,5 @@
 from modules.clientes.models.cliente_model import ClienteModel
+from utils.app_logger import log_error
 
 
 class ClienteService:
@@ -10,7 +11,7 @@ class ClienteService:
         try:
             return ClienteModel.buscar_para_venda(termo_limpo)
         except Exception as exc:
-            print(f"Erro ao buscar cliente para venda: {exc}")
+            log_error("Erro ao buscar cliente para venda.", exc)
             return []
 
     @staticmethod

@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.produtos.models.produto_model import ProdutoModel
 from modules.promocoes.models.promocao_model import PromocaoModel
 
@@ -133,17 +134,19 @@ class PromocaoService:
         if str(produto.get("ativo") or "N").strip().upper() != "S":
             return False, "O produto selecionado está inativo."
 
-        conflito = PromocaoModel.buscar_conflito_produto_ativo(int(promocao_id), int(produto_id))
-        if conflito:
-            nome_promocao = str(conflito.get("nome") or conflito.get("codigo") or "outra promoção")
-            status_conflito = str(conflito.get("status") or "").strip().capitalize()
-            data_inicio = str(conflito.get("data_inicio_fmt") or "-")
-            data_fim = str(conflito.get("data_fim_fmt") or "-")
-            return (
-                False,
-                f"Este produto já participa da promoção '{nome_promocao}' "
-                f"({status_conflito}) no período de {data_inicio} até {data_fim}.",
-            )
+        parametros_promocoes = ConfiguracoesService.carregar_parametros_promocoes()
+        if bool(parametros_promocoes.get("bloquear_promocoes_simultaneas", True)):
+            conflito = PromocaoModel.buscar_conflito_produto_ativo(int(promocao_id), int(produto_id))
+            if conflito:
+                nome_promocao = str(conflito.get("nome") or conflito.get("codigo") or "outra promoção")
+                status_conflito = str(conflito.get("status") or "").strip().capitalize()
+                data_inicio = str(conflito.get("data_inicio_fmt") or "-")
+                data_fim = str(conflito.get("data_fim_fmt") or "-")
+                return (
+                    False,
+                    f"Este produto já participa da promoção '{nome_promocao}' "
+                    f"({status_conflito}) no período de {data_inicio} até {data_fim}.",
+                )
 
         preco_original = PromocaoService._decimal(produto.get("preco_venda"))
         if preco_original <= Decimal("0"):

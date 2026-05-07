@@ -83,6 +83,8 @@ def close_connection():
     _connection_pool = None
 
 if __name__ == "__main__":
+    from utils.app_logger import log_error, log_info
+
     try:
         diagnostics = get_connection_diagnostics()
         conn = get_connection()
@@ -90,16 +92,19 @@ if __name__ == "__main__":
             cursor.execute("SHOW TABLES;")
             tabelas = cursor.fetchall()
 
-        print(f"Modo de conexao: {diagnostics['mode'], diagnostics['pool_enabled'], diagnostics['pool_initialized'], diagnostics.get('pool_name', '-'), diagnostics.get('pool_size', '-')}")
-        print(f"Conectado ao banco '{os.getenv('DB_NAME')}' em {os.getenv('DB_HOST')}")
-        print(f"Tabelas encontradas ({len(tabelas)}):")
+        log_info(
+            "Modo de conexão: "
+            f"{diagnostics['mode'], diagnostics['pool_enabled'], diagnostics['pool_initialized'], diagnostics.get('pool_name', '-'), diagnostics.get('pool_size', '-')}"
+        )
+        log_info(f"Conectado ao banco '{os.getenv('DB_NAME')}' em {os.getenv('DB_HOST')}")
+        log_info(f"Tabelas encontradas ({len(tabelas)}):")
         for (nome,) in tabelas:
-            print(f"  - {nome}")
+            log_info(f"  - {nome}")
 
         conn.close()
     except ConnectionError as exc:
-        print(f"Erro de conexao: {exc}")
+        log_error("Erro de conexão.", exc)
     except Error as exc:
-        print(f"Erro no banco de dados: {exc}")
+        log_error("Erro no banco de dados.", exc)
     finally:
         close_connection()

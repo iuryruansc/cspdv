@@ -3,10 +3,23 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 
 class CaixaService:
+    @staticmethod
+    def _carregar_parametros_caixa() -> Dict[str, Any]:
+        try:
+            return ConfiguracoesService.carregar_parametros_caixa()
+        except Exception:
+            return {
+                "fundo_inicial_sugerido": 0.0,
+                "exigir_admin_sangria": True,
+                "exigir_admin_reembolso": True,
+                "exigir_admin_diferenca_fechamento": True,
+            }
+
     @staticmethod
     def _formatar_data_hora(valor: Any) -> str:
         if isinstance(valor, datetime):
@@ -234,7 +247,11 @@ class CaixaService:
             return False, "Informe um valor maior que zero."
         if not observacao.strip():
             return False, "Descreva o motivo da movimentação."
-        if not CaixaService.validar_admin_para_diferenca(admin_password):
+        parametros_caixa = CaixaService._carregar_parametros_caixa()
+        exigir_admin = str(tipo).strip().lower() == "sangria" and bool(
+            parametros_caixa.get("exigir_admin_sangria", True)
+        )
+        if exigir_admin and not CaixaService.validar_admin_para_diferenca(admin_password):
             return False, "Informe uma senha de administrador valida."
 
         resumo = CaixaService.obter_resumo_movimentacoes()
@@ -279,7 +296,13 @@ class CaixaService:
         total_esperado = float(resumo["total_esperado"])
         diferenca = round(valor_contado - total_esperado, 2)
 
-        if abs(diferenca) > 0.009 and not CaixaService.validar_admin_para_diferenca(admin_password):
+        parametros_caixa = CaixaService._carregar_parametros_caixa()
+        exigir_admin_diferenca = bool(parametros_caixa.get("exigir_admin_diferenca_fechamento", True))
+        if (
+            exigir_admin_diferenca
+            and abs(diferenca) > 0.009
+            and not CaixaService.validar_admin_para_diferenca(admin_password)
+        ):
             return False, "Diferenca identificada. Informe a senha de um administrador para concluir o fechamento.", None
 
         try:

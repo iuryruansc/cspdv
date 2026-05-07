@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Any, List, cast
 from database.connection import get_connection
+from utils.app_logger import log_error
 
 class FornecedorModel:
     @staticmethod
@@ -23,7 +24,7 @@ class FornecedorModel:
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         except Exception as e:
-            print(f"Erro ao listar fornecedores: {e}")
+            log_error("Erro ao listar fornecedores.", e)
             raise
         finally:
             cursor.close()
@@ -51,7 +52,7 @@ class FornecedorModel:
             return cursor.lastrowid
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao inserir fornecedor: {e}")
+            log_error("Erro ao inserir fornecedor.", e)
             raise
         finally:
             cursor.close()
@@ -121,7 +122,7 @@ class FornecedorModel:
             return cursor.rowcount > 0
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao atualizar fornecedor: {e}")
+            log_error("Erro ao atualizar fornecedor.", e)
             raise
         finally:
             cursor.close()
@@ -140,7 +141,7 @@ class FornecedorModel:
             return cursor.rowcount > 0
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao atualizar status do fornecedor: {e}")
+            log_error("Erro ao atualizar status do fornecedor.", e)
             raise
         finally:
             cursor.close()

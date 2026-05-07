@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QShortcut, QWidget
 
 from core.session_manager import SessionManager
 from ui.login.selecao_modo import Ui_SelecaoModo
+from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 class SelecaoModoView(QWidget, Ui_SelecaoModo):
@@ -22,6 +23,8 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         ]
         self._conectar_eventos()
         self._atualizar_operador()
+        self.lblVersao.setText(versao_referencia())
+        self.lblVersao.setToolTip(descricao_ambiente())
         self._verificar_acessos()
 
     def _usuario_atual(self):

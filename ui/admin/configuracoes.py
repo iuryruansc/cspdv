@@ -231,6 +231,7 @@ class Ui_ConfiguracoesWidget(object):
         grid = QtWidgets.QGridLayout()
         grid.setHorizontalSpacing(14)
         grid.setVerticalSpacing(10)
+        grid.setContentsMargins(0, 4, 0, 0)
 
         self.lineEditFundoSugerido = QtWidgets.QLineEdit(self.frameCaixa)
         self.lineEditFundoSugerido.setPlaceholderText("0,00")
@@ -242,27 +243,33 @@ class Ui_ConfiguracoesWidget(object):
         grid.addWidget(self.checkExigirAdminSangria, 1, 1)
         grid.addWidget(self.checkExigirAdminReembolso, 2, 1)
         grid.addWidget(self.checkExigirAdminDiferenca, 3, 1)
+        grid.setColumnStretch(0, 3)
+        grid.setColumnStretch(1, 2)
         self.frameCaixa.layout().addLayout(grid)
 
     def _montar_promocoes(self) -> None:
+        wrapper = QtWidgets.QVBoxLayout()
+        wrapper.setContentsMargins(0, 4, 0, 0)
+        wrapper.setSpacing(12)
         grid = QtWidgets.QGridLayout()
         grid.setHorizontalSpacing(14)
         grid.setVerticalSpacing(10)
-
         self.comboPrioridadePromocao = QtWidgets.QComboBox(self.framePromocoes)
         self.comboPrioridadePromocao.addItems(["Promoção antes do desconto manual", "Desconto manual antes da promoção"])
         self.checkBloquearPromocoesSimultaneas = QtWidgets.QCheckBox("Bloquear promoções simultâneas por produto", self.framePromocoes)
         self.checkAtivarPorVigencia = QtWidgets.QCheckBox("Ativar promoções automaticamente pela vigência", self.framePromocoes)
 
         self._adicionar_linha_campo(grid, 0, 0, "Prioridade Promocional", self.comboPrioridadePromocao)
-        grid.addWidget(self.checkBloquearPromocoesSimultaneas, 1, 0)
-        grid.addWidget(self.checkAtivarPorVigencia, 2, 0)
-        self.framePromocoes.layout().addLayout(grid)
+        wrapper.addLayout(grid)
+        wrapper.addWidget(self.checkBloquearPromocoesSimultaneas)
+        wrapper.addWidget(self.checkAtivarPorVigencia)
+        self.framePromocoes.layout().addLayout(wrapper)
 
     def _montar_seguranca(self) -> None:
         grid = QtWidgets.QGridLayout()
         grid.setHorizontalSpacing(14)
         grid.setVerticalSpacing(10)
+        grid.setContentsMargins(0, 4, 0, 0)
 
         self.lineEditHorasSessao = QtWidgets.QLineEdit(self.frameSeguranca)
         self.lineEditHorasSessao.setPlaceholderText("12")
@@ -272,6 +279,8 @@ class Ui_ConfiguracoesWidget(object):
         self._adicionar_linha_campo(grid, 0, 0, "Horas de Sessão Persistida", self.lineEditHorasSessao)
         grid.addWidget(self.checkRestaurarLogin, 1, 1)
         grid.addWidget(self.checkBloquearFecharAppCaixa, 2, 1)
+        grid.setColumnStretch(0, 3)
+        grid.setColumnStretch(1, 2)
         self.frameSeguranca.layout().addLayout(grid)
 
     def _montar_sistema(self) -> None:

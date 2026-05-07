@@ -1,13 +1,15 @@
-﻿from typing import Any, Dict, List
+from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem
 
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.admin.views.configuracoes_view import ConfiguracoesView
 from modules.admin.views.widgets import ManagementPageWidget
 from ui.admin.painel_admin import Ui_PainelAdmin
+from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
@@ -60,6 +62,8 @@ QPushButton:hover {
         else:
             self.lblOperadorInfo.setText("Operador: Não logado")
             self.lblStatusBar.setText("CSPdv - Painel Administrativo")
+        self.lblStatusVersao.setText(versao_referencia())
+        self.lblStatusVersao.setToolTip(descricao_ambiente())
 
     def _setup_datetime(self) -> None:
         self._update_datetime()
@@ -651,18 +655,29 @@ QPushButton:hover {
         from modules.venda.services.caixa_service import CaixaService
 
         usuario = SessionManager.current_user() or {}
+        parametros_venda = ConfiguracoesService.carregar_parametros_venda()
+        venda_rapida_habilitada = bool(parametros_venda.get("habilitar_venda_rapida_admin", True))
         if not CaixaSession.has_open_caixa():
             CaixaService.restaurar_caixa_aberto(usuario.get("id"))
 
         if CaixaSession.has_open_caixa():
-            self.btnFrenteCaixa.setText("Venda Rápida")
-            self.btnFrenteCaixa.setToolTip("Abre o fluxo compacto de venda sem sair do painel admin.")
+            if venda_rapida_habilitada:
+                self.btnFrenteCaixa.setText("Venda Rápida")
+                self.btnFrenteCaixa.setToolTip("Abre o fluxo compacto de venda sem sair do painel admin.")
+                self.btnFrenteCaixa.setEnabled(True)
+            else:
+                self.btnFrenteCaixa.setText("Venda Rápida desabilitada")
+                self.btnFrenteCaixa.setToolTip(
+                    "A Venda Rápida está desabilitada em Configurações > Parâmetros de Venda."
+                )
+                self.btnFrenteCaixa.setEnabled(False)
             self.btnFecharCaixaDashboard.show()
             self.btnFecharCaixaDashboard.setToolTip("Abre o fechamento do caixa atual diretamente no painel admin.")
             return
 
         self.btnFrenteCaixa.setText("Abrir Frente de Caixa")
         self.btnFrenteCaixa.setToolTip("Abre o caixa para habilitar as vendas no contexto administrativo.")
+        self.btnFrenteCaixa.setEnabled(True)
         self.btnFecharCaixaDashboard.hide()
 
     def _populate_dashboard_sales(self, rows: List[Dict[str, Any]]) -> None:
@@ -703,6 +718,8 @@ QPushButton:hover {
         from modules.venda.views.venda_rapida_dialog import VendaRapidaDialog
 
         usuario = SessionManager.current_user() or {}
+        parametros_venda = ConfiguracoesService.carregar_parametros_venda()
+        venda_rapida_habilitada = bool(parametros_venda.get("habilitar_venda_rapida_admin", True))
         if not CaixaSession.has_open_caixa():
             CaixaService.restaurar_caixa_aberto(usuario.get("id"))
 
@@ -724,6 +741,15 @@ QPushButton:hover {
                 "Caixa aberto",
                 "Caixa aberto com sucesso.",
             )
+            return
+
+        if not venda_rapida_habilitada:
+            mostrar_info(
+                self,
+                "Venda Rápida desabilitada",
+                "A Venda Rápida está desabilitada em Configurações > Parâmetros de Venda.",
+            )
+            self._atualizar_acao_caixa_dashboard()
             return
 
         self.venda_rapida_dialog = VendaRapidaDialog(self)

@@ -1,4 +1,5 @@
 from modules.produtos.models.produto_model import ProdutoModel
+from utils.app_logger import log_error
 
 class ProdutoService:
     @staticmethod
@@ -9,7 +10,7 @@ class ProdutoService:
         try:
             return ProdutoModel.buscar_para_venda(termo_limpo)
         except Exception as e:
-            print(f"Erro ao buscar produtos para venda: {e}")
+            log_error("Erro ao buscar produtos para venda no serviço.", e)
             return []
 
     @staticmethod
@@ -66,7 +67,7 @@ class ProdutoService:
             return None, "Produto não localizado no sistema.", False
 
         except Exception as e:
-            print(f"Erro no ProdutoService: {e}")
+            log_error("Erro ao validar e buscar produto por código.", e)
             return None, "Erro tecnico ao consultar o banco de dados.", False
 
     @staticmethod
