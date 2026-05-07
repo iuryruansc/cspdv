@@ -247,7 +247,11 @@ class CaixaService:
             return False, "Informe um valor maior que zero."
         if not observacao.strip():
             return False, "Descreva o motivo da movimentação."
-        if not CaixaService.validar_admin_para_diferenca(admin_password):
+        parametros_caixa = CaixaService._carregar_parametros_caixa()
+        exigir_admin = str(tipo).strip().lower() == "sangria" and bool(
+            parametros_caixa.get("exigir_admin_sangria", True)
+        )
+        if exigir_admin and not CaixaService.validar_admin_para_diferenca(admin_password):
             return False, "Informe uma senha de administrador valida."
 
         resumo = CaixaService.obter_resumo_movimentacoes()
