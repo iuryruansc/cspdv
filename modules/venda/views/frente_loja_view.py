@@ -378,6 +378,9 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         if os.getenv("CSPDV_ALLOW_TEST_CAIXA_EXIT", "").lower() in {"1", "true", "yes", "on"}:
             return True
 
+        if not SessionManager.should_block_close_with_open_caixa():
+            return True
+
         if not CaixaSession.has_open_caixa():
             return True
 

@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.venda.services.caixa_service import CaixaService
 from ui.venda.tela_movimentacao_caixa import Ui_TelaMovimentacaoCaixa
 from utils.format_utils import aplicar_mascara_monetaria
@@ -48,6 +49,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self._grupo_tipos.addButton(self.btnTipoSuprimento)
         self._grupo_tipos.addButton(self.btnTipoTroco)
         self._tipo_atual = "sangria"
+        self._parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
 
         self._configurar_formulario()
         self._conectar_sinais()
@@ -61,6 +63,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
 
     def showEvent(self, a0) -> None:
         super().showEvent(a0)
+        self._parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
         self._recarregar_tela()
 
     def _configurar_formulario(self) -> None:
@@ -85,6 +88,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self.btnTipoSangria.setChecked(tipo == "sangria")
         self.btnTipoSuprimento.setChecked(tipo == "suprimento")
         self.btnTipoTroco.setChecked(tipo == "troco")
+        self._atualizar_regra_admin()
 
     def _recarregar_tela(self) -> None:
         self._carregar_resumo()
@@ -93,6 +97,17 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self.lineEditDescricao.clear()
         self.lineEditSenhaAdmin.clear()
         self._definir_tipo("sangria")
+
+    def _atualizar_regra_admin(self) -> None:
+        exigir_admin = self._tipo_atual == "sangria" and bool(
+            self._parametros_caixa.get("exigir_admin_sangria", True)
+        )
+        self.lineEditSenhaAdmin.setEnabled(exigir_admin)
+        if exigir_admin:
+            self.lineEditSenhaAdmin.setPlaceholderText("Senha do administrador")
+        else:
+            self.lineEditSenhaAdmin.clear()
+            self.lineEditSenhaAdmin.setPlaceholderText("Autorização não exigida para esta operação")
 
     def _carregar_resumo(self) -> None:
         resumo = CaixaService.obter_resumo_movimentacoes()

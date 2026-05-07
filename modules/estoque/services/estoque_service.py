@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from modules.estoque.models.estoque_model import EstoqueModel
+from utils.app_logger import log_error
 
 
 class EstoqueService:
@@ -11,7 +12,7 @@ class EstoqueService:
         try:
             return EstoqueModel.listar_categorias()
         except Exception as exc:
-            print(f"Erro ao listar categorias do estoque: {exc}")
+            log_error("Erro ao listar categorias do estoque.", exc)
             return []
 
     @staticmethod
@@ -19,7 +20,7 @@ class EstoqueService:
         try:
             return EstoqueModel.listar_fornecedores()
         except Exception as exc:
-            print(f"Erro ao listar fornecedores do estoque: {exc}")
+            log_error("Erro ao listar fornecedores do estoque.", exc)
             return []
 
     @staticmethod
@@ -27,7 +28,7 @@ class EstoqueService:
         try:
             return EstoqueModel.obter_metricas()
         except Exception as exc:
-            print(f"Erro ao carregar metricas do estoque: {exc}")
+            log_error("Erro ao carregar métricas do estoque.", exc)
             return {
                 "produtos_ativos": 0,
                 "lotes_ativos": 0,
@@ -49,7 +50,7 @@ class EstoqueService:
                 fornecedor_id=fornecedor_id,
             )
         except Exception as exc:
-            print(f"Erro ao listar produtos e lotes: {exc}")
+            log_error("Erro ao listar produtos e lotes do estoque.", exc)
             return []
 
     @staticmethod
@@ -57,5 +58,5 @@ class EstoqueService:
         try:
             return EstoqueModel.listar_movimentacoes_recentes()
         except Exception as exc:
-            print(f"Erro ao listar movimentacoes do estoque: {exc}")
+            log_error("Erro ao listar movimentações recentes do estoque.", exc)
             return []

@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.venda.services.caixa_service import CaixaService
 from modules.venda.views.confirmar_fechamento_caixa_dialog import (
     ConfirmarFechamentoCaixaDialog,
@@ -128,11 +129,13 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         valor_contado = self._valor_contado()
         total_esperado = float(self._resumo.get("total_esperado") or 0.0)
         diferenca = round(valor_contado - total_esperado, 2)
+        parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
 
         dialog = ConfirmarFechamentoCaixaDialog(
             total_esperado=total_esperado,
             valor_contado=valor_contado,
             diferenca=diferenca,
+            exigir_admin_diferenca=bool(parametros_caixa.get("exigir_admin_diferenca_fechamento", True)),
             parent=self,
         )
         if dialog.exec_() != dialog.Accepted:

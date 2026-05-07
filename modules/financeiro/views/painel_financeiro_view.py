@@ -6,12 +6,23 @@ from typing import Any, Optional
 
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtGui import QColor, QBrush, QFont
-from PyQt5.QtWidgets import QLabel, QComboBox, QLineEdit, QMainWindow, QPushButton, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import (
+    QComboBox,
+    QInputDialog,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+)
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.financeiro.services.financeiro_service import FinanceiroService
 from modules.financeiro.services.reembolso_service import ReembolsoService
+from modules.venda.services.caixa_service import CaixaService
 from ui.financeiro.painel_financeiro import Ui_PainelFinanceiro
 from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
@@ -321,6 +332,24 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         dialog = NovoReembolsoDialog(detalhes, self)
         if dialog.exec_() != dialog.Accepted or not dialog.resultado:
             return
+
+        parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
+        if bool(parametros_caixa.get("exigir_admin_reembolso", True)):
+            senha_admin, confirmou = QInputDialog.getText(
+                self,
+                "Autorização de reembolso",
+                "Informe a senha de um administrador para concluir o reembolso.",
+                QLineEdit.Password,
+            )
+            if not confirmou:
+                return
+            if not CaixaService.validar_admin_para_diferenca(str(senha_admin or "").strip()):
+                mostrar_aviso(
+                    self,
+                    "Autorização inválida",
+                    "Informe uma senha de administrador válida para registrar o reembolso.",
+                )
+                return
 
         sucesso, mensagem, resultado = ReembolsoService.registrar_reembolso(dialog.resultado)
         if not sucesso or resultado is None:

@@ -13,14 +13,18 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.produtos.services.produto_service import ProdutoService
 from modules.venda.services.cupom_service import (
     aplicar_desconto_item,
     criar_item_cupom,
     definir_quantidade_item,
     desconto_itens_total,
+    item_tem_promocao,
     quantidade_total_itens,
+    priorizar_desconto_manual_item,
     remover_desconto_item,
+    restaurar_preco_promocional_item,
     somar_quantidade_item,
     subtotal_itens,
     total_geral,
@@ -73,6 +77,9 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._cliente_atual: Optional[Dict[str, Any]] = None
         self._linha_cupom_selecionada: Optional[int] = None
         self._desconto_global_valor = 0.0
+        self._parametros_venda = ConfiguracoesService.carregar_parametros_venda()
+        self._parametros_promocoes = ConfiguracoesService.carregar_parametros_promocoes()
+        self._cliente_selecionado_manualmente = False
 
         self._busca_timer = QTimer(self)
         self._busca_timer.setSingleShot(True)
@@ -151,7 +158,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
 
     def _configurar_venda_inicial(self) -> None:
         self.lblNumVendaValor.setText(str(self._numero_venda))
-        self.lblClienteNome.setText("Consumidor Final")
+        self._cliente_selecionado_manualmente = self._cliente_padrao_venda() == "CONSUMIDOR_FINAL"
+        self.lblClienteNome.setText("Consumidor Final" if self._cliente_selecionado_manualmente else "Selecionar cliente")
         self.lineEditDesconto.setText("0,00")
         self.lineEditDescontoItens.setText("0,00")
         self.lineEditDescontoTotal.setText("0,00")
@@ -168,17 +176,19 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._preencher_preview_produto(self._produto_atual)
         self._adicionar_produto_pelo_enter()
 
-    def _alterar_cliente(self) -> None:
+    def _alterar_cliente(self) -> bool:
         dialog = SelecionarClienteDialog(self)
         if dialog.exec_() != dialog.Accepted:
-            return
+            return False
 
         self._cliente_atual = dialog.cliente_selecionado
+        self._cliente_selecionado_manualmente = True
         if not self._cliente_atual:
             self.lblClienteNome.setText("Consumidor Final")
-            return
+            return True
 
         self.lblClienteNome.setText(str(self._cliente_atual.get("nome") or "Consumidor Final"))
+        return True
 
     def _atualizar_data_hora(self) -> None:
         self.lblDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss"))
@@ -225,12 +235,28 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             (item for item in self._itens_venda if int(item.get("id") or 0) == produto_id),
             None,
         )
+        estoque_disponivel = float(self._produto_atual.get("quantidade_estoque") or 0.0)
+        quantidade_total_solicitada = quantidade + int(item_existente.get("quantidade") or 0) if item_existente else quantidade
+
+        if not self._permitir_venda_sem_estoque() and quantidade_total_solicitada > int(estoque_disponivel):
+            mostrar_aviso(
+                self,
+                "Estoque insuficiente",
+                (
+                    f"O produto possui {int(estoque_disponivel)} unidade(s) em estoque.\n"
+                    f"Não é possível lançar {quantidade_total_solicitada} unidade(s) com a política atual."
+                ),
+            )
+            self.lineEditQuantidade.setFocus()
+            self.lineEditQuantidade.selectAll()
+            return
 
         if item_existente:
             somar_quantidade_item(item_existente, quantidade)
         else:
             self._itens_venda.append(criar_item_cupom(self._produto_atual, quantidade))
 
+        self._reconciliar_precos_promocionais()
         self._renderizar_cupom()
         self._produto_atual = None
         self._limpar_preview_produto()
@@ -384,10 +410,13 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._desconto_global_valor = 0.0
         self.tableCupom.setRowCount(0)
         self._cliente_atual = None
-        self.lblClienteNome.setText("Consumidor Final")
+        self._cliente_selecionado_manualmente = self._cliente_padrao_venda() == "CONSUMIDOR_FINAL"
+        self.lblClienteNome.setText("Consumidor Final" if self._cliente_selecionado_manualmente else "Selecionar cliente")
         self._limpar_preview_produto()
 
     def _abrir_confirmacao_venda(self) -> None:
+        if not self._garantir_cliente_conforme_regra():
+            return
         dialog = ConfirmarVendaDialog(
             numero_venda=self._numero_venda,
             cliente_nome=self.lblClienteNome.text().strip() or "Consumidor Final",
@@ -435,9 +464,30 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return
 
         definir_quantidade_item(item, nova_quantidade)
+        self._reconciliar_precos_promocionais()
         self._sincronizar_item_alterado(row)
 
     def _abrir_desconto(self) -> None:
+        if self._regra_desconto_venda() == "EXIGIR_AUTORIZACAO":
+            senha_admin, confirmado = QInputDialog.getText(
+                self,
+                "Autorização de desconto",
+                "Informe a senha de um administrador para liberar o desconto:",
+                QLineEdit.Password,
+            )
+            if not confirmado:
+                return
+
+            from modules.venda.services.caixa_service import CaixaService
+
+            if not CaixaService.validar_admin_para_diferenca(senha_admin):
+                mostrar_aviso(
+                    self,
+                    "Autorização inválida",
+                    "Informe uma senha de administrador válida para aplicar ou remover descontos.",
+                )
+                return
+
         dialog = AplicarDescontoDialog(
             item_disponivel=0 <= self.tableCupom.currentRow() < len(self._itens_venda),
             parent=self,
@@ -460,8 +510,12 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             item = self._itens_venda[row]
             if acao == "remover":
                 remover_desconto_item(item)
+                self._reconciliar_precos_promocionais()
                 self._sincronizar_item_alterado(row)
                 return
+
+            if self._prioridade_promocional() == "DESCONTO_ANTES_PROMOCAO":
+                priorizar_desconto_manual_item(item)
 
             subtotal_bruto = float(item["preco_venda"]) * float(item["quantidade"])
             desconto = self._calcular_desconto(subtotal_bruto, tipo, valor)
@@ -474,13 +528,19 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
                 return
 
             aplicar_desconto_item(item, desconto)
+            self._reconciliar_precos_promocionais()
             self._sincronizar_item_alterado(row)
             return
 
         if acao == "remover":
             self._desconto_global_valor = 0.0
+            self._reconciliar_precos_promocionais()
             self._renderizar_cupom()
             return
+
+        if self._prioridade_promocional() == "DESCONTO_ANTES_PROMOCAO":
+            for item in self._itens_venda:
+                priorizar_desconto_manual_item(item)
 
         subtotal_venda = subtotal_itens(self._itens_venda)
         if subtotal_venda <= 0:
@@ -501,6 +561,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return
 
         self._desconto_global_valor = desconto_global
+        self._reconciliar_precos_promocionais()
         self._renderizar_cupom()
 
     def _desconto_itens_total(self) -> float:
@@ -514,3 +575,44 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if tipo == "percentual":
             return round(base * (valor / 100.0), 2)
         return round(valor, 2)
+
+    def _cliente_padrao_venda(self) -> str:
+        return str(self._parametros_venda.get("cliente_padrao_venda") or "CONSUMIDOR_FINAL").strip().upper()
+
+    def _regra_desconto_venda(self) -> str:
+        return str(self._parametros_venda.get("regra_desconto_venda") or "PERMITIR_DESCONTO").strip().upper()
+
+    def _permitir_venda_sem_estoque(self) -> bool:
+        return bool(self._parametros_venda.get("permitir_venda_sem_estoque", False))
+
+    def _prioridade_promocional(self) -> str:
+        return str(
+            self._parametros_promocoes.get("prioridade_promocional")
+            or "PROMOCAO_ANTES_DESCONTO"
+        ).strip().upper()
+
+    def _reconciliar_precos_promocionais(self) -> None:
+        if self._prioridade_promocional() != "DESCONTO_ANTES_PROMOCAO":
+            return
+
+        desconto_global_ativo = float(self._desconto_global_valor or 0.0) > 0
+        for item in self._itens_venda:
+            if not item_tem_promocao(item):
+                continue
+            if desconto_global_ativo or float(item.get("desconto_item") or 0.0) > 0:
+                priorizar_desconto_manual_item(item)
+            else:
+                restaurar_preco_promocional_item(item)
+
+    def _garantir_cliente_conforme_regra(self) -> bool:
+        if self._cliente_padrao_venda() != "SELECIONAR_NO_MOMENTO":
+            return True
+        if self._cliente_selecionado_manualmente:
+            return True
+
+        mostrar_info(
+            self,
+            "Selecionar cliente",
+            "Selecione o cliente da venda antes de continuar.",
+        )
+        return self._alterar_cliente()

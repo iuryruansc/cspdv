@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QEvent, QObject, QSignalBlocker, Qt
+from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QLineEdit
 
 from utils.string_utils import somente_digitos, texto_limpo
@@ -60,7 +61,7 @@ def formatar_cep(valor: str) -> str:
 
 
 def formatar_moeda_input(valor: object) -> str:
-    digits = somente_digitos(valor)
+    digits = somente_digitos("" if valor is None else str(valor))
     if not digits:
         digits = "0"
 
@@ -76,7 +77,7 @@ class _MoneyInputFilter(QObject):
         if a1.type() in (QEvent.FocusIn, QEvent.MouseButtonPress, QEvent.MouseButtonRelease):
             a0.setCursorPosition(len(a0.text()))
 
-        if a1.type() == QEvent.KeyPress and hasattr(a1, "key"):
+        if a1.type() == QEvent.KeyPress and isinstance(a1, QKeyEvent):
             if a1.key() in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Home):
                 a0.setCursorPosition(len(a0.text()))
                 return True
@@ -96,5 +97,5 @@ def aplicar_mascara_monetaria(line_edit: QLineEdit) -> None:
 
     filtro = _MoneyInputFilter(line_edit)
     line_edit.installEventFilter(filtro)
-    line_edit._money_input_filter = filtro
+    setattr(line_edit, "_money_input_filter", filtro)
     line_edit.textEdited.connect(_ao_editar)

@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
 )
 
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.venda.services.caixa_service import CaixaService
 from ui.venda.tela_abertura_caixa import Ui_TelaAberturaCaixa
 from utils.format_utils import (
@@ -75,7 +76,6 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
 
     def _configurar_formulario(self) -> None:
         aplicar_mascara_monetaria(self.lineEditTrocoInicial)
-        self.lineEditTrocoInicial.setText("0,00")
 
         for spin in (
             self.spinNota100,
@@ -93,8 +93,19 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         usuario = SessionManager.current_user() or {}
         self.lineEditOperador.setText(str(usuario.get("nome", "")).upper())
         self.lineEditOperador.setReadOnly(True)
+        self._aplicar_fundo_inicial_sugerido()
         self._popular_pdvs()
         self._atualizar_total_breakdown()
+
+    def showEvent(self, a0) -> None:
+        super().showEvent(a0)
+        if self.lineEditTrocoInicial.isEnabled():
+            self._aplicar_fundo_inicial_sugerido()
+
+    def _aplicar_fundo_inicial_sugerido(self) -> None:
+        parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
+        fundo_sugerido = float(parametros_caixa.get("fundo_inicial_sugerido") or 0.0)
+        self.lineEditTrocoInicial.setText(formatar_decimal(fundo_sugerido))
 
     def _popular_pdvs(self) -> None:
         self.comboNumCaixa.clear()
