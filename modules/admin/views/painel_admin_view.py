@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem
+from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem, QWidget
 
 from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
@@ -30,8 +30,14 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self._setup_shortcuts()
         self._show_dashboard()
 
+    def _central_widget_parent(self) -> QWidget:
+        central = self.centralWidget
+        if isinstance(central, QWidget):
+            return central
+        return self.centralWidget()
+
     def _setup_dashboard_actions(self) -> None:
-        self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self.centralWidget)
+        self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self._central_widget_parent())
         self.btnFecharCaixaDashboard.setMinimumSize(172, 38)
         self.btnFecharCaixaDashboard.setStyleSheet(
             """
@@ -72,10 +78,11 @@ QPushButton:hover {
         self.timer.start(1000)
 
     def _setup_management_area(self) -> None:
-        self.managementPage = ManagementPageWidget(self.centralWidget)
+        parent_widget = self._central_widget_parent()
+        self.managementPage = ManagementPageWidget(parent_widget)
         self.managementPage.hide()
         self.mainContentVLayout.addWidget(self.managementPage)
-        self.configuracoesPage = ConfiguracoesView(self.centralWidget)
+        self.configuracoesPage = ConfiguracoesView(parent_widget)
         self.configuracoesPage.hide()
         self.mainContentVLayout.addWidget(self.configuracoesPage)
 
@@ -649,6 +656,100 @@ QPushButton:hover {
         self.lblResumoFormasPagamento.setText(
             f"Formas de pagamento: {int(resumo.get('formas_pagamento_ativas') or 0)}"
         )
+        self._atualizar_alertas_dashboard(resumo.get("alertas_dashboard") or [])
+
+    def _atualizar_alertas_dashboard(self, alertas: List[Dict[str, Any]]) -> None:
+        botoes = [
+            self.btnResumoAlerta1,
+            self.btnResumoAlerta2,
+            self.btnResumoAlerta3,
+            self.btnResumoAlerta4,
+        ]
+        estilos = {
+            "critico": (
+                "QPushButton { font-size: 12px; color: #b42318; font-weight: 700; "
+                "text-align: left; border: none; background: transparent; padding: 0px; } "
+                "QPushButton:hover { text-decoration: underline; }"
+            ),
+            "aviso": (
+                "QPushButton { font-size: 12px; color: #b54708; "
+                "text-align: left; border: none; background: transparent; padding: 0px; } "
+                "QPushButton:hover { text-decoration: underline; }"
+            ),
+            "info": (
+                "QPushButton { font-size: 12px; color: #175cd3; "
+                "text-align: left; border: none; background: transparent; padding: 0px; } "
+                "QPushButton:hover { text-decoration: underline; }"
+            ),
+            "ok": (
+                "QPushButton { font-size: 12px; color: #027a48; "
+                "text-align: left; border: none; background: transparent; padding: 0px; }"
+            ),
+        }
+        if not alertas:
+            alertas = [{"nivel": "ok", "texto": "Nenhum alerta estrutural no momento.", "acao": "nenhuma"}]
+
+        for index, botao in enumerate(botoes):
+            try:
+                botao.clicked.disconnect()
+            except TypeError:
+                pass
+            if index < len(alertas):
+                alerta = alertas[index]
+                nivel = str(alerta.get("nivel") or "info").strip().lower()
+                texto = str(alerta.get("texto") or "").strip()
+                acao = str(alerta.get("acao") or "nenhuma").strip().lower()
+                botao.setText(f"• {texto}")
+                botao.setStyleSheet(estilos.get(nivel, estilos["info"]))
+                botao.setEnabled(acao != "nenhuma")
+                if acao != "nenhuma":
+                    botao.clicked.connect(lambda _=False, target=acao: self._executar_acao_alerta_dashboard(target))
+                    botao.setToolTip("Clique para abrir a ação relacionada a este alerta.")
+                else:
+                    botao.setToolTip("")
+                botao.show()
+            else:
+                botao.setText("")
+                botao.setToolTip("")
+                botao.hide()
+
+    def _executar_acao_alerta_dashboard(self, acao: str) -> None:
+        if acao == "abrir_financeiro":
+            if not SessionManager.has_permission("financeiro.total"):
+                mostrar_aviso(
+                    self,
+                    "Acesso negado",
+                    "O usuário atual não possui permissão para abrir o módulo financeiro.",
+                )
+                return
+            from modules.financeiro.views.painel_financeiro_view import PainelFinanceiroView
+
+            self.hide()
+            self.painel_financeiro = PainelFinanceiroView()
+            self.painel_financeiro.show()
+            return
+
+        if acao == "abrir_promocoes":
+            if not SessionManager.has_permission("relatorios.ver"):
+                mostrar_aviso(
+                    self,
+                    "Acesso negado",
+                    "O usuário atual não possui permissão para abrir o módulo de promoções.",
+                )
+                return
+            from modules.promocoes.views.painel_promocoes_view import PainelPromocoesView
+
+            self.hide()
+            self.painel_promocoes = PainelPromocoesView()
+            self.painel_promocoes.show()
+            return
+
+        if acao == "fechar_caixa":
+            self._open_fechamento_caixa_dashboard()
+            return
+
+        if acao == "abrir_configuracoes":
+            self._show_configuracoes()
 
     def _atualizar_acao_caixa_dashboard(self) -> None:
         from core.caixa_session import CaixaSession

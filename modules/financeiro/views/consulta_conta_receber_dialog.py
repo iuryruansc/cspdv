@@ -14,10 +14,12 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         super().__init__(parent)
         self._detalhes = detalhes
         self._conta = detalhes.get("conta") or {}
+        self.solicitar_recebimento = False
         self.setupUi(self)
         self.setModal(True)
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.btnFechar.clicked.connect(self.accept)
+        self.btnReceberAgora.clicked.connect(self._receber_agora)
         self._populate()
 
     def _populate(self) -> None:
@@ -30,6 +32,16 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         self.lblTotalValor.setText(formatar_moeda(conta.get("valor_total")))
         self.lblRecebidoValor.setText(formatar_moeda(conta.get("valor_recebido")))
         self.lblAbertoValor.setText(formatar_moeda(conta.get("valor_aberto")))
+        resumo = self._detalhes.get("resumo") or {}
+        self.lblQtdRecebimentosValor.setText(str(int(resumo.get("quantidade_recebimentos") or 0)))
+        self.lblUltimoRecebimentoValor.setText(self._formatar_data_hora(resumo.get("ultimo_recebimento")))
+        self.lblDiasAtrasoValor.setText(str(int(resumo.get("dias_atraso") or 0)))
+        self.plainObservacao.setPlainText(str(conta.get("observacao") or "Sem observações registradas."))
+        self._aplicar_estilo_status()
+        aberto = Decimal(str(conta.get("valor_aberto") or 0))
+        conta_aberta = str(conta.get("status") or "").upper() in {"PENDENTE", "PARCIALMENTE_RECEBIDA"} and aberto > Decimal("0.00")
+        self.btnReceberAgora.setVisible(conta_aberta)
+        self.btnReceberAgora.setEnabled(conta_aberta)
         self._fill_recebimentos(self._detalhes.get("recebimentos") or [])
 
     def _fill_recebimentos(self, recebimentos: List[Dict[str, Any]]) -> None:
@@ -39,6 +51,26 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
             self._set_item(self.tableRecebimentos, row, 1, str(item.get("forma_pagamento") or "-"))
             self._set_item(self.tableRecebimentos, row, 2, formatar_moeda(item.get("valor_recebido")), Qt.AlignRight | Qt.AlignVCenter)
             self._set_item(self.tableRecebimentos, row, 3, str(item.get("observacao") or "-"))
+
+    def _aplicar_estilo_status(self) -> None:
+        status = str(self._conta.get("status") or "").upper()
+        dias_atraso = int((self._detalhes.get("resumo") or {}).get("dias_atraso") or 0)
+        if status in {"PENDENTE", "PARCIALMENTE_RECEBIDA"} and dias_atraso > 0:
+            self.lblStatusValor.setProperty("status", "atrasada")
+            self.lblDiasAtrasoValor.setStyleSheet("color:#b42318;")
+        elif status == "QUITADA":
+            self.lblStatusValor.setProperty("status", "quitada")
+            self.lblDiasAtrasoValor.setStyleSheet("color:#123f6f;")
+        else:
+            self.lblStatusValor.setProperty("status", "aberto")
+            self.lblDiasAtrasoValor.setStyleSheet("color:#123f6f;")
+        self.lblStatusValor.style().unpolish(self.lblStatusValor)
+        self.lblStatusValor.style().polish(self.lblStatusValor)
+        self.lblStatusValor.update()
+
+    def _receber_agora(self) -> None:
+        self.solicitar_recebimento = True
+        self.accept()
 
     @staticmethod
     def _set_item(table: QTableWidget, row: int, column: int, value: str, alignment: Any = Qt.AlignLeft | Qt.AlignVCenter) -> None:

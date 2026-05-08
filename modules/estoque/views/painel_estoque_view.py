@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import QComboBox, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
 
 from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
 from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
@@ -23,6 +23,10 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         self.cmbFornecedorFiltro: QComboBox
         self.tableProdutosEstoque: QTableWidget
         self.tableMovimentacoesEstoque: QTableWidget
+        self.lblProdutosAtivosValor: QLabel
+        self.lblLotesAtivosValor: QLabel
+        self.lblItensBaixoEstoqueValor: QLabel
+        self.lblMovimentacoesDiaValor: QLabel
         self._registros_produtos = []
         self._cadastro_produto_view = None
 
@@ -116,8 +120,20 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
             self._set_table_item(self.tableProdutosEstoque, row, 3, str(registro.get("marca") or "-"))
             self._set_table_item(self.tableProdutosEstoque, row, 4, str(registro.get("lote") or "-"))
             self._set_table_item(self.tableProdutosEstoque, row, 5, self._formatar_data(registro.get("data_validade")))
-            self._set_table_item(self.tableProdutosEstoque, row, 6, formatar_inteiro(registro.get("quantidade")), alignment=Qt.AlignCenter)
-            self._set_table_item(self.tableProdutosEstoque, row, 7, formatar_moeda(registro.get("preco_venda")), alignment=Qt.AlignRight | Qt.AlignVCenter)
+            self._set_table_item(
+                self.tableProdutosEstoque,
+                row,
+                6,
+                formatar_inteiro(registro.get("quantidade")),
+                alignment=int(Qt.AlignCenter),
+            )
+            self._set_table_item(
+                self.tableProdutosEstoque,
+                row,
+                7,
+                formatar_moeda(registro.get("preco_venda")),
+                alignment=int(Qt.AlignRight | Qt.AlignVCenter),
+            )
 
         self.lblStatusBar.setText(f"CSPdv - Modulo de Estoque | {len(registros)} registro(s) em Produtos e Lotes")
 
@@ -128,7 +144,13 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
             self._set_table_item(self.tableMovimentacoesEstoque, row, 0, self._formatar_data_hora(registro.get("data_hora")))
             self._set_table_item(self.tableMovimentacoesEstoque, row, 1, str(registro.get("produto") or "-"))
             self._set_table_item(self.tableMovimentacoesEstoque, row, 2, self._formatar_tipo_movimento(registro.get("tipo")))
-            self._set_table_item(self.tableMovimentacoesEstoque, row, 3, formatar_inteiro(registro.get("quantidade")), alignment=Qt.AlignCenter)
+            self._set_table_item(
+                self.tableMovimentacoesEstoque,
+                row,
+                3,
+                formatar_inteiro(registro.get("quantidade")),
+                alignment=int(Qt.AlignCenter),
+            )
             self._set_table_item(self.tableMovimentacoesEstoque, row, 4, str(registro.get("usuario") or "-"))
 
     @staticmethod
@@ -138,10 +160,10 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         column: int,
         value: str,
         *,
-        alignment: int = Qt.AlignLeft | Qt.AlignVCenter,
+        alignment: int = int(Qt.AlignLeft),
     ) -> QTableWidgetItem:
         item = QTableWidgetItem(value)
-        item.setTextAlignment(int(alignment))
+        item.setTextAlignment(alignment)
         table.setItem(row, column, item)
         return item
 

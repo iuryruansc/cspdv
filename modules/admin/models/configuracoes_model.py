@@ -1,11 +1,25 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
 
 
 class ConfiguracoesModel:
+    @staticmethod
+    def _registro_id(row: object) -> int | None:
+        if not isinstance(row, Sequence) or isinstance(row, (str, bytes, bytearray)) or not row:
+            return None
+
+        valor = row[0]
+        if valor is None:
+            return None
+
+        try:
+            return int(valor)
+        except (TypeError, ValueError):
+            return None
+
     @staticmethod
     def listar_pdvs() -> List[Dict[str, Any]]:
         conn = get_connection()
@@ -117,10 +131,10 @@ class ConfiguracoesModel:
         try:
             ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id FROM config_empresa ORDER BY id LIMIT 1")
-            row = cursor.fetchone()
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
 
-            if row:
-                registro_id = int(row[0])
+            if registro_id is not None:
                 cursor.execute(
                     """
                     UPDATE config_empresa
@@ -164,10 +178,10 @@ class ConfiguracoesModel:
         try:
             ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cursor.fetchone()
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
 
-            if row:
-                registro_id = int(row[0])
+            if registro_id is not None:
                 cursor.execute(
                     """
                     UPDATE config_empresa
@@ -234,10 +248,10 @@ class ConfiguracoesModel:
         try:
             ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cursor.fetchone()
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
 
-            if row:
-                registro_id = int(row[0])
+            if registro_id is not None:
                 cursor.execute(
                     """
                     UPDATE config_empresa
@@ -303,10 +317,10 @@ class ConfiguracoesModel:
         try:
             ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cursor.fetchone()
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
 
-            if row:
-                registro_id = int(row[0])
+            if registro_id is not None:
                 cursor.execute(
                     """
                     UPDATE config_empresa
@@ -368,10 +382,10 @@ class ConfiguracoesModel:
         try:
             ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cursor.fetchone()
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
 
-            if row:
-                registro_id = int(row[0])
+            if registro_id is not None:
                 cursor.execute(
                     """
                     UPDATE config_empresa
@@ -433,10 +447,10 @@ class ConfiguracoesModel:
         try:
             ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cursor.fetchone()
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
 
-            if row:
-                registro_id = int(row[0])
+            if registro_id is not None:
                 cursor.execute(
                     """
                     UPDATE config_empresa

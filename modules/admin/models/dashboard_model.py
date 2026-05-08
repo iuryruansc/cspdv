@@ -25,6 +25,8 @@ class DashboardAdminModel:
             pdvs_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "pdvs")
             formas_pagamento_ativas = DashboardAdminModel._contar_ativos_ou_total(cursor, "formas_pagamento")
             caixas_abertos = DashboardAdminModel._contar_caixas_abertos(cursor)
+            contas_vencidas = DashboardAdminModel._contar_contas_vencidas(cursor)
+            promocoes_vencidas_ativas = DashboardAdminModel._contar_promocoes_vencidas_ativas(cursor)
 
             vendas_hoje = 0
             faturamento_dia = Decimal("0")
@@ -82,6 +84,8 @@ class DashboardAdminModel:
                 "pdvs_ativos": pdvs_ativos,
                 "formas_pagamento_ativas": formas_pagamento_ativas,
                 "caixas_abertos": caixas_abertos,
+                "contas_vencidas": contas_vencidas,
+                "promocoes_vencidas_ativas": promocoes_vencidas_ativas,
                 "ultimas_vendas": ultimas_vendas,
             }
         finally:
@@ -182,6 +186,45 @@ class DashboardAdminModel:
         else:
             cursor.execute("SELECT COUNT(*) AS total FROM caixas")
 
+        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        return int(resultado.get("total") or 0)
+
+    @staticmethod
+    def _contar_contas_vencidas(cursor: Any) -> int:
+        if not DashboardAdminModel._tabela_existe(cursor, "contas_receber"):
+            return 0
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM contas_receber
+            WHERE ativo = 'S'
+              AND status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+              AND data_vencimento < CURDATE()
+            """
+        )
+        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        return int(resultado.get("total") or 0)
+
+    @staticmethod
+    def _contar_promocoes_vencidas_ativas(cursor: Any) -> int:
+        if not DashboardAdminModel._tabela_existe(cursor, "promocoes"):
+            return 0
+        colunas = DashboardAdminModel._listar_colunas(cursor, "promocoes")
+        if "status" not in colunas or "data_fim" not in colunas:
+            return 0
+        where_partes = [
+            "status = 'ATIVA'",
+            "data_fim < NOW()",
+        ]
+        if "ativo" in colunas:
+            where_partes.append("ativo = 'S'")
+        cursor.execute(
+            f"""
+            SELECT COUNT(*) AS total
+            FROM promocoes
+            WHERE {' AND '.join(where_partes)}
+            """
+        )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 

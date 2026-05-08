@@ -62,6 +62,12 @@ def _ultima_execucao() -> datetime | None:
         return None
 
 
+def _formatar_data_hora_local(valor: datetime | None) -> str:
+    if valor is None:
+        return "Nenhum backup realizado ainda"
+    return valor.astimezone().strftime("%d/%m/%Y %H:%M")
+
+
 def _registrar_resultado(resultado: BackupResultado) -> None:
     agora = _agora_utc().isoformat()
     estado = _carregar_estado()
@@ -212,6 +218,30 @@ class BackupService:
         finally:
             cursor.close()
             conn.close()
+
+    @staticmethod
+    def resumo_ultimo_backup() -> str:
+        estado = _carregar_estado()
+        ultimo = _ultima_execucao()
+        status = str(estado.get("ultimo_status") or "").strip().upper()
+        if ultimo is None:
+            return "Nenhum backup realizado ainda"
+
+        horario = _formatar_data_hora_local(ultimo)
+        if status == "ERRO":
+            return f"{horario} | última execução com erro"
+        return horario
+
+    @staticmethod
+    def ultimo_arquivo_backup() -> Path | None:
+        estado = _carregar_estado()
+        bruto = str(estado.get("ultimo_arquivo") or "").strip()
+        if not bruto:
+            return None
+        caminho = Path(bruto)
+        if caminho.exists():
+            return caminho
+        return None
 
     @staticmethod
     def _aplicar_retencao(max_arquivos: int = 30) -> None:

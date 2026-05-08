@@ -1,7 +1,10 @@
-from PyQt5.QtWidgets import QWidget
+import os
+
+from PyQt5.QtWidgets import QApplication, QWidget
 
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from ui.admin.configuracoes import Ui_ConfiguracoesWidget
+from utils.backup_runtime import BackupService
 from utils.format_utils import formatar_decimal
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
@@ -20,6 +23,7 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
         self.lineEditHorasSessao.setText("12")
         self.lineEditIntervaloBackup.setText("24")
         self.lineEditVersaoReferencia.setText("CSPdv v1.0.0")
+        self.lblUltimoBackup.setText("Nenhum backup realizado ainda")
         self.checkVendaRapidaAdmin.setChecked(True)
         self.checkBloquearPromocoesSimultaneas.setChecked(True)
         self.checkAtivarPorVigencia.setChecked(True)
@@ -119,10 +123,59 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
         perfil_log_index = self.comboPerfilLog.findText(perfil_log_label)
         self.comboPerfilLog.setCurrentIndex(perfil_log_index if perfil_log_index >= 0 else 0)
         self.lineEditVersaoReferencia.setText(str(empresa.get("versao_referencia") or "CSPdv v1.0.0"))
+        self._atualizar_status_backup()
 
     def _conectar_eventos(self) -> None:
         self.btnSalvarParametros.clicked.connect(self._salvar_estrutura_inicial)
         self.btnRestaurarPadroes.clicked.connect(self._restaurar_defaults)
+        self.btnAbrirPastaBackups.clicked.connect(self._abrir_pasta_backups)
+        self.btnCopiarCaminhoBackup.clicked.connect(self._copiar_caminho_ultimo_backup)
+        self.btnExecutarBackupAgora.clicked.connect(self._executar_backup_agora)
+
+    def _atualizar_status_backup(self) -> None:
+        self.lblUltimoBackup.setText(BackupService.resumo_ultimo_backup())
+
+    def _abrir_pasta_backups(self) -> None:
+        pasta = BackupService.diretorio_backup()
+        try:
+            os.startfile(str(pasta))
+        except OSError as exc:
+            mostrar_aviso(
+                self,
+                "Backup",
+                f"Não foi possível abrir a pasta de backups.\n\nDetalhes: {exc}",
+            )
+
+    def _copiar_caminho_ultimo_backup(self) -> None:
+        arquivo = BackupService.ultimo_arquivo_backup()
+        if arquivo is None:
+            mostrar_aviso(
+                self,
+                "Backup",
+                "Ainda não existe um backup disponível para copiar o caminho.",
+            )
+            return
+
+        QApplication.clipboard().setText(str(arquivo))
+        mostrar_info(
+            self,
+            "Backup",
+            "O caminho do último backup foi copiado para a área de transferência.",
+        )
+
+    def _executar_backup_agora(self) -> None:
+        self.btnExecutarBackupAgora.setEnabled(False)
+        try:
+            resultado = BackupService.executar_backup()
+            self._atualizar_status_backup()
+        finally:
+            self.btnExecutarBackupAgora.setEnabled(True)
+
+        if resultado.sucesso:
+            mostrar_info(self, "Backup", resultado.mensagem)
+            return
+
+        mostrar_aviso(self, "Backup", resultado.mensagem)
 
     def _salvar_estrutura_inicial(self) -> None:
         sucesso_empresa, mensagem_empresa = ConfiguracoesService.salvar_empresa_pdv(
@@ -182,9 +235,11 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
             return
 
         self._carregar_parametros_iniciais()
+        self._atualizar_status_backup()
         janela_principal = self.window()
-        if janela_principal is not None and hasattr(janela_principal, "_atualizar_acao_caixa_dashboard"):
-            janela_principal._atualizar_acao_caixa_dashboard()
+        atualizar_acao_caixa = getattr(janela_principal, "_atualizar_acao_caixa_dashboard", None)
+        if callable(atualizar_acao_caixa):
+            atualizar_acao_caixa()
         mostrar_info(
             self,
             "Configurações",
@@ -201,6 +256,7 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
     def _restaurar_defaults(self) -> None:
         self._configurar_defaults()
         self._carregar_parametros_iniciais()
+        self._atualizar_status_backup()
         mostrar_info(
             self,
             "Configurações",

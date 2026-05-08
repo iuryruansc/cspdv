@@ -375,17 +375,32 @@ class FinanceiroModel:
                         c.nome LIKE %s
                         OR CAST(cr.id AS CHAR) LIKE %s
                         OR CAST(cr.venda_id AS CHAR) LIKE %s
+                        OR COALESCE(cr.descricao, '') LIKE %s
                   )
                 """
                 termo = f"%{busca.strip()}%"
-                params.extend([termo, termo, termo])
+                params.extend([termo, termo, termo, termo])
             status_clause = ""
-            if status_filtro == "PENDENTE":
+            if status_filtro == "TODAS":
+                status_clause = ""
+            elif status_filtro in (None, "ABERTAS"):
+                status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')"
+            elif status_filtro == "PENDENTE":
                 status_clause = " AND cr.status = 'PENDENTE'"
             elif status_filtro == "PARCIALMENTE_RECEBIDA":
                 status_clause = " AND cr.status = 'PARCIALMENTE_RECEBIDA'"
+            elif status_filtro == "QUITADA":
+                status_clause = " AND cr.status = 'QUITADA'"
             elif status_filtro == "VENCIDA":
                 status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()"
+            elif status_filtro == "VENCE_HOJE":
+                status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento = CURDATE()"
+            elif status_filtro == "PROXIMOS_7_DIAS":
+                status_clause = (
+                    " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')"
+                    " AND cr.data_vencimento > CURDATE()"
+                    " AND cr.data_vencimento <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)"
+                )
             params.append(int(limite))
             cursor.execute(
                 f"""
@@ -398,17 +413,33 @@ class FinanceiroModel:
                     cr.valor_total,
                     cr.valor_recebido,
                     cr.valor_aberto,
+                    COALESCE((
+                        SELECT COUNT(*)
+                        FROM contas_receber_recebimentos crr
+                        WHERE crr.conta_receber_id = cr.id
+                          AND crr.ativo = 'S'
+                    ), 0) AS total_recebimentos,
+                    (
+                        SELECT MAX(crr.data_recebimento)
+                        FROM contas_receber_recebimentos crr
+                        WHERE crr.conta_receber_id = cr.id
+                          AND crr.ativo = 'S'
+                    ) AS ultimo_recebimento,
                     CASE
                         WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE() THEN 1
                         ELSE 0
-                    END AS vencida
+                    END AS vencida,
+                    CASE
+                        WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()
+                        THEN DATEDIFF(CURDATE(), cr.data_vencimento)
+                        ELSE 0
+                    END AS dias_atraso
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
                 LEFT JOIN caixas cx ON cx.id = cr.caixa_id
                 WHERE cr.ativo = 'S'
                   AND cr.data_vencimento >= %s
                   AND cr.data_vencimento < %s
-                  AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
                   {pdv_clause}
                   {busca_clause}
                   {status_clause}
@@ -441,7 +472,12 @@ class FinanceiroModel:
                     cr.valor_aberto,
                     cr.data_emissao,
                     cr.data_vencimento,
-                    cr.status
+                    cr.status,
+                    CASE
+                        WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()
+                        THEN DATEDIFF(CURDATE(), cr.data_vencimento)
+                        ELSE 0
+                    END AS dias_atraso
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
                 WHERE cr.id = %s
@@ -472,7 +508,18 @@ class FinanceiroModel:
                 (int(conta_id),),
             )
             recebimentos = list(cursor.fetchall())
-            return {"conta": conta, "recebimentos": recebimentos}
+            ultimo_recebimento = recebimentos[0]["data_recebimento"] if recebimentos else None
+            return {
+                "conta": conta,
+                "recebimentos": recebimentos,
+                "resumo": {
+                    "quantidade_recebimentos": len(recebimentos),
+                    "ultimo_recebimento": ultimo_recebimento,
+                    "dias_atraso": int(conta.get("dias_atraso") or 0),
+                    "em_aberto": Decimal(str(conta.get("valor_aberto") or 0)),
+                    "valor_recebido": Decimal(str(conta.get("valor_recebido") or 0)),
+                },
+            }
         finally:
             cursor.close()
             conn.close()

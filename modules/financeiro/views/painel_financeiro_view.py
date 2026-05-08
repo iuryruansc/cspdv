@@ -110,10 +110,14 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
 
     def _carregar_status_conta(self) -> None:
         self.cmbStatusContaFiltro.clear()
-        self.cmbStatusContaFiltro.addItem("Todas as contas abertas", None)
+        self.cmbStatusContaFiltro.addItem("Contas em aberto", "ABERTAS")
+        self.cmbStatusContaFiltro.addItem("Todas as contas", "TODAS")
         self.cmbStatusContaFiltro.addItem("Pendentes", "PENDENTE")
         self.cmbStatusContaFiltro.addItem("Parcialmente recebidas", "PARCIALMENTE_RECEBIDA")
         self.cmbStatusContaFiltro.addItem("Vencidas", "VENCIDA")
+        self.cmbStatusContaFiltro.addItem("Quitadas", "QUITADA")
+        self.cmbStatusContaFiltro.addItem("Vence hoje", "VENCE_HOJE")
+        self.cmbStatusContaFiltro.addItem("Próximos 7 dias", "PROXIMOS_7_DIAS")
 
     def _carregar_painel(self) -> None:
         self._carregar_cards()
@@ -242,6 +246,17 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             return
 
         conta_id = self._obter_conta_id_selecionada()
+        self._executar_recebimento_conta(conta_id)
+        return
+
+    def _executar_recebimento_conta(self, conta_id: Optional[int]) -> None:
+        if not CaixaSession.has_open_caixa():
+            mostrar_aviso(
+                self,
+                "Caixa não encontrado",
+                "Abra um caixa antes de registrar recebimentos de pendências.",
+            )
+            return
         if not conta_id:
             mostrar_aviso(
                 self,
@@ -306,7 +321,8 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         from modules.financeiro.views.consulta_conta_receber_dialog import ConsultaContaReceberDialog
 
         dialog = ConsultaContaReceberDialog(conta_detalhada, self)
-        dialog.exec_()
+        if dialog.exec_() == dialog.Accepted and dialog.solicitar_recebimento:
+            self._executar_recebimento_conta(conta_id)
 
     def _novo_reembolso(self) -> None:
         venda_id = self._obter_venda_id_selecionada()
@@ -489,6 +505,9 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             )
             item_conta.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
             item_conta.setData(Qt.UserRole + 1, int(registro.get("conta_id") or 0))
+            item_conta.setData(Qt.UserRole + 2, registro.get("ultimo_recebimento"))
+            item_conta.setData(Qt.UserRole + 3, int(registro.get("total_recebimentos") or 0))
+            item_conta.setData(Qt.UserRole + 4, int(registro.get("dias_atraso") or 0))
             self._set_table_item(self.tableContasReceber, row, 1, str(registro.get("cliente") or "-"))
             self._set_table_item(
                 self.tableContasReceber,
@@ -714,9 +733,13 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             vencimento = self._texto_item(self.tableContasReceber, row_conta, 2)
             status = self._texto_item(self.tableContasReceber, row_conta, 3)
             saldo = self._texto_item(self.tableContasReceber, row_conta, 4)
+            item_conta = self.tableContasReceber.item(row_conta, 0)
+            ultima_baixa = self._formatar_data_hora(item_conta.data(Qt.UserRole + 2) if item_conta else None)
+            recebimentos = formatar_inteiro(item_conta.data(Qt.UserRole + 3) if item_conta else 0)
             self.lblStatusBar.setText(
                 "CSPdv - Modulo Financeiro | "
-                f"Conta #{conta} | {cliente} | {status} | Vencimento {vencimento} | Saldo {saldo}"
+                f"Conta #{conta} | {cliente} | {status} | Vencimento {vencimento} | "
+                f"Saldo {saldo} | Recebimentos {recebimentos} | Última baixa {ultima_baixa}"
             )
             return
 
@@ -765,12 +788,19 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._aplicar_tooltip_linha(self.tablePagamentos, row, tooltip)
 
     def _aplicar_tooltip_conta(self, row: int, registro: dict[str, Any]) -> None:
+        ultimo_recebimento = self._formatar_data_hora(registro.get("ultimo_recebimento"))
+        dias_atraso = int(registro.get("dias_atraso") or 0)
+        situacao_atraso = f"{dias_atraso} dia(s) em atraso" if dias_atraso > 0 else "Sem atraso"
         tooltip = (
             f"Conta #{registro.get('conta_id') or '-'}\n"
             f"Cliente: {registro.get('cliente') or '-'}\n"
             f"Vencimento: {self._formatar_data(registro.get('data_vencimento'))}\n"
             f"Status: {registro.get('status') or '-'}\n"
-            f"Em aberto: {formatar_moeda(registro.get('valor_aberto'))}"
+            f"Em aberto: {formatar_moeda(registro.get('valor_aberto'))}\n"
+            f"Já recebido: {formatar_moeda(registro.get('valor_recebido'))}\n"
+            f"Recebimentos: {formatar_inteiro(registro.get('total_recebimentos'))}\n"
+            f"Última baixa: {ultimo_recebimento}\n"
+            f"Situação: {situacao_atraso}"
         )
         self._aplicar_tooltip_linha(self.tableContasReceber, row, tooltip)
 

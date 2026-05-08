@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Any, Dict, List
 
 from modules.admin.models.dashboard_model import DashboardAdminModel
+from utils.backup_runtime import BackupService
 
 
 class DashboardAdminService:
@@ -22,10 +23,67 @@ class DashboardAdminService:
             "pdvs_ativos": int(resumo.get("pdvs_ativos") or 0),
             "formas_pagamento_ativas": int(resumo.get("formas_pagamento_ativas") or 0),
             "caixas_abertos": int(resumo.get("caixas_abertos") or 0),
+            "contas_vencidas": int(resumo.get("contas_vencidas") or 0),
+            "promocoes_vencidas_ativas": int(resumo.get("promocoes_vencidas_ativas") or 0),
+            "alertas_dashboard": DashboardAdminService._montar_alertas(resumo),
             "ultimas_vendas": DashboardAdminService._formatar_ultimas_vendas(
                 resumo.get("ultimas_vendas") or []
             ),
         }
+
+    @staticmethod
+    def _montar_alertas(resumo: Dict[str, Any]) -> List[Dict[str, str]]:
+        alertas: List[Dict[str, str]] = []
+
+        contas_vencidas = int(resumo.get("contas_vencidas") or 0)
+        if contas_vencidas > 0:
+            alertas.append(
+                {
+                    "nivel": "critico",
+                    "texto": f"{contas_vencidas} conta(s) vencida(s) aguardando cobrança.",
+                    "acao": "abrir_financeiro",
+                }
+            )
+
+        promocoes_vencidas = int(resumo.get("promocoes_vencidas_ativas") or 0)
+        if promocoes_vencidas > 0:
+            alertas.append(
+                {
+                    "nivel": "aviso",
+                    "texto": f"{promocoes_vencidas} promoção(ões) vencida(s) ainda ativa(s).",
+                    "acao": "abrir_promocoes",
+                }
+            )
+
+        caixas_abertos = int(resumo.get("caixas_abertos") or 0)
+        if caixas_abertos > 0:
+            alertas.append(
+                {
+                    "nivel": "info",
+                    "texto": f"{caixas_abertos} caixa(s) aberto(s) no momento.",
+                    "acao": "fechar_caixa",
+                }
+            )
+
+        if BackupService.backup_esta_vencido():
+            alertas.append(
+                {
+                    "nivel": "aviso",
+                    "texto": "Backup fora do intervalo configurado.",
+                    "acao": "abrir_configuracoes",
+                }
+            )
+
+        if not alertas:
+            alertas.append(
+                {
+                    "nivel": "ok",
+                    "texto": "Nenhum alerta estrutural no momento.",
+                    "acao": "nenhuma",
+                }
+            )
+
+        return alertas[:4]
 
     @staticmethod
     def _formatar_ultimas_vendas(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
