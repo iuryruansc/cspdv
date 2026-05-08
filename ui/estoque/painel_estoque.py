@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_PainelEstoque(object):
     def setupUi(self, PainelEstoque):
         PainelEstoque.setObjectName("PainelEstoque")
@@ -478,7 +477,6 @@ class Ui_PainelEstoque(object):
         item.setText(_translate("PainelEstoque", "Usuario"))
         self.lblStatusSistema.setText(_translate("PainelEstoque", "Sistema online"))
         self.lblStatusBar.setText(_translate("PainelEstoque", "CSPdv - Modulo de Estoque"))
-
 
 if __name__ == "__main__":
     import sys

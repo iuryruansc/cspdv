@@ -19,13 +19,10 @@ from utils.ui_messages import mostrar_aviso
 
 load_dotenv(find_dotenv())
 
-
 def _excepthook(tipo, valor, tb):
     log_exception("Erro não tratado", tipo, valor, tb)
 
-
 sys.excepthook = _excepthook
-
 
 def _mostrar_dialog(dialog):
     frame = dialog.frameGeometry()
@@ -38,7 +35,6 @@ def _mostrar_dialog(dialog):
     dialog.show()
     dialog.raise_()
     dialog.activateWindow()
-
 
 def _mostrar_erro_conexao(mensagem):
     diagnostics = get_connection_diagnostics()
@@ -64,7 +60,6 @@ def _mostrar_erro_conexao(mensagem):
             + "\n".join(detalhes)
         ),
     )
-
 
 class _AppCloseGuard(QObject):
     _WINDOW_CLASSES = {
@@ -96,7 +91,6 @@ class _AppCloseGuard(QObject):
             return True
 
         return super().eventFilter(a0, a1)
-
 
 def main():
     app = QApplication(sys.argv)
@@ -133,7 +127,6 @@ def main():
     selecao = SelecaoModoView()
     _mostrar_dialog(selecao)
     return app.exec_()
-
 
 if __name__ == "__main__":
     try:

@@ -14,7 +14,6 @@ from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
 from ui.venda.venda_rapida_dialog import Ui_VendaRapidaDialog
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -60,8 +59,10 @@ class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
         dialog.exec_()
 
         parent = self.parent()
-        if parent is not None and hasattr(parent, "_load_dashboard_cards"):
-            parent._load_dashboard_cards()
+        if parent is not None:
+            atualizar_dashboard = getattr(parent, "_load_dashboard_cards", None)
+            if callable(atualizar_dashboard):
+                atualizar_dashboard()
 
         if dialog.resultado == "imprimir":
             mostrar_info(

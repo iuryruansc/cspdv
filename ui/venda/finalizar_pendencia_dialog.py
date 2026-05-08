@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_FinalizarPendenciaDialog(object):
     def setupUi(self, FinalizarPendenciaDialog):
         FinalizarPendenciaDialog.setObjectName("FinalizarPendenciaDialog")

@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import QFrame, QHeaderView, QTableWidgetItem, QWidget
 
 from ui.admin.management_page_widget import Ui_ManagementPageWidget
 
-
 class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)

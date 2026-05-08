@@ -6,13 +6,11 @@ from PyQt5.QtWidgets import QLabel, QPushButton, QWidget
 from core.session_manager import SessionManager
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
-
 class _PainelOperacionalHost(Protocol):
     lblOperadorInfo: QLabel
     btnVoltarSelecao: QPushButton
 
     def hide(self) -> None: ...
-
 
 class PainelOperacionalMixin:
     def _configurar_tamanho_responsivo(self) -> None:

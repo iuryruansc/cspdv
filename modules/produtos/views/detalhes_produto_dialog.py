@@ -5,7 +5,6 @@ from ui.produtos.detalhes_produto_dialog import Ui_DetalhesProdutoDialog
 from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.image_utils import atualizar_preview_label, resolver_caminho_arquivo
 
-
 class DetalhesProdutoDialog(QDialog, Ui_DetalhesProdutoDialog):
     def __init__(self, produto, parent=None):
         super().__init__(parent)

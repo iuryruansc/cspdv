@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QDialog
 from ui.venda.aplicar_desconto_dialog import Ui_AplicarDescontoDialog
 from utils.ui_messages import mostrar_aviso
 
-
 class AplicarDescontoDialog(QDialog, Ui_AplicarDescontoDialog):
     def __init__(self, *, item_disponivel: bool, parent=None):
         super().__init__(parent)

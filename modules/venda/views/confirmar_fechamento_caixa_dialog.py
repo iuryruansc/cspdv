@@ -7,7 +7,6 @@ from ui.venda.confirmar_fechamento_caixa_dialog import (
 )
 from utils.ui_messages import mostrar_aviso
 
-
 class ConfirmarFechamentoCaixaDialog(QDialog, Ui_ConfirmarFechamentoCaixaDialog):
     def __init__(
         self,
@@ -82,7 +81,6 @@ class ConfirmarFechamentoCaixaDialog(QDialog, Ui_ConfirmarFechamentoCaixaDialog)
     @staticmethod
     def _formatar_moeda(valor: float) -> str:
         return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
 
 class FechamentoRealizadoDialog(QDialog, Ui_FechamentoRealizadoDialog):
     def __init__(self, mensagem: str, parent=None):

@@ -3,19 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, cast
 
 from database.connection import get_connection
 
-
 CENT = Decimal("0.01")
-
 
 @dataclass(frozen=True)
 class LoteAlocacao:
     lote_id: int
     quantidade: int
-
 
 class VendaModel:
     @staticmethod
@@ -211,11 +208,12 @@ class VendaModel:
                 """,
                 (caixa_id,),
             )
-            dinheiro = cursor.fetchone() or {}
+            vendas_dict = cast(Dict[str, Any], vendas)
+            dinheiro = cast(Dict[str, Any], cursor.fetchone() or {})
 
             return {
-                "vendas_dia": int(vendas.get("vendas_dia") or 0),
-                "faturamento_total": float(vendas.get("faturamento_total") or 0.0),
+                "vendas_dia": int(vendas_dict.get("vendas_dia") or 0),
+                "faturamento_total": float(vendas_dict.get("faturamento_total") or 0.0),
                 "faturamento_dinheiro": float(dinheiro.get("faturamento_dinheiro") or 0.0),
                 "totais_forma_pagamento": totais_forma_pagamento,
             }

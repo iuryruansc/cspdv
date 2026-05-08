@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_FecharCaixaDialog(object):
     def setupUi(self, FecharCaixaDialog):
         FecharCaixaDialog.setObjectName("FecharCaixaDialog")

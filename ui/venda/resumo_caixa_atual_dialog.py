@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_ResumoCaixaAtualDialog(object):
     def setupUi(self, ResumoCaixaAtualDialog):
         ResumoCaixaAtualDialog.setObjectName("ResumoCaixaAtualDialog")

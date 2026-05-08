@@ -44,7 +44,8 @@ class ProdutoService:
             return False, "O preco de venda deve ser maior que zero."
 
         produto_existente = ProdutoModel.buscar_por_codigo(codigo_barras)
-        if produto_existente and int(produto_existente.get("id")) != int(produto_id or 0):
+        produto_existente_id = int((produto_existente or {}).get("id") or 0)
+        if produto_existente and produto_existente_id != int(produto_id or 0):
             return False, "Este codigo de barras ja esta em uso."
 
         return True, ""

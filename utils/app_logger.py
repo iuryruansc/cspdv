@@ -6,22 +6,18 @@ from typing import Optional, Type
 
 from utils.system_runtime import perfil_log
 
-
 def _deve_emitir_logs() -> bool:
     return perfil_log() != "SILENCIOSO"
-
 
 def log_info(message: str) -> None:
     if not _deve_emitir_logs():
         return
     print(f"[INFO] {message}")
 
-
 def log_warning(message: str) -> None:
     if not _deve_emitir_logs():
         return
     print(f"[AVISO] {message}")
-
 
 def log_error(message: str, exc: Exception | None = None) -> None:
     current_profile = perfil_log()
@@ -37,7 +33,6 @@ def log_error(message: str, exc: Exception | None = None) -> None:
         return
 
     print(f"[ERRO] {type(exc).__name__}: {exc}")
-
 
 def log_exception(
     title: str,

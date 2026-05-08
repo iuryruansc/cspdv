@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_MovimentacaoCaixaDialog(object):
     def setupUi(self, MovimentacaoCaixaDialog):
         MovimentacaoCaixaDialog.setObjectName("MovimentacaoCaixaDialog")

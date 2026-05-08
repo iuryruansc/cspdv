@@ -9,7 +9,6 @@ from modules.promocoes.services.promocao_service import PromocaoService
 from ui.promocoes.vincular_produtos_promocao import Ui_VincularProdutosPromocao
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
     def __init__(self, promocao_id: int, parent=None):
         super().__init__(parent)

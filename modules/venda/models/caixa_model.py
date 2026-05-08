@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
 
@@ -176,7 +176,8 @@ class CaixaModel:
         cursor = conn.cursor()
         try:
             cursor.execute("SHOW COLUMNS FROM caixas")
-            colunas = {str(coluna[0]) for coluna in cursor.fetchall()}
+            colunas_rows = cast(List[Sequence[Any]], cursor.fetchall())
+            colunas = {str(coluna[0]) for coluna in colunas_rows}
 
             atribuicoes = ["status = 'fechado'"]
             parametros: List[Any] = []
@@ -324,7 +325,11 @@ class CaixaModel:
                 """,
                 (caixa_id,),
             )
-            totais = {str(row.get("tipo_padrao") or ""): float(row.get("total") or 0.0) for row in cursor.fetchall()}
+            totais_rows = cast(List[Dict[str, Any]], cursor.fetchall())
+            totais = {
+                str(row.get("tipo_padrao") or ""): float(row.get("total") or 0.0)
+                for row in totais_rows
+            }
             total_sangrias = totais.get("sangria", 0.0)
             total_suprimentos = totais.get("suprimento", 0.0)
             total_troco = totais.get("troco", 0.0)

@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_ConfiguracoesWidget(object):
     def setupUi(self, widget):
         widget.setObjectName("ConfiguracoesWidget")

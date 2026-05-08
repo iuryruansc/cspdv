@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QDialog
 from modules.venda.views.fechamento_caixa_view import FechamentoCaixaView
 from ui.venda.fechar_caixa_dialog import Ui_FecharCaixaDialog
 
-
 class FecharCaixaDialog(QDialog, Ui_FecharCaixaDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

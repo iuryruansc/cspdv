@@ -22,7 +22,6 @@ from ui.promocoes.painel_promocoes import Ui_PainelPromocoes
 from utils.operational_panel_mixin import PainelOperacionalMixin
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
-
 class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixin):
     def __init__(self, parent=None):
         super().__init__(parent)

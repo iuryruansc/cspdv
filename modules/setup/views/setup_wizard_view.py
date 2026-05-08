@@ -14,14 +14,12 @@ from ui.setup import (
     SetupWizardUi,
 )
 
-
 class PageBoasVindas(PageBoasVindasUi):
     def validate(self) -> bool:
         return True
 
     def get_data(self) -> dict:
         return {}
-
 
 class PageEmpresa(PageEmpresaUi):
     def validate(self):
@@ -75,7 +73,6 @@ class PageEmpresa(PageEmpresaUi):
             "telefone": self.f_telefone.value(),
         }
 
-
 class PageEndereco(PageEnderecoUi):
     def __init__(self):
         super().__init__()
@@ -111,7 +108,6 @@ class PageEndereco(PageEnderecoUi):
             "estado": self.f_estado.value(),
         }
 
-
 class PagePDV(PagePDVUi):
     def validate(self):
         if not self.f_id.value():
@@ -125,7 +121,6 @@ class PagePDV(PagePDVUi):
             "identificacao": self.f_id.value(),
             "descricao": self.f_desc.value() or self.f_id.value(),
         }
-
 
 class PageAdmin(PageAdminUi):
     def validate(self):
@@ -159,7 +154,6 @@ class PageAdmin(PageAdminUi):
             "senha": self.f_senha.value(),
         }
 
-
 class PageConclusao(PageConclusaoUi):
     def validate(self) -> bool:
         return True
@@ -181,7 +175,6 @@ class PageConclusao(PageConclusaoUi):
             f"<b>Administrador:</b>  {admin.get('nome_completo', '—')}<br>"
             f"<b>Login:</b>  {admin.get('login', '—')}"
         )
-
 
 class SetupWizardView(QDialog):
     def __init__(self, parent=None):

@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_CadastroPromocao(object):
     def setupUi(self, CadastroPromocao):
         CadastroPromocao.setObjectName("CadastroPromocao")

@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QDialog
 from modules.venda.views.movimentacao_caixa_view import MovimentacaoCaixaView
 from ui.venda.movimentacao_caixa_dialog import Ui_MovimentacaoCaixaDialog
 
-
 class MovimentacaoCaixaDialog(QDialog, Ui_MovimentacaoCaixaDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

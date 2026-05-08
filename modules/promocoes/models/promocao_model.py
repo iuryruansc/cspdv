@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, List, cast
 
 from database.connection import get_connection
 
@@ -11,7 +11,7 @@ class PromocaoModel:
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("SELECT COALESCE(MAX(id), 0) AS ultimo_id FROM promocoes")
-            row = cursor.fetchone() or {}
+            row = cast(Dict[str, Any], cursor.fetchone() or {})
             proximo = int(row.get("ultimo_id") or 0) + 1
             return f"PR-{proximo:03d}"
         finally:
@@ -115,9 +115,12 @@ class PromocaoModel:
                 """,
                 (int(promocao_id),),
             )
-            promocao = cursor.fetchone()
+            promocao = cast(Dict[str, Any], cursor.fetchone() or {})
             if not promocao:
                 return None
+
+            data_inicio = promocao.get("data_inicio")
+            data_fim = promocao.get("data_fim")
 
             cursor.execute(
                 """
@@ -140,8 +143,8 @@ class PromocaoModel:
                     float(promocao.get("desconto_percentual") or 0),
                     float(promocao.get("desconto_valor") or 0),
                     float(promocao.get("preco_fixo") or 0),
-                    promocao.get("data_inicio"),
-                    promocao.get("data_fim"),
+                    data_inicio,
+                    data_fim,
                     str(promocao.get("cumulativa") or "N"),
                     str(promocao.get("ativo") or "S"),
                     int(promocao.get("usuario_id") or 0),
@@ -284,7 +287,7 @@ class PromocaoModel:
                 """,
                 params,
             )
-            return list(cursor.fetchall() or [])
+            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
         finally:
             cursor.close()
             conn.close()
@@ -310,7 +313,7 @@ class PromocaoModel:
                 """,
                 (int(promocao_id),),
             )
-            return list(cursor.fetchall() or [])
+            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
         finally:
             cursor.close()
             conn.close()
@@ -344,7 +347,7 @@ class PromocaoModel:
                 """,
                 (int(promocao_id),),
             )
-            return cursor.fetchone()
+            return cast(Dict[str, Any] | None, cursor.fetchone())
         finally:
             cursor.close()
             conn.close()
@@ -401,7 +404,7 @@ class PromocaoModel:
                 """,
                 params,
             )
-            return list(cursor.fetchall() or [])
+            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
         finally:
             cursor.close()
             conn.close()
@@ -440,7 +443,7 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), int(produto_id), int(promocao_id)),
             )
-            return cursor.fetchone()
+            return cast(Dict[str, Any] | None, cursor.fetchone())
         finally:
             cursor.close()
             conn.close()
@@ -466,7 +469,7 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), int(produto_id)),
             )
-            existente = cursor.fetchone()
+            existente = cast(Dict[str, Any], cursor.fetchone() or {})
 
             if existente:
                 cursor.execute(

@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, cast
 
 from database.connection import get_connection
 
-
 class EstoqueModel:
     ESTOQUE_CRITICO_PADRAO = 5
 

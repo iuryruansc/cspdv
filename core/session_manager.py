@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
-
 class SessionManager:
     _current_user: Optional[Dict[str, Any]] = None
     _started_at: Optional[datetime] = None

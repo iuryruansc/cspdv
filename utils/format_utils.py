@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QLineEdit
 
 from utils.string_utils import somente_digitos, texto_limpo
 
-
 def numero_decimal(valor: object) -> float:
     if valor in (None, ""):
         return 0.0
@@ -23,16 +22,13 @@ def numero_decimal(valor: object) -> float:
     except (TypeError, ValueError):
         return 0.0
 
-
 def formatar_decimal(valor: object, casas: int = 2) -> str:
     return f"{numero_decimal(valor):.{casas}f}".replace(".", ",")
-
 
 def formatar_moeda(valor: object) -> str:
     texto = f"{numero_decimal(valor):,.2f}"
     texto = texto.replace(",", "X").replace(".", ",").replace("X", ".")
     return f"R$ {texto}"
-
 
 def formatar_inteiro(valor: object) -> str:
     return str(int(numero_decimal(valor)))
@@ -59,7 +55,6 @@ def formatar_cep(valor: str) -> str:
         return f"{digits[:5]}-{digits[5:]}"
     return digits
 
-
 def formatar_moeda_input(valor: object) -> str:
     digits = somente_digitos("" if valor is None else str(valor))
     if not digits:
@@ -67,7 +62,6 @@ def formatar_moeda_input(valor: object) -> str:
 
     inteiro = int(digits)
     return f"{inteiro / 100:.2f}".replace(".", ",")
-
 
 class _MoneyInputFilter(QObject):
     def eventFilter(self, a0, a1) -> bool:
@@ -83,7 +77,6 @@ class _MoneyInputFilter(QObject):
                 return True
 
         return False
-
 
 def aplicar_mascara_monetaria(line_edit: QLineEdit) -> None:
     def _ao_editar(texto: str) -> None:

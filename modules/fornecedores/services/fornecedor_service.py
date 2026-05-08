@@ -1,6 +1,5 @@
 from modules.fornecedores.models.fornecedor_model import FornecedorModel
 
-
 class FornecedorService:
     @staticmethod
     def _validar_dados(dados):

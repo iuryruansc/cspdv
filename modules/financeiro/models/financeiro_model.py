@@ -6,7 +6,6 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, cast
 
 from database.connection import get_connection
 
-
 class FinanceiroModel:
     @staticmethod
     def listar_pdvs() -> List[Dict[str, Any]]:
@@ -80,7 +79,7 @@ class FinanceiroModel:
                 """,
                 tuple(params_recebimentos),
             )
-            recebimentos = cursor.fetchone() or {}
+            recebimentos = cast(Dict[str, Any], cursor.fetchone() or {})
 
             params_entradas: List[Any] = [inicio, fim]
             params_entradas.extend(FinanceiroModel._caixa_filter_params(pdv_id))
@@ -99,7 +98,7 @@ class FinanceiroModel:
                 """,
                 tuple(params_entradas),
             )
-            entradas_manuais = cursor.fetchone() or {}
+            entradas_manuais = cast(Dict[str, Any], cursor.fetchone() or {})
 
             params_saidas: List[Any] = [inicio, fim]
             params_saidas.extend(FinanceiroModel._caixa_filter_params(pdv_id))
@@ -118,7 +117,7 @@ class FinanceiroModel:
                 """,
                 tuple(params_saidas),
             )
-            sangrias = cursor.fetchone() or {}
+            sangrias = cast(Dict[str, Any], cursor.fetchone() or {})
 
             params_reembolsos: List[Any] = [inicio, fim]
             params_reembolsos.extend(pdv_params)
@@ -151,7 +150,7 @@ class FinanceiroModel:
                 """,
                 tuple(params_reembolsos),
             )
-            reembolsos = cursor.fetchone() or {}
+            reembolsos = cast(Dict[str, Any], cursor.fetchone() or {})
 
             params_saldo = FinanceiroModel._caixa_filter_params(pdv_id)
             cursor.execute(
@@ -165,7 +164,7 @@ class FinanceiroModel:
                 """,
                 tuple(params_saldo),
             )
-            caixas_abertos = cursor.fetchall() or []
+            caixas_abertos = cast(List[Dict[str, Any]], cursor.fetchall() or [])
 
             saldo_atual = Decimal("0")
             for caixa in caixas_abertos:
@@ -847,7 +846,7 @@ class FinanceiroModel:
             """,
             (caixa_id,),
         )
-        row = cursor.fetchone() or {}
+        row = cast(Dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
 
     @staticmethod
@@ -865,7 +864,7 @@ class FinanceiroModel:
             """,
             tuple([caixa_id, *tipos]),
         )
-        row = cursor.fetchone() or {}
+        row = cast(Dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
 
     @staticmethod
@@ -881,7 +880,7 @@ class FinanceiroModel:
             """,
             (caixa_id,),
         )
-        row = cursor.fetchone() or {}
+        row = cast(Dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
 
     @staticmethod
@@ -909,5 +908,5 @@ class FinanceiroModel:
             """,
             tuple(params),
         )
-        row = cursor.fetchone() or {}
+        row = cast(Dict[str, Any], cursor.fetchone() or {})
         return int(row.get("total") or 0)

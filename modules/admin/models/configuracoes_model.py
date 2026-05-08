@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
 
-
 class ConfiguracoesModel:
     @staticmethod
     def _registro_id(row: object) -> int | None:

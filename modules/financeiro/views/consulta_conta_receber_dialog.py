@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem
 from ui.financeiro.consulta_conta_receber_dialog import Ui_ConsultaContaReceberDialog
 from utils.format_utils import formatar_moeda
 
-
 class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
     def __init__(self, detalhes: Dict[str, Any], parent=None):
         super().__init__(parent)

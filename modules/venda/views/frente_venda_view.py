@@ -38,7 +38,6 @@ from utils.format_utils import formatar_decimal
 from utils.image_utils import atualizar_preview_label
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class FrenteVendaView(QWidget, Ui_FrenteVenda):
     _sequencia_venda = count(1)
     pagamento_solicitado = pyqtSignal(dict)

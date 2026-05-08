@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_VincularProdutosPromocao(object):
     def setupUi(self, VincularProdutosPromocao):
         VincularProdutosPromocao.setObjectName("VincularProdutosPromocao")

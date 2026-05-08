@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_ConfirmarFechamentoCaixaDialog(object):
     def setupUi(self, ConfirmarFechamentoCaixaDialog):
         ConfirmarFechamentoCaixaDialog.setObjectName("ConfirmarFechamentoCaixaDialog")
@@ -126,7 +125,6 @@ class Ui_ConfirmarFechamentoCaixaDialog(object):
         self.lineSenhaAdmin.setPlaceholderText(_translate("ConfirmarFechamentoCaixaDialog", "Senha do administrador"))
         self.btnCancelar.setText(_translate("ConfirmarFechamentoCaixaDialog", "Cancelar"))
         self.btnConfirmar.setText(_translate("ConfirmarFechamentoCaixaDialog", "Confirmar fechamento"))
-
 
 class Ui_FechamentoRealizadoDialog(object):
     def setupUi(self, FechamentoRealizadoDialog):

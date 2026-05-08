@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_ConsultaContaReceberDialog(object):
     def setupUi(self, ConsultaContaReceberDialog):
         ConsultaContaReceberDialog.setObjectName("ConsultaContaReceberDialog")

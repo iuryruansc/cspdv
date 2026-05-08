@@ -11,7 +11,6 @@ from ui.financeiro.receber_pendencia_dialog import Ui_ReceberPendenciaDialog
 from utils.format_utils import formatar_moeda, numero_decimal
 from utils.ui_messages import mostrar_aviso
 
-
 class ReceberPendenciaDialog(QDialog, Ui_ReceberPendenciaDialog):
     lblContaValor: QLabel
     lblClienteValor: QLabel

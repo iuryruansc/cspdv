@@ -1,7 +1,6 @@
 from modules.clientes.models.cliente_model import ClienteModel
 from utils.app_logger import log_error
 
-
 class ClienteService:
     @staticmethod
     def buscar_para_venda(termo):

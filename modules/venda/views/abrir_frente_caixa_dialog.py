@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import QDialog
 from modules.venda.views.abertura_caixa_view import AberturaCaixaView
 from ui.venda.abrir_frente_caixa_dialog import Ui_AbrirFrenteCaixaDialog
 
-
 class AbrirFrenteCaixaDialog(QDialog, Ui_AbrirFrenteCaixaDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

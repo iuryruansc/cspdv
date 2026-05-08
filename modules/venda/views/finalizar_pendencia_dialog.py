@@ -9,7 +9,6 @@ from ui.venda.finalizar_pendencia_dialog import Ui_FinalizarPendenciaDialog
 from utils.format_utils import formatar_moeda, numero_decimal
 from utils.ui_messages import mostrar_aviso
 
-
 class FinalizarPendenciaDialog(QDialog, Ui_FinalizarPendenciaDialog):
     lblClienteValor: QLabel
     lblTotalValor: QLabel

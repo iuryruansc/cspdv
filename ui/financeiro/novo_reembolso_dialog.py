@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_NovoReembolsoDialog(object):
     def setupUi(self, NovoReembolsoDialog):
         NovoReembolsoDialog.setObjectName("NovoReembolsoDialog")

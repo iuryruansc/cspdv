@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_DetalhesProdutoDialog(object):
     def setupUi(self, DetalhesProdutoDialog):
         DetalhesProdutoDialog.setObjectName("DetalhesProdutoDialog")

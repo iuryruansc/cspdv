@@ -15,12 +15,10 @@ from database.connection import get_connection
 from utils.app_logger import log_error, log_info, log_warning
 from utils.system_runtime import intervalo_backup_horas
 
-
 UTC = timezone.utc
 APP_ROOT = Path(__file__).resolve().parents[1]
 BACKUP_ROOT = Path(os.getenv("CSPDV_BACKUP_DIR", APP_ROOT / "backups" / "database"))
 STATE_FILE = BACKUP_ROOT / "backup_state.json"
-
 
 @dataclass
 class BackupResultado:
@@ -28,10 +26,8 @@ class BackupResultado:
     arquivo: str | None = None
     mensagem: str = ""
 
-
 def _agora_utc() -> datetime:
     return datetime.now(UTC)
-
 
 def _carregar_estado() -> dict[str, Any]:
     try:
@@ -42,14 +38,12 @@ def _carregar_estado() -> dict[str, Any]:
         log_warning(f"Não foi possível ler o estado do backup: {exc}")
         return {}
 
-
 def _salvar_estado(payload: dict[str, Any]) -> None:
     BACKUP_ROOT.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-
 
 def _ultima_execucao() -> datetime | None:
     estado = _carregar_estado()
@@ -61,12 +55,10 @@ def _ultima_execucao() -> datetime | None:
     except ValueError:
         return None
 
-
 def _formatar_data_hora_local(valor: datetime | None) -> str:
     if valor is None:
         return "Nenhum backup realizado ainda"
     return valor.astimezone().strftime("%d/%m/%Y %H:%M")
-
 
 def _registrar_resultado(resultado: BackupResultado) -> None:
     agora = _agora_utc().isoformat()
@@ -81,7 +73,6 @@ def _registrar_resultado(resultado: BackupResultado) -> None:
     )
     _salvar_estado(estado)
 
-
 def _escape_texto(valor: str) -> str:
     texto = valor
     texto = texto.replace("\\", "\\\\")
@@ -92,7 +83,6 @@ def _escape_texto(valor: str) -> str:
     texto = texto.replace("\t", "\\t")
     texto = texto.replace("\x1a", "\\Z")
     return f"'{texto}'"
-
 
 def _formatar_valor_sql(valor: Any) -> str:
     if valor is None:
@@ -112,7 +102,6 @@ def _formatar_valor_sql(valor: Any) -> str:
     if isinstance(valor, bytes):
         return f"X'{valor.hex().upper()}'"
     return _escape_texto(str(valor))
-
 
 def _formatar_insert_em_lotes(
     tabela: str,
@@ -138,7 +127,6 @@ def _formatar_insert_em_lotes(
         blocos.append(prefixo + ",\n".join(acumulado) + ";\n")
 
     return blocos
-
 
 class BackupService:
     @staticmethod
@@ -263,7 +251,6 @@ class BackupService:
             return True
         proxima_execucao = ultima_execucao + timedelta(hours=intervalo_backup_horas())
         return _agora_utc() >= proxima_execucao
-
 
 class BackupScheduler(QObject):
     def __init__(self, parent: QObject | None = None) -> None:

@@ -6,7 +6,6 @@ from typing import Any, Dict, List
 from modules.admin.models.dashboard_model import DashboardAdminModel
 from utils.backup_runtime import BackupService
 
-
 class DashboardAdminService:
     @staticmethod
     def carregar_dashboard() -> Dict[str, Any]:

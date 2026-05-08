@@ -10,7 +10,6 @@ from ui.financeiro.novo_reembolso_dialog import Ui_NovoReembolsoDialog
 from utils.format_utils import formatar_moeda
 from utils.ui_messages import mostrar_aviso
 
-
 class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
     def __init__(self, detalhes_venda: Dict[str, Any], parent=None):
         super().__init__(parent)

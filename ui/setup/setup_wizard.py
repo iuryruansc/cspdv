@@ -30,7 +30,6 @@ SUCCESS_BG = "rgba(30,120,30,40)"
 SUCCESS_BG2 = "rgba(30,120,30,80)"
 SUCCESS_TEXT = "#80ff80"
 
-
 def _input_style() -> str:
     return (
         f"QLineEdit{{"
@@ -41,7 +40,6 @@ def _input_style() -> str:
         f"QLineEdit:hover:!focus{{border:2px solid #2a5a80;}}"
         f"QLineEdit[readOnly='true']{{background-color:#081828;color:#2a5a7a;}}"
     )
-
 
 def _combo_style() -> str:
     return (
@@ -54,7 +52,6 @@ def _combo_style() -> str:
         f"color:{TEXT};font-size:13px;}}"
     )
 
-
 def _btn_primary() -> str:
     return (
         f"QPushButton{{background:qlineargradient(x1:0,y1:0,x2:0,y2:1,"
@@ -66,7 +63,6 @@ def _btn_primary() -> str:
         f"QPushButton:disabled{{background:#1a3a5a;color:#2a5a7a;}}"
     )
 
-
 def _btn_secondary() -> str:
     return (
         f"QPushButton{{background-color:transparent;color:{TEXT_MUTED};"
@@ -76,14 +72,12 @@ def _btn_secondary() -> str:
         f"QPushButton:pressed{{background-color:rgba(255,255,255,10);}}"
     )
 
-
 def _field_label(text: str) -> QLabel:
     label = QLabel(text)
     label.setStyleSheet(
         f"font-size:11px;font-weight:bold;color:{TEXT_LABEL};letter-spacing:1px;"
     )
     return label
-
 
 def _sep() -> QFrame:
     separator = QFrame()
@@ -92,7 +86,6 @@ def _sep() -> QFrame:
         f"color:{BORDER};background-color:{BORDER};border:none;max-height:1px;"
     )
     return separator
-
 
 class FormField(QVBoxLayout):
     def __init__(
@@ -147,7 +140,6 @@ class FormField(QVBoxLayout):
         else:
             self.field_widget.setText(value)
 
-
 class WizardPageUi(QWidget):
     def __init__(self, icon: str, title: str, subtitle: str):
         super().__init__()
@@ -198,7 +190,6 @@ class WizardPageUi(QWidget):
     def hide_error(self):
         self.lbl_erro.setVisible(False)
 
-
 class PageBoasVindasUi(WizardPageUi):
     def __init__(self):
         super().__init__(
@@ -232,7 +223,6 @@ class PageBoasVindasUi(WizardPageUi):
             row.addLayout(column)
 
             self.content.addLayout(row)
-
 
 class PageEmpresaUi(WizardPageUi):
     def __init__(self):
@@ -270,7 +260,6 @@ class PageEmpresaUi(WizardPageUi):
         row3.addLayout(self.f_telefone, 1)
         self.content.addLayout(row3)
 
-
 class PageEnderecoUi(WizardPageUi):
     def __init__(self):
         super().__init__(
@@ -306,7 +295,6 @@ class PageEnderecoUi(WizardPageUi):
         row2.addLayout(self.f_estado, 1)
         self.content.addLayout(row2)
 
-
 class PagePDVUi(WizardPageUi):
     def __init__(self):
         super().__init__(
@@ -320,7 +308,6 @@ class PagePDVUi(WizardPageUi):
         self.content.addLayout(self.f_desc)
         self.f_id.set_value("PDV-01")
         self.f_desc.set_value("Caixa Principal")
-
 
 class PageAdminUi(WizardPageUi):
     def __init__(self):
@@ -348,7 +335,6 @@ class PageAdminUi(WizardPageUi):
         row2.addLayout(self.f_confirma)
         self.content.addLayout(row2)
 
-
 class PageConclusaoUi(WizardPageUi):
     def __init__(self):
         super().__init__(
@@ -374,7 +360,6 @@ class PageConclusaoUi(WizardPageUi):
             f"color:{SUCCESS_TEXT};padding:8px;"
         )
         self.content.addWidget(self.lbl_salvo)
-
 
 class SetupWizardUi:
     def setupUi(self, dialog: QDialog, pages: list[QWidget]):

@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
 
-
 class DashboardAdminModel:
     @staticmethod
     def obter_resumo() -> Dict[str, Any]:

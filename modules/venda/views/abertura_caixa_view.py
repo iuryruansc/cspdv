@@ -26,7 +26,6 @@ from utils.format_utils import (
 )
 from utils.ui_messages import mostrar_aviso
 
-
 class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
     caixa_aberto = pyqtSignal(dict)
 

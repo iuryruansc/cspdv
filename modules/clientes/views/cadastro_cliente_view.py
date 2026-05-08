@@ -11,7 +11,6 @@ from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
-
 class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, RetornoPainelAdminMixin):
     def __init__(self, parent=None, cliente_id=None, admin_view=None):
         super().__init__(None)

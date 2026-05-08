@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_AjusteQuantidadeDialog(object):
     def setupUi(self, AjusteQuantidadeDialog):
         AjusteQuantidadeDialog.setObjectName("AjusteQuantidadeDialog")

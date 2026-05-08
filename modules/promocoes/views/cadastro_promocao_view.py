@@ -1,18 +1,36 @@
 from __future__ import annotations
 
+from datetime import date, datetime
+
 from PyQt5.QtCore import QDateTime, Qt
-from PyQt5.QtWidgets import QDialog, QLineEdit
+from PyQt5.QtWidgets import QComboBox, QDateTimeEdit, QDialog, QLabel, QLineEdit, QPushButton, QTextEdit
 
 from modules.promocoes.services.promocao_service import PromocaoService
 from ui.promocoes.cadastro_promocao import Ui_CadastroPromocao
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
-
 class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
     def __init__(self, parent=None, promocao_id: int | None = None):
         super().__init__(parent)
         self.setupUi(self)
+        self.lineEditCodigo: QLineEdit
+        self.lineEditNomePromocao: QLineEdit
+        self.comboClassificacao: QComboBox
+        self.comboTipoDesconto: QComboBox
+        self.comboStatus: QComboBox
+        self.lineEditDescontoPercentual: QLineEdit
+        self.lineEditDescontoValor: QLineEdit
+        self.lineEditPrecoFixo: QLineEdit
+        self.dateTimeInicio: QDateTimeEdit
+        self.dateTimeFim: QDateTimeEdit
+        self.textEditDescricao: QTextEdit
+        self.textEditObservacao: QTextEdit
+        self.btnSalvar: QPushButton
+        self.btnVoltar: QPushButton
+        self.btnLimpar: QPushButton
+        self.lblFormTitle: QLabel
+        self.lblFormHint: QLabel
         self.setModal(True)
         self.setWindowModality(Qt.WindowModal)
         self.promocao_id = int(promocao_id or 0)
@@ -49,6 +67,16 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             self.dateTimeFim.setDateTime(agora.addDays(7))
             self._ajustar_campos_por_tipo()
 
+    @staticmethod
+    def _para_qdatetime(valor: object) -> QDateTime:
+        if isinstance(valor, QDateTime):
+            return valor
+        if isinstance(valor, datetime):
+            return QDateTime(valor)
+        if isinstance(valor, date):
+            return QDateTime(datetime.combine(valor, datetime.min.time()))
+        return QDateTime.currentDateTime()
+
     def _carregar_promocao(self) -> None:
         promocao = PromocaoService.buscar_promocao(self.promocao_id)
         if not promocao:
@@ -67,8 +95,8 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.comboClassificacao.setCurrentText(str(promocao.get("classificacao") or "PROMOCAO"))
         self.comboTipoDesconto.setCurrentText(str(promocao.get("tipo_desconto") or "PERCENTUAL"))
         self.comboStatus.setCurrentText(str(promocao.get("status") or "RASCUNHO"))
-        self.dateTimeInicio.setDateTime(QDateTime(promocao.get("data_inicio")))
-        self.dateTimeFim.setDateTime(QDateTime(promocao.get("data_fim")))
+        self.dateTimeInicio.setDateTime(self._para_qdatetime(promocao.get("data_inicio")))
+        self.dateTimeFim.setDateTime(self._para_qdatetime(promocao.get("data_fim")))
         self.lineEditDescontoPercentual.setText(str(promocao.get("desconto_percentual") or 0))
         self.lineEditDescontoValor.setText(str(promocao.get("desconto_valor") or 0))
         self.lineEditPrecoFixo.setText(str(promocao.get("preco_fixo") or 0))

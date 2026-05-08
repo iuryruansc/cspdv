@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-
 _DEFAULTS: Dict[str, Any] = {
     "intervalo_backup_horas": 24,
     "perfil_log": "OPERACIONAL",
@@ -14,7 +13,6 @@ _MAPA_LABEL_PERFIL = {
     "DETALHADO": "Detalhado",
     "SILENCIOSO": "Silencioso",
 }
-
 
 def carregar_parametros_sistema() -> Dict[str, Any]:
     try:
@@ -43,22 +41,17 @@ def carregar_parametros_sistema() -> Dict[str, Any]:
         "versao_referencia": versao,
     }
 
-
 def versao_referencia() -> str:
     return str(carregar_parametros_sistema()["versao_referencia"])
-
 
 def perfil_log() -> str:
     return str(carregar_parametros_sistema()["perfil_log"])
 
-
 def perfil_log_label() -> str:
     return _MAPA_LABEL_PERFIL.get(perfil_log(), "Operacional")
 
-
 def intervalo_backup_horas() -> int:
     return int(carregar_parametros_sistema()["intervalo_backup_horas"])
-
 
 def descricao_ambiente() -> str:
     return (

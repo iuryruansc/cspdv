@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional
 from modules.estoque.models.estoque_model import EstoqueModel
 from utils.app_logger import log_error
 
-
 class EstoqueService:
     @staticmethod
     def listar_categorias() -> List[Dict[str, Any]]:

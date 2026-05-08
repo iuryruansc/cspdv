@@ -2,7 +2,6 @@ from typing import Any, Dict, Iterable, List, Optional, cast
 
 from database.connection import get_connection
 
-
 def listar_registros(
     *,
     table: str,
@@ -24,7 +23,6 @@ def listar_registros(
     finally:
         cursor.close()
         conn.close()
-
 
 def inserir_registro(
     *,
@@ -52,7 +50,6 @@ def inserir_registro(
         cursor.close()
         conn.close()
 
-
 def buscar_registro_por_id(
     *,
     table: str,
@@ -78,7 +75,6 @@ def buscar_registro_por_id(
     finally:
         cursor.close()
         conn.close()
-
 
 def atualizar_registro(
     *,
@@ -110,7 +106,6 @@ def atualizar_registro(
     finally:
         cursor.close()
         conn.close()
-
 
 def atualizar_status_registro(
     *,

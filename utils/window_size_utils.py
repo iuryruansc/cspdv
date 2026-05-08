@@ -2,7 +2,6 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QCursor, QGuiApplication
 from PyQt5.QtWidgets import QWidget
 
-
 def aplicar_tamanho_proporcional_tela(
     widget: QWidget,
     *,

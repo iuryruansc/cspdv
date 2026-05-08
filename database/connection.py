@@ -1,4 +1,5 @@
 import os
+from typing import Any, Sequence, cast
 
 import mysql.connector
 from dotenv import load_dotenv
@@ -28,7 +29,6 @@ def _db_config():
 
 def _usar_pool():
     return os.getenv("DB_USE_POOL", "").strip().lower() in {"1", "true", "yes", "on"}
-
 
 def get_connection_mode():
     return "pool" if _usar_pool() else "direta"
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         conn = get_connection()
         with conn.cursor() as cursor:
             cursor.execute("SHOW TABLES;")
-            tabelas = cursor.fetchall()
+            tabelas = cast(list[Sequence[Any]], cursor.fetchall())
 
         log_info(
             "Modo de conexão: "

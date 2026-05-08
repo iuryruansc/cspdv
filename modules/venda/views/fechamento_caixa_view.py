@@ -23,7 +23,6 @@ from ui.venda.tela_fechamento_caixa import Ui_TelaFechamentoCaixa
 from utils.format_utils import aplicar_mascara_monetaria
 from utils.ui_messages import mostrar_aviso
 
-
 class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
     caixa_fechado = pyqtSignal(dict)
 

@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Optional, cast
 
 from database.connection import get_connection
 
-
 class ClienteModel:
     @staticmethod
     def buscar_para_venda(termo: str, limite: int = 20) -> List[Dict[str, Any]]:

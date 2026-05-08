@@ -17,7 +17,6 @@ from modules.venda.views.finalizar_pendencia_dialog import FinalizarPendenciaDia
 from utils.format_utils import formatar_moeda, numero_decimal
 from utils.ui_messages import mostrar_info
 
-
 class PagamentoView(QWidget, Ui_TelaPagamento):
     voltar_venda = pyqtSignal()
     venda_finalizada = pyqtSignal(dict)

@@ -1,17 +1,31 @@
 from typing import Any, Dict
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QDialog, QLabel, QTableWidget, QTableWidgetItem
 
 from ui.venda.resumo_caixa_atual_dialog import Ui_ResumoCaixaAtualDialog
 from utils.format_utils import formatar_moeda
-
 
 class ResumoCaixaAtualDialog(QDialog, Ui_ResumoCaixaAtualDialog):
     def __init__(self, resumo: Dict[str, Any], parent=None):
         super().__init__(parent)
         self._resumo = resumo
         self.setupUi(self)
+        self.lblStatusBadge: QLabel
+        self.lblPdvValor: QLabel
+        self.lblOperadorValor: QLabel
+        self.lblAberturaValor: QLabel
+        self.lblFundoInicialValor: QLabel
+        self.lblVendasDiaValor: QLabel
+        self.lblFaturamentoTotalValor: QLabel
+        self.lblFaturamentoDinheiroValor: QLabel
+        self.lblSangriasValor: QLabel
+        self.lblSuprimentosValor: QLabel
+        self.lblTrocoValor: QLabel
+        self.lblEsperadoValor: QLabel
+        self.lblSaldoAtualValor: QLabel
+        self.lblPagamentosVazio: QLabel
+        self.tablePagamentos: QTableWidget
         self.setModal(True)
         self.btnFechar.clicked.connect(self.accept)
         self._popular_dados()

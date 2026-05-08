@@ -1,8 +1,7 @@
 import bcrypt
-from typing import Any, Dict
+from typing import Any, Dict, List, Sequence, cast
 
 from database.connection import get_connection
-
 
 class SetupModel:
     _FORMAS_PAGAMENTO_PADRAO = [
@@ -138,7 +137,8 @@ class SetupModel:
     @staticmethod
     def _criar_formas_pagamento_padrao(cursor) -> None:
         cursor.execute("SHOW COLUMNS FROM formas_pagamento")
-        colunas = {str(coluna[0]) for coluna in cursor.fetchall()}
+        colunas_rows = cast(List[Sequence[Any]], cursor.fetchall())
+        colunas = {str(coluna[0]) for coluna in colunas_rows}
 
         for forma in SetupModel._FORMAS_PAGAMENTO_PADRAO:
             cursor.execute(

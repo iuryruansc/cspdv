@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
 from ui.venda.tela_cupom_nao_fiscal import Ui_CupomNaoFiscal
 from utils.format_utils import formatar_inteiro, formatar_moeda
 
-
 class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
     textCupom: QPlainTextEdit
     btnImprimir: QPushButton

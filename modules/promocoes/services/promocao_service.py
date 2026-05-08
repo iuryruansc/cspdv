@@ -8,7 +8,6 @@ from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.produtos.models.produto_model import ProdutoModel
 from modules.promocoes.models.promocao_model import PromocaoModel
 
-
 class PromocaoService:
     @staticmethod
     def gerar_proximo_codigo() -> str:
@@ -35,6 +34,7 @@ class PromocaoService:
         payload, erro = PromocaoService._montar_payload_promocao(dados)
         if erro:
             return False, erro
+        assert payload is not None
 
         try:
             promocao_id = PromocaoModel.inserir(payload)
@@ -53,6 +53,7 @@ class PromocaoService:
         payload, erro = PromocaoService._montar_payload_promocao(dados)
         if erro:
             return False, erro
+        assert payload is not None
 
         try:
             atualizado = PromocaoModel.atualizar(int(promocao_id), payload)

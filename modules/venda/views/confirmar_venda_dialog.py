@@ -9,7 +9,6 @@ from core.session_manager import SessionManager
 from ui.venda.modal_confirmacao_venda import Ui_ModalConfirmacaoVenda
 from utils.format_utils import formatar_decimal, formatar_inteiro, formatar_moeda
 
-
 class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
     lblTitulo: QLabel
     lblNumVendaLabel: QLabel

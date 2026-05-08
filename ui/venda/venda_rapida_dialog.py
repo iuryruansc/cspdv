@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_VendaRapidaDialog(object):
     def setupUi(self, VendaRapidaDialog):
         VendaRapidaDialog.setObjectName("VendaRapidaDialog")

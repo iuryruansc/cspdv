@@ -28,7 +28,6 @@ from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
-
 class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -82,7 +81,6 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.btnRegistrarMovimento.clicked.connect(self._registrar_movimentacao_financeiro)
         self.lineEditBuscaConta.returnPressed.connect(self._carregar_painel)
         self.cmbStatusContaFiltro.currentIndexChanged.connect(lambda _=0: self._carregar_painel())
-
 
     def _configurar_periodo_padrao(self) -> None:
         hoje = QDate.currentDate()

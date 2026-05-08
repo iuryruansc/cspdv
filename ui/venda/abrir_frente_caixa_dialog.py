@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_AbrirFrenteCaixaDialog(object):
     def setupUi(self, AbrirFrenteCaixaDialog):
         AbrirFrenteCaixaDialog.setObjectName("AbrirFrenteCaixaDialog")

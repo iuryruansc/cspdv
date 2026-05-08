@@ -23,7 +23,6 @@ from modules.venda.views.frente_loja_view import FrenteLojaView
 
 load_dotenv(find_dotenv())
 
-
 def _excepthook(tipo, valor, tb):
     erro_msg = "".join(traceback.format_exception(tipo, valor, tb))
     print("\n" + "!" * 60)
@@ -39,9 +38,7 @@ def _excepthook(tipo, valor, tb):
     msg.setDetailedText(erro_msg)
     msg.exec_()
 
-
 sys.excepthook = _excepthook
-
 
 def _mock_usuario() -> dict:
     return {
@@ -52,7 +49,6 @@ def _mock_usuario() -> dict:
         "email": "teste@cspdv.com",
         "permissoes": ["vendas.pdv", "sistema.master"],
     }
-
 
 def _mock_caixa_aberto() -> dict:
     return {
@@ -65,7 +61,6 @@ def _mock_caixa_aberto() -> dict:
         "status": "ABERTO",
         "opened_at": "22/04/2026 14:00",
     }
-
 
 def run_test_frente_loja():
     app = QApplication(sys.argv)
@@ -94,7 +89,6 @@ def run_test_frente_loja():
         sys.exit(app.exec_())
     except Exception as exc:
         print(f"[ERRO] Falha ao abrir a area de vendas: {exc}")
-
 
 if __name__ == "__main__":
     try:

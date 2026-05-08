@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_PainelPromocoes(object):
     def setupUi(self, PainelPromocoes):
         PainelPromocoes.setObjectName("PainelPromocoes")
@@ -482,7 +481,6 @@ class Ui_PainelPromocoes(object):
         item.setText(_translate("PainelPromocoes", "Observacao"))
         self.lblStatusSistema.setText(_translate("PainelPromocoes", "Sistema online"))
         self.lblStatusBar.setText(_translate("PainelPromocoes", "CSPdv - Modulo de Promocoes"))
-
 
 if __name__ == "__main__":
     import sys

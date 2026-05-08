@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_SelecionarClienteDialog(object):
     def setupUi(self, SelecionarClienteDialog):
         SelecionarClienteDialog.setObjectName("SelecionarClienteDialog")

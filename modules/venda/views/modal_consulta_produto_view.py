@@ -9,7 +9,6 @@ from utils.format_utils import formatar_moeda
 
 from ui.venda.modal_consulta_produto import Ui_ModalConsultaProduto
 
-
 class ModalConsultaProdutoView(QDialog, Ui_ModalConsultaProduto):
     lineEditBusca: QLineEdit
     btnBuscar: QPushButton

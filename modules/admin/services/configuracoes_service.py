@@ -5,7 +5,6 @@ from typing import Any, Dict, List
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
 from utils.format_utils import numero_decimal
 
-
 class ConfiguracoesService:
     _MAPA_MOEDA = {
         "Real (BRL)": "BRL",

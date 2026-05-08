@@ -46,18 +46,14 @@ def _criar_message_box(
     box.setMinimumWidth(620)
     return box
 
-
 def mostrar_aviso(parent: QWidget, titulo: str, mensagem: str) -> None:
     _criar_message_box(parent, icon=QMessageBox.Warning, titulo=titulo, mensagem=mensagem).exec_()
-
 
 def mostrar_info(parent: QWidget, titulo: str, mensagem: str) -> None:
     _criar_message_box(parent, icon=QMessageBox.Information, titulo=titulo, mensagem=mensagem).exec_()
 
-
 def mostrar_erro(parent: QWidget, titulo: str, mensagem: str) -> None:
     _criar_message_box(parent, icon=QMessageBox.Critical, titulo=titulo, mensagem=mensagem).exec_()
-
 
 def confirmar_acao(
     parent: QWidget,
@@ -74,7 +70,6 @@ def confirmar_acao(
     box.setDefaultButton(padrao)
     resposta = box.exec_()
     return resposta == texto_confirmar
-
 
 def mostrar_campos_invalidos(
     parent: QWidget,

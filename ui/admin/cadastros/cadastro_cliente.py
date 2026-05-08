@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_CadastroCliente(object):
     def setupUi(self, CadastroCliente):
         CadastroCliente.setObjectName("CadastroCliente")

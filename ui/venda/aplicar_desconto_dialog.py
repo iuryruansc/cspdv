@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_AplicarDescontoDialog(object):
     def setupUi(self, AplicarDescontoDialog):
         AplicarDescontoDialog.setObjectName("AplicarDescontoDialog")

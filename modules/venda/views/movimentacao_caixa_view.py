@@ -20,7 +20,6 @@ from ui.venda.tela_movimentacao_caixa import Ui_TelaMovimentacaoCaixa
 from utils.format_utils import aplicar_mascara_monetaria
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
     movimentacao_registrada = pyqtSignal()
     lblSaldoValor: QLabel

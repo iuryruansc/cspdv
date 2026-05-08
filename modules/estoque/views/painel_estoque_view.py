@@ -13,7 +13,6 @@ from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QDialog, QListWidgetItem
 from modules.clientes.services.cliente_service import ClienteService
 from ui.venda.selecionar_cliente_dialog import Ui_SelecionarClienteDialog
 
-
 class SelecionarClienteDialog(QDialog, Ui_SelecionarClienteDialog):
     def __init__(self, parent=None):
         super().__init__(parent)

@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Sequence, cast
 
 from database.connection import get_connection
 
-
 CENT = Decimal("0.01")
-
 
 class ReembolsoModel:
     @staticmethod
@@ -160,7 +158,7 @@ class ReembolsoModel:
             """,
             (int(venda_id),),
         )
-        venda = cursor.fetchone() or {}
+        venda = cast(Dict[str, Any], cursor.fetchone() or {})
         valor_total_venda = Decimal(str(venda.get("valor_total") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
 
         cursor.execute(
@@ -173,7 +171,7 @@ class ReembolsoModel:
             """,
             (int(venda_id),),
         )
-        totais = cursor.fetchone() or {}
+        totais = cast(Dict[str, Any], cursor.fetchone() or {})
         total_reembolsado = Decimal(str(totais.get("total_reembolsado") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
 
         novo_status = "REEMBOLSADA" if total_reembolsado >= valor_total_venda else "PARCIALMENTE_REEMBOLSADA"

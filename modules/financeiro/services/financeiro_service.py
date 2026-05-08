@@ -6,7 +6,6 @@ from typing import Any, Dict, List
 
 from modules.financeiro.models.financeiro_model import FinanceiroModel
 
-
 class FinanceiroService:
     @staticmethod
     def listar_pdvs() -> List[Dict[str, Any]]:

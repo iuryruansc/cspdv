@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_ReceberPendenciaDialog(object):
     def setupUi(self, ReceberPendenciaDialog):
         ReceberPendenciaDialog.setObjectName("ReceberPendenciaDialog")

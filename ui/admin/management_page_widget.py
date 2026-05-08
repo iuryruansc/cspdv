@@ -1,6 +1,5 @@
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_ManagementPageWidget(object):
     def setupUi(self, widget):
         widget.setObjectName("frameManagementPage")

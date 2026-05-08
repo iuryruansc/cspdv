@@ -8,7 +8,6 @@ from modules.produtos.services.produto_service import ProdutoService
 from ui.produtos.ajuste_quantidade_dialog import Ui_AjusteQuantidadeDialog
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
     def __init__(self, produto: Dict[str, Any], parent=None):
         super().__init__(parent)

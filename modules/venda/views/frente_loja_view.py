@@ -19,7 +19,6 @@ from ui.venda.frente_loja import Ui_FrenteLoja
 from utils.ui_messages import mostrar_aviso, mostrar_info
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
-
 class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     lblOpNome: QLabel
     lblCaixaStatus: QLabel

@@ -1,8 +1,6 @@
 from typing import Any, Callable, Dict, Optional, Tuple
 
-
 ResultadoOperacao = Tuple[bool, str]
-
 
 def validar_entidade_simples(
     dados: Dict[str, Any],
@@ -20,7 +18,6 @@ def validar_entidade_simples(
         return False, f"O status da {entidade} e obrigatorio."
 
     return True, ""
-
 
 def cadastrar_entidade_simples(
     dados: Dict[str, Any],
@@ -47,7 +44,6 @@ def cadastrar_entidade_simples(
 
     return True, f"{entidade.capitalize()} cadastrada com sucesso!"
 
-
 def atualizar_entidade_simples(
     record_id: int,
     dados: Dict[str, Any],
@@ -73,7 +69,6 @@ def atualizar_entidade_simples(
         return False, f"Não foi possível atualizar a {entidade}."
 
     return True, f"{entidade.capitalize()} atualizada com sucesso!"
-
 
 def alternar_status_entidade_simples(
     record_id: int,
