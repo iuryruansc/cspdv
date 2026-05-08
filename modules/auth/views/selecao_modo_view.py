@@ -6,6 +6,7 @@ from ui.login.selecao_modo import Ui_SelecaoModo
 from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
+
 class SelecaoModoView(QWidget, Ui_SelecaoModo):
     COLUNAS_CARDS = 3
 
@@ -106,7 +107,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         from modules.venda.views.frente_loja_view import FrenteLojaView
 
         self._abrir_modulo(FrenteLojaView, "frente_loja")
-        
+
     def _open_painel_admin(self):
         if not self._tem_permissao("sistema.master"):
             return

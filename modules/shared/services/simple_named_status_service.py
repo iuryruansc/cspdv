@@ -15,7 +15,7 @@ def validar_entidade_simples(
         return False, f"O nome da {entidade} deve ter pelo menos 2 caracteres."
 
     if ativo not in {"S", "N"}:
-        return False, f"O status da {entidade} e obrigatorio."
+        return False, f"O status da {entidade} é obrigatório."
 
     return True, ""
 

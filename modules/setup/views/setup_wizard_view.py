@@ -92,6 +92,7 @@ class PageEndereco(PageEnderecoUi):
                     self.f_estado.set_value(data.get("uf", ""))
                     self.f_numero.field_widget.setFocus()
             except (requests.RequestException, ValueError):
+                # Falha de rede ou retorno inválido não deve interromper o preenchimento manual.
                 pass
 
     def validate(self) -> bool:

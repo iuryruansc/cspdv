@@ -35,6 +35,14 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
             return central
         return self.centralWidget()
 
+    @staticmethod
+    def _desconectar_click(botao: QPushButton) -> None:
+        try:
+            botao.clicked.disconnect()
+        except TypeError:
+            # O botão ainda não possui ação anterior conectada.
+            pass
+
     def _setup_dashboard_actions(self) -> None:
         self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self._central_widget_parent())
         self.btnFecharCaixaDashboard.setMinimumSize(172, 38)
@@ -273,10 +281,7 @@ QPushButton:hover {
         self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
         self.managementPage.set_edit_enabled(key in {"produtos", "marcas", "fornecedores", "categorias", "clientes"})
         self.managementPage.set_toggle_enabled(key in {"produtos", "marcas", "fornecedores", "categorias", "clientes"})
-        try:
-            self.managementPage.btnNovo.clicked.disconnect()
-        except TypeError:
-            pass
+        self._desconectar_click(self.managementPage.btnNovo)
         self.managementPage.btnNovo.clicked.connect(config["new_action"])
         self._mark_subnav_button(config["button"])
         self._populate_management_page(key)
@@ -689,10 +694,7 @@ QPushButton:hover {
             alertas = [{"nivel": "ok", "texto": "Nenhum alerta estrutural no momento.", "acao": "nenhuma"}]
 
         for index, botao in enumerate(botoes):
-            try:
-                botao.clicked.disconnect()
-            except TypeError:
-                pass
+            self._desconectar_click(botao)
             if index < len(alertas):
                 alerta = alertas[index]
                 nivel = str(alerta.get("nivel") or "info").strip().lower()
@@ -879,4 +881,3 @@ QPushButton:hover {
         self.hide()
         self.selecao = SelecaoModoView()
         self.selecao.show()
-

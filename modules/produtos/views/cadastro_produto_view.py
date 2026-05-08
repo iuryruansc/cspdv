@@ -260,10 +260,10 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
 
         erros = []
         if not nome:
-            erros.append("Descricao do Produto: preencha o nome do produto.")
+            erros.append("Descrição do Produto: preencha o nome do produto.")
             self.marcar_invalido(self.lineEditDescricao)
         if not codigo_barras:
-            erros.append("Codigo de Barras: preencha um codigo de barras.")
+            erros.append("Código de Barras: preencha um código de barras.")
             self.marcar_invalido(self.lineEditCodigoBarras)
         if id_categoria is None:
             erros.append("Categoria: selecione uma categoria.")
@@ -278,19 +278,19 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             erros.append("Unidade Comercial: selecione uma unidade.")
             self.marcar_invalido(self.comboUnidade)
         if id_unidade_tributavel is None:
-            erros.append("Unidade Tributavel: selecione uma unidade tributavel.")
+            erros.append("Unidade Tributável: selecione uma unidade tributável.")
             self.marcar_invalido(self.comboUnidadeTributavel)
         if ncm and len(ncm) != 8:
-            erros.append("NCM: informe os 8 digitos do codigo fiscal.")
+            erros.append("NCM: informe os 8 dígitos do código fiscal.")
             self.marcar_invalido(self.lineEditNcm)
         if cest and len(cest) != 7:
-            erros.append("CEST: informe os 7 digitos do codigo.")
+            erros.append("CEST: informe os 7 dígitos do código.")
             self.marcar_invalido(self.lineEditCest)
         if codigo_barras and len(codigo_barras) < 8:
-            erros.append("Codigo de Barras: use ao menos 8 caracteres.")
+            erros.append("Código de Barras: use ao menos 8 caracteres.")
             self.marcar_invalido(self.lineEditCodigoBarras)
         if not preco_venda_texto:
-            erros.append("Preco de Venda: informe um valor maior que zero.")
+            erros.append("Preço de Venda: informe um valor maior que zero.")
             self.marcar_invalido(self.lineEditPrecoVenda)
 
         if erros:
@@ -316,7 +316,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
                 "imagem_path": imagem_path,
             }
         except FileNotFoundError as e:
-            mostrar_aviso(self, "Imagem invalida", str(e))
+            mostrar_aviso(self, "Imagem inválida", str(e))
             return
         except OSError as e:
             mostrar_aviso(self, "Erro ao copiar imagem", f"Não foi possível salvar a imagem:\n{e}")
@@ -342,9 +342,9 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         else:
             if "nome do produto" in mensagem.lower():
                 self.marcar_invalido(self.lineEditDescricao)
-            if "preco de venda" in mensagem.lower():
+            if "preço de venda" in mensagem.lower() or "preco de venda" in mensagem.lower():
                 self.marcar_invalido(self.lineEditPrecoVenda)
-            if "codigo de barras" in mensagem.lower() or "codigo do produto" in mensagem.lower():
+            if "código de barras" in mensagem.lower() or "codigo de barras" in mensagem.lower() or "codigo do produto" in mensagem.lower():
                 self.marcar_invalido(self.lineEditCodigoBarras)
             if "categoria" in mensagem.lower():
                 self.marcar_invalido(self.comboCategoria)

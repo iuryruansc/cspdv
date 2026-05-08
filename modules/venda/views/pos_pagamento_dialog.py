@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
 from ui.venda.tela_cupom_nao_fiscal import Ui_CupomNaoFiscal
 from utils.format_utils import formatar_inteiro, formatar_moeda
 
+
 class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
     textCupom: QPlainTextEdit
     btnImprimir: QPushButton
@@ -49,7 +50,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
         itens: List[Dict[str, Any]] = list(self._venda_data.get("itens") or [])
         pagamentos: List[Dict[str, Any]] = list(self._venda_data.get("pagamentos") or [])
         linhas = [
-            "********* DOCUMENTO NAO FISCAL *********",
+            "********* DOCUMENTO NÃO FISCAL *********",
             "                CSPdv",
             "          COMPROVANTE DE VENDA",
             "",
@@ -65,7 +66,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
             nome = str(item.get("nome") or "")[:24]
             qtd = formatar_inteiro(item.get("quantidade") or 0)
             subtotal = formatar_moeda(item.get("total") or 0.0)
-            linhas.append(f"{nome}")
+            linhas.append(nome)
             linhas.append(f"Qtd: {qtd}    Subtotal: {subtotal}")
             linhas.append("")
 
@@ -84,6 +85,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
                 try:
                     vencimento = datetime.strptime(vencimento, "%Y-%m-%d").strftime("%d/%m/%Y")
                 except ValueError:
+                    # Mantém o valor original quando já vier formatado ou em padrão inesperado.
                     pass
             linhas.extend(
                 [
@@ -108,7 +110,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
                 "-" * 40,
                 f"Troco: {formatar_moeda(self._venda_data.get('troco') or 0.0)}",
                 "",
-                "Obrigado pela preferencia.",
+                "Obrigado pela preferência.",
             ]
         )
         return "\n".join(linhas)

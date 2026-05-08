@@ -198,6 +198,7 @@ class BackupService:
                 try:
                     arquivo_path.unlink()
                 except OSError:
+                    # Se a limpeza do arquivo temporário falhar, mantemos o erro original do backup.
                     pass
             resultado = BackupResultado(False, mensagem=f"Falha ao gerar backup: {exc}")
             _registrar_resultado(resultado)

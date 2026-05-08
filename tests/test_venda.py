@@ -33,7 +33,7 @@ def _excepthook(tipo, valor, tb):
     msg = QMessageBox()
     msg.setIcon(QMessageBox.Critical)
     msg.setWindowTitle("Erro de Execucao")
-    msg.setText("Ocorreu um erro nao tratado no teste da area de vendas.")
+    msg.setText("Ocorreu um erro não tratado no teste da área de vendas.")
     msg.setInformativeText(str(valor))
     msg.setDetailedText(erro_msg)
     msg.exec_()

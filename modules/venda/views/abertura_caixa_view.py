@@ -172,17 +172,17 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         )
 
         if pdv_id is None:
-            self.lblStatusCaixaFechado.setText("- Selecione um PDV valido antes de abrir o caixa")
+            self.lblStatusCaixaFechado.setText("- Selecione um PDV válido antes de abrir o caixa")
             self._aplicar_status_caixa("#ff8a7a")
             mostrar_aviso(
                 self,
-                "PDV obrigatorio",
-                "Selecione um PDV valido antes de iniciar a abertura do caixa.",
+                "PDV obrigatório",
+                "Selecione um PDV válido antes de iniciar a abertura do caixa.",
             )
             return
 
         if any(valor > 0 for valor in breakdown.values()) and round(total_breakdown, 2) != round(valor_abertura, 2):
-            self.lblStatusCaixaFechado.setText("- O total da composicao deve bater com o troco inicial")
+            self.lblStatusCaixaFechado.setText("- O total da composição deve bater com o troco inicial")
             self._aplicar_status_caixa("#ff8a7a")
             mostrar_aviso(
                 self,
@@ -210,7 +210,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         self.lblStatus.setText(
             f"CSPdv | Caixa {caixa_data['pdv_label']} aberto com fundo R$ {caixa_data['valor_abertura']:.2f}"
         )
-        self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operacoes")
+        self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operações")
         self._aplicar_status_caixa("#72d88f")
         self.btnAbrirCaixa.setEnabled(False)
         self.comboNumCaixa.setEnabled(False)
@@ -244,7 +244,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         self.lblStatus.setText(
             f"CSPdv | Caixa {pdv_label} reaberto com fundo R$ {valor_abertura:.2f}"
         )
-        self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operacoes")
+        self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operações")
         self._aplicar_status_caixa("#72d88f")
         self.btnAbrirCaixa.setEnabled(False)
         self.comboNumCaixa.setEnabled(False)

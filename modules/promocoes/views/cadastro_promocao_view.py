@@ -10,6 +10,7 @@ from ui.promocoes.cadastro_promocao import Ui_CadastroPromocao
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
+
 class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
     def __init__(self, parent=None, promocao_id: int | None = None):
         super().__init__(parent)
@@ -34,7 +35,7 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.setModal(True)
         self.setWindowModality(Qt.WindowModal)
         self.promocao_id = int(promocao_id or 0)
-        self._dados_carregados: dict | None = None
+        self._dados_carregados: dict[str, object] | None = None
 
         self._configurar_campos()
         self.registrar_estilos(

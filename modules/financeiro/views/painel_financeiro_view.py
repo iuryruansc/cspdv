@@ -154,7 +154,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         confirmar = confirmar_acao(
             self,
             "Abrir caixa",
-            "Deseja abrir o caixa agora sem sair do modulo financeiro?",
+            "Deseja abrir o caixa agora sem sair do módulo financeiro?",
         )
         if not confirmar:
             return

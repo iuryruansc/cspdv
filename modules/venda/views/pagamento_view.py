@@ -12,10 +12,11 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from ui.venda.tela_pagamento import Ui_TelaPagamento
 from modules.venda.views.finalizar_pendencia_dialog import FinalizarPendenciaDialog
+from ui.venda.tela_pagamento import Ui_TelaPagamento
 from utils.format_utils import formatar_moeda, numero_decimal
 from utils.ui_messages import mostrar_info
+
 
 class PagamentoView(QWidget, Ui_TelaPagamento):
     voltar_venda = pyqtSignal()

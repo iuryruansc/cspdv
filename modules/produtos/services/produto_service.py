@@ -1,6 +1,7 @@
 from modules.produtos.models.produto_model import ProdutoModel
 from utils.app_logger import log_error
 
+
 class ProdutoService:
     @staticmethod
     def buscar_para_venda(termo):
@@ -26,27 +27,27 @@ class ProdutoService:
             return False, "O nome do produto deve ter pelo menos 3 caracteres."
 
         if not codigo_barras:
-            return False, "O codigo de barras e obrigatorio."
+            return False, "O código de barras é obrigatório."
 
         if categoria_id is None:
-            return False, "A categoria do produto e obrigatoria."
+            return False, "A categoria do produto é obrigatória."
 
         if marca_id is None:
-            return False, "A marca do produto e obrigatoria."
+            return False, "A marca do produto é obrigatória."
 
         if fornecedor_id is None:
-            return False, "O fornecedor do produto e obrigatorio."
+            return False, "O fornecedor do produto é obrigatório."
 
         if ativo not in {"S", "N"}:
-            return False, "O status ativo do produto e obrigatorio."
+            return False, "O status ativo do produto é obrigatório."
 
         if float(dados.get("preco_venda", 0)) <= 0:
-            return False, "O preco de venda deve ser maior que zero."
+            return False, "O preço de venda deve ser maior que zero."
 
         produto_existente = ProdutoModel.buscar_por_codigo(codigo_barras)
         produto_existente_id = int((produto_existente or {}).get("id") or 0)
         if produto_existente and produto_existente_id != int(produto_id or 0):
-            return False, "Este codigo de barras ja esta em uso."
+            return False, "Este código de barras já está em uso."
 
         return True, ""
 
@@ -55,10 +56,10 @@ class ProdutoService:
         codigo = str(codigo_bruto).strip()
 
         if not codigo:
-            return None, "O campo de codigo esta vazio.", False
+            return None, "O campo de código está vazio.", False
 
         if len(codigo) < 3:
-            return None, "Codigo muito curto para ser valido.", False
+            return None, "Código muito curto para ser válido.", False
 
         try:
             produto = ProdutoModel.buscar_por_codigo(codigo)
@@ -69,7 +70,7 @@ class ProdutoService:
 
         except Exception as e:
             log_error("Erro ao validar e buscar produto por código.", e)
-            return None, "Erro tecnico ao consultar o banco de dados.", False
+            return None, "Erro técnico ao consultar o banco de dados.", False
 
     @staticmethod
     def cadastrar_produto(dados):
@@ -127,7 +128,7 @@ class ProdutoService:
             return False, "O ajuste resultaria em estoque negativo."
 
         if nova_quantidade == quantidade_atual:
-            return False, "Nenhuma alteracao foi realizada, pois o estoque final seria igual ao atual."
+            return False, "Nenhuma alteração foi realizada, pois o estoque final seria igual ao atual."
 
         quantidade_ajuste = nova_quantidade - quantidade_atual
         observacao_final = (
