@@ -3,10 +3,23 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 
 class CaixaService:
+    @staticmethod
+    def _carregar_parametros_caixa() -> Dict[str, Any]:
+        try:
+            return ConfiguracoesService.carregar_parametros_caixa()
+        except Exception:
+            return {
+                "fundo_inicial_sugerido": 0.0,
+                "exigir_admin_sangria": True,
+                "exigir_admin_reembolso": True,
+                "exigir_admin_diferenca_fechamento": True,
+            }
+
     @staticmethod
     def _formatar_data_hora(valor: Any) -> str:
         if isinstance(valor, datetime):
@@ -62,13 +75,13 @@ class CaixaService:
         breakdown: Dict[str, int],
     ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         if not usuario_id:
-            return False, "Nao foi possivel identificar o operador logado.", None
+            return False, "Não foi possível identificar o operador logado.", None
 
         if pdv_id is None:
             return False, "Selecione um PDV valido para a abertura.", None
 
         if valor_abertura < 0:
-            return False, "O valor de abertura nao pode ser negativo.", None
+            return False, "O valor de abertura não pode ser negativo.", None
 
         caixa_existente = CaixaModel.buscar_caixa_aberto_por_pdv(int(pdv_id))
         if caixa_existente:
@@ -225,22 +238,26 @@ class CaixaService:
         usuario_id = int(usuario.get("id") or 0)
 
         if caixa_id <= 0:
-            return False, "Nao ha caixa aberto para registrar a movimentacao."
+            return False, "Não há caixa aberto para registrar a movimentação."
         if usuario_id <= 0:
-            return False, "Nao foi possivel identificar o operador logado."
+            return False, "Não foi possível identificar o operador logado."
         if str(tipo or "").strip().lower() not in {"sangria", "suprimento", "troco"}:
-            return False, "Selecione um tipo de movimentacao valido."
+            return False, "Selecione um tipo de movimentação válido."
         if valor <= 0:
             return False, "Informe um valor maior que zero."
         if not observacao.strip():
-            return False, "Descreva o motivo da movimentacao."
-        if not CaixaService.validar_admin_para_diferenca(admin_password):
-            return False, "Informe uma senha de administrador valida para autorizar a movimentacao."
+            return False, "Descreva o motivo da movimentação."
+        parametros_caixa = CaixaService._carregar_parametros_caixa()
+        exigir_admin = str(tipo).strip().lower() == "sangria" and bool(
+            parametros_caixa.get("exigir_admin_sangria", True)
+        )
+        if exigir_admin and not CaixaService.validar_admin_para_diferenca(admin_password):
+            return False, "Informe uma senha de administrador valida."
 
         resumo = CaixaService.obter_resumo_movimentacoes()
         saldo_atual = float(resumo.get("saldo_atual") or 0.0)
         if str(tipo).lower() == "sangria" and valor > saldo_atual:
-            return False, "A sangria nao pode ser maior que o saldo atual disponivel no caixa."
+            return False, "A sangria não pode ser maior que o saldo atual disponível no caixa."
 
         try:
             CaixaModel.registrar_movimentacao(
@@ -250,9 +267,9 @@ class CaixaService:
                 valor=valor,
                 observacao=observacao.strip(),
             )
-            return True, "Movimentacao registrada com sucesso."
+            return True, "Movimentação registrada com sucesso."
         except Exception as exc:
-            return False, f"Erro ao registrar movimentacao: {exc}"
+            return False, f"Erro ao registrar movimentação: {exc}"
 
     @staticmethod
     def validar_admin_para_diferenca(senha: str) -> bool:
@@ -271,15 +288,21 @@ class CaixaService:
         usuario = CaixaSession.current()
         operador = UsuarioModel.buscar_sessao_por_id(int(usuario["usuario_id"])) if usuario and usuario.get("usuario_id") else None
         if not usuario or not usuario.get("id"):
-            return False, "Nao ha caixa aberto para fechar.", None
+            return False, "Não há caixa aberto para fechar.", None
         if not operador or operador.get("id") is None:
-            return False, "Nao foi possivel identificar o operador para registrar o fechamento.", None
+            return False, "Não foi possível identificar o operador para registrar o fechamento.", None
 
         resumo = CaixaService.obter_resumo_fechamento()
         total_esperado = float(resumo["total_esperado"])
         diferenca = round(valor_contado - total_esperado, 2)
 
-        if abs(diferenca) > 0.009 and not CaixaService.validar_admin_para_diferenca(admin_password):
+        parametros_caixa = CaixaService._carregar_parametros_caixa()
+        exigir_admin_diferenca = bool(parametros_caixa.get("exigir_admin_diferenca_fechamento", True))
+        if (
+            exigir_admin_diferenca
+            and abs(diferenca) > 0.009
+            and not CaixaService.validar_admin_para_diferenca(admin_password)
+        ):
             return False, "Diferenca identificada. Informe a senha de um administrador para concluir o fechamento.", None
 
         try:

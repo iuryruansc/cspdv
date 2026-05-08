@@ -2,18 +2,22 @@ from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem
+from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem, QWidget
 
 from core.session_manager import SessionManager
+from modules.admin.services.configuracoes_service import ConfiguracoesService
+from modules.admin.views.configuracoes_view import ConfiguracoesView
 from modules.admin.views.widgets import ManagementPageWidget
 from ui.admin.painel_admin import Ui_PainelAdmin
+from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
-
+from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        aplicar_tamanho_proporcional_tela(self)
 
         self._management_configs: Dict[str, Dict[str, Any]] = {}
         self._setup_user_context()
@@ -25,8 +29,14 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self._setup_shortcuts()
         self._show_dashboard()
 
+    def _central_widget_parent(self) -> QWidget:
+        central = self.centralWidget
+        if isinstance(central, QWidget):
+            return central
+        return self.centralWidget()
+
     def _setup_dashboard_actions(self) -> None:
-        self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self.centralWidget)
+        self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self._central_widget_parent())
         self.btnFecharCaixaDashboard.setMinimumSize(172, 38)
         self.btnFecharCaixaDashboard.setStyleSheet(
             """
@@ -55,8 +65,10 @@ QPushButton:hover {
             self.lblOperadorInfo.setText(f"Operador: {nome}")
             self.lblStatusBar.setText(f"CSPdv - Operador: {nome}  |  Painel Administrativo")
         else:
-            self.lblOperadorInfo.setText("Operador: Nao logado")
+            self.lblOperadorInfo.setText("Operador: Não logado")
             self.lblStatusBar.setText("CSPdv - Painel Administrativo")
+        self.lblStatusVersao.setText(versao_referencia())
+        self.lblStatusVersao.setToolTip(descricao_ambiente())
 
     def _setup_datetime(self) -> None:
         self._update_datetime()
@@ -65,9 +77,13 @@ QPushButton:hover {
         self.timer.start(1000)
 
     def _setup_management_area(self) -> None:
-        self.managementPage = ManagementPageWidget(self.centralWidget)
+        parent_widget = self._central_widget_parent()
+        self.managementPage = ManagementPageWidget(parent_widget)
         self.managementPage.hide()
         self.mainContentVLayout.addWidget(self.managementPage)
+        self.configuracoesPage = ConfiguracoesView(parent_widget)
+        self.configuracoesPage.hide()
+        self.mainContentVLayout.addWidget(self.configuracoesPage)
 
         self._management_configs = {
             "produtos": {
@@ -181,6 +197,7 @@ QPushButton:hover {
         self.btnNavDashboard.clicked.connect(lambda _=False: self._show_dashboard())
         self.btnNavProdutos.clicked.connect(lambda _=False: self._show_management_page("produtos"))
         self.btnNavClientes.clicked.connect(lambda _=False: self._show_management_page("clientes"))
+        self.btnNavConfiguracoes.clicked.connect(lambda _=False: self._show_configuracoes())
 
         for key, config in self._management_configs.items():
             button = config["button"]
@@ -229,6 +246,7 @@ QPushButton:hover {
         self.btnFecharCaixaDashboard.show()
         self._atualizar_acao_caixa_dashboard()
         self.managementPage.hide()
+        self.configuracoesPage.hide()
         self.cardVendasHoje.show()
         self.cardFaturamento.show()
         self.cardProdutos.show()
@@ -249,6 +267,7 @@ QPushButton:hover {
         self.cardClientes.hide()
         self.frameUltimasVendas.hide()
         self.managementPage.show()
+        self.configuracoesPage.hide()
         self.managementPage.btnNovo.setText(config["new_label"])
         self.managementPage.set_details_enabled(key == "produtos")
         self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
@@ -261,6 +280,20 @@ QPushButton:hover {
         self.managementPage.btnNovo.clicked.connect(config["new_action"])
         self._mark_subnav_button(config["button"])
         self._populate_management_page(key)
+
+    def _show_configuracoes(self) -> None:
+        self.btnNavConfiguracoes.setChecked(True)
+        self.lblSectionTitle.setText("Configurações do Sistema")
+        self.btnFrenteCaixa.hide()
+        self.btnFecharCaixaDashboard.hide()
+        self.cardVendasHoje.hide()
+        self.cardFaturamento.hide()
+        self.cardProdutos.hide()
+        self.cardClientes.hide()
+        self.frameUltimasVendas.hide()
+        self.managementPage.hide()
+        self.configuracoesPage.show()
+        self._mark_subnav_button(None)
 
     def _mark_subnav_button(self, active_button: QPushButton | None) -> None:
         for config in self._management_configs.values():
@@ -280,7 +313,7 @@ QPushButton:hover {
         except Exception as exc:
             rows = []
             error_message = (
-                f"Nao foi possivel consultar {config['title'].lower()} agora.\n\nDetalhes: {exc}"
+                f"Não foi possível consultar {config['title'].lower()} agora.\n\nDetalhes: {exc}"
             )
         self.managementPage.configure(
             title=config["title"],
@@ -373,7 +406,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome") or "produto"),
                 "entity_id": row.get("id"),
                 "service_call": ProdutoService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "marcas":
             from modules.marcas.services.marca_service import MarcaService
@@ -383,7 +416,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome_marca") or "marca"),
                 "entity_id": row.get("id"),
                 "service_call": MarcaService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "categorias":
             from modules.categorias.services.categoria_service import CategoriaService
@@ -393,7 +426,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome") or "categoria"),
                 "entity_id": row.get("id"),
                 "service_call": CategoriaService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "fornecedores":
             from modules.fornecedores.services.fornecedor_service import FornecedorService
@@ -403,7 +436,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome_fantasia") or "fornecedor"),
                 "entity_id": row.get("id_fornecedor"),
                 "service_call": FornecedorService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         if current_key == "clientes":
             from modules.clientes.services.cliente_service import ClienteService
@@ -413,7 +446,7 @@ QPushButton:hover {
                 "nome": str(row.get("nome") or "cliente"),
                 "entity_id": row.get("id"),
                 "service_call": ClienteService.alternar_status,
-                "invalid_title": "Registro invalido",
+                "invalid_title": "Registro inválido",
             }
         return None
 
@@ -447,7 +480,7 @@ QPushButton:hover {
 
         produto_id = produto.get("id")
         if produto_id is None:
-            mostrar_aviso(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado.")
+            mostrar_aviso(self, "Produto inválido", "Não foi possível identificar o produto selecionado.")
             return
 
         from modules.produtos.models.produto_model import ProdutoModel
@@ -455,7 +488,7 @@ QPushButton:hover {
 
         detalhes = ProdutoModel.buscar_por_id(int(produto_id))
         if not detalhes:
-            mostrar_aviso(self, "Produto nao encontrado", "Nao foi possivel carregar os detalhes do produto selecionado.")
+            mostrar_aviso(self, "Produto não encontrado", "Não foi possível carregar os detalhes do produto selecionado.")
             return
 
         dialog = DetalhesProdutoDialog(detalhes, self)
@@ -483,14 +516,14 @@ QPushButton:hover {
         service_call = contexto["service_call"]
 
         if entity_id is None:
-            mostrar_aviso(self, str(contexto["invalid_title"]), "Nao foi possivel identificar o registro selecionado.")
+            mostrar_aviso(self, str(contexto["invalid_title"]), "Não foi possível identificar o registro selecionado.")
             return
 
         ativo_atual = str(row.get("ativo") or "N").strip().upper()
         acao = "desativar" if ativo_atual == "S" else "ativar"
         confirmacao = confirmar_acao(
             self,
-            "Confirmar alteracao",
+            "Confirmar alteração",
             f"Deseja {acao} o {entity_label} '{nome}'?",
         )
         if not confirmacao:
@@ -498,7 +531,7 @@ QPushButton:hover {
 
         sucesso, mensagem = service_call(entity_id)
         if not sucesso:
-            mostrar_aviso(self, "Status nao alterado", mensagem)
+            mostrar_aviso(self, "Status não alterado", mensagem)
             return
 
         mostrar_info(self, "Status atualizado", mensagem)
@@ -519,7 +552,7 @@ QPushButton:hover {
         if current_key == "produtos":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Produto invalido", "Nao foi possivel identificar o produto selecionado para edicao.")
+                mostrar_aviso(self, "Produto inválido", "Não foi possível identificar o produto selecionado para edição.")
                 return
             from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 
@@ -534,7 +567,7 @@ QPushButton:hover {
         if current_key == "marcas":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Marca invalida", "Nao foi possivel identificar a marca selecionada.")
+                mostrar_aviso(self, "Marca inválida", "Não foi possível identificar a marca selecionada.")
                 return
             from modules.marcas.views.cadastro_marca_view import CadastroMarcaView
 
@@ -546,7 +579,7 @@ QPushButton:hover {
         if current_key == "categorias":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Categoria invalida", "Nao foi possivel identificar a categoria selecionada.")
+                mostrar_aviso(self, "Categoria inválida", "Não foi possível identificar a categoria selecionada.")
                 return
             from modules.categorias.views.cadastro_categoria_view import CadastroCategoriaView
 
@@ -558,7 +591,7 @@ QPushButton:hover {
         if current_key == "clientes":
             registro_id = row.get("id")
             if registro_id is None:
-                mostrar_aviso(self, "Cliente invalido", "Nao foi possivel identificar o cliente selecionado.")
+                mostrar_aviso(self, "Cliente inválido", "Não foi possível identificar o cliente selecionado.")
                 return
             from modules.clientes.views.cadastro_cliente_view import CadastroClienteView
 
@@ -572,7 +605,7 @@ QPushButton:hover {
 
         registro_id = row.get("id_fornecedor")
         if registro_id is None:
-            mostrar_aviso(self, "Fornecedor invalido", "Nao foi possivel identificar o fornecedor selecionado.")
+            mostrar_aviso(self, "Fornecedor inválido", "Não foi possível identificar o fornecedor selecionado.")
             return
         from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
 
@@ -597,11 +630,12 @@ QPushButton:hover {
             self.lblFaturamentoValor.setText("R$ 0,00")
             self.lblProdutosValor.setText("0")
             self.lblClientesValor.setText("0")
+            self._atualizar_resumo_estrutura({})
             self._populate_dashboard_sales([])
             mostrar_aviso(
                 self,
-                "Dashboard indisponivel",
-                f"Nao foi possivel carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
+                "Dashboard indisponível",
+                f"Não foi possível carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
             )
             return
 
@@ -609,26 +643,141 @@ QPushButton:hover {
         self.lblFaturamentoValor.setText(str(resumo["faturamento_dia"]))
         self.lblProdutosValor.setText(str(resumo["produtos_ativos"]))
         self.lblClientesValor.setText(str(resumo["clientes_ativos"]))
+        self._atualizar_resumo_estrutura(resumo)
         self._populate_dashboard_sales(resumo["ultimas_vendas"])
         self._atualizar_acao_caixa_dashboard()
+
+    def _atualizar_resumo_estrutura(self, resumo: Dict[str, Any]) -> None:
+        self.lblResumoUsuarios.setText(f"Usuários ativos: {int(resumo.get('usuarios_ativos') or 0)}")
+        self.lblResumoPerfis.setText(f"Perfis ativos: {int(resumo.get('perfis_ativos') or 0)}")
+        self.lblResumoPdvs.setText(f"PDVs ativos: {int(resumo.get('pdvs_ativos') or 0)}")
+        self.lblResumoCaixas.setText(f"Caixas abertos: {int(resumo.get('caixas_abertos') or 0)}")
+        self.lblResumoFormasPagamento.setText(
+            f"Formas de pagamento: {int(resumo.get('formas_pagamento_ativas') or 0)}"
+        )
+        self._atualizar_alertas_dashboard(resumo.get("alertas_dashboard") or [])
+
+    def _atualizar_alertas_dashboard(self, alertas: List[Dict[str, Any]]) -> None:
+        botoes = [
+            self.btnResumoAlerta1,
+            self.btnResumoAlerta2,
+            self.btnResumoAlerta3,
+            self.btnResumoAlerta4,
+        ]
+        estilos = {
+            "critico": (
+                "QPushButton { font-size: 12px; color: #b42318; font-weight: 700; "
+                "text-align: left; border: none; background: transparent; padding: 0px; } "
+                "QPushButton:hover { text-decoration: underline; }"
+            ),
+            "aviso": (
+                "QPushButton { font-size: 12px; color: #b54708; "
+                "text-align: left; border: none; background: transparent; padding: 0px; } "
+                "QPushButton:hover { text-decoration: underline; }"
+            ),
+            "info": (
+                "QPushButton { font-size: 12px; color: #175cd3; "
+                "text-align: left; border: none; background: transparent; padding: 0px; } "
+                "QPushButton:hover { text-decoration: underline; }"
+            ),
+            "ok": (
+                "QPushButton { font-size: 12px; color: #027a48; "
+                "text-align: left; border: none; background: transparent; padding: 0px; }"
+            ),
+        }
+        if not alertas:
+            alertas = [{"nivel": "ok", "texto": "Nenhum alerta estrutural no momento.", "acao": "nenhuma"}]
+
+        for index, botao in enumerate(botoes):
+            try:
+                botao.clicked.disconnect()
+            except TypeError:
+                pass
+            if index < len(alertas):
+                alerta = alertas[index]
+                nivel = str(alerta.get("nivel") or "info").strip().lower()
+                texto = str(alerta.get("texto") or "").strip()
+                acao = str(alerta.get("acao") or "nenhuma").strip().lower()
+                botao.setText(f"• {texto}")
+                botao.setStyleSheet(estilos.get(nivel, estilos["info"]))
+                botao.setEnabled(acao != "nenhuma")
+                if acao != "nenhuma":
+                    botao.clicked.connect(lambda _=False, target=acao: self._executar_acao_alerta_dashboard(target))
+                    botao.setToolTip("Clique para abrir a ação relacionada a este alerta.")
+                else:
+                    botao.setToolTip("")
+                botao.show()
+            else:
+                botao.setText("")
+                botao.setToolTip("")
+                botao.hide()
+
+    def _executar_acao_alerta_dashboard(self, acao: str) -> None:
+        if acao == "abrir_financeiro":
+            if not SessionManager.has_permission("financeiro.total"):
+                mostrar_aviso(
+                    self,
+                    "Acesso negado",
+                    "O usuário atual não possui permissão para abrir o módulo financeiro.",
+                )
+                return
+            from modules.financeiro.views.painel_financeiro_view import PainelFinanceiroView
+
+            self.hide()
+            self.painel_financeiro = PainelFinanceiroView()
+            self.painel_financeiro.show()
+            return
+
+        if acao == "abrir_promocoes":
+            if not SessionManager.has_permission("relatorios.ver"):
+                mostrar_aviso(
+                    self,
+                    "Acesso negado",
+                    "O usuário atual não possui permissão para abrir o módulo de promoções.",
+                )
+                return
+            from modules.promocoes.views.painel_promocoes_view import PainelPromocoesView
+
+            self.hide()
+            self.painel_promocoes = PainelPromocoesView()
+            self.painel_promocoes.show()
+            return
+
+        if acao == "fechar_caixa":
+            self._open_fechamento_caixa_dashboard()
+            return
+
+        if acao == "abrir_configuracoes":
+            self._show_configuracoes()
 
     def _atualizar_acao_caixa_dashboard(self) -> None:
         from core.caixa_session import CaixaSession
         from modules.venda.services.caixa_service import CaixaService
 
         usuario = SessionManager.current_user() or {}
+        parametros_venda = ConfiguracoesService.carregar_parametros_venda()
+        venda_rapida_habilitada = bool(parametros_venda.get("habilitar_venda_rapida_admin", True))
         if not CaixaSession.has_open_caixa():
             CaixaService.restaurar_caixa_aberto(usuario.get("id"))
 
         if CaixaSession.has_open_caixa():
-            self.btnFrenteCaixa.setText("Venda Rápida")
-            self.btnFrenteCaixa.setToolTip("Abre o fluxo compacto de venda sem sair do painel admin.")
+            if venda_rapida_habilitada:
+                self.btnFrenteCaixa.setText("Venda Rápida")
+                self.btnFrenteCaixa.setToolTip("Abre o fluxo compacto de venda sem sair do painel admin.")
+                self.btnFrenteCaixa.setEnabled(True)
+            else:
+                self.btnFrenteCaixa.setText("Venda Rápida desabilitada")
+                self.btnFrenteCaixa.setToolTip(
+                    "A Venda Rápida está desabilitada em Configurações > Parâmetros de Venda."
+                )
+                self.btnFrenteCaixa.setEnabled(False)
             self.btnFecharCaixaDashboard.show()
             self.btnFecharCaixaDashboard.setToolTip("Abre o fechamento do caixa atual diretamente no painel admin.")
             return
 
         self.btnFrenteCaixa.setText("Abrir Frente de Caixa")
         self.btnFrenteCaixa.setToolTip("Abre o caixa para habilitar as vendas no contexto administrativo.")
+        self.btnFrenteCaixa.setEnabled(True)
         self.btnFecharCaixaDashboard.hide()
 
     def _populate_dashboard_sales(self, rows: List[Dict[str, Any]]) -> None:
@@ -659,7 +808,7 @@ QPushButton:hover {
             mostrar_aviso(
                 self,
                 "Acesso negado",
-                "O usuario atual nao possui permissao para abrir a frente de caixa.",
+                "O usuário atual não possui permissão para abrir a frente de caixa.",
             )
             return
 
@@ -669,6 +818,8 @@ QPushButton:hover {
         from modules.venda.views.venda_rapida_dialog import VendaRapidaDialog
 
         usuario = SessionManager.current_user() or {}
+        parametros_venda = ConfiguracoesService.carregar_parametros_venda()
+        venda_rapida_habilitada = bool(parametros_venda.get("habilitar_venda_rapida_admin", True))
         if not CaixaSession.has_open_caixa():
             CaixaService.restaurar_caixa_aberto(usuario.get("id"))
 
@@ -677,7 +828,7 @@ QPushButton:hover {
                 self,
                 "Abrir caixa",
                 "Deseja abrir o caixa agora pelo painel administrativo?\n\n"
-                "Depois da abertura, a Venda Rapida ficara disponivel neste mesmo painel.",
+                "Depois da abertura, a Venda Rápida ficará disponível.",
             )
             if not confirmar:
                 return
@@ -688,8 +839,17 @@ QPushButton:hover {
             mostrar_info(
                 self,
                 "Caixa aberto",
-                "Caixa aberto com sucesso. Agora voce ja pode usar Venda Rapida sem sair do painel administrativo.",
+                "Caixa aberto com sucesso.",
             )
+            return
+
+        if not venda_rapida_habilitada:
+            mostrar_info(
+                self,
+                "Venda Rápida desabilitada",
+                "A Venda Rápida está desabilitada em Configurações > Parâmetros de Venda.",
+            )
+            self._atualizar_acao_caixa_dashboard()
             return
 
         self.venda_rapida_dialog = VendaRapidaDialog(self)
@@ -703,8 +863,8 @@ QPushButton:hover {
         if not CaixaSession.has_open_caixa():
             mostrar_aviso(
                 self,
-                "Caixa nao encontrado",
-                "Nao ha um caixa aberto no momento para encerrar pelo painel administrativo.",
+                "Caixa não encontrado",
+                "Não há um caixa aberto no momento para encerrar pelo painel administrativo.",
             )
             self._atualizar_acao_caixa_dashboard()
             return
@@ -719,3 +879,4 @@ QPushButton:hover {
         self.hide()
         self.selecao = SelecaoModoView()
         self.selecao.show()
+

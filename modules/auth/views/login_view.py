@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QApplication, QDialog
 from core.session_manager import SessionManager
 from modules.auth.models.usuario_model import UsuarioModel
 from ui.login.tela_de_login import Ui_TelaDeLogin
+from utils.app_logger import log_error, log_info
+from utils.system_runtime import descricao_ambiente, versao_referencia
 
 class LoginView(QDialog, Ui_TelaDeLogin):
     usuario_logado = None
@@ -17,6 +19,8 @@ class LoginView(QDialog, Ui_TelaDeLogin):
 
         self.labelErro.setVisible(False)
         self.progressBarCarregando.setVisible(False)
+        self.labelVersao.setText(versao_referencia())
+        self.labelVersao.setToolTip(descricao_ambiente())
 
     def _login(self):
         login = self.lineEditLogin.text().strip()
@@ -32,15 +36,19 @@ class LoginView(QDialog, Ui_TelaDeLogin):
             usuario = UsuarioModel.autenticar(login, senha)
 
             if usuario is None:
-                self._show_error("Login ou senha invalidos.")
+                self._show_error("Login ou senha inválidos.")
                 return
 
-            SessionManager.login(usuario)
+            SessionManager.login(
+                usuario,
+                persist=SessionManager.session_persistence_enabled(),
+            )
             LoginView.usuario_logado = SessionManager.current_user()
-            print(f"Bem-vindo, {usuario['nome']}!")
+            log_info(f"Login realizado para o usuário {usuario['nome']}.")
             self.accept()
 
         except Exception as e:
+            log_error("Falha ao autenticar usuário.", e)
             self._show_error(f"Erro: {str(e)}")
         finally:
             self._set_loading(False)

@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_PainelPromocoes(object):
     def setupUi(self, PainelPromocoes):
         PainelPromocoes.setObjectName("PainelPromocoes")
@@ -78,6 +77,10 @@ class Ui_PainelPromocoes(object):
                 font-size: 12px;
                 font-weight: 700;
             }
+            QPushButton:disabled {
+                background-color: #d9e3ec;
+                color: #8aa0b4;
+            }
             QPushButton#btnAtualizar {
                 background-color: #e9f3fb;
                 color: #205d8f;
@@ -92,6 +95,20 @@ class Ui_PainelPromocoes(object):
             }
             QPushButton#btnNovaPromocao:hover, QPushButton#btnDuplicarPromocao:hover {
                 background-color: #276faa;
+            }
+            QPushButton#btnEncerrarPromocao {
+                background-color: #f0a126;
+                color: #1f2a36;
+            }
+            QPushButton#btnEncerrarPromocao:hover {
+                background-color: #df9118;
+            }
+            QPushButton#btnCancelarPromocao {
+                background-color: #d9534f;
+                color: white;
+            }
+            QPushButton#btnCancelarPromocao:hover {
+                background-color: #c64542;
             }
             QPushButton#btnVincularProdutos {
                 background-color: #f4a329;
@@ -239,6 +256,12 @@ class Ui_PainelPromocoes(object):
         self.btnDuplicarPromocao = QtWidgets.QPushButton(self.toolbarCard)
         self.btnDuplicarPromocao.setObjectName("btnDuplicarPromocao")
         self.toolbarLayout.addWidget(self.btnDuplicarPromocao)
+        self.btnEncerrarPromocao = QtWidgets.QPushButton(self.toolbarCard)
+        self.btnEncerrarPromocao.setObjectName("btnEncerrarPromocao")
+        self.toolbarLayout.addWidget(self.btnEncerrarPromocao)
+        self.btnCancelarPromocao = QtWidgets.QPushButton(self.toolbarCard)
+        self.btnCancelarPromocao.setObjectName("btnCancelarPromocao")
+        self.toolbarLayout.addWidget(self.btnCancelarPromocao)
         self.btnVincularProdutos = QtWidgets.QPushButton(self.toolbarCard)
         self.btnVincularProdutos.setObjectName("btnVincularProdutos")
         self.toolbarLayout.addWidget(self.btnVincularProdutos)
@@ -278,6 +301,7 @@ class Ui_PainelPromocoes(object):
         self.mainGridLayout.setObjectName("mainGridLayout")
 
         self.framePromocoes = QtWidgets.QFrame(self.contentWrap)
+        self.framePromocoes.setMinimumWidth(980)
         self.framePromocoes.setObjectName("framePromocoes")
         self.framePromocoesLayout = QtWidgets.QVBoxLayout(self.framePromocoes)
         self.framePromocoesLayout.setContentsMargins(16, 16, 16, 16)
@@ -301,16 +325,16 @@ class Ui_PainelPromocoes(object):
         for idx in range(6):
             item = QtWidgets.QTableWidgetItem()
             self.tablePromocoes.setHorizontalHeaderItem(idx, item)
-        self.tablePromocoes.horizontalHeader().setStretchLastSection(False)
-        self.tablePromocoes.horizontalHeader().setDefaultSectionSize(128)
-        self.tablePromocoes.horizontalHeader().setMinimumSectionSize(82)
+        self.tablePromocoes.setWordWrap(False)
+        self.tablePromocoes.horizontalHeader().setDefaultSectionSize(150)
+        self.tablePromocoes.horizontalHeader().setMinimumSectionSize(80)
         self.tablePromocoes.verticalHeader().setVisible(False)
         self.framePromocoesLayout.addWidget(self.tablePromocoes)
-        self.mainGridLayout.addWidget(self.framePromocoes, 2)
+        self.mainGridLayout.addWidget(self.framePromocoes, 5)
 
         self.frameAgenda = QtWidgets.QFrame(self.contentWrap)
-        self.frameAgenda.setMinimumWidth(430)
-        self.frameAgenda.setMaximumWidth(500)
+        self.frameAgenda.setMinimumWidth(360)
+        self.frameAgenda.setMaximumWidth(420)
         self.frameAgenda.setObjectName("frameAgenda")
         self.frameAgendaLayout = QtWidgets.QVBoxLayout(self.frameAgenda)
         self.frameAgendaLayout.setContentsMargins(16, 16, 16, 16)
@@ -334,10 +358,12 @@ class Ui_PainelPromocoes(object):
         for idx in range(5):
             item = QtWidgets.QTableWidgetItem()
             self.tableItensPromocao.setHorizontalHeaderItem(idx, item)
-        self.tableItensPromocao.horizontalHeader().setStretchLastSection(True)
+        self.tableItensPromocao.setWordWrap(False)
+        self.tableItensPromocao.horizontalHeader().setDefaultSectionSize(132)
+        self.tableItensPromocao.horizontalHeader().setMinimumSectionSize(76)
         self.tableItensPromocao.verticalHeader().setVisible(False)
         self.frameAgendaLayout.addWidget(self.tableItensPromocao)
-        self.mainGridLayout.addWidget(self.frameAgenda, 1)
+        self.mainGridLayout.addWidget(self.frameAgenda, 2)
         self.contentWrapLayout.addLayout(self.mainGridLayout, 1)
         self.mainVLayout.addWidget(self.contentWrap, 1)
 
@@ -413,9 +439,11 @@ class Ui_PainelPromocoes(object):
         self.cmbTipoFiltro.setItemText(1, _translate("PainelPromocoes", "Desconto por percentual"))
         self.cmbTipoFiltro.setItemText(2, _translate("PainelPromocoes", "Desconto por valor"))
         self.cmbTipoFiltro.setItemText(3, _translate("PainelPromocoes", "Preco promocional"))
-        self.btnAtualizar.setText(_translate("PainelPromocoes", "Atualizar"))
+        self.btnAtualizar.setText(_translate("PainelPromocoes", "Editar"))
         self.btnNovaPromocao.setText(_translate("PainelPromocoes", "Nova Promocao"))
         self.btnDuplicarPromocao.setText(_translate("PainelPromocoes", "Duplicar"))
+        self.btnEncerrarPromocao.setText(_translate("PainelPromocoes", "Encerrar"))
+        self.btnCancelarPromocao.setText(_translate("PainelPromocoes", "Cancelar"))
         self.btnVincularProdutos.setText(_translate("PainelPromocoes", "Vincular Produtos"))
         self.lblPromocoesAtivasValor.setText(_translate("PainelPromocoes", "0"))
         self.lblPromocoesAtivasTitulo.setText(_translate("PainelPromocoes", "Promocoes Ativas"))
@@ -453,7 +481,6 @@ class Ui_PainelPromocoes(object):
         item.setText(_translate("PainelPromocoes", "Observacao"))
         self.lblStatusSistema.setText(_translate("PainelPromocoes", "Sistema online"))
         self.lblStatusBar.setText(_translate("PainelPromocoes", "CSPdv - Modulo de Promocoes"))
-
 
 if __name__ == "__main__":
     import sys

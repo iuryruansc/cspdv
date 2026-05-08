@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
-
 class SessionManager:
     _current_user: Optional[Dict[str, Any]] = None
     _started_at: Optional[datetime] = None
@@ -23,8 +22,11 @@ class SessionManager:
         cls._started_at = datetime.now()
         cls._expires_at = cls._started_at + timedelta(hours=cls._ttl_hours())
 
-        if persist:
+        if persist and cls.session_persistence_enabled():
             cls._save_persisted_session()
+            return
+
+        cls._clear_persisted_session()
 
     @classmethod
     def logout(cls, *, clear_persisted: bool = True) -> None:
@@ -68,6 +70,10 @@ class SessionManager:
         cls,
         user_loader: Callable[[int], Optional[Dict[str, Any]]],
     ) -> bool:
+        if not cls.session_persistence_enabled():
+            cls._clear_persisted_session()
+            return False
+
         payload = cls._read_persisted_session()
         if payload is None:
             return False
@@ -77,7 +83,14 @@ class SessionManager:
             cls._clear_persisted_session()
             return False
 
-        expires_at = cls._parse_iso_datetime(payload.get("expires_at"))
+        issued_at = cls._parse_iso_datetime(payload.get("issued_at"))
+        expires_at_payload = cls._parse_iso_datetime(payload.get("expires_at"))
+        expires_at_config = (
+            issued_at + timedelta(hours=cls._ttl_hours())
+            if issued_at is not None
+            else None
+        )
+        expires_at = cls._effective_expiration(expires_at_payload, expires_at_config)
         if expires_at is None or datetime.now() > expires_at:
             cls._clear_persisted_session()
             return False
@@ -101,6 +114,19 @@ class SessionManager:
             "permissions_count": len(cls._current_user.get("permissoes", [])) if cls._current_user else 0,
             "session_file": str(cls._session_file_path()),
         }
+
+    @classmethod
+    def session_persistence_enabled(cls) -> bool:
+        return bool(cls._carregar_parametros_seguranca().get("restaurar_login_automaticamente", True))
+
+    @classmethod
+    def should_block_close_with_open_caixa(cls) -> bool:
+        return bool(
+            cls._carregar_parametros_seguranca().get(
+                "bloquear_fechamento_programa_caixa_aberto",
+                True,
+            )
+        )
 
     @classmethod
     def _save_persisted_session(cls) -> None:
@@ -183,7 +209,11 @@ class SessionManager:
 
     @classmethod
     def _ttl_hours(cls) -> int:
-        raw = os.getenv("SESSION_TTL_HOURS", "12").strip()
+        parametros = cls._carregar_parametros_seguranca()
+        raw = str(
+            parametros.get("horas_sessao_persistida")
+            or os.getenv("SESSION_TTL_HOURS", "12")
+        ).strip()
         try:
             hours = int(raw)
         except ValueError:
@@ -198,3 +228,28 @@ class SessionManager:
             return datetime.fromisoformat(value)
         except ValueError:
             return None
+
+    @classmethod
+    def _effective_expiration(
+        cls,
+        expires_at_payload: Optional[datetime],
+        expires_at_config: Optional[datetime],
+    ) -> Optional[datetime]:
+        if expires_at_payload is None:
+            return expires_at_config
+        if expires_at_config is None:
+            return expires_at_payload
+        return min(expires_at_payload, expires_at_config)
+
+    @classmethod
+    def _carregar_parametros_seguranca(cls) -> Dict[str, Any]:
+        try:
+            from modules.admin.services.configuracoes_service import ConfiguracoesService
+
+            return ConfiguracoesService.carregar_parametros_seguranca()
+        except Exception:
+            return {
+                "horas_sessao_persistida": 12,
+                "restaurar_login_automaticamente": True,
+                "bloquear_fechamento_programa_caixa_aberto": True,
+            }

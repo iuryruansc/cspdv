@@ -11,7 +11,6 @@ from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
-
 class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, RetornoPainelAdminMixin):
     def __init__(self, parent=None, cliente_id=None, admin_view=None):
         super().__init__(None)
@@ -86,7 +85,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
 
         cliente = ClienteModel.buscar_por_id(self._cliente_id)
         if not cliente:
-            mostrar_aviso(self, "Cliente nao encontrado", "Nao foi possivel carregar o cliente para edicao.")
+            mostrar_aviso(self, "Cliente não encontrado", "Não foi possível carregar o cliente para edição.")
             self._cancelar()
             return
 
@@ -183,7 +182,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
                 self._cancelar(refresh=True)
             return
 
-        mostrar_aviso(self, "Atencao", mensagem)
+        mostrar_aviso(self, "Atenção", mensagem)
 
     def _limpar_campos(self):
         for campo_texto in self.findChildren(QLineEdit):

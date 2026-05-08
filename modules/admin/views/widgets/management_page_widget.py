@@ -1,21 +1,11 @@
 from typing import Any, Dict, Iterable, List
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QFrame,
-    QHBoxLayout,
-    QHeaderView,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt5.QtWidgets import QFrame, QHeaderView, QTableWidgetItem, QWidget
 
+from ui.admin.management_page_widget import Ui_ManagementPageWidget
 
-class ManagementPageWidget(QFrame):
+class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._rows: List[Dict[str, Any]] = []
@@ -26,142 +16,9 @@ class ManagementPageWidget(QFrame):
         self._toggle_allowed = False
         self._quantity_adjustment_allowed = False
 
-        self.setObjectName("frameManagementPage")
-        self.setStyleSheet(
-            """
-            QFrame#frameManagementPage {
-                background-color: white;
-                border: 1px solid #a8c4d8;
-                border-radius: 6px;
-            }
-            QLabel[sectionTitle="true"] {
-                color: #1a3a5c;
-                font-size: 16px;
-                font-weight: bold;
-            }
-            QLabel[sectionHint="true"] {
-                color: #5d7f99;
-                font-size: 12px;
-            }
-            QLineEdit {
-                background-color: #f7fbff;
-                border: 1px solid #c5d8e6;
-                border-radius: 4px;
-                padding: 7px 10px;
-                font-size: 12px;
-            }
-            QPushButton[toolbarButton="true"] {
-                background-color: #f0f6fc;
-                color: #1a3a5c;
-                border: 1px solid #c0d8ec;
-                border-radius: 4px;
-                padding: 7px 12px;
-                font-size: 12px;
-                font-weight: bold;
-            }
-            QPushButton[toolbarButton="true"]:hover {
-                background-color: #dceaf4;
-                border-color: #3585c8;
-                color: #1a5fa0;
-            }
-            QPushButton[primaryButton="true"] {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);
-                color: white;
-                border: none;
-                border-radius: 4px;
-                padding: 8px 14px;
-                font-size: 12px;
-                font-weight: bold;
-            }
-            QPushButton[primaryButton="true"]:hover {
-                background: #2a74b8;
-            }
-            QTableWidget {
-                background-color: #ffffff;
-                border: 1px solid #d6e3ee;
-                border-radius: 4px;
-                font-size: 12px;
-                gridline-color: #dce8f0;
-            }
-            QHeaderView::section {
-                background-color: #f0f6fc;
-                color: #1a3a5c;
-                font-size: 11px;
-                font-weight: bold;
-                padding: 5px 6px;
-                border: none;
-                border-right: 1px solid #dce8f0;
-                border-bottom: 2px solid #3585c8;
-            }
-            """
-        )
-
-        root_layout = QVBoxLayout(self)
-        root_layout.setContentsMargins(16, 16, 16, 16)
-        root_layout.setSpacing(12)
-
-        header_layout = QVBoxLayout()
-        header_layout.setSpacing(4)
-        self.lblTitle = QLabel("Gerenciamento")
-        self.lblTitle.setProperty("sectionTitle", True)
-        self.lblHint = QLabel("Selecione um cadastro para consultar e abrir acoes rapidas.")
-        self.lblHint.setProperty("sectionHint", True)
-        self.lblHint.setWordWrap(True)
-        header_layout.addWidget(self.lblTitle)
-        header_layout.addWidget(self.lblHint)
-        root_layout.addLayout(header_layout)
-
-        toolbar_layout = QHBoxLayout()
-        toolbar_layout.setSpacing(8)
-        self.lineEditBusca = QLineEdit()
-        self.lineEditBusca.setPlaceholderText("Buscar por qualquer coluna visivel...")
+        self.setupUi(self)
         self.lineEditBusca.textChanged.connect(self._apply_filter)
-
-        self.btnNovo = QPushButton("Novo cadastro")
-        self.btnNovo.setProperty("primaryButton", True)
-        self.btnAtualizar = QPushButton("Atualizar")
-        self.btnAtualizar.setProperty("toolbarButton", True)
-        self.btnDetalhes = QPushButton("Detalhes")
-        self.btnDetalhes.setProperty("toolbarButton", True)
-        self.btnDetalhes.setEnabled(False)
-        self.btnDetalhes.hide()
-        self.btnEditar = QPushButton("Editar")
-        self.btnEditar.setProperty("toolbarButton", True)
-        self.btnEditar.setEnabled(False)
-        self.btnEditar.setToolTip("A edicao inline sera adicionada na proxima etapa.")
-        self.btnAjustarQuantidade = QPushButton("Ajustar Quantidade")
-        self.btnAjustarQuantidade.setProperty("toolbarButton", True)
-        self.btnAjustarQuantidade.hide()
-        self.btnToggleAtivo = QPushButton("Ativar / Desativar")
-        self.btnToggleAtivo.setProperty("toolbarButton", True)
-        self.btnToggleAtivo.setEnabled(False)
-        self.btnToggleAtivo.setToolTip("A alteracao de status sera adicionada na proxima etapa.")
-
-        toolbar_layout.addWidget(self.lineEditBusca, 1)
-        toolbar_layout.addWidget(self.btnAtualizar)
-        toolbar_layout.addWidget(self.btnDetalhes)
-        toolbar_layout.addWidget(self.btnEditar)
-        toolbar_layout.addWidget(self.btnAjustarQuantidade)
-        toolbar_layout.addWidget(self.btnToggleAtivo)
-        toolbar_layout.addWidget(self.btnNovo)
-        root_layout.addLayout(toolbar_layout)
-
-        self.tableResultados = QTableWidget()
-        self.tableResultados.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.tableResultados.setSelectionBehavior(QTableWidget.SelectRows)
-        self.tableResultados.setSelectionMode(QTableWidget.SingleSelection)
-        self.tableResultados.verticalHeader().setVisible(False)
         self.tableResultados.itemSelectionChanged.connect(self._update_action_states)
-        header = self.tableResultados.horizontalHeader()
-        header.setStretchLastSection(False)
-        root_layout.addWidget(self.tableResultados, 1)
-
-        footer_layout = QHBoxLayout()
-        self.lblResumo = QLabel("Nenhum registro carregado.")
-        self.lblResumo.setProperty("sectionHint", True)
-        footer_layout.addWidget(self.lblResumo)
-        footer_layout.addStretch()
-        root_layout.addLayout(footer_layout)
 
     def configure(self, title: str, hint: str, columns: Iterable[tuple[str, str]], rows: List[Dict[str, Any]]) -> None:
         self.lblTitle.setText(title)
@@ -202,9 +59,7 @@ class ManagementPageWidget(QFrame):
             return
 
         filtered_rows = [
-            row
-            for row in self._rows
-            if any(filtro in str(value or "").casefold() for value in row.values())
+            row for row in self._rows if any(filtro in str(value or "").casefold() for value in row.values())
         ]
         self._populate_table(filtered_rows)
 
@@ -235,15 +90,7 @@ class ManagementPageWidget(QFrame):
 
     def _apply_column_resize_policy(self) -> None:
         header = self.tableResultados.horizontalHeader()
-        compact_fields = {
-            "id",
-            "id_fornecedor",
-            "ativo",
-            "estado",
-            "uf",
-            "quantidade_estoque",
-            "preco_venda",
-        }
+        compact_fields = {"id", "id_fornecedor", "ativo", "estado", "uf", "quantidade_estoque", "preco_venda"}
         stretch_fields = {
             "nome",
             "nome_marca",
@@ -262,10 +109,8 @@ class ManagementPageWidget(QFrame):
             if field in compact_fields:
                 header.setSectionResizeMode(col_index, QHeaderView.ResizeToContents)
                 continue
-
             if field in stretch_fields:
                 header.setSectionResizeMode(col_index, QHeaderView.Stretch)
                 continue
-
             header.setSectionResizeMode(col_index, QHeaderView.Interactive)
             self.tableResultados.setColumnWidth(col_index, 140)

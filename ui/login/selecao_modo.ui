@@ -659,7 +659,14 @@ QLabel#lblOperadorNome {
         <item>
          <widget class="QLabel" name="lblResumoText3">
           <property name="text">
-           <string>Use F1 a F5 para acesso rápido.</string>
+           <string>F1 - Frente de Caixa
+F2 - Administração
+F3 - Estoque
+F4 - Financeiro
+F5 - Promoções</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
           </property>
           <property name="moduleDesc" stdset="0">
            <string>true</string>

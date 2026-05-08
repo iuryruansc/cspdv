@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
-from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QButtonGroup,
     QComboBox,
@@ -15,11 +14,11 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.venda.services.caixa_service import CaixaService
 from ui.venda.tela_movimentacao_caixa import Ui_TelaMovimentacaoCaixa
 from utils.format_utils import aplicar_mascara_monetaria
 from utils.ui_messages import mostrar_aviso, mostrar_info
-
 
 class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
     movimentacao_registrada = pyqtSignal()
@@ -49,6 +48,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self._grupo_tipos.addButton(self.btnTipoSuprimento)
         self._grupo_tipos.addButton(self.btnTipoTroco)
         self._tipo_atual = "sangria"
+        self._parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
 
         self._configurar_formulario()
         self._conectar_sinais()
@@ -62,15 +62,12 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
 
     def showEvent(self, a0) -> None:
         super().showEvent(a0)
+        self._parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
         self._recarregar_tela()
 
     def _configurar_formulario(self) -> None:
         aplicar_mascara_monetaria(self.lineEditValor)
         self.lineEditValor.setText("0,00")
-        self.tableHistorico.verticalHeader().setVisible(False)
-        self.lblHSub.setText("Sangria, suprimento e reforco de troco - requer autorizacao")
-        self.btnTipoTroco.setText("Reforco de Troco")
-        self.comboFiltroHist.setItemText(3, "Reforco de Troco")
 
     def _conectar_sinais(self) -> None:
         self.btnTipoSangria.clicked.connect(lambda: self._definir_tipo("sangria"))
@@ -81,7 +78,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
 
     def _atualizar_data_hora(self) -> None:
         self.lblStatus.setText(
-            "CSPdv  |  Movimentacao de Caixa  |  "
+            "CSPdv  |  Movimentação de Caixa  |  "
             + QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss")
         )
 
@@ -90,6 +87,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self.btnTipoSangria.setChecked(tipo == "sangria")
         self.btnTipoSuprimento.setChecked(tipo == "suprimento")
         self.btnTipoTroco.setChecked(tipo == "troco")
+        self._atualizar_regra_admin()
 
     def _recarregar_tela(self) -> None:
         self._carregar_resumo()
@@ -98,6 +96,17 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self.lineEditDescricao.clear()
         self.lineEditSenhaAdmin.clear()
         self._definir_tipo("sangria")
+
+    def _atualizar_regra_admin(self) -> None:
+        exigir_admin = self._tipo_atual == "sangria" and bool(
+            self._parametros_caixa.get("exigir_admin_sangria", True)
+        )
+        self.lineEditSenhaAdmin.setEnabled(exigir_admin)
+        if exigir_admin:
+            self.lineEditSenhaAdmin.setPlaceholderText("Senha do administrador")
+        else:
+            self.lineEditSenhaAdmin.clear()
+            self.lineEditSenhaAdmin.setPlaceholderText("Autorização não exigida para esta operação")
 
     def _carregar_resumo(self) -> None:
         resumo = CaixaService.obter_resumo_movimentacoes()
@@ -138,7 +147,7 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
             admin_password=self.lineEditSenhaAdmin.text().strip(),
         )
         if not sucesso:
-            mostrar_aviso(self, "Movimentacao nao registrada", mensagem)
+            mostrar_aviso(self, "Movimentação não registrada", mensagem)
             return
 
         mostrar_info(self, "Sucesso", mensagem)

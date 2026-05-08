@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>PainelPromocoes</class>
  <widget class="QMainWindow" name="PainelPromocoes">
@@ -379,7 +379,7 @@ QLabel#lblStatusBar {
           <item>
            <widget class="QPushButton" name="btnAtualizar">
             <property name="text">
-             <string>Atualizar</string>
+             <string>Editar</string>
             </property>
            </widget>
           </item>
@@ -604,7 +604,13 @@ QLabel[metricTitle=&quot;true&quot;] { color: #e0e6f5; }</string>
           <number>14</number>
          </property>
          <item>
-          <widget class="QFrame" name="framePromocoes">
+         <widget class="QFrame" name="framePromocoes">
+           <property name="minimumSize">
+            <size>
+             <width>860</width>
+             <height>0</height>
+            </size>
+           </property>
            <layout class="QVBoxLayout" name="framePromocoesLayout">
             <property name="leftMargin">
              <number>16</number>
@@ -840,3 +846,5 @@ QLabel[metricTitle=&quot;true&quot;] { color: #e0e6f5; }</string>
  <resources/>
  <connections/>
 </ui>
+
+

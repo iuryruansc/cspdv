@@ -101,7 +101,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
                 placeholder="Igual a comercial",
             )
         except Exception as e:
-            mostrar_aviso(self, "Atencao", f"Nao foi possivel carregar os dados dos combos:\n{e}")
+            mostrar_aviso(self, "Atenção", f"Não foi possível carregar os dados dos combos:\n{e}")
 
     def _configurar_modo(self):
         if self._produto_id is None:
@@ -121,7 +121,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
     def _carregar_produto(self):
         produto = ProdutoModel.buscar_por_id(self._produto_id)
         if not produto:
-            mostrar_aviso(self, "Produto nao encontrado", "Nao foi possivel carregar o produto para edicao.")
+            mostrar_aviso(self, "Produto não encontrado", "Não foi possível carregar o produto para edição.")
             self._cancelar()
             return
 
@@ -157,7 +157,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             self._feedback_erro()
             self.lineEditCodigoBarras.clear()
             self.lineEditCodigoBarras.setFocus()
-        elif "nao localizado" in mensagem.lower():
+        elif "não localizado" in mensagem.lower() or "nao localizado" in mensagem.lower():
             self._feedback_sucesso()
             self.lineEditDescricao.setFocus()
 
@@ -205,7 +205,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
 
     def _atualizar_preview_imagem(self):
         self.lineEditImagemProduto.setText(self._imagem_produto_path or "")
-        texto_padrao = "Nenhuma imagem selecionada" if not self._imagem_produto_path else "Nao foi possivel carregar a imagem"
+        texto_padrao = "Nenhuma imagem selecionada" if not self._imagem_produto_path else "Não foi possível carregar a imagem"
         atualizar_preview_label(
             self.lblPreviewImagem,
             self._imagem_produto_path,
@@ -223,7 +223,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
                 return self._imagem_path_salva
 
         if not origem.exists():
-            raise FileNotFoundError("A imagem selecionada nao foi encontrada.")
+            raise FileNotFoundError("A imagem selecionada não foi encontrada.")
 
         self.MEDIA_PRODUTOS_DIR.mkdir(parents=True, exist_ok=True)
         extensao = origem.suffix.lower() or ".png"
@@ -319,10 +319,10 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             mostrar_aviso(self, "Imagem invalida", str(e))
             return
         except OSError as e:
-            mostrar_aviso(self, "Erro ao copiar imagem", f"Nao foi possivel salvar a imagem:\n{e}")
+            mostrar_aviso(self, "Erro ao copiar imagem", f"Não foi possível salvar a imagem:\n{e}")
             return
         except ValueError:
-            mostrar_aviso(self, "Valores invalidos", "Revise preco de custo, preco de venda e estoque inicial.")
+            mostrar_aviso(self, "Valores inválidos", "Revise preço de custo, preço de venda e estoque inicial.")
             return
 
         if self._produto_id is None:
@@ -352,7 +352,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
                 self.marcar_invalido(self.comboMarca)
             if "fornecedor" in mensagem.lower():
                 self.marcar_invalido(self.comboBox)
-            mostrar_aviso(self, "Atencao", mensagem)
+            mostrar_aviso(self, "Atenção", mensagem)
 
     def _cancelar(self):
         self.close()

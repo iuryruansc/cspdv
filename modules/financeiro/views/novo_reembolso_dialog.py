@@ -4,27 +4,13 @@ from decimal import Decimal
 from typing import Any, Dict, List
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QButtonGroup,
-    QDialog,
-    QFrame,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QRadioButton,
-    QSpinBox,
-    QTableWidget,
-    QTableWidgetItem,
-    QTextEdit,
-    QVBoxLayout,
-)
+from PyQt5.QtWidgets import QButtonGroup, QDialog, QSpinBox, QTableWidgetItem
 
+from ui.financeiro.novo_reembolso_dialog import Ui_NovoReembolsoDialog
 from utils.format_utils import formatar_moeda
 from utils.ui_messages import mostrar_aviso
 
-
-class NovoReembolsoDialog(QDialog):
+class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
     def __init__(self, detalhes_venda: Dict[str, Any], parent=None):
         super().__init__(parent)
         self._detalhes = detalhes_venda
@@ -32,151 +18,25 @@ class NovoReembolsoDialog(QDialog):
         self._itens = detalhes_venda.get("itens") or []
         self.resultado: Dict[str, Any] | None = None
 
+        self.setupUi(self)
         self.setWindowTitle(f"Novo Reembolso - Venda #{self._venda.get('id') or '-'}")
         self.setModal(True)
-        self.resize(980, 760)
-        self.setMinimumSize(940, 720)
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
-        self.setStyleSheet(
-            """
-QDialog { background: #eef5fb; }
-QFrame[card="true"] { background: white; border: 1px solid #c8d8ea; border-radius: 14px; }
-QLabel[title="true"] { color: #173a5f; font-size: 16px; font-weight: bold; }
-QLabel[caption="true"] { color: #4c6b8b; font-size: 11px; font-weight: bold; }
-QLabel[value="true"] { color: #173a5f; font-size: 18px; font-weight: bold; }
-QTableWidget { background: white; border: 1px solid #c8d8ea; border-radius: 10px; gridline-color: #d9e6f2; color: #173a5f; }
-QHeaderView::section { background: #e7f0f8; color: #1e4e79; padding: 8px; border: none; border-right: 1px solid #d1e0ee; border-bottom: 1px solid #d1e0ee; font-weight: bold; }
-QLineEdit, QTextEdit { background: white; border: 1px solid #bcd0e4; border-radius: 10px; padding: 8px 10px; color: #173a5f; }
-QRadioButton { color: #173a5f; font-weight: bold; }
-QSpinBox { background: white; border: 1px solid #bcd0e4; border-radius: 8px; padding: 4px; color: #173a5f; }
-QPushButton#btnConfirmar { background: #d9534f; color: white; border: none; border-radius: 10px; padding: 10px 20px; font-weight: bold; }
-QPushButton#btnConfirmar:hover { background: #c64542; }
-QPushButton#btnCancelar { background: #dfe9f3; color: #173a5f; border: 1px solid #c2d5e8; border-radius: 10px; padding: 10px 20px; font-weight: bold; }
-QPushButton#btnCancelar:hover { background: #d1dfec; }
-            """
-        )
 
-        self._build_ui()
-        self._populate()
-        self._atualizar_modo()
-        self._recalcular_total()
-
-    def _build_ui(self) -> None:
-        root = QVBoxLayout(self)
-        root.setContentsMargins(18, 18, 18, 18)
-        root.setSpacing(14)
-
-        header = QFrame(self)
-        header.setProperty("card", True)
-        header_layout = QVBoxLayout(header)
-        header_layout.setContentsMargins(18, 18, 18, 18)
-        header_layout.setSpacing(12)
-
-        title = QLabel(f"Reembolso da Venda #{self._venda.get('id') or '-'}", header)
-        title.setProperty("title", True)
-        header_layout.addWidget(title)
-
-        info_row = QHBoxLayout()
-        info_row.setSpacing(24)
-        header_layout.addLayout(info_row)
-        self.lblCliente = self._create_info_block(info_row, "CLIENTE")
-        self.lblDataHora = self._create_info_block(info_row, "DATA / HORA")
-        self.lblTotalVenda = self._create_info_block(info_row, "TOTAL DA VENDA")
-        self.lblStatus = self._create_info_block(info_row, "STATUS")
-
-        root.addWidget(header)
-
-        mode_card = QFrame(self)
-        mode_card.setProperty("card", True)
-        mode_layout = QVBoxLayout(mode_card)
-        mode_layout.setContentsMargins(18, 18, 18, 18)
-        mode_layout.setSpacing(12)
-
-        mode_title = QLabel("Tipo de Reembolso", mode_card)
-        mode_title.setProperty("title", True)
-        mode_layout.addWidget(mode_title)
-
-        mode_row = QHBoxLayout()
-        self.radioTotal = QRadioButton("Reembolso total", mode_card)
-        self.radioParcial = QRadioButton("Reembolso parcial por item", mode_card)
-        self.radioTotal.setChecked(True)
         self.groupTipo = QButtonGroup(self)
         self.groupTipo.addButton(self.radioTotal)
         self.groupTipo.addButton(self.radioParcial)
         self.radioTotal.toggled.connect(self._atualizar_modo)
         self.radioParcial.toggled.connect(self._atualizar_modo)
-        mode_row.addWidget(self.radioTotal)
-        mode_row.addWidget(self.radioParcial)
-        mode_row.addStretch(1)
-        mode_layout.addLayout(mode_row)
+        self.btnCancelar.clicked.connect(self.reject)
+        self.btnConfirmar.clicked.connect(self._confirmar)
 
-        self.tableItens = QTableWidget(self)
-        self.tableItens.setColumnCount(6)
-        self.tableItens.setHorizontalHeaderLabels(["Código", "Descrição", "Disponível", "Selecionada", "Vl. Unit.", "Total"])
-        self.tableItens.verticalHeader().setVisible(False)
-        self.tableItens.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.tableItens.horizontalHeader().setStretchLastSection(True)
-        self.tableItens.horizontalHeader().setSectionResizeMode(1, self.tableItens.horizontalHeader().Stretch)
-        mode_layout.addWidget(self.tableItens)
-
-        root.addWidget(mode_card, 1)
-
-        form_card = QFrame(self)
-        form_card.setProperty("card", True)
-        form_layout = QVBoxLayout(form_card)
-        form_layout.setContentsMargins(18, 18, 18, 18)
-        form_layout.setSpacing(10)
-
-        form_title = QLabel("Justificativa", form_card)
-        form_title.setProperty("title", True)
-        form_layout.addWidget(form_title)
-
-        self.inputMotivo = QLineEdit(form_card)
-        self.inputMotivo.setPlaceholderText("Informe o motivo do reembolso")
-        form_layout.addWidget(self.inputMotivo)
-
-        self.inputObservacao = QTextEdit(form_card)
-        self.inputObservacao.setPlaceholderText("Observações adicionais sobre o reembolso...")
-        self.inputObservacao.setFixedHeight(88)
-        form_layout.addWidget(self.inputObservacao)
-
-        summary_row = QHBoxLayout()
-        total_caption = QLabel("Valor a reembolsar", form_card)
-        total_caption.setProperty("caption", True)
-        self.lblTotalReembolso = QLabel("R$ 0,00", form_card)
-        self.lblTotalReembolso.setProperty("value", True)
-        summary_row.addWidget(total_caption)
-        summary_row.addStretch(1)
-        summary_row.addWidget(self.lblTotalReembolso)
-        form_layout.addLayout(summary_row)
-
-        root.addWidget(form_card)
-
-        footer = QHBoxLayout()
-        footer.addStretch(1)
-        btn_cancelar = QPushButton("Cancelar", self)
-        btn_cancelar.setObjectName("btnCancelar")
-        btn_cancelar.clicked.connect(self.reject)
-        btn_confirmar = QPushButton("Confirmar Reembolso", self)
-        btn_confirmar.setObjectName("btnConfirmar")
-        btn_confirmar.clicked.connect(self._confirmar)
-        footer.addWidget(btn_cancelar)
-        footer.addWidget(btn_confirmar)
-        root.addLayout(footer)
-
-    def _create_info_block(self, parent_layout: QHBoxLayout, caption: str) -> QLabel:
-        block = QVBoxLayout()
-        block.setSpacing(4)
-        lbl_caption = QLabel(caption, self)
-        lbl_caption.setProperty("caption", True)
-        lbl_value = QLabel("-", self)
-        lbl_value.setProperty("value", True)
-        block.addWidget(lbl_caption)
-        block.addWidget(lbl_value)
-        parent_layout.addLayout(block, 1)
-        return lbl_value
+        self._populate()
+        self._atualizar_modo()
+        self._recalcular_total()
 
     def _populate(self) -> None:
+        self.lblHeaderTitulo.setText(f"Reembolso da Venda #{self._venda.get('id') or '-'}")
         self.lblCliente.setText(str(self._venda.get("cliente") or "Consumidor Final"))
         self.lblDataHora.setText(self._formatar_data_hora(self._venda.get("data_hora")))
         self.lblTotalVenda.setText(formatar_moeda(self._venda.get("valor_total")))
@@ -201,7 +61,7 @@ QPushButton#btnCancelar:hover { background: #d1dfec; }
             self._set_item(row, 4, formatar_moeda(item.get("preco_unitario")), Qt.AlignRight | Qt.AlignVCenter)
             self._set_item(row, 5, formatar_moeda(total_item), Qt.AlignRight | Qt.AlignVCenter)
 
-    def _set_item(self, row: int, column: int, value: str, alignment: int = Qt.AlignLeft | Qt.AlignVCenter) -> None:
+    def _set_item(self, row: int, column: int, value: str, alignment: Any = Qt.AlignLeft | Qt.AlignVCenter) -> None:
         item = QTableWidgetItem(value)
         item.setTextAlignment(int(alignment))
         self.tableItens.setItem(row, column, item)

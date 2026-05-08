@@ -31,7 +31,7 @@ class CadastroMarcaView(QDialog, Ui_CadastroMarca, ValidacaoFormMixin):
 
         marca = MarcaModel.buscar_por_id(self._marca_id)
         if not marca:
-            mostrar_aviso(self, "Marca nao encontrada", "Nao foi possivel carregar a marca para edicao.")
+            mostrar_aviso(self, "Marca não encontrada", "Não foi possível carregar a marca para edição.")
             self.reject()
             return
 
@@ -75,7 +75,7 @@ class CadastroMarcaView(QDialog, Ui_CadastroMarca, ValidacaoFormMixin):
         if "nome da marca" in mensagem.lower():
             self.marcar_invalido(self.lineEditNomeMarca)
 
-        mostrar_aviso(self, "Atencao", mensagem)
+        mostrar_aviso(self, "Atenção", mensagem)
 
     def _limpar_campos(self):
         self.limpar_erros()

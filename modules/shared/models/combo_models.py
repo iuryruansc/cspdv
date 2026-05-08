@@ -2,7 +2,6 @@ from typing import Any, Dict, List, cast
 
 from database.connection import get_connection
 
-
 class CategoriaModel:
     @staticmethod
     def listar_ativas() -> List[Dict[str, Any]]:
@@ -17,7 +16,6 @@ class CategoriaModel:
             cursor.close()
             conn.close()
 
-
 class MarcaModel:
     @staticmethod
     def listar_ativas() -> List[Dict[str, Any]]:
@@ -31,7 +29,6 @@ class MarcaModel:
         finally:
             cursor.close()
             conn.close()
-
 
 class FornecedorModel:
     @staticmethod
@@ -51,7 +48,6 @@ class FornecedorModel:
         finally:
             cursor.close()
             conn.close()
-
 
 class UnidadeModel:
     @staticmethod

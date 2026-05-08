@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional, cast
 
 from database.connection import get_connection
 
-
 class EstoqueModel:
     ESTOQUE_CRITICO_PADRAO = 5
 
@@ -56,7 +55,7 @@ class EstoqueModel:
                 WHERE ativo = 'S'
                 """
             )
-            produtos = cursor.fetchone() or {}
+            produtos = cast(Dict[str, Any], cursor.fetchone() or {})
 
             cursor.execute(
                 """
@@ -66,7 +65,7 @@ class EstoqueModel:
                   AND quantidade > 0
                 """
             )
-            lotes = cursor.fetchone() or {}
+            lotes = cast(Dict[str, Any], cursor.fetchone() or {})
 
             cursor.execute(
                 """
@@ -77,7 +76,7 @@ class EstoqueModel:
                 """,
                 (EstoqueModel.ESTOQUE_CRITICO_PADRAO,),
             )
-            critico = cursor.fetchone() or {}
+            critico = cast(Dict[str, Any], cursor.fetchone() or {})
 
             cursor.execute(
                 """
@@ -87,7 +86,7 @@ class EstoqueModel:
                   AND DATE(data_hora) = CURDATE()
                 """
             )
-            movimentacoes = cursor.fetchone() or {}
+            movimentacoes = cast(Dict[str, Any], cursor.fetchone() or {})
 
             return {
                 "produtos_ativos": int(produtos.get("total") or 0),

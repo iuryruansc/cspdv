@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List, Sequence, cast
 
 from database.connection import get_connection
 
-
 CENT = Decimal("0.01")
-
 
 class ReembolsoModel:
     @staticmethod
@@ -139,6 +137,7 @@ class ReembolsoModel:
                     ),
                 )
 
+            ReembolsoModel._atualizar_status_venda(cursor, int(venda_id))
             conn.commit()
             return reembolso_id
         except Exception:
@@ -148,3 +147,39 @@ class ReembolsoModel:
             cursor.close()
             conn.close()
 
+    @staticmethod
+    def _atualizar_status_venda(cursor: Any, venda_id: int) -> None:
+        cursor.execute(
+            """
+            SELECT COALESCE(valor_total, 0) AS valor_total
+            FROM vendas
+            WHERE id = %s
+            LIMIT 1
+            """,
+            (int(venda_id),),
+        )
+        venda = cast(Dict[str, Any], cursor.fetchone() or {})
+        valor_total_venda = Decimal(str(venda.get("valor_total") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
+
+        cursor.execute(
+            """
+            SELECT COALESCE(SUM(valor_total), 0) AS total_reembolsado
+            FROM venda_reembolsos
+            WHERE venda_id = %s
+              AND ativo = 'S'
+              AND status = 'CONCLUIDO'
+            """,
+            (int(venda_id),),
+        )
+        totais = cast(Dict[str, Any], cursor.fetchone() or {})
+        total_reembolsado = Decimal(str(totais.get("total_reembolsado") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
+
+        novo_status = "REEMBOLSADA" if total_reembolsado >= valor_total_venda else "PARCIALMENTE_REEMBOLSADA"
+        cursor.execute(
+            """
+            UPDATE vendas
+            SET status = %s
+            WHERE id = %s
+            """,
+            (novo_status, int(venda_id)),
+        )

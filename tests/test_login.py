@@ -80,7 +80,7 @@ def run_test_bypass():
         "login": "admin",
         "cargo": "Administrador",
         "email": "teste@cspdv.com",
-        "permissoes": ["vendas.pdv", "sistema.master", "estoque.gerenciar", "financeiro.total", "relatorios.ver"],
+        "permissoes": ["vendas.pdv", "relatorios.ver"],
     }
 
     SessionManager.login(usuario_mock)

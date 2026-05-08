@@ -1,8 +1,6 @@
 from typing import Any, Callable, Dict, Optional, Tuple
 
-
 ResultadoOperacao = Tuple[bool, str]
-
 
 def validar_entidade_simples(
     dados: Dict[str, Any],
@@ -20,7 +18,6 @@ def validar_entidade_simples(
         return False, f"O status da {entidade} e obrigatorio."
 
     return True, ""
-
 
 def cadastrar_entidade_simples(
     dados: Dict[str, Any],
@@ -43,10 +40,9 @@ def cadastrar_entidade_simples(
         return False, f"Erro ao salvar {entidade}:\n{exc}"
 
     if not registro_id:
-        return False, f"Nao foi possivel cadastrar a {entidade}."
+        return False, f"Não foi possível cadastrar a {entidade}."
 
     return True, f"{entidade.capitalize()} cadastrada com sucesso!"
-
 
 def atualizar_entidade_simples(
     record_id: int,
@@ -70,10 +66,9 @@ def atualizar_entidade_simples(
         return False, f"Erro ao atualizar {entidade}:\n{exc}"
 
     if not atualizado:
-        return False, f"Nao foi possivel atualizar a {entidade}."
+        return False, f"Não foi possível atualizar a {entidade}."
 
     return True, f"{entidade.capitalize()} atualizada com sucesso!"
-
 
 def alternar_status_entidade_simples(
     record_id: int,
@@ -84,7 +79,7 @@ def alternar_status_entidade_simples(
 ) -> ResultadoOperacao:
     registro = buscar_fn(int(record_id))
     if not registro:
-        return False, f"{entidade.capitalize()} nao encontrada."
+        return False, f"{entidade.capitalize()} não encontrada."
 
     ativo_atual = str(registro.get("ativo") or "N").strip().upper()
     novo_status = "N" if ativo_atual == "S" else "S"
@@ -95,7 +90,7 @@ def alternar_status_entidade_simples(
         return False, f"Erro ao atualizar status da {entidade}:\n{exc}"
 
     if not atualizado:
-        return False, f"Nao foi possivel atualizar o status da {entidade}."
+        return False, f"Não foi possível atualizar o status da {entidade}."
 
     acao = "ativada" if novo_status == "S" else "desativada"
     return True, f"{entidade.capitalize()} {acao} com sucesso!"

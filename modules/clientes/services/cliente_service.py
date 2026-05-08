@@ -1,5 +1,5 @@
 from modules.clientes.models.cliente_model import ClienteModel
-
+from utils.app_logger import log_error
 
 class ClienteService:
     @staticmethod
@@ -10,7 +10,7 @@ class ClienteService:
         try:
             return ClienteModel.buscar_para_venda(termo_limpo)
         except Exception as exc:
-            print(f"Erro ao buscar cliente para venda: {exc}")
+            log_error("Erro ao buscar cliente para venda.", exc)
             return []
 
     @staticmethod
@@ -54,7 +54,7 @@ class ClienteService:
             return False, f"Erro ao salvar cliente:\n{exc}"
 
         if not cliente_id:
-            return False, "Nao foi possivel cadastrar o cliente."
+            return False, "Não foi possível cadastrar o cliente."
 
         return True, "Cliente cadastrado com sucesso!"
 
@@ -70,7 +70,7 @@ class ClienteService:
             return False, f"Erro ao atualizar cliente:\n{exc}"
 
         if not atualizado:
-            return False, "Nao foi possivel atualizar o cliente."
+            return False, "Não foi possível atualizar o cliente."
 
         return True, "Cliente atualizado com sucesso!"
 
@@ -78,7 +78,7 @@ class ClienteService:
     def alternar_status(cliente_id):
         cliente = ClienteModel.buscar_por_id(int(cliente_id))
         if not cliente:
-            return False, "Cliente nao encontrado."
+            return False, "Cliente não encontrado."
 
         ativo_atual = str(cliente.get("ativo") or "N").strip().upper()
         novo_status = "N" if ativo_atual == "S" else "S"
@@ -89,7 +89,7 @@ class ClienteService:
             return False, f"Erro ao atualizar status do cliente:\n{exc}"
 
         if not atualizado:
-            return False, "Nao foi possivel atualizar o status do cliente."
+            return False, "Não foi possível atualizar o status do cliente."
 
         acao = "ativado" if novo_status == "S" else "desativado"
         return True, f"Cliente {acao} com sucesso!"

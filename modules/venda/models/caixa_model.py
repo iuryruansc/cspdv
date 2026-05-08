@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
 
@@ -132,7 +132,7 @@ class CaixaModel:
             conn.commit()
             lastrowid = cursor.lastrowid
             if lastrowid is None:
-                raise RuntimeError("Nao foi possivel obter o ID da abertura de caixa criada.")
+                raise RuntimeError("Não foi possível obter o ID da abertura de caixa criada.")
             return int(lastrowid)
         except Exception:
             conn.rollback()
@@ -176,7 +176,8 @@ class CaixaModel:
         cursor = conn.cursor()
         try:
             cursor.execute("SHOW COLUMNS FROM caixas")
-            colunas = {str(coluna[0]) for coluna in cursor.fetchall()}
+            colunas_rows = cast(List[Sequence[Any]], cursor.fetchall())
+            colunas = {str(coluna[0]) for coluna in colunas_rows}
 
             atribuicoes = ["status = 'fechado'"]
             parametros: List[Any] = []
@@ -324,7 +325,11 @@ class CaixaModel:
                 """,
                 (caixa_id,),
             )
-            totais = {str(row.get("tipo_padrao") or ""): float(row.get("total") or 0.0) for row in cursor.fetchall()}
+            totais_rows = cast(List[Dict[str, Any]], cursor.fetchall())
+            totais = {
+                str(row.get("tipo_padrao") or ""): float(row.get("total") or 0.0)
+                for row in totais_rows
+            }
             total_sangrias = totais.get("sangria", 0.0)
             total_suprimentos = totais.get("suprimento", 0.0)
             total_troco = totais.get("troco", 0.0)
@@ -362,14 +367,14 @@ class CaixaModel:
         )
         forma_pagamento_id = cursor.lastrowid
         if forma_pagamento_id is None:
-            raise RuntimeError("Nao foi possivel criar a forma de pagamento Dinheiro.")
+            raise RuntimeError("Não foi possível criar a forma de pagamento Dinheiro.")
         return int(forma_pagamento_id)
 
     @staticmethod
     def _garantir_caixa_motivo(cursor, tipo: str) -> int:
         tipo_normalizado = str(tipo or "").strip().lower()
         if tipo_normalizado not in CaixaModel._TIPOS_MOVIMENTACAO:
-            raise ValueError("Tipo de movimentacao invalido.")
+            raise ValueError("Tipo de movimentação inválido.")
 
         descricao = CaixaModel._TIPOS_MOVIMENTACAO[tipo_normalizado]
         cursor.execute(
@@ -396,5 +401,5 @@ class CaixaModel:
         )
         motivo_id = cursor.lastrowid
         if motivo_id is None:
-            raise RuntimeError("Nao foi possivel criar o motivo de caixa.")
+            raise RuntimeError("Não foi possível criar o motivo de caixa.")
         return int(motivo_id)

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
-from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -14,6 +13,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.venda.services.caixa_service import CaixaService
 from modules.venda.views.confirmar_fechamento_caixa_dialog import (
     ConfirmarFechamentoCaixaDialog,
@@ -22,7 +22,6 @@ from modules.venda.views.confirmar_fechamento_caixa_dialog import (
 from ui.venda.tela_fechamento_caixa import Ui_TelaFechamentoCaixa
 from utils.format_utils import aplicar_mascara_monetaria
 from utils.ui_messages import mostrar_aviso
-
 
 class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
     caixa_fechado = pyqtSignal(dict)
@@ -67,7 +66,6 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         self.lineEditValorContado.setText("0,00")
         self.lineEditValorContado.textChanged.connect(self._atualizar_diferenca)
         self.btnFecharCaixa.clicked.connect(self._confirmar_fechamento)
-        self.tableTotaisPgto.verticalHeader().setVisible(False)
 
     def _atualizar_data_hora(self) -> None:
         self.lblHDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm"))
@@ -122,19 +120,21 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
             cor = "#ff7c7c"
             texto_status = "● Diferença negativa identificada"
 
-        self.lblCardDifValor.setStyleSheet(f"font-size:34px;font-weight:bold;color:{cor};")
+        self._aplicar_estilo_diferenca(cor)
         self.lblStatusCaixaAberto.setText(texto_status)
-        self.lblStatusCaixaAberto.setStyleSheet(f"color:{cor};font-size:11px;font-weight:bold;")
+        self._aplicar_status_caixa(cor)
 
     def _confirmar_fechamento(self) -> None:
         valor_contado = self._valor_contado()
         total_esperado = float(self._resumo.get("total_esperado") or 0.0)
         diferenca = round(valor_contado - total_esperado, 2)
+        parametros_caixa = ConfiguracoesService.carregar_parametros_caixa()
 
         dialog = ConfirmarFechamentoCaixaDialog(
             total_esperado=total_esperado,
             valor_contado=valor_contado,
             diferenca=diferenca,
+            exigir_admin_diferenca=bool(parametros_caixa.get("exigir_admin_diferenca_fechamento", True)),
             parent=self,
         )
         if dialog.exec_() != dialog.Accepted:
@@ -146,14 +146,14 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
             admin_password=dialog.admin_password,
         )
         if not sucesso or fechamento is None:
-            mostrar_aviso(self, "Fechamento nao realizado", mensagem)
+            mostrar_aviso(self, "Fechamento não realizado", mensagem)
             return
 
         self.lblStatus.setText(
             f"CSPdv | Caixa fechado com valor contado {self._formatar_moeda(float(fechamento['valor_contado']))}"
         )
         self.lblStatusCaixaAberto.setText("● Caixa fechado")
-        self.lblStatusCaixaAberto.setStyleSheet("color:#72d88f;font-size:11px;font-weight:bold;")
+        self._aplicar_status_caixa("#72d88f")
         self.btnFecharCaixa.setEnabled(False)
         self.lineEditValorContado.setEnabled(False)
         self.plainTextObs.setEnabled(False)
@@ -170,3 +170,9 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
     @staticmethod
     def _numero_para_campo(valor: float) -> str:
         return f"{valor:.2f}".replace(".", ",")
+
+    def _aplicar_estilo_diferenca(self, cor: str) -> None:
+        self.lblCardDifValor.setStyleSheet(f"font-size:34px;font-weight:bold;color:{cor};")
+
+    def _aplicar_status_caixa(self, cor: str) -> None:
+        self.lblStatusCaixaAberto.setStyleSheet(f"color:{cor};font-size:11px;font-weight:bold;")

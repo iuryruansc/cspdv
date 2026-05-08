@@ -1,9 +1,29 @@
 from typing import Optional, Dict, Any, List, cast
 from database.connection import get_connection
+from modules.admin.models.configuracoes_model import ConfiguracoesModel
+from utils.app_logger import log_error
 
 class ProdutoModel:
     @staticmethod
     def buscar_para_venda(termo: str, limite: int = 10) -> List[Dict[str, Any]]:
+        parametros_promocoes = ConfiguracoesModel.carregar_empresa_pdv()
+        ativar_por_vigencia = bool(parametros_promocoes.get("ativar_promocoes_por_vigencia", True))
+        filtro_promocao = (
+            """
+            pp2.ativo = 'S'
+            AND pr2.ativo = 'S'
+            AND pr2.status IN ('ATIVA', 'AGENDADA')
+            AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim
+            """
+            if ativar_por_vigencia
+            else
+            """
+            pp2.ativo = 'S'
+            AND pr2.ativo = 'S'
+            AND pr2.status = 'ATIVA'
+            """
+        )
+
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         termo_limpo = str(termo or "").strip()
@@ -17,7 +37,12 @@ class ProdutoModel:
                     p.id,
                     p.codigo_barras,
                     p.nome,
-                    p.preco_venda,
+                    COALESCE(ppromo.preco_promocional, p.preco_venda) AS preco_venda,
+                    p.preco_venda AS preco_venda_base,
+                    ppromo.preco_original AS preco_original_promocao,
+                    ppromo.preco_promocional,
+                    promo.id AS promocao_id,
+                    promo.nome AS promocao_nome,
                     p.quantidade_estoque,
                     p.ativo,
                     p.imagem_path,
@@ -26,6 +51,17 @@ class ProdutoModel:
                     m.nome_marca AS marca,
                     f.nome_fantasia AS fornecedor
                 FROM produtos p
+                LEFT JOIN promocao_produtos ppromo
+                    ON ppromo.id = (
+                        SELECT pp2.id
+                        FROM promocao_produtos pp2
+                        INNER JOIN promocoes pr2 ON pr2.id = pp2.promocao_id
+                        WHERE pp2.produto_id = p.id
+                          AND {filtro_promocao}
+                        ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
+                        LIMIT 1
+                    )
+                LEFT JOIN promocoes promo ON promo.id = ppromo.promocao_id
                 LEFT JOIN categorias c ON c.id = p.categoria_id
                 LEFT JOIN marcas m ON m.id = p.marca_id
                 LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
@@ -60,7 +96,7 @@ class ProdutoModel:
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         except Exception as e:
-            print(f"Erro ao buscar produtos para venda: {e}")
+            log_error("Erro ao buscar produtos para venda.", e)
             raise
         finally:
             cursor.close()
@@ -92,7 +128,7 @@ class ProdutoModel:
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         except Exception as e:
-            print(f"Erro ao listar produtos: {e}")
+            log_error("Erro ao listar produtos.", e)
             raise
         finally:
             cursor.close()
@@ -110,7 +146,7 @@ class ProdutoModel:
             resultado = cursor.fetchone()
             return cast(Optional[Dict[str, Any]], resultado)
         except Exception as e:
-            print(f"Erro ao buscar produto por código: {e}")
+            log_error("Erro ao buscar produto por código.", e)
             raise
         finally:
             cursor.close()
@@ -158,7 +194,7 @@ class ProdutoModel:
             resultado = cursor.fetchone()
             return cast(Optional[Dict[str, Any]], resultado)
         except Exception as e:
-            print(f"Erro ao buscar produto por id: {e}")
+            log_error("Erro ao buscar produto por ID.", e)
             raise
         finally:
             cursor.close()
@@ -194,7 +230,7 @@ class ProdutoModel:
             conn.commit()
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao atualizar produto: {e}")
+            log_error("Erro ao atualizar produto.", e)
             raise
         finally:
             cursor.close()
@@ -216,7 +252,7 @@ class ProdutoModel:
             conn.commit()
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao atualizar status do produto: {e}")
+            log_error("Erro ao atualizar status do produto.", e)
             raise
         finally:
             cursor.close()
@@ -276,7 +312,7 @@ class ProdutoModel:
             conn.commit()
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao ajustar quantidade: {e}")
+            log_error("Erro ao ajustar quantidade do produto.", e)
             raise
         finally:
             cursor.close()
@@ -365,7 +401,7 @@ class ProdutoModel:
             return cursor.lastrowid
         except Exception as e:
             conn.rollback()
-            print(f"Erro ao inserir: {e}")
+            log_error("Erro ao inserir produto.", e)
             raise
         finally:
             cursor.close()

@@ -7,9 +7,7 @@ from core.session_manager import SessionManager
 from modules.financeiro.models.reembolso_model import ReembolsoModel
 from modules.financeiro.services.financeiro_service import FinanceiroService
 
-
 CENT = Decimal("0.01")
-
 
 class ReembolsoService:
     @staticmethod

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Dict, List
 
 from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
@@ -7,10 +8,10 @@ from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
 from ui.venda.tela_cupom_nao_fiscal import Ui_CupomNaoFiscal
 from utils.format_utils import formatar_inteiro, formatar_moeda
 
-
 class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
     textCupom: QPlainTextEdit
     btnImprimir: QPushButton
+    btnFinalizarSemImpressao: QPushButton
     btnSair: QPushButton
     btnFechar: QPushButton
 
@@ -23,8 +24,6 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
         self._preencher_cupom()
 
     def _configurar_interface(self) -> None:
-        self.resize(540, 700)
-        self.setMinimumSize(520, 680)
         self.setWindowTitle("CSPdv - Pós-pagamento")
         self.lblTitulo.setText("Pós-pagamento")
         self.btnImprimir.clicked.disconnect()
@@ -34,6 +33,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
         self.btnImprimir.setText("Imprimir Cupom")
         self.btnImprimir.setMinimumWidth(150)
         self.btnImprimir.clicked.connect(self._acao_imprimir)
+        self.btnFinalizarSemImpressao.clicked.connect(self._acao_sem_impressao)
 
         self.btnSair.setText("Sair")
         self.btnSair.setMinimumWidth(120)
@@ -41,34 +41,6 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
 
         self.btnFechar.setText("x")
         self.btnFechar.clicked.connect(self._acao_sair)
-
-        self.btnFinalizarSemImpressao = QPushButton("Finalizar sem impressão", self.frameConteudo)
-        self.btnFinalizarSemImpressao.setMinimumSize(210, 36)
-        self.btnFinalizarSemImpressao.setStyleSheet(
-            """
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                 stop:0 #eef8ee, stop:1 #d6efd6);
-                border: 1px solid #79ad79;
-                border-radius: 4px;
-                font-size: 12px;
-                font-weight: bold;
-                color: #245224;
-                padding: 4px 16px;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                 stop:0 #e0f4e0, stop:1 #c0e6c0);
-                border-color: #4c914c;
-            }
-            QPushButton:pressed {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                 stop:0 #c8e6c8, stop:1 #a8d6a8);
-            }
-            """
-        )
-        self.btnFinalizarSemImpressao.clicked.connect(self._acao_sem_impressao)
-        self.botoesHLayout.insertWidget(2, self.btnFinalizarSemImpressao)
 
     def _preencher_cupom(self) -> None:
         self.textCupom.setPlainText(self._montar_texto_cupom())
@@ -103,6 +75,25 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
                 f"Subtotal: {formatar_moeda(self._venda_data.get('subtotal') or 0.0)}",
                 f"Desconto: {formatar_moeda(self._venda_data.get('desconto_total') or 0.0)}",
                 f"Total:    {formatar_moeda(self._venda_data.get('total') or 0.0)}",
+            ]
+        )
+        valor_em_aberto = float(self._venda_data.get("valor_em_aberto") or 0.0)
+        if valor_em_aberto > 0:
+            vencimento = str(self._venda_data.get("data_vencimento") or "").strip()
+            if vencimento:
+                try:
+                    vencimento = datetime.strptime(vencimento, "%Y-%m-%d").strftime("%d/%m/%Y")
+                except ValueError:
+                    pass
+            linhas.extend(
+                [
+                    f"Em aberto: {formatar_moeda(valor_em_aberto)}",
+                    f"Vencimento: {vencimento or '--/--/----'}",
+                    f"Status: {str(self._venda_data.get('status') or 'CONCLUIDA_COM_PENDENCIA').replace('_', ' ')}",
+                ]
+            )
+        linhas.extend(
+            [
                 "-" * 40,
                 "PAGAMENTOS",
                 "-" * 40,

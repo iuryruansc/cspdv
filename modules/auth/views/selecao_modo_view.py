@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QShortcut, QWidget
 
 from core.session_manager import SessionManager
 from ui.login.selecao_modo import Ui_SelecaoModo
+from utils.system_runtime import descricao_ambiente, versao_referencia
+from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 class SelecaoModoView(QWidget, Ui_SelecaoModo):
     COLUNAS_CARDS = 3
@@ -10,6 +12,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        aplicar_tamanho_proporcional_tela(self, proporcao_largura=0.88, proporcao_altura=0.86)
         self._configurar_atalhos()
         self._cards_modulos = [
             ("vendas.pdv", self.cardFrenteCaixa, self.shortcut_f1),
@@ -20,6 +23,8 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         ]
         self._conectar_eventos()
         self._atualizar_operador()
+        self.lblVersao.setText(versao_referencia())
+        self.lblVersao.setToolTip(descricao_ambiente())
         self._verificar_acessos()
 
     def _usuario_atual(self):
@@ -31,7 +36,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
             nome = usuario.get("nome", "Utilizador").upper()
             self.lblOperadorNome.setText(f"OPERADOR: {nome}")
         else:
-            self.lblOperadorNome.setText("OPERADOR: NAO LOGADO")
+            self.lblOperadorNome.setText("OPERADOR: NÃO LOGADO")
 
     def _configurar_atalhos(self):
         self.shortcut_f1 = QShortcut(QKeySequence("F1"), self)

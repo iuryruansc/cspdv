@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import QComboBox, QHeaderView, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
 
 from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
 from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
@@ -12,7 +12,6 @@ from ui.estoque.painel_estoque import Ui_PainelEstoque
 from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
 from utils.ui_messages import mostrar_aviso, mostrar_info
-
 
 class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
     def __init__(self, parent=None):
@@ -23,6 +22,10 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         self.cmbFornecedorFiltro: QComboBox
         self.tableProdutosEstoque: QTableWidget
         self.tableMovimentacoesEstoque: QTableWidget
+        self.lblProdutosAtivosValor: QLabel
+        self.lblLotesAtivosValor: QLabel
+        self.lblItensBaixoEstoqueValor: QLabel
+        self.lblMovimentacoesDiaValor: QLabel
         self._registros_produtos = []
         self._cadastro_produto_view = None
 
@@ -31,10 +34,10 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         self._busca_timer.setInterval(250)
         self._busca_timer.timeout.connect(self._carregar_produtos_lotes)
 
+        self._configurar_tamanho_responsivo()
         self._configurar_operador()
         self._configurar_relogio()
         self._conectar_retorno_selecao()
-        self._configurar_tabelas()
         self._conectar_eventos()
         self._carregar_filtros()
         self._carregar_painel()
@@ -42,24 +45,6 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
     def showEvent(self, a0) -> None:
         super().showEvent(a0)
         self._carregar_painel()
-
-    def _configurar_tabelas(self) -> None:
-        self.tableProdutosEstoque.setColumnWidth(0, 110)
-        self.tableProdutosEstoque.setColumnWidth(2, 140)
-        self.tableProdutosEstoque.setColumnWidth(3, 140)
-        self.tableProdutosEstoque.setColumnWidth(4, 120)
-        self.tableProdutosEstoque.setColumnWidth(5, 110)
-        self.tableProdutosEstoque.setColumnWidth(6, 80)
-        self.tableProdutosEstoque.setColumnWidth(7, 110)
-        header_produtos = self.tableProdutosEstoque.horizontalHeader()
-        header_produtos.setSectionResizeMode(1, QHeaderView.Stretch)
-
-        header_mov = self.tableMovimentacoesEstoque.horizontalHeader()
-        header_mov.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        header_mov.setSectionResizeMode(1, QHeaderView.Stretch)
-        header_mov.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header_mov.setSectionResizeMode(3, QHeaderView.ResizeToContents)
-        header_mov.setSectionResizeMode(4, QHeaderView.ResizeToContents)
 
     def _conectar_eventos(self) -> None:
         self.btnFiltrar.clicked.connect(self._carregar_painel)
@@ -134,8 +119,20 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
             self._set_table_item(self.tableProdutosEstoque, row, 3, str(registro.get("marca") or "-"))
             self._set_table_item(self.tableProdutosEstoque, row, 4, str(registro.get("lote") or "-"))
             self._set_table_item(self.tableProdutosEstoque, row, 5, self._formatar_data(registro.get("data_validade")))
-            self._set_table_item(self.tableProdutosEstoque, row, 6, formatar_inteiro(registro.get("quantidade")), alignment=Qt.AlignCenter)
-            self._set_table_item(self.tableProdutosEstoque, row, 7, formatar_moeda(registro.get("preco_venda")), alignment=Qt.AlignRight | Qt.AlignVCenter)
+            self._set_table_item(
+                self.tableProdutosEstoque,
+                row,
+                6,
+                formatar_inteiro(registro.get("quantidade")),
+                alignment=int(Qt.AlignCenter),
+            )
+            self._set_table_item(
+                self.tableProdutosEstoque,
+                row,
+                7,
+                formatar_moeda(registro.get("preco_venda")),
+                alignment=int(Qt.AlignRight | Qt.AlignVCenter),
+            )
 
         self.lblStatusBar.setText(f"CSPdv - Modulo de Estoque | {len(registros)} registro(s) em Produtos e Lotes")
 
@@ -146,7 +143,13 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
             self._set_table_item(self.tableMovimentacoesEstoque, row, 0, self._formatar_data_hora(registro.get("data_hora")))
             self._set_table_item(self.tableMovimentacoesEstoque, row, 1, str(registro.get("produto") or "-"))
             self._set_table_item(self.tableMovimentacoesEstoque, row, 2, self._formatar_tipo_movimento(registro.get("tipo")))
-            self._set_table_item(self.tableMovimentacoesEstoque, row, 3, formatar_inteiro(registro.get("quantidade")), alignment=Qt.AlignCenter)
+            self._set_table_item(
+                self.tableMovimentacoesEstoque,
+                row,
+                3,
+                formatar_inteiro(registro.get("quantidade")),
+                alignment=int(Qt.AlignCenter),
+            )
             self._set_table_item(self.tableMovimentacoesEstoque, row, 4, str(registro.get("usuario") or "-"))
 
     @staticmethod
@@ -156,10 +159,10 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         column: int,
         value: str,
         *,
-        alignment: int = Qt.AlignLeft | Qt.AlignVCenter,
+        alignment: int = int(Qt.AlignLeft),
     ) -> QTableWidgetItem:
         item = QTableWidgetItem(value)
-        item.setTextAlignment(int(alignment))
+        item.setTextAlignment(alignment)
         table.setItem(row, column, item)
         return item
 
@@ -208,7 +211,7 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         mostrar_info(
             self,
             "Cadastro de lotes",
-            "O cadastro manual de lotes ainda nao esta disponivel nesta etapa. Por enquanto, o estoque esta sendo controlado diretamente pelos produtos.",
+            "O cadastro manual de lotes ainda não está disponível nesta etapa. Por enquanto, o estoque está sendo controlado diretamente pelos produtos.",
         )
 
     def _abrir_ajuste_estoque(self) -> None:

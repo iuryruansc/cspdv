@@ -2,41 +2,41 @@ from itertools import count
 from typing import Any, Dict, List, Optional
 
 from PyQt5.QtCore import QDateTime, QEvent, QTimer, Qt, pyqtSignal
-from PyQt5.QtGui import QIntValidator, QKeyEvent, QKeySequence
+from PyQt5.QtGui import QIntValidator, QKeyEvent
 from PyQt5.QtWidgets import (
     QApplication,
     QLabel,
-    QLineEdit,
     QInputDialog,
-    QPushButton,
-    QShortcut,
+    QLineEdit,
     QTableWidget,
     QTableWidgetItem,
     QWidget,
 )
 
-from modules.venda.views.aplicar_desconto_dialog import AplicarDescontoDialog
-from modules.venda.views.confirmar_venda_dialog import ConfirmarVendaDialog
-from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
-from modules.venda.views.selecionar_cliente_dialog import SelecionarClienteDialog
+from modules.admin.services.configuracoes_service import ConfiguracoesService
+from modules.produtos.services.produto_service import ProdutoService
 from modules.venda.services.cupom_service import (
     aplicar_desconto_item,
     criar_item_cupom,
     definir_quantidade_item,
     desconto_itens_total,
+    item_tem_promocao,
     quantidade_total_itens,
+    priorizar_desconto_manual_item,
     remover_desconto_item,
+    restaurar_preco_promocional_item,
     somar_quantidade_item,
     subtotal_itens,
     total_geral,
 )
-from modules.produtos.services.produto_service import ProdutoService
+from modules.venda.views.aplicar_desconto_dialog import AplicarDescontoDialog
+from modules.venda.views.confirmar_venda_dialog import ConfirmarVendaDialog
+from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
+from modules.venda.views.selecionar_cliente_dialog import SelecionarClienteDialog
+from ui.venda.frente_venda import Ui_FrenteVenda
 from utils.format_utils import formatar_decimal
 from utils.image_utils import atualizar_preview_label
 from utils.ui_messages import mostrar_aviso, mostrar_info
-
-from ui.venda.frente_venda import Ui_FrenteVenda
-
 
 class FrenteVendaView(QWidget, Ui_FrenteVenda):
     _sequencia_venda = count(1)
@@ -58,15 +58,14 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     lblNumVendaValor: QLabel
     lblClienteNome: QLabel
     lblInfoStatusVenda: QLabel
-    btnAtalhoF2: QPushButton
-    btnAtalhoF3: QPushButton
-    btnAtalhoF4: QPushButton
-    btnAtalhoF10: QPushButton
-    btnAlterarCliente: QPushButton
-    btnFecharVenda: QPushButton
-    btnCancelarItem: QPushButton
-    btnCancelarVenda: QPushButton
     tableCupom: QTableWidget
+    btnAtalhoF2: Any
+    btnAtalhoF3: Any
+    btnAtalhoF10: Any
+    btnAlterarCliente: Any
+    btnFecharVenda: Any
+    btnCancelarItem: Any
+    btnCancelarVenda: Any
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -77,6 +76,10 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._cliente_atual: Optional[Dict[str, Any]] = None
         self._linha_cupom_selecionada: Optional[int] = None
         self._desconto_global_valor = 0.0
+        self._parametros_venda = ConfiguracoesService.carregar_parametros_venda()
+        self._parametros_promocoes = ConfiguracoesService.carregar_parametros_promocoes()
+        self._cliente_selecionado_manualmente = False
+
         self._busca_timer = QTimer(self)
         self._busca_timer.setSingleShot(True)
         self._busca_timer.setInterval(180)
@@ -90,7 +93,6 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._conectar_sinais()
         self._limpar_preview_produto()
         self._configurar_venda_inicial()
-        self._configurar_atalhos()
         self._atualizar_data_hora()
         self._relogio_timer.start()
         app = QApplication.instance()
@@ -107,50 +109,38 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         super().hideEvent(a0)
 
     def eventFilter(self, a0, a1) -> bool:
-        if self.isVisible() and a1.type() == QEvent.KeyPress:
-            key_event = a1 if isinstance(a1, QKeyEvent) else None
-            if key_event is None:
-                return super().eventFilter(a0, a1)
-            if key_event.key() == Qt.Key_F3:
-                self._ajustar_quantidade_item()
-                return True
-            if key_event.key() == Qt.Key_F4:
-                self._abrir_confirmacao_venda()
-                return True
-            if key_event.key() == Qt.Key_F5:
-                self._cancelar_item_selecionado()
-                return True
-            if key_event.key() == Qt.Key_F6:
-                self._cancelar_venda()
-                return True
-            if key_event.key() == Qt.Key_F10:
-                self._abrir_desconto()
-                return True
+        if not self.isVisible() or a1.type() != QEvent.KeyPress:
+            return super().eventFilter(a0, a1)
+
+        if QApplication.activeWindow() is not self:
+            return super().eventFilter(a0, a1)
+
+        key_event = a1 if isinstance(a1, QKeyEvent) else None
+        if key_event is None:
+            return super().eventFilter(a0, a1)
+
+        from typing import Callable
+
+        mapa: Dict[Qt.Key, Callable[[], None]] = {
+            Qt.Key_F3: self._ajustar_quantidade_item,
+            Qt.Key_F4: self._abrir_confirmacao_venda,
+            Qt.Key_F5: self._cancelar_item_selecionado,
+            Qt.Key_F6: self._cancelar_venda,
+            Qt.Key_F10: self._abrir_desconto,
+        }
+        acao = mapa.get(Qt.Key(key_event.key()))
+        if acao:
+            acao()
+            return True
+
         return super().eventFilter(a0, a1)
 
     def _configurar_interface(self) -> None:
         self.setFocusPolicy(Qt.StrongFocus)
-        for botao in self.findChildren(QPushButton):
-            botao.setAutoDefault(False)
-            botao.setDefault(False)
-        self.lineEditDescricaoProduto.setReadOnly(False)
-        self.lineEditDescricaoProduto.setPlaceholderText(
-            "Digite o nome do produto ou leia o código de barras..."
-        )
         self.lineEditQuantidade.setValidator(QIntValidator(1, 999999, self))
         self.lineEditQuantidade.setText("1")
-        self.tableCupom.setColumnCount(6)
-        self.tableCupom.setHorizontalHeaderLabels(
-            ["Codigo", "Descricao", "Qtd.", "Vl. Unit.", "Desconto", "Total"]
-        )
-
-        self.lblStatusVenda.hide()
-        self.lblImagemProduto.setMinimumHeight(250)
-        self.frameImagem.setMinimumHeight(320)
         self.rightPanelVLayout.setStretch(0, 5)
         self.rightPanelVLayout.setStretch(1, 2)
-        self.tableCupom.verticalHeader().setVisible(False)
-        self.tableCupom.horizontalHeader().setStretchLastSection(True)
 
     def _conectar_sinais(self) -> None:
         self.lineEditDescricaoProduto.textChanged.connect(self._agendar_busca_produto)
@@ -158,7 +148,6 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditQuantidade.textChanged.connect(self._atualizar_subtotal)
         self.btnAtalhoF2.clicked.connect(self._abrir_consulta_produto)
         self.btnAtalhoF3.clicked.connect(self._ajustar_quantidade_item)
-        self.btnAtalhoF4.clicked.connect(self._abrir_confirmacao_venda)
         self.btnAtalhoF10.clicked.connect(self._abrir_desconto)
         self.btnAlterarCliente.clicked.connect(self._alterar_cliente)
         self.btnFecharVenda.clicked.connect(self._abrir_confirmacao_venda)
@@ -166,23 +155,10 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.btnCancelarVenda.clicked.connect(self._cancelar_venda)
         self.tableCupom.itemClicked.connect(self._ao_clicar_item_cupom)
 
-    def _configurar_atalhos(self) -> None:
-        self.shortcut_quantidade_item = QShortcut(QKeySequence("F3"), self)
-        self.shortcut_quantidade_item.setContext(Qt.ApplicationShortcut)
-        self.shortcut_quantidade_item.activated.connect(self._ajustar_quantidade_item)
-        self.shortcut_fechar_venda = QShortcut(QKeySequence("F4"), self)
-        self.shortcut_fechar_venda.setContext(Qt.ApplicationShortcut)
-        self.shortcut_fechar_venda.activated.connect(self._abrir_confirmacao_venda)
-        self.shortcut_cancelar_item = QShortcut(QKeySequence("F5"), self)
-        self.shortcut_cancelar_item.setContext(Qt.ApplicationShortcut)
-        self.shortcut_cancelar_item.activated.connect(self._cancelar_item_selecionado)
-        self.shortcut_desconto = QShortcut(QKeySequence("F10"), self)
-        self.shortcut_desconto.setContext(Qt.ApplicationShortcut)
-        self.shortcut_desconto.activated.connect(self._abrir_desconto)
-
     def _configurar_venda_inicial(self) -> None:
         self.lblNumVendaValor.setText(str(self._numero_venda))
-        self.lblClienteNome.setText("Consumidor Final")
+        self._cliente_selecionado_manualmente = self._cliente_padrao_venda() == "CONSUMIDOR_FINAL"
+        self.lblClienteNome.setText("Consumidor Final" if self._cliente_selecionado_manualmente else "Selecionar cliente")
         self.lineEditDesconto.setText("0,00")
         self.lineEditDescontoItens.setText("0,00")
         self.lineEditDescontoTotal.setText("0,00")
@@ -190,19 +166,28 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lblInfoStatusVenda.setText("● Venda em aberto")
 
     def _abrir_consulta_produto(self) -> None:
-        ModalConsultaProdutoView(self).exec_()
+        dialog = ModalConsultaProdutoView(self)
+        if dialog.exec_() != dialog.Accepted or not dialog.produto_selecionado:
+            return
 
-    def _alterar_cliente(self) -> None:
+        self._produto_atual = dialog.produto_selecionado
+        self.lineEditDescricaoProduto.setText(str(self._produto_atual.get("nome") or ""))
+        self._preencher_preview_produto(self._produto_atual)
+        self._adicionar_produto_pelo_enter()
+
+    def _alterar_cliente(self) -> bool:
         dialog = SelecionarClienteDialog(self)
         if dialog.exec_() != dialog.Accepted:
-            return
+            return False
 
         self._cliente_atual = dialog.cliente_selecionado
+        self._cliente_selecionado_manualmente = True
         if not self._cliente_atual:
             self.lblClienteNome.setText("Consumidor Final")
-            return
+            return True
 
         self.lblClienteNome.setText(str(self._cliente_atual.get("nome") or "Consumidor Final"))
+        return True
 
     def _atualizar_data_hora(self) -> None:
         self.lblDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss"))
@@ -249,12 +234,28 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             (item for item in self._itens_venda if int(item.get("id") or 0) == produto_id),
             None,
         )
+        estoque_disponivel = float(self._produto_atual.get("quantidade_estoque") or 0.0)
+        quantidade_total_solicitada = quantidade + int(item_existente.get("quantidade") or 0) if item_existente else quantidade
+
+        if not self._permitir_venda_sem_estoque() and quantidade_total_solicitada > int(estoque_disponivel):
+            mostrar_aviso(
+                self,
+                "Estoque insuficiente",
+                (
+                    f"O produto possui {int(estoque_disponivel)} unidade(s) em estoque.\n"
+                    f"Não é possível lançar {quantidade_total_solicitada} unidade(s) com a política atual."
+                ),
+            )
+            self.lineEditQuantidade.setFocus()
+            self.lineEditQuantidade.selectAll()
+            return
 
         if item_existente:
             somar_quantidade_item(item_existente, quantidade)
         else:
             self._itens_venda.append(criar_item_cupom(self._produto_atual, quantidade))
 
+        self._reconciliar_precos_promocionais()
         self._renderizar_cupom()
         self._produto_atual = None
         self._limpar_preview_produto()
@@ -265,7 +266,6 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         preco = float(produto.get("preco_venda") or 0)
 
         self.lineEditCodigo.setText(codigo)
-
         if not self.lineEditQuantidade.text().strip():
             self.lineEditQuantidade.setText("1")
 
@@ -359,9 +359,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if self._produto_atual and self.lineEditDescricaoProduto.text().strip():
             self._preencher_preview_produto(self._produto_atual)
             return
-        self._limpar_preview_produto(
-            manter_descricao=bool(self.lineEditDescricaoProduto.text().strip())
-        )
+        self._limpar_preview_produto(manter_descricao=bool(self.lineEditDescricaoProduto.text().strip()))
 
     def _renderizar_cupom(self) -> None:
         self.tableCupom.setRowCount(len(self._itens_venda))
@@ -389,10 +387,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditDescontoItens.setText(formatar_decimal(desconto_itens))
         self.lineEditDescontoTotal.setText(formatar_decimal(self._desconto_total()))
         self.lblTotalAPagarValor.setText(formatar_decimal(valor_total))
-        if (
-            self._linha_cupom_selecionada is not None
-            and 0 <= self._linha_cupom_selecionada < len(self._itens_venda)
-        ):
+        if self._linha_cupom_selecionada is not None and 0 <= self._linha_cupom_selecionada < len(self._itens_venda):
             self.tableCupom.selectRow(self._linha_cupom_selecionada)
             self._selecionar_item_cupom(self._linha_cupom_selecionada)
 
@@ -414,10 +409,13 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._desconto_global_valor = 0.0
         self.tableCupom.setRowCount(0)
         self._cliente_atual = None
-        self.lblClienteNome.setText("Consumidor Final")
+        self._cliente_selecionado_manualmente = self._cliente_padrao_venda() == "CONSUMIDOR_FINAL"
+        self.lblClienteNome.setText("Consumidor Final" if self._cliente_selecionado_manualmente else "Selecionar cliente")
         self._limpar_preview_produto()
 
     def _abrir_confirmacao_venda(self) -> None:
+        if not self._garantir_cliente_conforme_regra():
+            return
         dialog = ConfirmarVendaDialog(
             numero_venda=self._numero_venda,
             cliente_nome=self.lblClienteNome.text().strip() or "Consumidor Final",
@@ -465,9 +463,30 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return
 
         definir_quantidade_item(item, nova_quantidade)
+        self._reconciliar_precos_promocionais()
         self._sincronizar_item_alterado(row)
 
     def _abrir_desconto(self) -> None:
+        if self._regra_desconto_venda() == "EXIGIR_AUTORIZACAO":
+            senha_admin, confirmado = QInputDialog.getText(
+                self,
+                "Autorização de desconto",
+                "Informe a senha de um administrador para liberar o desconto:",
+                QLineEdit.Password,
+            )
+            if not confirmado:
+                return
+
+            from modules.venda.services.caixa_service import CaixaService
+
+            if not CaixaService.validar_admin_para_diferenca(senha_admin):
+                mostrar_aviso(
+                    self,
+                    "Autorização inválida",
+                    "Informe uma senha de administrador válida para aplicar ou remover descontos.",
+                )
+                return
+
         dialog = AplicarDescontoDialog(
             item_disponivel=0 <= self.tableCupom.currentRow() < len(self._itens_venda),
             parent=self,
@@ -490,34 +509,44 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             item = self._itens_venda[row]
             if acao == "remover":
                 remover_desconto_item(item)
+                self._reconciliar_precos_promocionais()
                 self._sincronizar_item_alterado(row)
                 return
+
+            if self._prioridade_promocional() == "DESCONTO_ANTES_PROMOCAO":
+                priorizar_desconto_manual_item(item)
 
             subtotal_bruto = float(item["preco_venda"]) * float(item["quantidade"])
             desconto = self._calcular_desconto(subtotal_bruto, tipo, valor)
             if desconto >= subtotal_bruto:
                 mostrar_aviso(
                     self,
-                    "Desconto invalido",
-                    "O desconto do item nao pode ser maior ou igual ao valor do item.",
+                    "Desconto inválido",
+                    "O desconto do item não pode ser maior ou igual ao valor do item.",
                 )
                 return
 
             aplicar_desconto_item(item, desconto)
+            self._reconciliar_precos_promocionais()
             self._sincronizar_item_alterado(row)
             return
 
         if acao == "remover":
             self._desconto_global_valor = 0.0
+            self._reconciliar_precos_promocionais()
             self._renderizar_cupom()
             return
+
+        if self._prioridade_promocional() == "DESCONTO_ANTES_PROMOCAO":
+            for item in self._itens_venda:
+                priorizar_desconto_manual_item(item)
 
         subtotal_venda = subtotal_itens(self._itens_venda)
         if subtotal_venda <= 0:
             mostrar_info(
                 self,
                 "Venda vazia",
-                "Adicione itens ao cupom antes de aplicar desconto na venda.",
+                "Adicione itens antes de aplicar desconto.",
             )
             return
 
@@ -525,12 +554,13 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if desconto_global >= subtotal_venda:
             mostrar_aviso(
                 self,
-                "Desconto invalido",
-                "O desconto da venda nao pode ser maior ou igual ao total atual.",
+                "Desconto inválido",
+                "O desconto da venda não pode ser maior ou igual ao total atual.",
             )
             return
 
         self._desconto_global_valor = desconto_global
+        self._reconciliar_precos_promocionais()
         self._renderizar_cupom()
 
     def _desconto_itens_total(self) -> float:
@@ -545,21 +575,43 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return round(base * (valor / 100.0), 2)
         return round(valor, 2)
 
-    def keyPressEvent(self, a0: QKeyEvent) -> None:
-        if a0.key() == Qt.Key_F3:
-            self._ajustar_quantidade_item()
-            a0.accept()
+    def _cliente_padrao_venda(self) -> str:
+        return str(self._parametros_venda.get("cliente_padrao_venda") or "CONSUMIDOR_FINAL").strip().upper()
+
+    def _regra_desconto_venda(self) -> str:
+        return str(self._parametros_venda.get("regra_desconto_venda") or "PERMITIR_DESCONTO").strip().upper()
+
+    def _permitir_venda_sem_estoque(self) -> bool:
+        return bool(self._parametros_venda.get("permitir_venda_sem_estoque", False))
+
+    def _prioridade_promocional(self) -> str:
+        return str(
+            self._parametros_promocoes.get("prioridade_promocional")
+            or "PROMOCAO_ANTES_DESCONTO"
+        ).strip().upper()
+
+    def _reconciliar_precos_promocionais(self) -> None:
+        if self._prioridade_promocional() != "DESCONTO_ANTES_PROMOCAO":
             return
-        if a0.key() == Qt.Key_F4:
-            self._abrir_confirmacao_venda()
-            a0.accept()
-            return
-        if a0.key() == Qt.Key_F5:
-            self._cancelar_item_selecionado()
-            a0.accept()
-            return
-        if a0.key() == Qt.Key_F10:
-            self._abrir_desconto()
-            a0.accept()
-            return
-        super().keyPressEvent(a0)
+
+        desconto_global_ativo = float(self._desconto_global_valor or 0.0) > 0
+        for item in self._itens_venda:
+            if not item_tem_promocao(item):
+                continue
+            if desconto_global_ativo or float(item.get("desconto_item") or 0.0) > 0:
+                priorizar_desconto_manual_item(item)
+            else:
+                restaurar_preco_promocional_item(item)
+
+    def _garantir_cliente_conforme_regra(self) -> bool:
+        if self._cliente_padrao_venda() != "SELECIONAR_NO_MOMENTO":
+            return True
+        if self._cliente_selecionado_manualmente:
+            return True
+
+        mostrar_info(
+            self,
+            "Selecionar cliente",
+            "Selecione o cliente da venda antes de continuar.",
+        )
+        return self._alterar_cliente()

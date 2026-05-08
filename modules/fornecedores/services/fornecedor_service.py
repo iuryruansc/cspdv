@@ -1,6 +1,5 @@
 from modules.fornecedores.models.fornecedor_model import FornecedorModel
 
-
 class FornecedorService:
     @staticmethod
     def _validar_dados(dados):
@@ -43,7 +42,7 @@ class FornecedorService:
             return False, f"Erro ao salvar fornecedor:\n{exc}"
 
         if not fornecedor_id:
-            return False, "Nao foi possivel cadastrar o fornecedor."
+            return False, "Não foi possível cadastrar o fornecedor."
 
         return True, "Fornecedor cadastrado com sucesso!"
 
@@ -59,7 +58,7 @@ class FornecedorService:
             return False, f"Erro ao atualizar fornecedor:\n{exc}"
 
         if not atualizado:
-            return False, "Nao foi possivel atualizar o fornecedor."
+            return False, "Não foi possível atualizar o fornecedor."
 
         return True, "Fornecedor atualizado com sucesso!"
 
@@ -67,7 +66,7 @@ class FornecedorService:
     def alternar_status(fornecedor_id):
         fornecedor = FornecedorModel.buscar_por_id(int(fornecedor_id))
         if not fornecedor:
-            return False, "Fornecedor nao encontrado."
+            return False, "Fornecedor não encontrado."
 
         ativo_atual = str(fornecedor.get("ativo") or "N").strip().upper()
         novo_status = "N" if ativo_atual == "S" else "S"
@@ -78,7 +77,7 @@ class FornecedorService:
             return False, f"Erro ao atualizar status do fornecedor:\n{exc}"
 
         if not atualizado:
-            return False, "Nao foi possivel atualizar o status do fornecedor."
+            return False, "Não foi possível atualizar o status do fornecedor."
 
         acao = "ativado" if novo_status == "S" else "desativado"
         return True, f"Fornecedor {acao} com sucesso!"

@@ -2,7 +2,6 @@
 
 from PyQt5 import QtCore, QtWidgets
 
-
 class Ui_PainelEstoque(object):
     def setupUi(self, PainelEstoque):
         PainelEstoque.setObjectName("PainelEstoque")
@@ -319,6 +318,14 @@ class Ui_PainelEstoque(object):
         self.tableProdutosEstoque.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
         self.tableProdutosEstoque.horizontalHeader().setDefaultSectionSize(118)
         self.tableProdutosEstoque.horizontalHeader().setMinimumSectionSize(72)
+        self.tableProdutosEstoque.setColumnWidth(0, 110)
+        self.tableProdutosEstoque.setColumnWidth(2, 140)
+        self.tableProdutosEstoque.setColumnWidth(3, 140)
+        self.tableProdutosEstoque.setColumnWidth(4, 120)
+        self.tableProdutosEstoque.setColumnWidth(5, 110)
+        self.tableProdutosEstoque.setColumnWidth(6, 80)
+        self.tableProdutosEstoque.setColumnWidth(7, 110)
+        self.tableProdutosEstoque.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.tableProdutosEstoque.verticalHeader().setVisible(False)
         self.frameProdutosLayout.addWidget(self.tableProdutosEstoque)
         self.tablesHLayout.addWidget(self.frameProdutos, 2)
@@ -349,7 +356,12 @@ class Ui_PainelEstoque(object):
         for idx in range(5):
             item = QtWidgets.QTableWidgetItem()
             self.tableMovimentacoesEstoque.setHorizontalHeaderItem(idx, item)
-        self.tableMovimentacoesEstoque.horizontalHeader().setStretchLastSection(True)
+        self.tableMovimentacoesEstoque.horizontalHeader().setStretchLastSection(False)
+        self.tableMovimentacoesEstoque.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableMovimentacoesEstoque.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        self.tableMovimentacoesEstoque.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableMovimentacoesEstoque.horizontalHeader().setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
+        self.tableMovimentacoesEstoque.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         self.tableMovimentacoesEstoque.verticalHeader().setVisible(False)
         self.frameMovimentacoesLayout.addWidget(self.tableMovimentacoesEstoque)
         self.tablesHLayout.addWidget(self.frameMovimentacoes, 1)
@@ -465,7 +477,6 @@ class Ui_PainelEstoque(object):
         item.setText(_translate("PainelEstoque", "Usuario"))
         self.lblStatusSistema.setText(_translate("PainelEstoque", "Sistema online"))
         self.lblStatusBar.setText(_translate("PainelEstoque", "CSPdv - Modulo de Estoque"))
-
 
 if __name__ == "__main__":
     import sys
