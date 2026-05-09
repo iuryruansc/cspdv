@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import (
     QLabel,
     QInputDialog,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
     QTableWidget,
     QTableWidgetItem,
     QWidget,
@@ -30,6 +33,7 @@ from modules.venda.services.cupom_service import (
     total_geral,
 )
 from modules.venda.views.aplicar_desconto_dialog import AplicarDescontoDialog
+from modules.venda.views.consulta_preco_dialog import ConsultaPrecoDialog
 from modules.venda.views.confirmar_venda_dialog import ConfirmarVendaDialog
 from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
 from modules.venda.views.selecionar_cliente_dialog import SelecionarClienteDialog
@@ -58,9 +62,11 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     lblNumVendaValor: QLabel
     lblClienteNome: QLabel
     lblInfoStatusVenda: QLabel
+    listaSugestoesProdutos: QListWidget
     tableCupom: QTableWidget
     btnAtalhoF2: Any
     btnAtalhoF3: Any
+    btnAtalhoF7: Any
     btnAtalhoF10: Any
     btnAlterarCliente: Any
     btnFecharVenda: Any
@@ -76,6 +82,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._cliente_atual: Optional[Dict[str, Any]] = None
         self._linha_cupom_selecionada: Optional[int] = None
         self._desconto_global_valor = 0.0
+        self._resultados_busca_produto: List[Dict[str, Any]] = []
+        self._bloquear_busca_descricao = False
         self._parametros_venda = ConfiguracoesService.carregar_parametros_venda()
         self._parametros_promocoes = ConfiguracoesService.carregar_parametros_promocoes()
         self._cliente_selecionado_manualmente = False
@@ -119,6 +127,25 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if key_event is None:
             return super().eventFilter(a0, a1)
 
+        if a0 is self.lineEditDescricaoProduto and self.listaSugestoesProdutos.isVisible():
+            if key_event.key() == Qt.Key_Down:
+                self.listaSugestoesProdutos.setFocus()
+                if self.listaSugestoesProdutos.currentRow() < 0 and self.listaSugestoesProdutos.count() > 0:
+                    self.listaSugestoesProdutos.setCurrentRow(0)
+                return True
+            if key_event.key() == Qt.Key_Escape:
+                self._ocultar_sugestoes_produto()
+                return True
+
+        if a0 is self.listaSugestoesProdutos:
+            if key_event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                self._confirmar_produto_sugerido(self.listaSugestoesProdutos.currentItem())
+                return True
+            if key_event.key() == Qt.Key_Escape:
+                self._ocultar_sugestoes_produto()
+                self.lineEditDescricaoProduto.setFocus()
+                return True
+
         from typing import Callable
 
         mapa: Dict[Qt.Key, Callable[[], None]] = {
@@ -126,6 +153,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             Qt.Key_F4: self._abrir_confirmacao_venda,
             Qt.Key_F5: self._cancelar_item_selecionado,
             Qt.Key_F6: self._cancelar_venda,
+            Qt.Key_F7: self._abrir_consulta_preco,
             Qt.Key_F10: self._abrir_desconto,
         }
         acao = mapa.get(Qt.Key(key_event.key()))
@@ -139,15 +167,61 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.setFocusPolicy(Qt.StrongFocus)
         self.lineEditQuantidade.setValidator(QIntValidator(1, 999999, self))
         self.lineEditQuantidade.setText("1")
+        self.btnAtalhoF7 = self._criar_botao_atalho("F7  Consulta Preço")
+        self.atalhosHLayout.insertWidget(4, self.btnAtalhoF7)
+        self.lblSepConsultaPreco = QLabel("|", self.frameAtalhos)
+        self.lblSepConsultaPreco.setStyleSheet("color:rgba(255,255,255,30);")
+        self.atalhosHLayout.insertWidget(5, self.lblSepConsultaPreco)
+        self.listaSugestoesProdutos = QListWidget(self)
+        self.listaSugestoesProdutos.setObjectName("listaSugestoesProdutos")
+        self.listaSugestoesProdutos.setMaximumHeight(180)
+        self.listaSugestoesProdutos.setFocusPolicy(Qt.StrongFocus)
+        self.listaSugestoesProdutos.setStyleSheet(
+            """
+            QListWidget {
+                background-color: #ffffff;
+                color: #15324c;
+                border: 1px solid #2a6fa8;
+                border-top: none;
+                border-bottom-left-radius: 8px;
+                border-bottom-right-radius: 8px;
+                font-size: 12px;
+                padding: 4px;
+            }
+            QListWidget::item {
+                padding: 6px 8px;
+                border-radius: 4px;
+            }
+            QListWidget::item:selected {
+                background-color: #2a6fa8;
+                color: #ffffff;
+            }
+            QListWidget::item:hover:!selected {
+                background-color: #e8f2fa;
+            }
+            """
+        )
+        self.listaSugestoesProdutos.hide()
+        self.mainVLayout.insertWidget(3, self.listaSugestoesProdutos)
         self.rightPanelVLayout.setStretch(0, 5)
         self.rightPanelVLayout.setStretch(1, 2)
+
+    def _criar_botao_atalho(self, texto: str) -> QPushButton:
+        botao = QPushButton(texto, self.frameAtalhos)
+        botao.setAutoDefault(False)
+        botao.setDefault(False)
+        return botao
 
     def _conectar_sinais(self) -> None:
         self.lineEditDescricaoProduto.textChanged.connect(self._agendar_busca_produto)
         self.lineEditDescricaoProduto.returnPressed.connect(self._adicionar_produto_pelo_enter)
+        self.listaSugestoesProdutos.itemClicked.connect(self._selecionar_produto_sugerido)
+        self.listaSugestoesProdutos.itemDoubleClicked.connect(self._confirmar_produto_sugerido)
+        self.listaSugestoesProdutos.itemActivated.connect(self._confirmar_produto_sugerido)
         self.lineEditQuantidade.textChanged.connect(self._atualizar_subtotal)
         self.btnAtalhoF2.clicked.connect(self._abrir_consulta_produto)
         self.btnAtalhoF3.clicked.connect(self._ajustar_quantidade_item)
+        self.btnAtalhoF7.clicked.connect(self._abrir_consulta_preco)
         self.btnAtalhoF10.clicked.connect(self._abrir_desconto)
         self.btnAlterarCliente.clicked.connect(self._alterar_cliente)
         self.btnFecharVenda.clicked.connect(self._abrir_confirmacao_venda)
@@ -171,9 +245,14 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return
 
         self._produto_atual = dialog.produto_selecionado
-        self.lineEditDescricaoProduto.setText(str(self._produto_atual.get("nome") or ""))
+        self._definir_descricao_produto(str(self._produto_atual.get("nome") or ""))
         self._preencher_preview_produto(self._produto_atual)
+        self._ocultar_sugestoes_produto()
         self._adicionar_produto_pelo_enter()
+
+    def _abrir_consulta_preco(self) -> None:
+        dialog = ConsultaPrecoDialog(self)
+        dialog.exec_()
 
     def _alterar_cliente(self) -> bool:
         dialog = SelecionarClienteDialog(self)
@@ -193,11 +272,15 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lblDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss"))
 
     def _agendar_busca_produto(self) -> None:
+        if self._bloquear_busca_descricao:
+            return
         termo = self.lineEditDescricaoProduto.text().strip()
         if termo and self._linha_cupom_selecionada is not None:
             self._limpar_selecao_cupom()
         if not termo:
             self._produto_atual = None
+            self._resultados_busca_produto = []
+            self._ocultar_sugestoes_produto()
             self._limpar_preview_produto()
             return
         self._busca_timer.start()
@@ -206,20 +289,72 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         termo = self.lineEditDescricaoProduto.text().strip()
         if not termo:
             self._produto_atual = None
+            self._resultados_busca_produto = []
+            self._ocultar_sugestoes_produto()
             self._limpar_preview_produto()
             return
 
         produtos = ProdutoService.buscar_para_venda(termo)
         if not produtos:
             self._produto_atual = None
+            self._resultados_busca_produto = []
+            self._ocultar_sugestoes_produto()
             self._limpar_preview_produto(manter_descricao=True, mensagem_imagem="Nenhum produto encontrado")
             return
 
+        self._resultados_busca_produto = produtos
         self._produto_atual = produtos[0]
+        self._preencher_sugestoes_produto(produtos)
         self._preencher_preview_produto(self._produto_atual)
 
+    def _preencher_sugestoes_produto(self, produtos: List[Dict[str, Any]]) -> None:
+        self.listaSugestoesProdutos.clear()
+        for produto in produtos[:8]:
+            nome = str(produto.get("nome") or "Produto")
+            codigo = str(produto.get("codigo_barras") or "---")
+            preco = formatar_decimal(produto.get("preco_venda"))
+            item = QListWidgetItem(f"{nome}  |  Cód.: {codigo}  |  R$ {preco}")
+            item.setData(Qt.UserRole, dict(produto))
+            self.listaSugestoesProdutos.addItem(item)
+
+        if self.listaSugestoesProdutos.count() <= 0:
+            self._ocultar_sugestoes_produto()
+            return
+
+        self.listaSugestoesProdutos.setCurrentRow(0)
+        self.listaSugestoesProdutos.show()
+
+    def _ocultar_sugestoes_produto(self) -> None:
+        self.listaSugestoesProdutos.hide()
+        self.listaSugestoesProdutos.clear()
+
+    def _definir_descricao_produto(self, descricao: str) -> None:
+        self._bloquear_busca_descricao = True
+        self.lineEditDescricaoProduto.setText(descricao)
+        self._bloquear_busca_descricao = False
+
+    def _selecionar_produto_sugerido(self, item: QListWidgetItem | None) -> None:
+        if item is None:
+            return
+        produto = item.data(Qt.UserRole)
+        if not isinstance(produto, dict):
+            return
+        self._produto_atual = produto
+        self._definir_descricao_produto(str(produto.get("nome") or ""))
+        self._preencher_preview_produto(produto)
+
+    def _confirmar_produto_sugerido(self, item: QListWidgetItem | None) -> None:
+        if item is None:
+            return
+        self._selecionar_produto_sugerido(item)
+        self._ocultar_sugestoes_produto()
+        self._adicionar_produto_pelo_enter()
+
     def _adicionar_produto_pelo_enter(self) -> None:
-        self._executar_busca_produto()
+        if self.listaSugestoesProdutos.isVisible() and self.listaSugestoesProdutos.currentItem() is not None:
+            self._selecionar_produto_sugerido(self.listaSugestoesProdutos.currentItem())
+        else:
+            self._executar_busca_produto()
         if not self._produto_atual:
             return
 
@@ -258,6 +393,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._reconciliar_precos_promocionais()
         self._renderizar_cupom()
         self._produto_atual = None
+        self._resultados_busca_produto = []
+        self._ocultar_sugestoes_produto()
         self._limpar_preview_produto()
         self.lineEditDescricaoProduto.setFocus()
 

@@ -212,15 +212,35 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             texto_padrao=texto_padrao,
         )
 
+    def _normalizar_caminho_media(self, caminho: Path) -> Path:
+        try:
+            return caminho.resolve()
+        except OSError:
+            return caminho
+
+    def _relativizar_imagem_media(self, caminho: Path) -> str | None:
+        caminho_normalizado = self._normalizar_caminho_media(caminho)
+        media_normalizado = self._normalizar_caminho_media(self.MEDIA_PRODUTOS_DIR)
+        try:
+            relativo = caminho_normalizado.relative_to(media_normalizado)
+        except ValueError:
+            return None
+        return str(Path("media") / "produtos" / relativo)
+
     def _copiar_imagem_para_media(self):
         if not self._imagem_produto_path:
             return None
 
         origem = Path(self._imagem_produto_path)
+        origem_normalizada = self._normalizar_caminho_media(origem)
         if self._imagem_path_salva:
             caminho_salvo = resolver_caminho_arquivo(self._imagem_path_salva)
-            if caminho_salvo and caminho_salvo == origem:
+            if caminho_salvo and self._normalizar_caminho_media(caminho_salvo) == origem_normalizada:
                 return self._imagem_path_salva
+
+        caminho_relativo_media = self._relativizar_imagem_media(origem)
+        if caminho_relativo_media:
+            return caminho_relativo_media
 
         if not origem.exists():
             raise FileNotFoundError("A imagem selecionada não foi encontrada.")
@@ -331,6 +351,10 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             sucesso, mensagem = ProdutoService.atualizar_produto(self._produto_id, dados)
 
         if sucesso:
+            self._imagem_path_salva = imagem_path
+            caminho_resolvido = resolver_caminho_arquivo(imagem_path)
+            self._imagem_produto_path = str(caminho_resolvido) if caminho_resolvido else None
+            self._atualizar_preview_imagem()
             mostrar_info(self, "Sucesso", mensagem)
             if self._produto_id is None:
                 self._limpar_campos()
