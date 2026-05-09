@@ -8,21 +8,6 @@ class ProdutoModel:
     def buscar_para_venda(termo: str, limite: int = 10) -> List[Dict[str, Any]]:
         parametros_promocoes = ConfiguracoesModel.carregar_empresa_pdv()
         ativar_por_vigencia = bool(parametros_promocoes.get("ativar_promocoes_por_vigencia", True))
-        filtro_promocao = (
-            """
-            pp2.ativo = 'S'
-            AND pr2.ativo = 'S'
-            AND pr2.status IN ('ATIVA', 'AGENDADA')
-            AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim
-            """
-            if ativar_por_vigencia
-            else
-            """
-            pp2.ativo = 'S'
-            AND pr2.ativo = 'S'
-            AND pr2.status = 'ATIVA'
-            """
-        )
 
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
@@ -30,9 +15,10 @@ class ProdutoModel:
         termo_nome = f"%{termo_limpo.upper()}%"
         termo_prefixo = f"{termo_limpo.upper()}%"
         termo_codigo = f"{termo_limpo}%"
-        try:
-            cursor.execute(
-                """
+        
+        # Build query based on vigencia setting
+        if ativar_por_vigencia:
+            query = """
                 SELECT
                     p.id,
                     p.codigo_barras,
@@ -57,7 +43,10 @@ class ProdutoModel:
                         FROM promocao_produtos pp2
                         INNER JOIN promocoes pr2 ON pr2.id = pp2.promocao_id
                         WHERE pp2.produto_id = p.id
-                          AND {filtro_promocao}
+                          AND pp2.ativo = 'S'
+                          AND pr2.ativo = 'S'
+                          AND pr2.status IN ('ATIVA', 'AGENDADA')
+                          AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim
                         ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
                         LIMIT 1
                     )
@@ -82,7 +71,65 @@ class ProdutoModel:
                     END,
                     p.nome
                 LIMIT %s
-                """,
+                """
+        else:
+            query = """
+                SELECT
+                    p.id,
+                    p.codigo_barras,
+                    p.nome,
+                    COALESCE(ppromo.preco_promocional, p.preco_venda) AS preco_venda,
+                    p.preco_venda AS preco_venda_base,
+                    ppromo.preco_original AS preco_original_promocao,
+                    ppromo.preco_promocional,
+                    promo.id AS promocao_id,
+                    promo.nome AS promocao_nome,
+                    p.quantidade_estoque,
+                    p.ativo,
+                    p.imagem_path,
+                    COALESCE(uc.sigla, '-') AS unidade,
+                    c.nome AS categoria,
+                    m.nome_marca AS marca,
+                    f.nome_fantasia AS fornecedor
+                FROM produtos p
+                LEFT JOIN promocao_produtos ppromo
+                    ON ppromo.id = (
+                        SELECT pp2.id
+                        FROM promocao_produtos pp2
+                        INNER JOIN promocoes pr2 ON pr2.id = pp2.promocao_id
+                        WHERE pp2.produto_id = p.id
+                          AND pp2.ativo = 'S'
+                          AND pr2.ativo = 'S'
+                          AND pr2.status = 'ATIVA'
+                        ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
+                        LIMIT 1
+                    )
+                LEFT JOIN promocoes promo ON promo.id = ppromo.promocao_id
+                LEFT JOIN categorias c ON c.id = p.categoria_id
+                LEFT JOIN marcas m ON m.id = p.marca_id
+                LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
+                WHERE p.ativo = 'S'
+                  AND (
+                    p.codigo_barras = %s
+                    OR p.codigo_barras LIKE %s
+                    OR UPPER(p.nome) LIKE %s
+                  )
+                ORDER BY
+                    CASE
+                        WHEN p.codigo_barras = %s THEN 0
+                        WHEN UPPER(p.nome) = UPPER(%s) THEN 1
+                        WHEN UPPER(p.nome) LIKE %s THEN 2
+                        WHEN p.codigo_barras LIKE %s THEN 3
+                        ELSE 4
+                    END,
+                    p.nome
+                LIMIT %s
+                """
+        
+        try:
+            cursor.execute(
+                query,
                 (
                     termo_limpo,
                     termo_codigo,
