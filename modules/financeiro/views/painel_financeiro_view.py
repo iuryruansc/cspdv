@@ -298,13 +298,23 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             return
 
         self._carregar_painel()
-        mostrar_info(
-            self,
-            "Recebimento registrado",
-            f"Conta #{resultado['conta_id']} | Venda #{resultado['venda_id']} | "
-            f"Recebido {formatar_moeda(resultado['valor_recebido'])} | "
-            f"Saldo {formatar_moeda(resultado['valor_aberto'])}",
+
+        from modules.financeiro.views.comprovante_recebimento_dialog import ComprovanteRecebimentoDialog
+
+        operador_nome = str(usuario.get("nome") or "Operador")
+        caixa_label = str(caixa.get("pdv_label") or "Caixa")
+        recebimento_dialog = ComprovanteRecebimentoDialog(
+            conta=dict(conta_detalhada.get("conta") or {}),
+            recebimento={
+                **resultado,
+                "observacao": str(dialog.resultado.get("observacao") or "").strip(),
+                "data_recebimento": dialog.resultado.get("data_recebimento") or datetime.now(),
+            },
+            operador_nome=operador_nome,
+            caixa_label=caixa_label,
+            parent=self,
         )
+        recebimento_dialog.exec_()
 
     def _abrir_detalhe_conta(self, row: int, _column: int) -> None:
         if row < 0:

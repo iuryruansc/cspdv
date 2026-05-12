@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 
 from modules.financeiro.models.financeiro_model import FinanceiroModel
 
+
 class FinanceiroService:
     @staticmethod
     def listar_pdvs() -> List[Dict[str, Any]]:
@@ -126,12 +127,25 @@ class FinanceiroService:
         observacao: str,
         data_recebimento: datetime,
     ) -> Dict[str, Any]:
+        if int(conta_id or 0) <= 0:
+            raise ValueError("Selecione uma conta válida para registrar o recebimento.")
+        if int(usuario_id or 0) <= 0:
+            raise ValueError("Não foi possível identificar o operador que está registrando o recebimento.")
+        if int(caixa_id or 0) <= 0:
+            raise ValueError("Abra um caixa antes de registrar recebimentos de pendências.")
+        if int(forma_pagamento_id or 0) <= 0:
+            raise ValueError("Selecione uma forma de pagamento válida para continuar.")
+        if valor_recebido <= Decimal("0.00"):
+            raise ValueError("Informe um valor maior que zero para o recebimento.")
+        if not isinstance(data_recebimento, datetime):
+            raise ValueError("Informe uma data de recebimento válida.")
+
         return FinanceiroModel.registrar_recebimento_conta(
-            conta_id=conta_id,
-            usuario_id=usuario_id,
-            caixa_id=caixa_id,
-            forma_pagamento_id=forma_pagamento_id,
+            conta_id=int(conta_id),
+            usuario_id=int(usuario_id),
+            caixa_id=int(caixa_id),
+            forma_pagamento_id=int(forma_pagamento_id),
             valor_recebido=valor_recebido,
-            observacao=observacao,
+            observacao=str(observacao or "").strip(),
             data_recebimento=data_recebimento,
         )

@@ -42,9 +42,9 @@ class ConfiguracoesService:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "cliente_padrao_venda": str(empresa.get("cliente_padrao_venda") or "CONSUMIDOR_FINAL"),
-            "regra_desconto_venda": str(empresa.get("regra_desconto_venda") or "PERMITIR_DESCONTO"),
+            "regra_desconto_venda": str(empresa.get("regra_desconto_venda") or "EXIGIR_AUTORIZACAO"),
             "habilitar_venda_rapida_admin": bool(empresa.get("habilitar_venda_rapida_admin", True)),
-            "permitir_venda_sem_estoque": bool(empresa.get("permitir_venda_sem_estoque", False)),
+            "permitir_venda_sem_estoque": bool(empresa.get("permitir_venda_sem_estoque", True)),
         }
 
     @staticmethod
@@ -265,7 +265,7 @@ class ConfiguracoesService:
         for label, valor in ConfiguracoesService._MAPA_REGRA_DESCONTO.items():
             if valor == codigo_normalizado:
                 return label
-        return "Permitir desconto manual"
+        return "Exigir autorizaÃ§Ã£o para desconto"
 
     @staticmethod
     def label_prioridade_promocional(codigo: str | None) -> str:

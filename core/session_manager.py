@@ -146,8 +146,11 @@ class SessionManager:
         persisted = {"payload": payload, "signature": cls._sign_payload(payload_json)}
 
         session_file = cls._session_file_path()
-        session_file.parent.mkdir(parents=True, exist_ok=True)
-        session_file.write_text(json.dumps(persisted, ensure_ascii=True, indent=2), encoding="utf-8")
+        try:
+            session_file.parent.mkdir(parents=True, exist_ok=True)
+            session_file.write_text(json.dumps(persisted, ensure_ascii=True, indent=2), encoding="utf-8")
+        except OSError:
+            return
 
     @classmethod
     def _read_persisted_session(cls) -> Optional[Dict[str, Any]]:
@@ -181,7 +184,8 @@ class SessionManager:
             if session_file.exists():
                 session_file.unlink()
         except OSError:
-            pass
+            # A remoção do cache de sessão é melhor esforço.
+            return
 
     @classmethod
     def _payload_json(cls, payload: Dict[str, Any]) -> str:
@@ -202,6 +206,14 @@ class SessionManager:
 
     @classmethod
     def _session_file_path(cls) -> Path:
+        custom_path = str(os.getenv("CSPDV_SESSION_FILE") or "").strip()
+        if custom_path:
+            return Path(custom_path)
+
+        custom_data_dir = str(os.getenv("CSPDV_DATA_DIR") or "").strip()
+        if custom_data_dir:
+            return Path(custom_data_dir) / "session.json"
+
         local_appdata = os.getenv("LOCALAPPDATA")
         if local_appdata:
             return Path(local_appdata) / "CSPdv" / "session.json"

@@ -230,9 +230,13 @@ class ConsultaPrecoDialog(QDialog):
         self._preencher_resultado(termo, produto)
 
     def _buscar_produto_exato(self, termo: str) -> Optional[Dict[str, Any]]:
-        produto_codigo_barras = ProdutoModel.buscar_por_codigo(termo)
+        produto_codigo_barras = ProdutoModel.buscar_por_codigo_barras(termo)
         if produto_codigo_barras:
             return produto_codigo_barras
+        
+        produto_codigo = ProdutoModel.buscar_por_codigo(termo)
+        if produto_codigo:
+            return produto_codigo
 
         if termo.isdigit():
             return ProdutoModel.buscar_por_id(int(termo))

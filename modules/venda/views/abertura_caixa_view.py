@@ -94,6 +94,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         self.lineEditOperador.setReadOnly(True)
         self._aplicar_fundo_inicial_sugerido()
         self._popular_pdvs()
+        self._selecionar_pdv_padrao()
         self._atualizar_total_breakdown()
 
     def showEvent(self, a0) -> None:
@@ -124,6 +125,22 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             label = f"{pdv['identificacao']} - {pdv['descricao']}"
             self.comboNumCaixa.addItem(label)
             self._pdv_map[index] = int(pdv["id"])
+
+    def _selecionar_pdv_padrao(self) -> None:
+        empresa_config = ConfiguracoesService.carregar_empresa_pdv().get("empresa") or {}
+        pdv_padrao_id = empresa_config.get("pdv_padrao_id")
+        if pdv_padrao_id in (None, "", 0, "0"):
+            return
+
+        try:
+            pdv_padrao_normalizado = int(pdv_padrao_id)
+        except (TypeError, ValueError):
+            return
+
+        for index, valor in self._pdv_map.items():
+            if valor == pdv_padrao_normalizado:
+                self.comboNumCaixa.setCurrentIndex(index)
+                return
 
     def _atualizar_data_hora(self) -> None:
         self.lblHeaderDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm"))
@@ -208,7 +225,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             return
 
         self.lblStatus.setText(
-            f"CSPdv | Caixa {caixa_data['pdv_label']} aberto com fundo R$ {caixa_data['valor_abertura']:.2f}"
+            f"CSPdv | Caixa {caixa_data['pdv_label']} aberto com fundo {formatar_moeda(caixa_data['valor_abertura'])}"
         )
         self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operações")
         self._aplicar_status_caixa("#72d88f")
@@ -242,7 +259,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
 
         self.lineEditTrocoInicial.setText(formatar_decimal(valor_abertura))
         self.lblStatus.setText(
-            f"CSPdv | Caixa {pdv_label} reaberto com fundo R$ {valor_abertura:.2f}"
+            f"CSPdv | Caixa {pdv_label} reaberto com fundo {formatar_moeda(valor_abertura)}"
         )
         self.lblStatusCaixaFechado.setText("- Caixa aberto e pronto para operações")
         self._aplicar_status_caixa("#72d88f")

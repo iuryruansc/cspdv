@@ -344,6 +344,28 @@ class CaixaModel:
             conn.close()
 
     @staticmethod
+    def obter_total_reembolsos(caixa_id: int) -> float:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT COALESCE(SUM(vr.valor_total), 0) AS total
+                FROM venda_reembolsos vr
+                INNER JOIN vendas v ON v.id = vr.venda_id
+                WHERE v.caixa_id = %s
+                  AND vr.ativo = 'S'
+                  AND vr.status = 'CONCLUIDO'
+                """,
+                (caixa_id,),
+            )
+            row = cast(Dict[str, Any], cursor.fetchone() or {})
+            return float(row.get("total") or 0.0)
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def _garantir_forma_pagamento_dinheiro(cursor) -> int:
         cursor.execute(
             """

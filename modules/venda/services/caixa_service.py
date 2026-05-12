@@ -6,19 +6,26 @@ from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
+from utils.app_logger import log_warning
+
 
 class CaixaService:
+    @staticmethod
+    def _parametros_caixa_padrao() -> Dict[str, Any]:
+        return {
+            "fundo_inicial_sugerido": 0.0,
+            "exigir_admin_sangria": True,
+            "exigir_admin_reembolso": True,
+            "exigir_admin_diferenca_fechamento": True,
+        }
+
     @staticmethod
     def _carregar_parametros_caixa() -> Dict[str, Any]:
         try:
             return ConfiguracoesService.carregar_parametros_caixa()
-        except Exception:
-            return {
-                "fundo_inicial_sugerido": 0.0,
-                "exigir_admin_sangria": True,
-                "exigir_admin_reembolso": True,
-                "exigir_admin_diferenca_fechamento": True,
-            }
+        except Exception as exc:
+            log_warning(f"Falha ao carregar parâmetros de caixa. Usando defaults: {exc}")
+            return CaixaService._parametros_caixa_padrao()
 
     @staticmethod
     def _formatar_data_hora(valor: Any) -> str:
@@ -78,14 +85,14 @@ class CaixaService:
             return False, "Não foi possível identificar o operador logado.", None
 
         if pdv_id is None:
-            return False, "Selecione um PDV valido para a abertura.", None
+            return False, "Selecione um PDV válido para a abertura.", None
 
         if valor_abertura < 0:
             return False, "O valor de abertura não pode ser negativo.", None
 
         caixa_existente = CaixaModel.buscar_caixa_aberto_por_pdv(int(pdv_id))
         if caixa_existente:
-            return False, "Ja existe um caixa aberto para este PDV.", None
+            return False, "Já existe um caixa aberto para este PDV.", None
 
         try:
             caixa_id = CaixaModel.abrir_caixa(
@@ -116,6 +123,7 @@ class CaixaService:
         fundo_inicial = float(caixa.get("valor_abertura") or 0.0)
         total_sangrias = 0.0
         total_suprimentos = 0.0
+        total_reembolsos = 0.0
         faturamento_dinheiro = 0.0
         vendas_dia = 0
         faturamento_total = 0.0
@@ -132,21 +140,24 @@ class CaixaService:
                 totais_forma_pagamento = list(resumo_operacional.get("totais_forma_pagamento") or [])
                 total_sangrias = float(resumo_movimentacoes.get("total_sangrias") or 0.0)
                 total_suprimentos = float(resumo_movimentacoes.get("total_entradas_manuais") or 0.0)
-            except Exception:
-                faturamento_dinheiro = 0.0
-                vendas_dia = 0
-                faturamento_total = 0.0
-                totais_forma_pagamento = []
-                total_sangrias = 0.0
-                total_suprimentos = 0.0
+                total_reembolsos = float(CaixaModel.obter_total_reembolsos(int(caixa_id)) or 0.0)
+            except Exception as exc:
+                log_warning(f"Falha ao montar resumo de fechamento do caixa {caixa_id}: {exc}")
 
-        total_esperado = fundo_inicial - total_sangrias + total_suprimentos + faturamento_dinheiro
+        total_esperado = (
+            fundo_inicial
+            - total_sangrias
+            + total_suprimentos
+            + faturamento_dinheiro
+            - total_reembolsos
+        )
 
         return {
             "caixa_id": caixa.get("id"),
             "fundo_inicial": fundo_inicial,
             "total_sangrias": total_sangrias,
             "total_suprimentos": total_suprimentos,
+            "total_reembolsos": total_reembolsos,
             "faturamento_dinheiro": faturamento_dinheiro,
             "vendas_dia": vendas_dia,
             "faturamento_total": faturamento_total,
@@ -200,27 +211,37 @@ class CaixaService:
         caixa_id = caixa.get("id")
         fundo_inicial = float(caixa.get("valor_abertura") or 0.0)
         faturamento_dinheiro = 0.0
+        total_reembolsos = 0.0
+        resumo: Dict[str, Any] = {}
+
         if caixa_id:
             try:
                 faturamento_dinheiro = float(
                     CaixaModel.obter_resumo_operacional(int(caixa_id)).get("faturamento_dinheiro") or 0.0
                 )
                 resumo = CaixaModel.obter_resumo_movimentacoes(int(caixa_id))
-            except Exception:
-                resumo = {}
-        else:
-            resumo = {}
+                total_reembolsos = float(CaixaModel.obter_total_reembolsos(int(caixa_id)) or 0.0)
+            except Exception as exc:
+                log_warning(f"Falha ao montar resumo de movimentações do caixa {caixa_id}: {exc}")
 
         total_sangrias = float(resumo.get("total_sangrias") or 0.0)
         total_suprimentos = float(resumo.get("total_suprimentos") or 0.0)
         total_troco = float(resumo.get("total_troco") or 0.0)
-        saldo_atual = fundo_inicial + faturamento_dinheiro + total_suprimentos + total_troco - total_sangrias
+        saldo_atual = (
+            fundo_inicial
+            + faturamento_dinheiro
+            + total_suprimentos
+            + total_troco
+            - total_sangrias
+            - total_reembolsos
+        )
         return {
             "fundo_inicial": fundo_inicial,
             "faturamento_dinheiro": faturamento_dinheiro,
             "total_sangrias": total_sangrias,
             "total_suprimentos": total_suprimentos,
             "total_troco": total_troco,
+            "total_reembolsos": total_reembolsos,
             "saldo_atual": saldo_atual,
         }
 
@@ -236,34 +257,38 @@ class CaixaService:
         usuario = SessionManager.current_user() or {}
         caixa_id = int(caixa.get("id") or 0)
         usuario_id = int(usuario.get("id") or 0)
+        tipo_normalizado = str(tipo or "").strip().lower()
 
         if caixa_id <= 0:
             return False, "Não há caixa aberto para registrar a movimentação."
         if usuario_id <= 0:
             return False, "Não foi possível identificar o operador logado."
-        if str(tipo or "").strip().lower() not in {"sangria", "suprimento", "troco"}:
+        if tipo_normalizado not in {"sangria", "suprimento", "troco"}:
             return False, "Selecione um tipo de movimentação válido."
         if valor <= 0:
             return False, "Informe um valor maior que zero."
         if not observacao.strip():
             return False, "Descreva o motivo da movimentação."
+
         parametros_caixa = CaixaService._carregar_parametros_caixa()
-        exigir_admin = str(tipo).strip().lower() == "sangria" and bool(
+        exigir_admin = tipo_normalizado == "sangria" and bool(
             parametros_caixa.get("exigir_admin_sangria", True)
         )
+        if exigir_admin and not admin_password.strip():
+            return False, "Informe a senha de um administrador para continuar."
         if exigir_admin and not CaixaService.validar_admin_para_diferenca(admin_password):
-            return False, "Informe uma senha de administrador valida."
+            return False, "Informe uma senha de administrador válida."
 
         resumo = CaixaService.obter_resumo_movimentacoes()
         saldo_atual = float(resumo.get("saldo_atual") or 0.0)
-        if str(tipo).lower() == "sangria" and valor > saldo_atual:
+        if tipo_normalizado == "sangria" and valor > saldo_atual:
             return False, "A sangria não pode ser maior que o saldo atual disponível no caixa."
 
         try:
             CaixaModel.registrar_movimentacao(
                 caixa_id=caixa_id,
                 usuario_id=usuario_id,
-                tipo=tipo,
+                tipo=tipo_normalizado,
                 valor=valor,
                 observacao=observacao.strip(),
             )
@@ -275,7 +300,11 @@ class CaixaService:
     def validar_admin_para_diferenca(senha: str) -> bool:
         if not senha.strip():
             return False
-        usuario_admin = UsuarioModel.autenticar_admin_por_senha(senha.strip())
+        try:
+            usuario_admin = UsuarioModel.autenticar_admin_por_senha(senha.strip())
+        except Exception as exc:
+            log_warning(f"Falha ao validar senha administrativa no caixa: {exc}")
+            return False
         return usuario_admin is not None
 
     @staticmethod
@@ -286,11 +315,17 @@ class CaixaService:
         admin_password: str = "",
     ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
         usuario = CaixaSession.current()
-        operador = UsuarioModel.buscar_sessao_por_id(int(usuario["usuario_id"])) if usuario and usuario.get("usuario_id") else None
+        operador = (
+            UsuarioModel.buscar_sessao_por_id(int(usuario["usuario_id"]))
+            if usuario and usuario.get("usuario_id")
+            else None
+        )
         if not usuario or not usuario.get("id"):
             return False, "Não há caixa aberto para fechar.", None
         if not operador or operador.get("id") is None:
             return False, "Não foi possível identificar o operador para registrar o fechamento.", None
+        if valor_contado < 0:
+            return False, "O valor contado não pode ser negativo.", None
 
         resumo = CaixaService.obter_resumo_fechamento()
         total_esperado = float(resumo["total_esperado"])
@@ -298,12 +333,14 @@ class CaixaService:
 
         parametros_caixa = CaixaService._carregar_parametros_caixa()
         exigir_admin_diferenca = bool(parametros_caixa.get("exigir_admin_diferenca_fechamento", True))
+        if exigir_admin_diferenca and abs(diferenca) > 0.009 and not admin_password.strip():
+            return False, "Diferença identificada. Informe a senha de um administrador para concluir o fechamento.", None
         if (
             exigir_admin_diferenca
             and abs(diferenca) > 0.009
             and not CaixaService.validar_admin_para_diferenca(admin_password)
         ):
-            return False, "Diferenca identificada. Informe a senha de um administrador para concluir o fechamento.", None
+            return False, "Diferença identificada. Informe uma senha de administrador válida para concluir o fechamento.", None
 
         try:
             CaixaModel.fechar_caixa(

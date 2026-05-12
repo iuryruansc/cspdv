@@ -182,7 +182,7 @@ class ProdutoModel:
             conn.close()
 
     @staticmethod
-    def buscar_por_codigo(codigo: str) -> Optional[Dict[str, Any]]:
+    def buscar_por_codigo_barras(codigo: str) -> Optional[Dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
@@ -193,7 +193,25 @@ class ProdutoModel:
             resultado = cursor.fetchone()
             return cast(Optional[Dict[str, Any]], resultado)
         except Exception as e:
-            log_error("Erro ao buscar produto por código.", e)
+            log_error("Erro ao buscar produto por código de barras.", e)
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def buscar_por_codigo(codigo: str) -> Optional[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                "SELECT * FROM produtos WHERE cod_produto = %s LIMIT 1",
+                (codigo,)
+            )
+            resultado = cursor.fetchone()
+            return cast(Optional[Dict[str, Any]], resultado)
+        except Exception as e:
+            log_error("Erro ao buscar produto por código de fabricante.", e)
             raise
         finally:
             cursor.close()

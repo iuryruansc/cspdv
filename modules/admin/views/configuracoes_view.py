@@ -8,6 +8,7 @@ from utils.backup_runtime import BackupService
 from utils.format_utils import formatar_decimal
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
+
 class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -17,23 +18,10 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
         self._conectar_eventos()
 
     def _configurar_defaults(self) -> None:
-        self.lineEditRazaoSocial.setText("Empresa em configuração")
-        self.lineEditFundoSugerido.setText("0,00")
-        self.lineEditHorasSessao.setText("12")
-        self.lineEditIntervaloBackup.setText("24")
-        self.lineEditVersaoReferencia.setText("CSPdv v1.0.0")
-        self.lblUltimoBackup.setText("Nenhum backup realizado ainda")
-        self.checkVendaRapidaAdmin.setChecked(True)
-        self.checkBloquearPromocoesSimultaneas.setChecked(True)
-        self.checkAtivarPorVigencia.setChecked(True)
-        self.checkRestaurarLogin.setChecked(True)
-        self.checkBloquearFecharAppCaixa.setChecked(True)
-        self.checkExigirAdminSangria.setChecked(True)
-        self.checkExigirAdminReembolso.setChecked(True)
-        self.checkExigirAdminDiferenca.setChecked(True)
         self._repopular_moedas()
         self._repopular_parametros_venda()
         self._repopular_parametros_sistema()
+        self._aplicar_valores_padrao_interface()
 
     def _repopular_moedas(self) -> None:
         self.comboMoeda.clear()
@@ -50,6 +38,48 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
     def _repopular_parametros_sistema(self) -> None:
         self.comboPerfilLog.clear()
         self.comboPerfilLog.addItems(ConfiguracoesService.opcoes_perfil_log())
+
+    def _definir_combo_por_texto(self, combo, texto: str) -> None:
+        indice = combo.findText(texto)
+        combo.setCurrentIndex(indice if indice >= 0 else 0)
+
+    def _aplicar_valores_padrao_interface(self) -> None:
+        self.lineEditRazaoSocial.setText("Empresa em configuração")
+        self.lineEditFundoSugerido.setText("0,00")
+        self.lineEditHorasSessao.setText("12")
+        self.lineEditIntervaloBackup.setText("24")
+        self.lineEditVersaoReferencia.setText("CSPdv v1.0.0")
+        self.lblUltimoBackup.setText("Nenhum backup realizado ainda")
+
+        if self.comboPdvPadrao.count() > 0:
+            self.comboPdvPadrao.setCurrentIndex(0)
+        self._definir_combo_por_texto(self.comboMoeda, ConfiguracoesService.label_moeda("BRL"))
+        self._definir_combo_por_texto(
+            self.comboClientePadrao,
+            ConfiguracoesService.label_cliente_padrao("CONSUMIDOR_FINAL"),
+        )
+        self._definir_combo_por_texto(
+            self.comboRegraDesconto,
+            ConfiguracoesService.label_regra_desconto("EXIGIR_AUTORIZACAO"),
+        )
+        self._definir_combo_por_texto(
+            self.comboPrioridadePromocao,
+            ConfiguracoesService.label_prioridade_promocional("PROMOCAO_ANTES_DESCONTO"),
+        )
+        self._definir_combo_por_texto(
+            self.comboPerfilLog,
+            ConfiguracoesService.label_perfil_log("OPERACIONAL"),
+        )
+
+        self.checkVendaRapidaAdmin.setChecked(True)
+        self.checkPermitirVendaSemEstoque.setChecked(True)
+        self.checkBloquearPromocoesSimultaneas.setChecked(True)
+        self.checkAtivarPorVigencia.setChecked(True)
+        self.checkRestaurarLogin.setChecked(True)
+        self.checkBloquearFecharAppCaixa.setChecked(True)
+        self.checkExigirAdminSangria.setChecked(True)
+        self.checkExigirAdminReembolso.setChecked(True)
+        self.checkExigirAdminDiferenca.setChecked(True)
 
     def _carregar_parametros_iniciais(self) -> None:
         try:
@@ -83,19 +113,18 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
         self.comboPdvPadrao.setCurrentIndex(indice_padrao)
 
         moeda_label = ConfiguracoesService.label_moeda(empresa.get("moeda_padrao"))
-        moeda_index = self.comboMoeda.findText(moeda_label)
-        self.comboMoeda.setCurrentIndex(moeda_index if moeda_index >= 0 else 0)
+        self._definir_combo_por_texto(self.comboMoeda, moeda_label)
 
         cliente_label = ConfiguracoesService.label_cliente_padrao(empresa.get("cliente_padrao_venda"))
-        cliente_index = self.comboClientePadrao.findText(cliente_label)
-        self.comboClientePadrao.setCurrentIndex(cliente_index if cliente_index >= 0 else 0)
+        self._definir_combo_por_texto(self.comboClientePadrao, cliente_label)
 
-        desconto_label = ConfiguracoesService.label_regra_desconto(empresa.get("regra_desconto_venda"))
-        desconto_index = self.comboRegraDesconto.findText(desconto_label)
-        self.comboRegraDesconto.setCurrentIndex(desconto_index if desconto_index >= 0 else 0)
+        desconto_label = ConfiguracoesService.label_regra_desconto(
+            empresa.get("regra_desconto_venda") or "EXIGIR_AUTORIZACAO"
+        )
+        self._definir_combo_por_texto(self.comboRegraDesconto, desconto_label)
 
         self.checkVendaRapidaAdmin.setChecked(bool(empresa.get("habilitar_venda_rapida_admin", True)))
-        self.checkPermitirVendaSemEstoque.setChecked(bool(empresa.get("permitir_venda_sem_estoque", False)))
+        self.checkPermitirVendaSemEstoque.setChecked(bool(empresa.get("permitir_venda_sem_estoque", True)))
         self.lineEditFundoSugerido.setText(formatar_decimal(empresa.get("fundo_inicial_sugerido") or 0.0))
         self.checkExigirAdminSangria.setChecked(bool(empresa.get("exigir_admin_sangria", True)))
         self.checkExigirAdminReembolso.setChecked(bool(empresa.get("exigir_admin_reembolso", True)))
@@ -104,8 +133,7 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
         prioridade_label = ConfiguracoesService.label_prioridade_promocional(
             empresa.get("prioridade_promocional")
         )
-        prioridade_index = self.comboPrioridadePromocao.findText(prioridade_label)
-        self.comboPrioridadePromocao.setCurrentIndex(prioridade_index if prioridade_index >= 0 else 0)
+        self._definir_combo_por_texto(self.comboPrioridadePromocao, prioridade_label)
         self.checkBloquearPromocoesSimultaneas.setChecked(
             bool(empresa.get("bloquear_promocoes_simultaneas", True))
         )
@@ -119,8 +147,7 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
 
         self.lineEditIntervaloBackup.setText(str(int(empresa.get("intervalo_backup_horas") or 24)))
         perfil_log_label = ConfiguracoesService.label_perfil_log(empresa.get("perfil_log"))
-        perfil_log_index = self.comboPerfilLog.findText(perfil_log_label)
-        self.comboPerfilLog.setCurrentIndex(perfil_log_index if perfil_log_index >= 0 else 0)
+        self._definir_combo_por_texto(self.comboPerfilLog, perfil_log_label)
         self.lineEditVersaoReferencia.setText(str(empresa.get("versao_referencia") or "CSPdv v1.0.0"))
         self._atualizar_status_backup()
 
@@ -253,11 +280,10 @@ class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
         )
 
     def _restaurar_defaults(self) -> None:
-        self._configurar_defaults()
-        self._carregar_parametros_iniciais()
+        self._aplicar_valores_padrao_interface()
         self._atualizar_status_backup()
         mostrar_info(
             self,
             "Configurações",
-            "Os valores visuais padrão foram restaurados e os dados persistidos já configurados foram recarregados.",
+            "Os campos foram restaurados para os padrões definidos. Salve os parâmetros para persistir essas alterações.",
         )

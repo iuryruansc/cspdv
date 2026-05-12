@@ -2,6 +2,7 @@ from PyQt5.QtCore import QEvent, QObject, QSignalBlocker, Qt
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QLineEdit
 
+from utils.currency_runtime import simbolo_moeda_padrao
 from utils.string_utils import somente_digitos, texto_limpo
 
 def numero_decimal(valor: object) -> float:
@@ -28,7 +29,7 @@ def formatar_decimal(valor: object, casas: int = 2) -> str:
 def formatar_moeda(valor: object) -> str:
     texto = f"{numero_decimal(valor):,.2f}"
     texto = texto.replace(",", "X").replace(".", ",").replace("X", ".")
-    return f"R$ {texto}"
+    return f"{simbolo_moeda_padrao()} {texto}"
 
 def formatar_inteiro(valor: object) -> str:
     return str(int(numero_decimal(valor)))

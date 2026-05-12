@@ -1,110 +1,133 @@
-import os
+"""
+    python -m pytest tests/test_login.py -v
+"""
+
 import sys
-import traceback
-from pathlib import Path
+from unittest.mock import patch
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir = os.path.abspath(os.path.join(current_dir, ".."))
+from PyQt5.QtWidgets import QApplication, QDialog
 
-if root_dir not in sys.path:
-    sys.path.insert(0, root_dir)
-
-root_dir = str(Path(__file__).parent)
-if root_dir not in sys.path:
-    sys.path.append(root_dir)
-
-from dotenv import find_dotenv, load_dotenv
-from PyQt5.QtWidgets import QApplication, QMessageBox
-
-from database.connection import close_connection
 from core.session_manager import SessionManager
 from modules.auth.views.login_view import LoginView
 from modules.auth.views.selecao_modo_view import SelecaoModoView
 
-load_dotenv(find_dotenv())
+_app = QApplication.instance() or QApplication(sys.argv)
 
-def _excepthook(tipo, valor, tb):
-    erro_msg = "".join(traceback.format_exception(tipo, valor, tb))
-    print("\n" + "!" * 60)
-    print("ERRO NO AMBIENTE DE TESTE:")
-    print(erro_msg)
-    print("!" * 60 + "\n")
 
-    msg = QMessageBox()
-    msg.setIcon(QMessageBox.Critical)
-    msg.setWindowTitle("Erro de Execucao")
-    msg.setText("Ocorreu um erro não tratado no teste.")
-    msg.setInformativeText(str(valor))
-    msg.setDetailedText(erro_msg)
-    msg.exec_()
-
-sys.excepthook = _excepthook
-
-def run_test():
-    app = QApplication(sys.argv)
-    app.setApplicationName("CSPdv - Teste de Login")
-
-    print("\n" + "=" * 50)
-    print("INICIANDO TESTE DIRETO DE LOGIN")
-    print("=" * 50)
-
-    login_window = LoginView()
-
-    if login_window.exec_() == LoginView.Accepted:
-        usuario = SessionManager.current_user()
-
-        print("\n[SUCESSO] Login aceito!")
-        if usuario:
-            print(f"ID: {usuario.get('id')}")
-            print(f"Nome: {usuario.get('nome')}")
-            print(f"Cargo: {usuario.get('cargo')}")
-
-        print("\nAbrindo Selecao de Modo...")
-        selecao = SelecaoModoView()
-        selecao.show()
-
-        sys.exit(app.exec_())
-    else:
-        print("\n[INFO] O login foi cancelado ou a janela foi fechada.")
-
-def run_test_bypass():
-    app = QApplication(sys.argv)
-
-    print("\n" + "=" * 50)
-    print("MODO DE TESTE: BYPASS DE LOGIN ATIVADO")
-    print("=" * 50)
-
-    usuario_mock = {
-        "id": 1,
-        "nome": "Desenvolvedor Teste",
-        "login": "admin",
-        "cargo": "Administrador",
-        "email": "teste@cspdv.com",
-        "permissoes": ["vendas.pdv", "relatorios.ver"],
-    }
-
-    SessionManager.login(usuario_mock)
-    print(f"[BYPASS] Usuario '{usuario_mock['nome']}' injetado com sucesso.")
-    print(f"[BYPASS] Diagnostico de sessao: {SessionManager.diagnostics()}")
-
-    print("Encaminhando para SelecaoModoView...")
-
-    try:
-        selecao = SelecaoModoView()
-        selecao.show()
-
-        sys.exit(app.exec_())
-
-    except Exception as e:
-        print(f"[ERRO] Falha ao abrir a proxima tela: {e}")
-
-if __name__ == "__main__":
-    try:
-        # run_test()
-        run_test_bypass()
-    except Exception as e:
-        print(f"Falha ao iniciar o teste: {e}")
-    finally:
+class TestLoginView:
+    def setup_method(self):
         SessionManager.logout()
-        close_connection()
-        print("Conexao com o banco de dados encerrada.")
+        LoginView.usuario_logado = None
+
+    def teardown_method(self):
+        SessionManager.logout()
+        LoginView.usuario_logado = None
+
+    @patch("modules.auth.views.login_view.UsuarioModel.autenticar")
+    def test_exibe_erro_quando_campos_obrigatorios_estao_vazios(self, mock_autenticar):
+        view = LoginView()
+        view.show()
+
+        view.lineEditLogin.setText("")
+        view.lineEditSenha.setText("")
+        view._login()
+
+        assert view.labelErro.isVisible() is True
+        assert "preencha os campos corretamente" in view.labelErro.text().lower()
+        mock_autenticar.assert_not_called()
+
+    @patch("modules.auth.views.login_view.UsuarioModel.autenticar", return_value=None)
+    def test_exibe_erro_quando_credenciais_sao_invalidas(self, _mock_autenticar):
+        view = LoginView()
+        view.show()
+
+        view.lineEditLogin.setText("operador")
+        view.lineEditSenha.setText("errada")
+        view._login()
+
+        assert view.labelErro.isVisible() is True
+        assert "inv" in view.labelErro.text().lower()
+        assert view.result() != QDialog.Accepted
+
+    @patch("modules.auth.views.login_view.SessionManager.session_persistence_enabled", return_value=False)
+    @patch("modules.auth.views.login_view.UsuarioModel.autenticar")
+    def test_login_valido_autentica_sessao_e_aceita_dialog(self, mock_autenticar, _mock_persistencia):
+        usuario = {
+            "id": 1,
+            "nome": "Operador Teste",
+            "login": "operador",
+            "permissoes": ["vendas.pdv"],
+        }
+        mock_autenticar.return_value = usuario
+        view = LoginView()
+
+        view.lineEditLogin.setText("operador")
+        view.lineEditSenha.setText("123")
+        view._login()
+
+        atual = SessionManager.current_user()
+        assert view.result() == QDialog.Accepted
+        assert atual is not None
+        assert atual["nome"] == "Operador Teste"
+        assert LoginView.usuario_logado is not None
+        assert LoginView.usuario_logado["id"] == 1
+
+
+class TestSelecaoModoView:
+    @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")
+    @patch("modules.auth.views.selecao_modo_view.descricao_ambiente", return_value="Ambiente de teste")
+    @patch("modules.auth.views.selecao_modo_view.versao_referencia", return_value="CSPdv v1.0.0")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.current_user")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.has_permission")
+    def test_exibe_operador_e_respeita_permissoes(
+        self,
+        mock_has_permission,
+        mock_current_user,
+        _mock_versao,
+        _mock_ambiente,
+        _mock_tamanho,
+    ):
+        mock_current_user.return_value = {
+            "id": 7,
+            "nome": "Iury",
+            "permissoes": ["vendas.pdv", "financeiro.total"],
+        }
+        permissoes = {"vendas.pdv", "financeiro.total"}
+        mock_has_permission.side_effect = lambda chave: chave in permissoes
+
+        view = SelecaoModoView()
+
+        assert view.lblOperadorNome.text() == "OPERADOR: IURY"
+        assert view.lblVersao.text() == "CSPdv v1.0.0"
+        assert view.shortcut_f1.isEnabled() is True
+        assert view.shortcut_f2.isEnabled() is False
+        assert view.shortcut_f3.isEnabled() is False
+        assert view.shortcut_f4.isEnabled() is True
+        assert view.shortcut_f5.isEnabled() is False
+        assert view.cardFrenteCaixa.isHidden() is False
+        assert view.cardAdmin.isHidden() is True
+        assert view.cardEstoque.isHidden() is True
+        assert view.cardFinanceiro.isHidden() is False
+        assert view.cardRelatorios.isHidden() is True
+
+    @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")
+    @patch("modules.auth.views.selecao_modo_view.descricao_ambiente", return_value="Ambiente de teste")
+    @patch("modules.auth.views.selecao_modo_view.versao_referencia", return_value="CSPdv v1.0.0")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.current_user", return_value=None)
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.has_permission", return_value=False)
+    def test_exibe_operador_nao_logado_sem_permissoes(
+        self,
+        _mock_has_permission,
+        _mock_current_user,
+        _mock_versao,
+        _mock_ambiente,
+        _mock_tamanho,
+    ):
+        view = SelecaoModoView()
+
+        assert view.lblOperadorNome.text() == "OPERADOR: NÃO LOGADO"
+        assert view.shortcut_f1.isEnabled() is False
+        assert view.shortcut_f2.isEnabled() is False
+        assert view.shortcut_f3.isEnabled() is False
+        assert view.shortcut_f4.isEnabled() is False
+        assert view.shortcut_f5.isEnabled() is False

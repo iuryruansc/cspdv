@@ -1,3 +1,4 @@
+import re
 from itertools import count
 from typing import Any, Dict, List, Optional
 
@@ -271,13 +272,23 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def _atualizar_data_hora(self) -> None:
         self.lblDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss"))
 
+    def _extrair_quantidade_descricao(self, termo: str) -> tuple[Optional[int], str]:
+        correspondencia = re.match(r"^\s*(\d+)\s*\*\s*(.+?)\s*$", termo)
+        if not correspondencia:
+            return None, termo.strip()
+        return int(correspondencia.group(1)), correspondencia.group(2).strip()
+
     def _agendar_busca_produto(self) -> None:
         if self._bloquear_busca_descricao:
             return
-        termo = self.lineEditDescricaoProduto.text().strip()
-        if termo and self._linha_cupom_selecionada is not None:
+        quantidade_informada, termo_busca = self._extrair_quantidade_descricao(
+            self.lineEditDescricaoProduto.text().strip()
+        )
+        if quantidade_informada is not None:
+            self.lineEditQuantidade.setText(str(quantidade_informada))
+        if termo_busca and self._linha_cupom_selecionada is not None:
             self._limpar_selecao_cupom()
-        if not termo:
+        if not termo_busca:
             self._produto_atual = None
             self._resultados_busca_produto = []
             self._ocultar_sugestoes_produto()
@@ -286,15 +297,19 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._busca_timer.start()
 
     def _executar_busca_produto(self) -> None:
-        termo = self.lineEditDescricaoProduto.text().strip()
-        if not termo:
+        quantidade_informada, termo_busca = self._extrair_quantidade_descricao(
+            self.lineEditDescricaoProduto.text().strip()
+        )
+        if quantidade_informada is not None:
+            self.lineEditQuantidade.setText(str(quantidade_informada))
+        if not termo_busca:
             self._produto_atual = None
             self._resultados_busca_produto = []
             self._ocultar_sugestoes_produto()
             self._limpar_preview_produto()
             return
 
-        produtos = ProdutoService.buscar_para_venda(termo)
+        produtos = ProdutoService.buscar_para_venda(termo_busca)
         if not produtos:
             self._produto_atual = None
             self._resultados_busca_produto = []
@@ -351,6 +366,9 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._adicionar_produto_pelo_enter()
 
     def _adicionar_produto_pelo_enter(self) -> None:
+        quantidade_informada, _ = self._extrair_quantidade_descricao(
+            self.lineEditDescricaoProduto.text().strip()
+        )
         if self.listaSugestoesProdutos.isVisible() and self.listaSugestoesProdutos.currentItem() is not None:
             self._selecionar_produto_sugerido(self.listaSugestoesProdutos.currentItem())
         else:
@@ -358,7 +376,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if not self._produto_atual:
             return
 
-        quantidade = int(self.lineEditQuantidade.text().strip() or "1")
+        quantidade = quantidade_informada or int(self.lineEditQuantidade.text().strip() or "1")
+        self.lineEditQuantidade.setText(str(quantidade))
         if quantidade <= 0:
             mostrar_aviso(self, "Quantidade invalida", "Informe uma quantidade maior que zero.")
             self.lineEditQuantidade.setFocus()

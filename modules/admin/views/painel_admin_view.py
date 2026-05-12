@@ -13,6 +13,7 @@ from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
+
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -41,7 +42,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
             botao.clicked.disconnect()
         except TypeError:
             # O botão ainda não possui ação anterior conectada.
-            pass
+            return
 
     def _setup_dashboard_actions(self) -> None:
         self.btnFecharCaixaDashboard = QPushButton("Fechar Caixa", self._central_widget_parent())

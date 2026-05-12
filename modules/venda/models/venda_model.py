@@ -15,6 +15,13 @@ class LoteAlocacao:
     quantidade: int
 
 class VendaModel:
+    _STATUS_VENDA_OPERACIONAL = (
+        "CONCLUIDA",
+        "CONCLUIDA_COM_PENDENCIA",
+        "PARCIALMENTE_REEMBOLSADA",
+        "REEMBOLSADA",
+    )
+
     @staticmethod
     def registrar_venda(
         *,
@@ -174,7 +181,7 @@ class VendaModel:
                     COALESCE(SUM(valor_total), 0) AS faturamento_total
                 FROM vendas
                 WHERE caixa_id = %s
-                  AND status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA')
+                  AND status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                 """,
                 (caixa_id,),
             )
@@ -189,7 +196,7 @@ class VendaModel:
                 FROM pagamento_parcial pp
                 INNER JOIN vendas v ON v.id = pp.venda_id
                 WHERE v.caixa_id = %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA')
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                 GROUP BY pp.forma_pagamento
                 ORDER BY pp.forma_pagamento
                 """,
@@ -203,7 +210,7 @@ class VendaModel:
                 FROM pagamento_parcial pp
                 INNER JOIN vendas v ON v.id = pp.venda_id
                 WHERE v.caixa_id = %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA')
+                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
                   AND LOWER(pp.forma_pagamento) = 'dinheiro'
                 """,
                 (caixa_id,),
