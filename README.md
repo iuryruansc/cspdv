@@ -1,29 +1,25 @@
 # CSPdv
 
-Sistema desktop de ponto de venda e operação administrativa desenvolvido em `Python + PyQt5`, com foco em operação de loja, caixa, financeiro, promoções e administração central.
+Sistema desktop de ponto de venda e operacao administrativa desenvolvido em `Python + PyQt5`, com foco em operacao de loja, caixa, financeiro, promocoes e administracao central.
 
-## Visão geral
+## Visao geral
 
-O projeto já cobre o fluxo principal de uma loja de pequeno e médio porte:
+O projeto cobre hoje o fluxo principal de uma operacao de pequeno e medio porte:
 
 - setup inicial do sistema
-- autenticação e seleção de módulo
-- abertura e fechamento de caixa
+- autenticacao e selecao de modulo
+- abertura, movimentacao e fechamento de caixa
 - venda simples com cupom, descontos e pagamento
-- venda rápida a partir do painel admin
+- venda rapida a partir do painel admin
+- venda com pagamento parcial e geracao de conta a receber
 - reembolso total e parcial
-- contas a receber para vendas com pendência
-- financeiro com movimentações, recebimentos e reembolsos
+- financeiro com recebimentos, contas a receber e reembolsos
 - estoque com consulta e ajuste
-- promoções com vínculo de produtos
+- promocoes com vinculo de produtos
+- configuracoes operacionais persistidas
+- backup manual e acompanhamento do ultimo backup
 
-Hoje o sistema já está em um estágio utilizável para operação simples de balcão, com foco em:
-
-- vendas à vista
-- vendas com pagamento parcial
-- recebimento posterior
-- controle básico de estoque
-- operação de caixa
+O sistema ja se encontra em um estagio funcional para operacao assistida, com cobertura automatizada relevante nas areas criticas.
 
 ## Stack
 
@@ -33,123 +29,146 @@ Hoje o sistema já está em um estágio utilizável para operação simples de b
 - `python-dotenv`
 - `bcrypt`
 
-Dependências principais em [requirements.txt](D:\Python\cspdv\requirements.txt).
+Dependencias principais em [requirements.txt](D:\Python\cspdv\requirements.txt).
 
 ## Estrutura do projeto
 
 ```text
 cspdv/
-├── core/
-├── database/
-├── modules/
-│   ├── admin/
-│   ├── auth/
-│   ├── categorias/
-│   ├── clientes/
-│   ├── estoque/
-│   ├── financeiro/
-│   ├── fornecedores/
-│   ├── marcas/
-│   ├── produtos/
-│   ├── promocoes/
-│   ├── relatorios/
-│   ├── setup/
-│   └── venda/
-├── ui/
-├── utils/
-├── tests/
-└── main.py
+  core/
+  database/
+  docs/
+  modules/
+    admin/
+    auth/
+    categorias/
+    clientes/
+    estoque/
+    financeiro/
+    fornecedores/
+    marcas/
+    produtos/
+    promocoes/
+    relatorios/
+    setup/
+    shared/
+    venda/
+  ui/
+  utils/
+  media/
+  tests/
+    admin/
+    auth/
+    core/
+    financeiro/
+    produtos/
+    promocoes/
+    setup/
+    utils/
+    venda/
+  main.py
 ```
 
-## Padrão de arquitetura
+## Padrao de arquitetura
 
-O projeto segue, de forma geral, esta separação:
+O projeto segue, de forma geral, esta separacao:
 
 - `modules/*/models`
   - acesso a dados e consultas
 - `modules/*/services`
-  - regras de negócio e orquestração
+  - regras de negocio e orquestracao
 - `modules/*/views`
-  - comportamento e integração das telas
+  - comportamento e integracao das telas
 - `ui/*`
-  - layout visual das telas
+  - layout visual gerado pelo Qt Designer
+- `utils/*`
+  - helpers compartilhados sem regra de negocio
+- `tests/*`
+  - testes automatizados organizados por dominio funcional
 
-O padrão atual prioriza:
+Hoje o projeto ja usa alguns helpers compartilhados como base:
 
-- `ui/*.py` ou `ui/*.ui` cuidando do layout
-- `views` focadas em comportamento
-- lógica operacional concentrada em `services` e `models`
+- [utils/format_utils.py](D:\Python\cspdv\utils\format_utils.py)
+- [utils/table_widget_utils.py](D:\Python\cspdv\utils\table_widget_utils.py)
+- [utils/combo_loader.py](D:\Python\cspdv\utils\combo_loader.py)
+- [utils/ui_messages.py](D:\Python\cspdv\utils\ui_messages.py)
 
-## Módulos atuais
+Mais detalhes em [docs/architecture.md](D:\Python\cspdv\docs\architecture.md).
+
+## Modulos atuais
 
 ### Auth
 
 - login
-- restauração de sessão
-- seleção de modo no centro de operações
+- restauracao de sessao
+- selecao de modo no centro de operacoes
 
 ### Setup
 
-- wizard de configuração inicial
-- criação de registros-base
-- criação das formas de pagamento padrão
+- wizard de configuracao inicial
+- criacao de registros-base
+- criacao das formas de pagamento padrao
 
 ### Admin
 
 - dashboard administrativo
-- ações rápidas
+- alertas operacionais
+- acoes rapidas
 - gerenciamento central de cadastros
-- venda rápida sem sair do painel
-- card de status estrutural do sistema
+- venda rapida sem sair do painel
+- configuracoes persistidas
+- status de backup
 
 ### Venda
 
-- frente de loja
 - frente de venda
+- venda rapida
 - consulta de produto
-- seleção de cliente
+- consulta de preco
+- selecao de cliente
 - descontos
-- confirmação de venda
+- confirmacao de venda
 - pagamento
-- finalização com pendência
-- pós-pagamento
+- finalizacao com pendencia
+- pos-pagamento
 - resumo do caixa atual
 
 ### Caixa
 
 - abertura de caixa
-- movimentação de caixa
+- movimentacao de caixa
 - fechamento de caixa
-- reforço de troco
+- reforco de troco
 - sangria e suprimento
 
 ### Financeiro
 
-- movimentações de caixa
+- movimentacoes de caixa
 - vendas registradas
 - contas a receber
-- recebimento de pendências
+- recebimento de pendencias
+- comprovante simples de recebimento
 - reembolsos registrados
 - consulta de venda
 
 ### Estoque
 
 - painel de estoque
-- produtos e lotes
-- últimas movimentações
+- consulta de produtos
+- ultimas movimentacoes
 - busca e filtros
 - ajuste de quantidade
 
-### Promoções
+### Promocoes
 
-- painel de promoções e campanhas
-- nova promoção
-- edição
-- duplicação
+- painel de promocoes e campanhas
+- nova promocao
+- edicao
+- duplicacao
 - encerramento
 - cancelamento
-- vínculo de produtos
-- validação de conflito entre promoções sobrepostas
+- vinculo de produtos
+- validacao de conflito entre promocoes sobrepostas
 
 ## Fluxos implementados
 
@@ -157,17 +176,17 @@ O padrão atual prioriza:
 
 1. abrir caixa
 2. selecionar produtos
-3. aplicar desconto, se necessário
+3. aplicar desconto, se necessario
 4. confirmar venda
-5. lançar pagamentos
+5. lancar pagamentos
 6. concluir a venda
 7. baixar estoque
 
-### Venda com pendência
+### Venda com pendencia
 
 1. montar a venda normalmente
 2. registrar pagamento parcial
-3. finalizar com pendência
+3. finalizar com pendencia
 4. gerar conta a receber
 5. receber o saldo depois no financeiro
 
@@ -175,22 +194,40 @@ O padrão atual prioriza:
 
 - reembolso total
 - reembolso parcial
-- devolução de estoque
+- devolucao de estoque
 - registro financeiro
-- atualização de status da venda
+- atualizacao de status da venda
 
-### Promoções
+### Promocoes
 
-- cadastro de promoção ou campanha
-- regra por percentual, valor ou preço fixo
-- vínculo de produtos
-- prevenção de conflito com promoções ativas/agendadas no mesmo período
+- cadastro de promocao ou campanha
+- regra por percentual, valor ou preco fixo
+- vinculo de produtos
+- prevencao de conflito com promocoes ativas ou agendadas no mesmo periodo
+
+## Convencoes operacionais importantes
+
+### Identidade de produto
+
+- o `id` da tabela continua sendo a chave interna do sistema
+- o campo `Codigo` do cadastro de produto representa `cod_produto`
+- `cod_produto`, `codigo_barras` e nome podem ser usados na busca operacional de venda
+
+### Cupom e comprovante
+
+- o pos-pagamento gera `comprovante nao fiscal`
+- o botao atual imprime comprovante operacional, nao documento fiscal autorizado
+
+### Itens no cupom
+
+- leituras repetidas do mesmo produto entram como linhas separadas
+- `3*produto` adiciona a quantidade diretamente na linha lancada
 
 ## Banco de dados
 
-O projeto usa MySQL e depende de variáveis de ambiente carregadas via `.env`.
+O projeto usa MySQL e depende de variaveis de ambiente carregadas via `.env`.
 
-Além das tabelas-base do sistema, já existem estruturas específicas para:
+Entre as tabelas relevantes da operacao atual:
 
 - `vendas`
 - `itens_venda`
@@ -211,7 +248,7 @@ Além das tabelas-base do sistema, já existem estruturas específicas para:
 
 ## Como executar
 
-### 1. Instale as dependências
+### 1. Instale as dependencias
 
 ```bash
 pip install -r requirements.txt
@@ -219,42 +256,21 @@ pip install -r requirements.txt
 
 ### 2. Configure o `.env`
 
-Defina as credenciais e parâmetros de conexão do banco conforme o ambiente da loja.
-
-Variáveis esperadas pelo projeto:
+Variaveis esperadas pelo projeto:
 
 - `DB_HOST`
-  - host do MySQL
-  - exemplo: `127.0.0.1`
 - `DB_PORT`
-  - porta do MySQL
-  - exemplo: `3306`
 - `DB_USER`
-  - usuário do banco
 - `DB_PASSWORD`
-  - senha do banco
 - `DB_NAME`
-  - nome do banco de dados
 - `DB_CONNECTION_TIMEOUT`
-  - timeout da conexão em segundos
-  - exemplo: `5`
 - `DB_USE_POOL`
-  - habilita pool de conexões
-  - valores aceitos na prática: `true`, `false`, `1`, `0`, `yes`, `on`
 - `DB_POOL_NAME`
-  - nome do pool de conexões
-  - opcional
-  - padrão usado pelo projeto: `cspdv_pool`
 - `DB_POOL_SIZE`
-  - quantidade de conexões no pool
-  - exemplo: `10`
-
-Variáveis auxiliares de identificação da aplicação:
-
 - `APP_NAME`
 - `APP_VERSION`
 
-Exemplo de `.env`:
+Exemplo:
 
 ```env
 DB_HOST=127.0.0.1
@@ -278,64 +294,50 @@ APP_VERSION=1.0.0
 python main.py
 ```
 
-## Situação atual do projeto
+## Testes
 
-O sistema está adequado para:
+A suite automatizada fica organizada por dominio em [tests](D:\Python\cspdv\tests:1).
 
+Exemplos:
+
+```bash
+pytest tests/venda -q
+pytest tests/financeiro -q
+pytest tests/produtos -q
+pytest -q
+```
+
+Estado atual validado:
+
+- `170` testes passando
+
+## Documentacao auxiliar
+
+- [docs/architecture.md](D:\Python\cspdv\docs\architecture.md)
+- [docs/tooling_commands.md](D:\Python\cspdv\docs\tooling_commands.md)
+- [docs/homologacao/checklist_homologacao_operacional.xlsx](D:\Python\cspdv\docs\homologacao\checklist_homologacao_operacional.xlsx)
+
+## Situacao atual do projeto
+
+O sistema esta adequado para:
+
+- operacao assistida
 - piloto interno
-- operação inicial de vendas simples
-- testes operacionais de loja
+- homologacao operacional estruturada
+- evolucao incremental com base ja testada
 
-Ainda é recomendado validar em homologação antes de produção plena, principalmente em:
+Ainda e recomendado validar o ambiente real de loja antes de producao plena, principalmente em:
 
-- caixa
-- promoções
-- contas a receber
-- reembolsos
+- impressao operacional
+- infraestrutura de banco
+- dispositivos e perifericos
+- rotina de backup
+- eventual integracao fiscal futura
 
-Existe uma planilha de homologação no projeto:
+## Proximas frentes naturais
 
-- [checklist_homologacao_operacional.xlsx](D:\Python\cspdv\docs\homologacao\checklist_homologacao_operacional.xlsx)
-
-## Próximas implementações sugeridas
-
-### Curto prazo
-
-- persistência real da área de configurações do admin
-- melhoria da auditoria operacional
-- mais refinamento visual e de usabilidade no financeiro
-- histórico mais rico de contas a receber
-- relatórios operacionais básicos
-
-### Médio prazo
-
-- destaque visual de preços promocionais na venda
-- gestão mais completa de campanhas por categoria, marca e PDV
-- mais regras de configuração de caixa e venda
-- melhoria da área fiscal
-- consolidação de logs administrativos
-
-### Longo prazo
-
-- impressão completa de documentos operacionais
-- relatórios gerenciais
-- regras avançadas de cumulatividade promocional
-- dashboards mais analíticos
-- possíveis integrações externas
-
-## Pontos de atenção
-
-- a área de `Relatórios` ainda não está no mesmo nível de maturidade dos módulos principais
-- parte das funcionalidades fiscais ainda depende de evolução futura
-- a política de promoções cumulativas ainda não está ativa no PDV
-- o sistema foi estruturado para evolução incremental, então alguns módulos ainda estão em fase de consolidação funcional
-
-## Objetivo do projeto
-
-O objetivo do `CSPdv` é oferecer uma base sólida para:
-
-- frente de caixa
-- operação administrativa
-- controle financeiro da loja
-- campanhas promocionais
-- evolução futura para um ERP/POS mais completo
+- relatorios
+- lotes
+- permissoes
+- camada fiscal real
+- refinamentos de UX e operacao
