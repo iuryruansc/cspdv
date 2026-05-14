@@ -8,10 +8,10 @@ from modules.venda.views.frente_venda_view import FrenteVendaView
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 def _produto_base(**overrides):
     produto = {
         "id": 1,
+        "cod_produto": "FAB-001",
         "codigo_barras": "789100000001",
         "nome": "Bombom Recheado",
         "preco_venda": 5.0,
@@ -25,7 +25,6 @@ def _produto_base(**overrides):
     produto.update(overrides)
     return produto
 
-
 def _params_venda(**overrides):
     params = {
         "cliente_padrao_venda": "CONSUMIDOR_FINAL",
@@ -35,14 +34,12 @@ def _params_venda(**overrides):
     params.update(overrides)
     return params
 
-
 def _params_promocoes(**overrides):
     params = {
         "prioridade_promocional": "PROMOCAO_ANTES_DESCONTO",
     }
     params.update(overrides)
     return params
-
 
 def _criar_view(*, params_venda=None, params_promocoes=None):
     with (
@@ -59,7 +56,6 @@ def _criar_view(*, params_venda=None, params_promocoes=None):
         view = FrenteVendaView()
     view.show()
     return view
-
 
 class TestFrenteVendaView:
     def test_extrai_quantidade_embutida_com_asterisco(self):
@@ -102,6 +98,7 @@ class TestFrenteVendaView:
         assert int(view._produto_atual["id"]) == 1
         assert view.listaSugestoesProdutos.count() == 2
         assert "Bombom Recheado" in view.listaSugestoesProdutos.item(0).text()
+        assert "FAB-001" in view.listaSugestoesProdutos.item(0).text()
 
     def test_calcula_desconto_percentual_e_fixo(self):
         assert FrenteVendaView._calcular_desconto(100.0, "percentual", 12.5) == 12.5
@@ -148,3 +145,34 @@ class TestFrenteVendaView:
         view._reconciliar_precos_promocionais()
 
         assert view._itens_venda[0]["preco_venda"] == 6.5
+
+    @patch("modules.venda.views.frente_venda_view.ProdutoService.buscar_para_venda")
+    def test_adiciona_mesmo_produto_em_linhas_separadas(self, mock_busca):
+        mock_busca.return_value = [_produto_base()]
+        view = _criar_view()
+
+        view.lineEditDescricaoProduto.setText("Bombom Recheado")
+        view._adicionar_produto_pelo_enter()
+        view.lineEditDescricaoProduto.setText("Bombom Recheado")
+        view._adicionar_produto_pelo_enter()
+
+        assert len(view._itens_venda) == 2
+        assert view._itens_venda[0]["id"] == 1
+        assert view._itens_venda[1]["id"] == 1
+        assert view._itens_venda[0]["quantidade"] == 1
+        assert view._itens_venda[1]["quantidade"] == 1
+
+    @patch("modules.venda.views.frente_venda_view.mostrar_aviso")
+    @patch("modules.venda.views.frente_venda_view.ProdutoService.buscar_para_venda")
+    def test_bloqueia_linha_nova_quando_total_do_mesmo_produto_excede_estoque(self, mock_busca, mock_aviso):
+        mock_busca.return_value = [_produto_base(quantidade_estoque=3)]
+        view = _criar_view(params_venda=_params_venda(permitir_venda_sem_estoque=False))
+
+        view.lineEditDescricaoProduto.setText("2*Bombom Recheado")
+        view._adicionar_produto_pelo_enter()
+        view.lineEditDescricaoProduto.setText("2*Bombom Recheado")
+        view._adicionar_produto_pelo_enter()
+
+        assert len(view._itens_venda) == 1
+        assert view._itens_venda[0]["quantidade"] == 2
+        mock_aviso.assert_called_once()

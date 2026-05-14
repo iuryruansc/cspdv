@@ -9,7 +9,6 @@ from modules.financeiro.services.financeiro_service import FinanceiroService
 
 CENT = Decimal("0.01")
 
-
 class ReembolsoService:
     @staticmethod
     def preparar_pagamentos_reembolso(venda_id: int, valor_reembolso: Decimal) -> List[Dict[str, Any]]:

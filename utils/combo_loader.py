@@ -24,3 +24,12 @@ def popular_combo(
 
 def combo_id(combo: QComboBox) -> Any:
     return combo.currentData()
+
+def combo_int(combo: QComboBox) -> int | None:
+    value = combo.currentData()
+    if value in (None, "", 0, "0"):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None

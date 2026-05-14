@@ -24,8 +24,10 @@ from modules.financeiro.services.financeiro_service import FinanceiroService
 from modules.financeiro.services.reembolso_service import ReembolsoService
 from modules.venda.services.caixa_service import CaixaService
 from ui.financeiro.painel_financeiro import Ui_PainelFinanceiro
-from utils.format_utils import formatar_inteiro, formatar_moeda
+from utils.combo_loader import combo_int
+from utils.format_utils import formatar_data, formatar_data_hora, formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
 class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMixin):
@@ -422,7 +424,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         resumo = FinanceiroService.obter_resumo_financeiro(
             data_inicial=self.dateInicial.date().toPyDate(),
             data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=self._combo_data_int(self.cmbPdvFiltro),
+            pdv_id=combo_int(self.cmbPdvFiltro),
             forma_pagamento=self._forma_pagamento_filtro(),
         )
         self.lblSaldoCaixaValor.setText(formatar_moeda(resumo.get("saldo_atual_caixa")))
@@ -434,19 +436,19 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         registros = FinanceiroService.listar_movimentacoes_caixa(
             data_inicial=self.dateInicial.date().toPyDate(),
             data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=self._combo_data_int(self.cmbPdvFiltro),
+            pdv_id=combo_int(self.cmbPdvFiltro),
         )
 
         registros.sort(key=lambda r: r.get("data_hora") or 0, reverse=True)
 
         self.tableCaixaMovimentacoes.setRowCount(len(registros))
         for row, registro in enumerate(registros):
-            self._set_table_item(self.tableCaixaMovimentacoes, row, 0, self._formatar_data_hora(registro.get("data_hora")))
-            self._set_table_item(self.tableCaixaMovimentacoes, row, 1, str(registro.get("pdv") or "-"))
-            self._set_table_item(self.tableCaixaMovimentacoes, row, 2, str(registro.get("operador") or "-"))
-            self._set_table_item(self.tableCaixaMovimentacoes, row, 3, str(registro.get("motivo") or "-"))
-            self._set_table_item(self.tableCaixaMovimentacoes, row, 4, str(registro.get("forma_pagamento") or "-"))
-            self._set_table_item(
+            set_table_item(self.tableCaixaMovimentacoes, row, 0, formatar_data_hora(registro.get("data_hora")))
+            set_table_item(self.tableCaixaMovimentacoes, row, 1, str(registro.get("pdv") or "-"))
+            set_table_item(self.tableCaixaMovimentacoes, row, 2, str(registro.get("operador") or "-"))
+            set_table_item(self.tableCaixaMovimentacoes, row, 3, str(registro.get("motivo") or "-"))
+            set_table_item(self.tableCaixaMovimentacoes, row, 4, str(registro.get("forma_pagamento") or "-"))
+            set_table_item(
                 self.tableCaixaMovimentacoes,
                 row,
                 5,
@@ -458,14 +460,14 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         registros = FinanceiroService.listar_vendas_registradas(
             data_inicial=self.dateInicial.date().toPyDate(),
             data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=self._combo_data_int(self.cmbPdvFiltro),
+            pdv_id=combo_int(self.cmbPdvFiltro),
             forma_pagamento=self._forma_pagamento_filtro(),
             busca=self.lineEditBuscaConta.text().strip() or None,
         )
 
         self.tablePagamentos.setRowCount(len(registros))
         for row, registro in enumerate(registros):
-            item_venda = self._set_table_item(
+            item_venda = set_table_item(
                 self.tablePagamentos,
                 row,
                 0,
@@ -473,16 +475,16 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignCenter,
             )
             item_venda.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
-            self._set_table_item(self.tablePagamentos, row, 1, str(registro.get("cliente") or "-"))
-            self._set_table_item(self.tablePagamentos, row, 2, str(registro.get("forma_pagamento") or "-"))
-            status_item = self._set_table_item(
+            set_table_item(self.tablePagamentos, row, 1, str(registro.get("cliente") or "-"))
+            set_table_item(self.tablePagamentos, row, 2, str(registro.get("forma_pagamento") or "-"))
+            status_item = set_table_item(
                 self.tablePagamentos,
                 row,
                 3,
                 str(registro.get("status") or "-"),
                 alignment=Qt.AlignCenter,
             )
-            total_item = self._set_table_item(
+            total_item = set_table_item(
                 self.tablePagamentos,
                 row,
                 4,
@@ -497,14 +499,14 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         registros = FinanceiroService.listar_contas_receber(
             data_inicial=self.dateInicial.date().toPyDate(),
             data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=self._combo_data_int(self.cmbPdvFiltro),
+            pdv_id=combo_int(self.cmbPdvFiltro),
             busca=self.lineEditBuscaConta.text().strip() or None,
             status_filtro=self.cmbStatusContaFiltro.currentData(),
         )
 
         self.tableContasReceber.setRowCount(len(registros))
         for row, registro in enumerate(registros):
-            item_conta = self._set_table_item(
+            item_conta = set_table_item(
                 self.tableContasReceber,
                 row,
                 0,
@@ -516,22 +518,22 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             item_conta.setData(Qt.UserRole + 2, registro.get("ultimo_recebimento"))
             item_conta.setData(Qt.UserRole + 3, int(registro.get("total_recebimentos") or 0))
             item_conta.setData(Qt.UserRole + 4, int(registro.get("dias_atraso") or 0))
-            self._set_table_item(self.tableContasReceber, row, 1, str(registro.get("cliente") or "-"))
-            self._set_table_item(
+            set_table_item(self.tableContasReceber, row, 1, str(registro.get("cliente") or "-"))
+            set_table_item(
                 self.tableContasReceber,
                 row,
                 2,
-                self._formatar_data(registro.get("data_vencimento")),
+                formatar_data(registro.get("data_vencimento")),
                 alignment=Qt.AlignCenter,
             )
-            status_item = self._set_table_item(
+            status_item = set_table_item(
                 self.tableContasReceber,
                 row,
                 3,
                 str(registro.get("status") or "-"),
                 alignment=Qt.AlignCenter,
             )
-            saldo_item = self._set_table_item(
+            saldo_item = set_table_item(
                 self.tableContasReceber,
                 row,
                 4,
@@ -548,7 +550,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         registros = FinanceiroService.listar_reembolsos(
             data_inicial=self.dateInicial.date().toPyDate(),
             data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=self._combo_data_int(self.cmbPdvFiltro),
+            pdv_id=combo_int(self.cmbPdvFiltro),
             forma_pagamento=self._forma_pagamento_filtro(),
         )
         registros.sort(
@@ -560,7 +562,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         )
         self.tableReembolsos.setRowCount(len(registros))
         for row, registro in enumerate(registros):
-            item_venda = self._set_table_item(
+            item_venda = set_table_item(
                 self.tableReembolsos,
                 row,
                 0,
@@ -568,16 +570,16 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignCenter,
             )
             item_venda.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
-            self._set_table_item(self.tableReembolsos, row, 1, str(registro.get("tipo") or "-"), alignment=Qt.AlignCenter)
-            self._set_table_item(self.tableReembolsos, row, 2, str(registro.get("motivo") or "-"))
-            status_item = self._set_table_item(
+            set_table_item(self.tableReembolsos, row, 1, str(registro.get("tipo") or "-"), alignment=Qt.AlignCenter)
+            set_table_item(self.tableReembolsos, row, 2, str(registro.get("motivo") or "-"))
+            status_item = set_table_item(
                 self.tableReembolsos,
                 row,
                 3,
                 str(registro.get("status") or "-"),
                 alignment=Qt.AlignCenter,
             )
-            valor_item = self._set_table_item(
+            valor_item = set_table_item(
                 self.tableReembolsos,
                 row,
                 4,
@@ -592,42 +594,6 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         if self.cmbFormaPagamentoFiltro.currentData() is None:
             return None
         return self.cmbFormaPagamentoFiltro.currentText().strip() or None
-
-    @staticmethod
-    def _combo_data_int(combo: QComboBox) -> Optional[int]:
-        value = combo.currentData()
-        if value in (None, "", 0, "0"):
-            return None
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
-
-    @staticmethod
-    def _set_table_item(
-        table: QTableWidget,
-        row: int,
-        column: int,
-        value: str,
-        *,
-        alignment: Any = Qt.AlignLeft | Qt.AlignVCenter,
-    ) -> QTableWidgetItem:
-        item = QTableWidgetItem(value)
-        item.setTextAlignment(int(alignment))
-        table.setItem(row, column, item)
-        return item
-
-    @staticmethod
-    def _formatar_data_hora(value: Any) -> str:
-        if hasattr(value, "strftime"):
-            return value.strftime("%d/%m/%Y %H:%M")
-        return "-"
-
-    @staticmethod
-    def _formatar_data(value: Any) -> str:
-        if hasattr(value, "strftime"):
-            return value.strftime("%d/%m/%Y")
-        return str(value or "-")
 
     @staticmethod
     def _destacar_linha_vencida(table: QTableWidget, row: int) -> None:
@@ -742,7 +708,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             status = self._texto_item(self.tableContasReceber, row_conta, 3)
             saldo = self._texto_item(self.tableContasReceber, row_conta, 4)
             item_conta = self.tableContasReceber.item(row_conta, 0)
-            ultima_baixa = self._formatar_data_hora(item_conta.data(Qt.UserRole + 2) if item_conta else None)
+            ultima_baixa = formatar_data_hora(item_conta.data(Qt.UserRole + 2) if item_conta else None)
             recebimentos = formatar_inteiro(item_conta.data(Qt.UserRole + 3) if item_conta else 0)
             self.lblStatusBar.setText(
                 "CSPdv - Modulo Financeiro | "
@@ -796,13 +762,13 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._aplicar_tooltip_linha(self.tablePagamentos, row, tooltip)
 
     def _aplicar_tooltip_conta(self, row: int, registro: dict[str, Any]) -> None:
-        ultimo_recebimento = self._formatar_data_hora(registro.get("ultimo_recebimento"))
+        ultimo_recebimento = formatar_data_hora(registro.get("ultimo_recebimento"))
         dias_atraso = int(registro.get("dias_atraso") or 0)
         situacao_atraso = f"{dias_atraso} dia(s) em atraso" if dias_atraso > 0 else "Sem atraso"
         tooltip = (
             f"Conta #{registro.get('conta_id') or '-'}\n"
             f"Cliente: {registro.get('cliente') or '-'}\n"
-            f"Vencimento: {self._formatar_data(registro.get('data_vencimento'))}\n"
+            f"Vencimento: {formatar_data(registro.get('data_vencimento'))}\n"
             f"Status: {registro.get('status') or '-'}\n"
             f"Em aberto: {formatar_moeda(registro.get('valor_aberto'))}\n"
             f"Já recebido: {formatar_moeda(registro.get('valor_recebido'))}\n"

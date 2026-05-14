@@ -8,7 +8,6 @@ _CURRENCY_SYMBOLS = {
     "USD": "US$",
 }
 
-
 def codigo_moeda_padrao() -> str:
     try:
         from modules.admin.services.configuracoes_service import ConfiguracoesService
@@ -21,7 +20,6 @@ def codigo_moeda_padrao() -> str:
     if codigo not in _CURRENCY_SYMBOLS:
         return _DEFAULT_CURRENCY
     return codigo
-
 
 def simbolo_moeda_padrao() -> str:
     return _CURRENCY_SYMBOLS.get(codigo_moeda_padrao(), _CURRENCY_SYMBOLS[_DEFAULT_CURRENCY])

@@ -8,7 +8,6 @@ from utils.backup_runtime import BackupService
 from utils.format_utils import formatar_decimal
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
-
 class ConfiguracoesView(QWidget, Ui_ConfiguracoesWidget):
     def __init__(self, parent=None):
         super().__init__(parent)

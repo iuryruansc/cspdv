@@ -36,6 +36,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
 
         self._configurar_validadores()
         self.registrar_estilos([
+            self.lineEditCodigo,
             self.lineEditCodigoBarras,
             self.lineEditDescricao,
             self.lineEditNcm,
@@ -77,6 +78,9 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         self.lineEditCodigoBarras.setValidator(
             QRegularExpressionValidator(QRegularExpression(r"^[0-9A-Za-z\-]{0,50}$"), self)
         )
+        self.lineEditCodigo.setValidator(
+            QRegularExpressionValidator(QRegularExpression(r"^[0-9A-Za-z\-_/\.]{0,50}$"), self)
+        )
         self.lineEditNcm.setValidator(
             QRegularExpressionValidator(QRegularExpression(r"^\d{0,8}$"), self)
         )
@@ -84,6 +88,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             QRegularExpressionValidator(QRegularExpression(r"^\d{0,7}$"), self)
         )
 
+        self.lineEditCodigo.setMaxLength(50)
         self.lineEditCodigoBarras.setMaxLength(50)
         self.lineEditDescricao.setMaxLength(250)
         self.lineEditNcm.setMaxLength(8)
@@ -105,7 +110,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
 
     def _configurar_modo(self):
         if self._produto_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.clear()
             return
 
         self.lblFormTitle.setText("Edicao de Produto")
@@ -125,7 +130,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
             self._cancelar()
             return
 
-        self.lineEditCodigo.setText(str(produto.get("id") or ""))
+        self.lineEditCodigo.setText(str(produto.get("cod_produto") or ""))
         self.lineEditCodigoBarras.setText(str(produto.get("codigo_barras") or ""))
         self.lineEditDescricao.setText(str(produto.get("nome") or ""))
         self.lineEditNcm.setText(str(produto.get("ncm") or ""))
@@ -152,12 +157,13 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         if not codigo:
             return
 
-        produto, mensagem, sucesso = ProdutoService.validar_e_buscar_por_codigo(codigo)
-        if sucesso:
+        produto = ProdutoModel.buscar_por_codigo_barras(codigo)
+        produto_id = int((produto or {}).get("id") or 0)
+        if produto and produto_id != int(self._produto_id or 0):
             self._feedback_erro()
             self.lineEditCodigoBarras.clear()
             self.lineEditCodigoBarras.setFocus()
-        elif "não localizado" in mensagem.lower() or "nao localizado" in mensagem.lower():
+        else:
             self._feedback_sucesso()
             self.lineEditDescricao.setFocus()
 
@@ -177,8 +183,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         self.limpar_erros()
 
         for campo_texto in self.findChildren(QLineEdit):
-            if campo_texto.objectName() != "lineEditCodigo":
-                campo_texto.clear()
+            campo_texto.clear()
 
         for combo in self.findChildren(QComboBox):
             combo.setCurrentIndex(0)
@@ -270,6 +275,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         id_unidade = combo_id(self.comboUnidade)
         id_unidade_tributavel = combo_id(self.comboUnidadeTributavel)
 
+        cod_produto = self.lineEditCodigo.text().strip().upper()
         codigo_barras = self.lineEditCodigoBarras.text().strip()
         nome = self.lineEditDescricao.text().strip().upper()
         ncm = self.lineEditNcm.text().strip()
@@ -279,6 +285,9 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         quantidade_texto = self.lineEditQuantidadeEstoque.text().replace(",", ".")
 
         erros = []
+        if not cod_produto:
+            erros.append("Código: informe o código do fabricante.")
+            self.marcar_invalido(self.lineEditCodigo)
         if not nome:
             erros.append("Descrição do Produto: preencha o nome do produto.")
             self.marcar_invalido(self.lineEditDescricao)
@@ -320,6 +329,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         try:
             imagem_path = self._copiar_imagem_para_media()
             dados = {
+                "cod_produto": cod_produto,
                 "codigo_barras": codigo_barras,
                 "nome": nome,
                 "ncm": ncm,
@@ -366,9 +376,11 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         else:
             if "nome do produto" in mensagem.lower():
                 self.marcar_invalido(self.lineEditDescricao)
+            if "código do produto" in mensagem.lower() or "codigo do produto" in mensagem.lower():
+                self.marcar_invalido(self.lineEditCodigo)
             if "preço de venda" in mensagem.lower() or "preco de venda" in mensagem.lower():
                 self.marcar_invalido(self.lineEditPrecoVenda)
-            if "código de barras" in mensagem.lower() or "codigo de barras" in mensagem.lower() or "codigo do produto" in mensagem.lower():
+            if "código de barras" in mensagem.lower() or "codigo de barras" in mensagem.lower():
                 self.marcar_invalido(self.lineEditCodigoBarras)
             if "categoria" in mensagem.lower():
                 self.marcar_invalido(self.comboCategoria)

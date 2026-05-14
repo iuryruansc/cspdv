@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QPlainTex
 from utils.format_utils import formatar_moeda
 from utils.ui_messages import mostrar_info
 
-
 class ComprovanteRecebimentoDialog(QDialog):
     def __init__(
         self,

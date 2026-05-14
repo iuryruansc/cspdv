@@ -8,7 +8,6 @@ from modules.financeiro.views.comprovante_recebimento_dialog import ComprovanteR
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 def _conta_base(**overrides):
     conta = {
         "id": 12,
@@ -19,7 +18,6 @@ def _conta_base(**overrides):
     }
     conta.update(overrides)
     return conta
-
 
 def _recebimento_base(**overrides):
     recebimento = {
@@ -33,7 +31,6 @@ def _recebimento_base(**overrides):
     }
     recebimento.update(overrides)
     return recebimento
-
 
 class TestComprovanteRecebimentoDialog:
     def test_monta_texto_com_dados_principais(self):

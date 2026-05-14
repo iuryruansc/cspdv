@@ -15,12 +15,13 @@ class ProdutoModel:
         termo_nome = f"%{termo_limpo.upper()}%"
         termo_prefixo = f"{termo_limpo.upper()}%"
         termo_codigo = f"{termo_limpo}%"
-        
+
         # Build query based on vigencia setting
         if ativar_por_vigencia:
             query = """
                 SELECT
                     p.id,
+                    p.cod_produto,
                     p.codigo_barras,
                     p.nome,
                     COALESCE(ppromo.preco_promocional, p.preco_venda) AS preco_venda,
@@ -57,17 +58,22 @@ class ProdutoModel:
                 LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
                 WHERE p.ativo = 'S'
                   AND (
+                    p.cod_produto = %s
+                    OR p.cod_produto LIKE %s
+                    OR
                     p.codigo_barras = %s
                     OR p.codigo_barras LIKE %s
                     OR UPPER(p.nome) LIKE %s
                   )
                 ORDER BY
                     CASE
-                        WHEN p.codigo_barras = %s THEN 0
-                        WHEN UPPER(p.nome) = UPPER(%s) THEN 1
-                        WHEN UPPER(p.nome) LIKE %s THEN 2
-                        WHEN p.codigo_barras LIKE %s THEN 3
-                        ELSE 4
+                        WHEN p.cod_produto = %s THEN 0
+                        WHEN p.codigo_barras = %s THEN 1
+                        WHEN UPPER(p.nome) = UPPER(%s) THEN 2
+                        WHEN p.cod_produto LIKE %s THEN 3
+                        WHEN UPPER(p.nome) LIKE %s THEN 4
+                        WHEN p.codigo_barras LIKE %s THEN 5
+                        ELSE 6
                     END,
                     p.nome
                 LIMIT %s
@@ -76,6 +82,7 @@ class ProdutoModel:
             query = """
                 SELECT
                     p.id,
+                    p.cod_produto,
                     p.codigo_barras,
                     p.nome,
                     COALESCE(ppromo.preco_promocional, p.preco_venda) AS preco_venda,
@@ -111,31 +118,40 @@ class ProdutoModel:
                 LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
                 WHERE p.ativo = 'S'
                   AND (
+                    p.cod_produto = %s
+                    OR p.cod_produto LIKE %s
+                    OR
                     p.codigo_barras = %s
                     OR p.codigo_barras LIKE %s
                     OR UPPER(p.nome) LIKE %s
                   )
                 ORDER BY
                     CASE
-                        WHEN p.codigo_barras = %s THEN 0
-                        WHEN UPPER(p.nome) = UPPER(%s) THEN 1
-                        WHEN UPPER(p.nome) LIKE %s THEN 2
-                        WHEN p.codigo_barras LIKE %s THEN 3
-                        ELSE 4
+                        WHEN p.cod_produto = %s THEN 0
+                        WHEN p.codigo_barras = %s THEN 1
+                        WHEN UPPER(p.nome) = UPPER(%s) THEN 2
+                        WHEN p.cod_produto LIKE %s THEN 3
+                        WHEN UPPER(p.nome) LIKE %s THEN 4
+                        WHEN p.codigo_barras LIKE %s THEN 5
+                        ELSE 6
                     END,
                     p.nome
                 LIMIT %s
                 """
-        
+
         try:
             cursor.execute(
                 query,
                 (
                     termo_limpo,
                     termo_codigo,
+                    termo_limpo,
+                    termo_codigo,
                     termo_nome,
                     termo_limpo,
                     termo_limpo,
+                    termo_limpo,
+                    termo_codigo,
                     termo_prefixo,
                     termo_codigo,
                     limite,
@@ -158,6 +174,7 @@ class ProdutoModel:
                 """
                 SELECT
                     p.id,
+                    p.cod_produto,
                     p.codigo_barras,
                     p.nome,
                     p.preco_venda,
@@ -226,6 +243,7 @@ class ProdutoModel:
                 """
                 SELECT
                     p.id,
+                    p.cod_produto,
                     p.codigo_barras,
                     p.nome,
                     p.ncm,
@@ -274,6 +292,7 @@ class ProdutoModel:
                 """
                 UPDATE produtos
                 SET
+                    cod_produto = %(cod_produto)s,
                     codigo_barras = %(codigo_barras)s,
                     nome = %(nome)s,
                     ncm = %(ncm)s,
@@ -450,12 +469,12 @@ class ProdutoModel:
             cursor.execute(
                 """
                 INSERT INTO produtos
-                    (codigo_barras, nome, ncm, cest,
+                    (cod_produto, codigo_barras, nome, ncm, cest,
                      preco_compra, preco_venda, quantidade_estoque,
                      categoria_id, marca_id, fornecedor_id,
                      unidade_id, unidade_tributavel_id, ativo, imagem_path)
                 VALUES
-                    (%(codigo_barras)s, %(nome)s, %(ncm)s, %(cest)s,
+                    (%(cod_produto)s, %(codigo_barras)s, %(nome)s, %(ncm)s, %(cest)s,
                      %(preco_compra)s, %(preco_venda)s, %(quantidade_estoque)s,
                      %(categoria_id)s, %(marca_id)s, %(fornecedor_id)s,
                      %(unidade_id)s, %(unidade_tributavel_id)s, %(ativo)s, %(imagem_path)s)

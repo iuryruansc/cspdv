@@ -1,9 +1,10 @@
 from typing import Any, Dict, Iterable, List
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QFrame, QHeaderView, QTableWidgetItem, QWidget
+from PyQt5.QtWidgets import QFrame, QHeaderView, QWidget
 
 from ui.admin.management_page_widget import Ui_ManagementPageWidget
+from utils.table_widget_utils import set_table_item
 
 class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
     def __init__(self, parent: QWidget | None = None):
@@ -72,9 +73,8 @@ class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
         for row_index, row in enumerate(rows):
             for col_index, (field, _) in enumerate(self._columns):
                 value = row.get(field, "")
-                item = QTableWidgetItem("" if value is None else str(value))
+                item = set_table_item(self.tableResultados, row_index, col_index, value)
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
-                self.tableResultados.setItem(row_index, col_index, item)
 
         self._apply_column_resize_policy()
         self.lblResumo.setText(f"{len(rows)} registro(s) exibido(s).")

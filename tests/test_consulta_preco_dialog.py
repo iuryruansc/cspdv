@@ -7,7 +7,6 @@ from modules.venda.views.consulta_preco_dialog import ConsultaPrecoDialog
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 def _produto_base(**overrides):
     produto = {
         "id": 15,
@@ -18,7 +17,6 @@ def _produto_base(**overrides):
     }
     produto.update(overrides)
     return produto
-
 
 class TestConsultaPrecoDialog:
     @patch("modules.venda.views.consulta_preco_dialog.atualizar_preview_label")
@@ -31,7 +29,7 @@ class TestConsultaPrecoDialog:
         dialog._buscar_produto()
 
         assert dialog.lblCodigoValor.text() == "7891000100301"
-        assert dialog.lblDescricaoValor.text() == "Chocolate ao Leite 90G"
+        assert dialog.lblDescricaoValor.text() == "CHOCOLATE AO LEITE 90G"
         assert dialog.lblEstoqueValor.text() == "26"
         assert dialog.lblPrecoValor.text() == "R$ 7,49"
         assert dialog._produto_encontrado is not None

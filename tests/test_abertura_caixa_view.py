@@ -11,7 +11,6 @@ from modules.venda.views.abertura_caixa_view import AberturaCaixaView
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 class TestAberturaCaixaView:
     @patch("modules.venda.views.abertura_caixa_view.CaixaService.listar_ultimas_aberturas", return_value=[])
     @patch("modules.venda.views.abertura_caixa_view.ConfiguracoesService.carregar_parametros_caixa")

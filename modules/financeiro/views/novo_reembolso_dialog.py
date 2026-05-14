@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any, Dict, List
+from typing import Dict, List
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QButtonGroup, QDialog, QSpinBox, QTableWidgetItem
+from PyQt5.QtWidgets import QButtonGroup, QDialog, QSpinBox
 
 from ui.financeiro.novo_reembolso_dialog import Ui_NovoReembolsoDialog
-from utils.format_utils import formatar_moeda
+from utils.format_utils import formatar_data_hora, formatar_moeda
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso
 
 class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
@@ -38,7 +39,7 @@ class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
     def _populate(self) -> None:
         self.lblHeaderTitulo.setText(f"Reembolso da Venda #{self._venda.get('id') or '-'}")
         self.lblCliente.setText(str(self._venda.get("cliente") or "Consumidor Final"))
-        self.lblDataHora.setText(self._formatar_data_hora(self._venda.get("data_hora")))
+        self.lblDataHora.setText(formatar_data_hora(self._venda.get("data_hora")))
         self.lblTotalVenda.setText(formatar_moeda(self._venda.get("valor_total")))
         self.lblStatus.setText(str(self._venda.get("status") or "-"))
 
@@ -47,9 +48,9 @@ class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
             quantidade_disponivel = int(item.get("quantidade_disponivel") or 0)
             total_item = Decimal(str(item.get("total_item") or 0))
 
-            self._set_item(row, 0, str(item.get("codigo_barras") or "-"), Qt.AlignCenter)
-            self._set_item(row, 1, str(item.get("produto") or "-"))
-            self._set_item(row, 2, str(quantidade_disponivel), Qt.AlignCenter)
+            set_table_item(self.tableItens, row, 0, str(item.get("codigo_barras") or "-"), alignment=Qt.AlignCenter)
+            set_table_item(self.tableItens, row, 1, str(item.get("produto") or "-"))
+            set_table_item(self.tableItens, row, 2, str(quantidade_disponivel), alignment=Qt.AlignCenter)
 
             spin = QSpinBox(self.tableItens)
             spin.setMinimum(0)
@@ -58,13 +59,8 @@ class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
             spin.valueChanged.connect(self._recalcular_total)
             self.tableItens.setCellWidget(row, 3, spin)
 
-            self._set_item(row, 4, formatar_moeda(item.get("preco_unitario")), Qt.AlignRight | Qt.AlignVCenter)
-            self._set_item(row, 5, formatar_moeda(total_item), Qt.AlignRight | Qt.AlignVCenter)
-
-    def _set_item(self, row: int, column: int, value: str, alignment: Any = Qt.AlignLeft | Qt.AlignVCenter) -> None:
-        item = QTableWidgetItem(value)
-        item.setTextAlignment(int(alignment))
-        self.tableItens.setItem(row, column, item)
+            set_table_item(self.tableItens, row, 4, formatar_moeda(item.get("preco_unitario")), alignment=Qt.AlignRight | Qt.AlignVCenter)
+            set_table_item(self.tableItens, row, 5, formatar_moeda(total_item), alignment=Qt.AlignRight | Qt.AlignVCenter)
 
     def _atualizar_modo(self) -> None:
         total = self.radioTotal.isChecked()
@@ -138,8 +134,3 @@ class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
         }
         self.accept()
 
-    @staticmethod
-    def _formatar_data_hora(value: Any) -> str:
-        if hasattr(value, "strftime"):
-            return value.strftime("%d/%m/%Y %H:%M")
-        return "-"

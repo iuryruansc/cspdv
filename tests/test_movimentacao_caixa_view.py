@@ -4,9 +4,9 @@ from unittest.mock import patch
 from PyQt5.QtWidgets import QApplication
 
 from modules.venda.views.movimentacao_caixa_view import MovimentacaoCaixaView
+from utils.format_utils import formatar_moeda
 
 _app = QApplication.instance() or QApplication(sys.argv)
-
 
 def _parametros_caixa(**overrides):
     params = {
@@ -14,7 +14,6 @@ def _parametros_caixa(**overrides):
     }
     params.update(overrides)
     return params
-
 
 def _resumo_movimentacoes(**overrides):
     resumo = {
@@ -26,7 +25,6 @@ def _resumo_movimentacoes(**overrides):
     resumo.update(overrides)
     return resumo
 
-
 def _historico_item(**overrides):
     item = {
         "hora_fmt": "10:15",
@@ -37,7 +35,6 @@ def _historico_item(**overrides):
     }
     item.update(overrides)
     return item
-
 
 class TestMovimentacaoCaixaView:
     @patch("modules.venda.views.movimentacao_caixa_view.CaixaService.listar_movimentacoes")
@@ -55,10 +52,10 @@ class TestMovimentacaoCaixaView:
 
         view = MovimentacaoCaixaView()
 
-        assert view.lblSaldoValor.text() == "R$ 120,00"
-        assert view.lblSaldoAtualValor2.text() == "R$ 120,00"
-        assert view.lblTotalSangriaValor.text() == "R$ 15,00"
-        assert view.lblTotalSupValor.text() == "R$ 15,00"
+        assert view.lblSaldoValor.text() == formatar_moeda(120.0)
+        assert view.lblSaldoAtualValor2.text() == formatar_moeda(120.0)
+        assert view.lblTotalSangriaValor.text() == formatar_moeda(15.0)
+        assert view.lblTotalSupValor.text() == formatar_moeda(15.0)
         assert view.tableHistorico.rowCount() == 1
 
     @patch("modules.venda.views.movimentacao_caixa_view.CaixaService.listar_movimentacoes", return_value=[])

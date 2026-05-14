@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QComboBox, QLabel, QLineEdit, QMainWindow
 
 from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
 from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 from modules.estoque.services.estoque_service import EstoqueService
 from ui.estoque.painel_estoque import Ui_PainelEstoque
-from utils.format_utils import formatar_inteiro, formatar_moeda
+from utils.combo_loader import combo_int
+from utils.format_utils import formatar_data, formatar_data_hora, formatar_inteiro, formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
 class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
@@ -100,38 +102,38 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
     def _carregar_produtos_lotes(self) -> None:
         registros = EstoqueService.listar_produtos_lotes(
             busca=self.txtBuscaProduto.text().strip(),
-            categoria_id=self._combo_data_int(self.cmbCategoriaFiltro),
-            fornecedor_id=self._combo_data_int(self.cmbFornecedorFiltro),
+            categoria_id=combo_int(self.cmbCategoriaFiltro),
+            fornecedor_id=combo_int(self.cmbFornecedorFiltro),
         )
         self._registros_produtos = registros
 
         self.tableProdutosEstoque.setRowCount(len(registros))
         for row, registro in enumerate(registros):
-            item_codigo = self._set_table_item(
+            item_codigo = set_table_item(
                 self.tableProdutosEstoque,
                 row,
                 0,
                 str(registro.get("codigo_barras") or registro.get("id") or "-"),
             )
             item_codigo.setData(Qt.UserRole, int(registro.get("id") or 0))
-            self._set_table_item(self.tableProdutosEstoque, row, 1, str(registro.get("nome") or "-"))
-            self._set_table_item(self.tableProdutosEstoque, row, 2, str(registro.get("categoria") or "-"))
-            self._set_table_item(self.tableProdutosEstoque, row, 3, str(registro.get("marca") or "-"))
-            self._set_table_item(self.tableProdutosEstoque, row, 4, str(registro.get("lote") or "-"))
-            self._set_table_item(self.tableProdutosEstoque, row, 5, self._formatar_data(registro.get("data_validade")))
-            self._set_table_item(
+            set_table_item(self.tableProdutosEstoque, row, 1, str(registro.get("nome") or "-"))
+            set_table_item(self.tableProdutosEstoque, row, 2, str(registro.get("categoria") or "-"))
+            set_table_item(self.tableProdutosEstoque, row, 3, str(registro.get("marca") or "-"))
+            set_table_item(self.tableProdutosEstoque, row, 4, str(registro.get("lote") or "-"))
+            set_table_item(self.tableProdutosEstoque, row, 5, formatar_data(registro.get("data_validade")))
+            set_table_item(
                 self.tableProdutosEstoque,
                 row,
                 6,
                 formatar_inteiro(registro.get("quantidade")),
-                alignment=int(Qt.AlignCenter),
+                alignment=Qt.AlignCenter,
             )
-            self._set_table_item(
+            set_table_item(
                 self.tableProdutosEstoque,
                 row,
                 7,
                 formatar_moeda(registro.get("preco_venda")),
-                alignment=int(Qt.AlignRight | Qt.AlignVCenter),
+                alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
 
         self.lblStatusBar.setText(f"CSPdv - Modulo de Estoque | {len(registros)} registro(s) em Produtos e Lotes")
@@ -140,53 +142,17 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         registros = EstoqueService.listar_movimentacoes_recentes()
         self.tableMovimentacoesEstoque.setRowCount(len(registros))
         for row, registro in enumerate(registros):
-            self._set_table_item(self.tableMovimentacoesEstoque, row, 0, self._formatar_data_hora(registro.get("data_hora")))
-            self._set_table_item(self.tableMovimentacoesEstoque, row, 1, str(registro.get("produto") or "-"))
-            self._set_table_item(self.tableMovimentacoesEstoque, row, 2, self._formatar_tipo_movimento(registro.get("tipo")))
-            self._set_table_item(
+            set_table_item(self.tableMovimentacoesEstoque, row, 0, formatar_data_hora(registro.get("data_hora")))
+            set_table_item(self.tableMovimentacoesEstoque, row, 1, str(registro.get("produto") or "-"))
+            set_table_item(self.tableMovimentacoesEstoque, row, 2, self._formatar_tipo_movimento(registro.get("tipo")))
+            set_table_item(
                 self.tableMovimentacoesEstoque,
                 row,
                 3,
                 formatar_inteiro(registro.get("quantidade")),
-                alignment=int(Qt.AlignCenter),
+                alignment=Qt.AlignCenter,
             )
-            self._set_table_item(self.tableMovimentacoesEstoque, row, 4, str(registro.get("usuario") or "-"))
-
-    @staticmethod
-    def _set_table_item(
-        table: QTableWidget,
-        row: int,
-        column: int,
-        value: str,
-        *,
-        alignment: int = int(Qt.AlignLeft),
-    ) -> QTableWidgetItem:
-        item = QTableWidgetItem(value)
-        item.setTextAlignment(alignment)
-        table.setItem(row, column, item)
-        return item
-
-    @staticmethod
-    def _combo_data_int(combo: QComboBox) -> Optional[int]:
-        value = combo.currentData()
-        if value in (None, "", 0, "0"):
-            return None
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
-
-    @staticmethod
-    def _formatar_data(value: Any) -> str:
-        if hasattr(value, "strftime"):
-            return value.strftime("%d/%m/%Y")
-        return "-"
-
-    @staticmethod
-    def _formatar_data_hora(value: Any) -> str:
-        if hasattr(value, "strftime"):
-            return value.strftime("%d/%m/%Y %H:%M")
-        return "-"
+            set_table_item(self.tableMovimentacoesEstoque, row, 4, str(registro.get("usuario") or "-"))
 
     @staticmethod
     def _formatar_tipo_movimento(tipo: Any) -> str:

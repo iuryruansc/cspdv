@@ -1,7 +1,6 @@
 from modules.produtos.models.produto_model import ProdutoModel
 from utils.app_logger import log_error
 
-
 class ProdutoService:
     @staticmethod
     def buscar_para_venda(termo):
@@ -17,6 +16,7 @@ class ProdutoService:
     @staticmethod
     def _validar_dados_produto(dados, produto_id=None):
         nome = str(dados.get("nome", "")).strip()
+        cod_produto = str(dados.get("cod_produto", "")).strip()
         codigo_barras = str(dados.get("codigo_barras", "")).strip()
         ativo = str(dados.get("ativo", "")).strip().upper()
         categoria_id = dados.get("categoria_id")
@@ -25,6 +25,9 @@ class ProdutoService:
 
         if len(nome) < 3:
             return False, "O nome do produto deve ter pelo menos 3 caracteres."
+
+        if not cod_produto:
+            return False, "O código do produto é obrigatório."
 
         if not codigo_barras:
             return False, "O código de barras é obrigatório."
@@ -44,9 +47,14 @@ class ProdutoService:
         if float(dados.get("preco_venda", 0)) <= 0:
             return False, "O preço de venda deve ser maior que zero."
 
-        produto_existente = ProdutoModel.buscar_por_codigo(codigo_barras)
+        produto_existente = ProdutoModel.buscar_por_codigo(cod_produto)
         produto_existente_id = int((produto_existente or {}).get("id") or 0)
         if produto_existente and produto_existente_id != int(produto_id or 0):
+            return False, "Este código do produto já está em uso."
+
+        produto_existente_barras = ProdutoModel.buscar_por_codigo_barras(codigo_barras)
+        produto_existente_barras_id = int((produto_existente_barras or {}).get("id") or 0)
+        if produto_existente_barras and produto_existente_barras_id != int(produto_id or 0):
             return False, "Este código de barras já está em uso."
 
         return True, ""

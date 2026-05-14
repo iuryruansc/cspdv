@@ -155,7 +155,6 @@ class Ui_CadastroProduto(object):
 "                    }\n"
 "                    QLineEdit:focus { border-color: #3585c8; background-color: #ffffff; }\n"
 "                   ")
-        self.lineEditCodigo.setReadOnly(True)
         self.lineEditCodigo.setObjectName("lineEditCodigo")
         self.colCodigoVLayout.addWidget(self.lineEditCodigo)
         self.row1HLayout.addLayout(self.colCodigoVLayout)
@@ -690,7 +689,7 @@ class Ui_CadastroProduto(object):
         self.lblTabCadProduto.setText(_translate("CadastroProduto", "Cadastro de Produto"))
         self.lblFormTitle.setText(_translate("CadastroProduto", "Dados do Produto"))
         self.lblCodigo.setText(_translate("CadastroProduto", "Código"))
-        self.lineEditCodigo.setPlaceholderText(_translate("CadastroProduto", "Auto-gerado"))
+        self.lineEditCodigo.setPlaceholderText(_translate("CadastroProduto", "Código do fabricante"))
         self.lblCodigoBarras.setText(_translate("CadastroProduto", "Codigo de Barras *"))
         self.lineEditCodigoBarras.setPlaceholderText(_translate("CadastroProduto", "Codigo de barras"))
         self.lblDescricao.setText(_translate("CadastroProduto", "Descrição do Produto *"))

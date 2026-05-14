@@ -3,11 +3,12 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, Qt
-from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QTableWidget
 
 from core.session_manager import SessionManager
 from ui.venda.modal_confirmacao_venda import Ui_ModalConfirmacaoVenda
 from utils.format_utils import formatar_decimal, formatar_inteiro, formatar_moeda
+from utils.table_widget_utils import set_table_item
 
 class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
     lblTitulo: QLabel
@@ -187,10 +188,13 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
                 formatar_decimal(item.get("total") or 0.0),
             )
             for col, valor in enumerate(valores):
-                table_item = QTableWidgetItem(valor)
-                if col in (2, 3, 4):
-                    table_item.setTextAlignment(int(Qt.AlignRight | Qt.AlignVCenter))
-                self.tableResumoItens.setItem(row, col, table_item)
+                set_table_item(
+                    self.tableResumoItens,
+                    row,
+                    col,
+                    valor,
+                    alignment=Qt.AlignRight | Qt.AlignVCenter if col in (2, 3, 4) else Qt.AlignLeft | Qt.AlignVCenter,
+                )
 
     @staticmethod
     def _nome_operador() -> str:

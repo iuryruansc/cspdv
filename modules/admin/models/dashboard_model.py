@@ -26,6 +26,8 @@ class DashboardAdminModel:
             caixas_abertos = DashboardAdminModel._contar_caixas_abertos(cursor)
             contas_vencidas = DashboardAdminModel._contar_contas_vencidas(cursor)
             promocoes_vencidas_ativas = DashboardAdminModel._contar_promocoes_vencidas_ativas(cursor)
+            recebimentos_dia = DashboardAdminModel._somar_recebimentos_dia(cursor)
+            reembolsos_dia = DashboardAdminModel._somar_reembolsos_dia(cursor)
 
             vendas_hoje = 0
             faturamento_dia = Decimal("0")
@@ -85,6 +87,8 @@ class DashboardAdminModel:
                 "caixas_abertos": caixas_abertos,
                 "contas_vencidas": contas_vencidas,
                 "promocoes_vencidas_ativas": promocoes_vencidas_ativas,
+                "recebimentos_dia": recebimentos_dia,
+                "reembolsos_dia": reembolsos_dia,
                 "ultimas_vendas": ultimas_vendas,
             }
         finally:
@@ -226,6 +230,58 @@ class DashboardAdminModel:
         )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
+
+    @staticmethod
+    def _somar_recebimentos_dia(cursor: Any) -> Decimal:
+        if not DashboardAdminModel._tabela_existe(cursor, "contas_receber_recebimentos"):
+            return Decimal("0")
+
+        colunas = DashboardAdminModel._listar_colunas(cursor, "contas_receber_recebimentos")
+        if "data_recebimento" not in colunas or "valor_recebido" not in colunas:
+            return Decimal("0")
+
+        where_partes = ["DATE(data_recebimento) = CURDATE()"]
+        if "ativo" in colunas:
+            where_partes.append("ativo = 'S'")
+
+        cursor.execute(
+            f"""
+            SELECT COALESCE(SUM(valor_recebido), 0) AS total
+            FROM contas_receber_recebimentos
+            WHERE {' AND '.join(where_partes)}
+            """
+        )
+        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        return Decimal(str(resultado.get("total") or 0))
+
+    @staticmethod
+    def _somar_reembolsos_dia(cursor: Any) -> Decimal:
+        if not DashboardAdminModel._tabela_existe(cursor, "venda_reembolsos"):
+            return Decimal("0")
+
+        colunas = DashboardAdminModel._listar_colunas(cursor, "venda_reembolsos")
+        coluna_data = DashboardAdminModel._primeira_coluna_existente(
+            colunas,
+            ("data_hora", "createdAt", "created_at"),
+        )
+        if coluna_data is None or "valor_total" not in colunas:
+            return Decimal("0")
+
+        where_partes = [f"DATE({coluna_data}) = CURDATE()"]
+        if "ativo" in colunas:
+            where_partes.append("ativo = 'S'")
+        if "status" in colunas:
+            where_partes.append("status = 'CONCLUIDO'")
+
+        cursor.execute(
+            f"""
+            SELECT COALESCE(SUM(valor_total), 0) AS total
+            FROM venda_reembolsos
+            WHERE {' AND '.join(where_partes)}
+            """
+        )
+        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        return Decimal(str(resultado.get("total") or 0))
 
     @staticmethod
     def _tabela_existe(cursor: Any, tabela: str) -> bool:

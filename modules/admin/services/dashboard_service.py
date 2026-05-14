@@ -24,6 +24,13 @@ class DashboardAdminService:
             "caixas_abertos": int(resumo.get("caixas_abertos") or 0),
             "contas_vencidas": int(resumo.get("contas_vencidas") or 0),
             "promocoes_vencidas_ativas": int(resumo.get("promocoes_vencidas_ativas") or 0),
+            "recebimentos_dia": DashboardAdminService._formatar_moeda(
+                Decimal(str(resumo.get("recebimentos_dia") or 0))
+            ),
+            "reembolsos_dia": DashboardAdminService._formatar_moeda(
+                Decimal(str(resumo.get("reembolsos_dia") or 0))
+            ),
+            "ultimo_backup_resumo": BackupService.resumo_ultimo_backup(),
             "alertas_dashboard": DashboardAdminService._montar_alertas(resumo),
             "ultimas_vendas": DashboardAdminService._formatar_ultimas_vendas(
                 resumo.get("ultimas_vendas") or []

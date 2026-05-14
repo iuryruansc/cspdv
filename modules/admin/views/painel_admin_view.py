@@ -13,7 +13,6 @@ from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
-
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -656,10 +655,17 @@ QPushButton:hover {
     def _atualizar_resumo_estrutura(self, resumo: Dict[str, Any]) -> None:
         self.lblResumoUsuarios.setText(f"Usuários ativos: {int(resumo.get('usuarios_ativos') or 0)}")
         self.lblResumoPerfis.setText(f"Perfis ativos: {int(resumo.get('perfis_ativos') or 0)}")
-        self.lblResumoPdvs.setText(f"PDVs ativos: {int(resumo.get('pdvs_ativos') or 0)}")
-        self.lblResumoCaixas.setText(f"Caixas abertos: {int(resumo.get('caixas_abertos') or 0)}")
+        self.lblResumoPdvs.setText(
+            f"PDVs ativos: {int(resumo.get('pdvs_ativos') or 0)} | "
+            f"Último backup: {str(resumo.get('ultimo_backup_resumo') or 'Nenhum backup realizado ainda')}"
+        )
+        self.lblResumoCaixas.setText(
+            f"Caixas abertos: {int(resumo.get('caixas_abertos') or 0)} | "
+            f"Recebimentos hoje: {str(resumo.get('recebimentos_dia') or 'R$ 0,00')}"
+        )
         self.lblResumoFormasPagamento.setText(
-            f"Formas de pagamento: {int(resumo.get('formas_pagamento_ativas') or 0)}"
+            f"Formas de pagamento: {int(resumo.get('formas_pagamento_ativas') or 0)} | "
+            f"Reembolsos hoje: {str(resumo.get('reembolsos_dia') or 'R$ 0,00')}"
         )
         self._atualizar_alertas_dashboard(resumo.get("alertas_dashboard") or [])
 

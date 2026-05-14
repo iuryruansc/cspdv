@@ -2,10 +2,11 @@ from typing import Any, Dict, List, Optional
 
 from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QColor, QBrush, QKeyEvent
-from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QPushButton, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QPushButton, QTableWidget
 
 from modules.produtos.services.produto_service import ProdutoService
 from utils.format_utils import formatar_moeda
+from utils.table_widget_utils import set_table_item
 
 from ui.venda.modal_consulta_produto import Ui_ModalConsultaProduto
 
@@ -114,10 +115,13 @@ class ModalConsultaProdutoView(QDialog, Ui_ModalConsultaProduto):
                 formatar_moeda(float(produto.get("preco_venda") or 0)),
             )
             for col, valor in enumerate(valores):
-                item = QTableWidgetItem(valor)
-                if col in (3, 4):
-                    item.setTextAlignment(int(Qt.AlignRight | Qt.AlignVCenter))
-                self.tableResultados.setItem(row, col, item)
+                set_table_item(
+                    self.tableResultados,
+                    row,
+                    col,
+                    valor,
+                    alignment=Qt.AlignRight | Qt.AlignVCenter if col in (3, 4) else Qt.AlignLeft | Qt.AlignVCenter,
+                )
 
         if self._resultados:
             self.tableResultados.selectRow(0)

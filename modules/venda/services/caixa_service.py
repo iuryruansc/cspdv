@@ -8,7 +8,6 @@ from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 from utils.app_logger import log_warning
 
-
 class CaixaService:
     @staticmethod
     def _parametros_caixa_padrao() -> Dict[str, Any]:

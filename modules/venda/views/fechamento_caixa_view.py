@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QTableWidget,
-    QTableWidgetItem,
     QWidget,
 )
 
@@ -21,6 +20,7 @@ from modules.venda.views.confirmar_fechamento_caixa_dialog import (
 )
 from ui.venda.tela_fechamento_caixa import Ui_TelaFechamentoCaixa
 from utils.format_utils import aplicar_mascara_monetaria
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso
 
 class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
@@ -97,7 +97,7 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
                 self._formatar_moeda(float(row.get("total") or 0.0)),
             )
             for col_index, valor in enumerate(valores):
-                self.tableTotaisPgto.setItem(row_index, col_index, QTableWidgetItem(valor))
+                set_table_item(self.tableTotaisPgto, row_index, col_index, valor)
 
     def _valor_contado(self) -> float:
         texto = self.lineEditValorContado.text().strip().replace(".", "").replace(",", ".")

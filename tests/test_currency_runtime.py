@@ -2,12 +2,10 @@
     python -m pytest tests/test_currency_runtime.py -v
 """
 
-
 from unittest.mock import patch
 
 from utils.currency_runtime import codigo_moeda_padrao, simbolo_moeda_padrao
 from utils.format_utils import formatar_moeda
-
 
 class TestCurrencyRuntime:
     @patch("modules.admin.services.configuracoes_service.ConfiguracoesModel.carregar_empresa_pdv")

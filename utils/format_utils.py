@@ -64,6 +64,16 @@ def formatar_moeda_input(valor: object) -> str:
     inteiro = int(digits)
     return f"{inteiro / 100:.2f}".replace(".", ",")
 
+def formatar_data(valor: object, padrao: str = "%d/%m/%Y") -> str:
+    if hasattr(valor, "strftime"):
+        return valor.strftime(padrao)
+    return str(valor or "-")
+
+def formatar_data_hora(valor: object, padrao: str = "%d/%m/%Y %H:%M") -> str:
+    if hasattr(valor, "strftime"):
+        return valor.strftime(padrao)
+    return str(valor or "-")
+
 class _MoneyInputFilter(QObject):
     def eventFilter(self, a0, a1) -> bool:
         if not isinstance(a0, QLineEdit):

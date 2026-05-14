@@ -8,7 +8,6 @@ from unittest.mock import patch
 from core.session_manager import SessionManager
 from modules.financeiro.services.reembolso_service import ReembolsoService
 
-
 class TestReembolsoService:
     def setup_method(self):
         SessionManager.logout()

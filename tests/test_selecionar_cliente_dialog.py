@@ -7,7 +7,6 @@ from modules.venda.views.selecionar_cliente_dialog import SelecionarClienteDialo
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 def _cliente_base(**overrides):
     cliente = {
         "id": 1,
@@ -17,7 +16,6 @@ def _cliente_base(**overrides):
     }
     cliente.update(overrides)
     return cliente
-
 
 class TestSelecionarClienteDialog:
     @patch("modules.venda.views.selecionar_cliente_dialog.ClienteService.buscar_para_venda")

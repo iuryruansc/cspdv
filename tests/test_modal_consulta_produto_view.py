@@ -8,7 +8,6 @@ from modules.venda.views.modal_consulta_produto_view import ModalConsultaProduto
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 def _produto_base(**overrides):
     produto = {
         "codigo_barras": "7891000100301",
@@ -19,7 +18,6 @@ def _produto_base(**overrides):
     }
     produto.update(overrides)
     return produto
-
 
 class TestModalConsultaProdutoView:
     @patch("modules.venda.views.modal_consulta_produto_view.ProdutoService.buscar_para_venda")

@@ -13,7 +13,6 @@ from modules.auth.views.selecao_modo_view import SelecaoModoView
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 class TestLoginView:
     def setup_method(self):
         SessionManager.logout()
@@ -71,7 +70,6 @@ class TestLoginView:
         assert atual["nome"] == "Operador Teste"
         assert LoginView.usuario_logado is not None
         assert LoginView.usuario_logado["id"] == 1
-
 
 class TestSelecaoModoView:
     @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")

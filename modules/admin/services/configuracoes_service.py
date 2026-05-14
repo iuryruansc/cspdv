@@ -265,7 +265,7 @@ class ConfiguracoesService:
         for label, valor in ConfiguracoesService._MAPA_REGRA_DESCONTO.items():
             if valor == codigo_normalizado:
                 return label
-        return "Exigir autorizaÃ§Ã£o para desconto"
+        return "Exigir autorização para desconto"
 
     @staticmethod
     def label_prioridade_promocional(codigo: str | None) -> str:

@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import Any
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QDialog, QTableWidget
 
 from modules.promocoes.services.promocao_service import PromocaoService
 from ui.promocoes.vincular_produtos_promocao import Ui_VincularProdutosPromocao
+from utils.format_utils import formatar_data, formatar_moeda
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
 class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
@@ -60,8 +62,8 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         nome = str(self._promocao.get("nome") or "-")
         codigo = str(self._promocao.get("codigo") or "-")
         tipo = self._label_tipo(str(self._promocao.get("tipo_desconto") or "-"))
-        data_inicio = self._formatar_data(self._promocao.get("data_inicio"))
-        data_fim = self._formatar_data(self._promocao.get("data_fim"))
+        data_inicio = formatar_data(self._promocao.get("data_inicio"), "%d/%m/%Y %H:%M")
+        data_fim = formatar_data(self._promocao.get("data_fim"), "%d/%m/%Y %H:%M")
 
         self.lblCodigoPromocao.setText(f"Código: {codigo}")
         self.lblTipoPromocao.setText(f"Tipo: {tipo}")
@@ -79,12 +81,12 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             valores = [
                 str(produto.get("codigo_barras") or "-"),
                 str(produto.get("nome") or "-"),
-                self._formatar_moeda(produto.get("preco_venda")),
+                formatar_moeda(produto.get("preco_venda")),
                 str(int(float(produto.get("quantidade_estoque") or 0))),
                 "Já vinculado" if str(produto.get("vinculado") or "N").upper() == "S" else "Disponível",
             ]
             for column, valor in enumerate(valores):
-                self.tableProdutos.setItem(row, column, QTableWidgetItem(valor))
+                set_table_item(self.tableProdutos, row, column, valor)
 
         if self.tableProdutos.rowCount() > 0:
             self.tableProdutos.selectRow(0)
@@ -95,13 +97,13 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         for row, item in enumerate(self._itens_vinculados):
             valores = [
                 str(item.get("produto") or "-"),
-                self._formatar_moeda(item.get("preco_original")),
-                self._formatar_moeda(item.get("preco_promocional")),
-                self._formatar_moeda(item.get("desconto_aplicado")),
+                formatar_moeda(item.get("preco_original")),
+                formatar_moeda(item.get("preco_promocional")),
+                formatar_moeda(item.get("desconto_aplicado")),
                 str(item.get("observacao") or "-"),
             ]
             for column, valor in enumerate(valores):
-                self.tableItensVinculados.setItem(row, column, QTableWidgetItem(valor))
+                set_table_item(self.tableItensVinculados, row, column, valor)
 
         if self.tableItensVinculados.rowCount() > 0:
             self.tableItensVinculados.selectRow(0)
@@ -147,19 +149,6 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         mostrar_info(self, "Promoções", f"{produto_nome}: {mensagem}")
         self._carregar_produtos()
         self._carregar_itens_vinculados()
-
-    @staticmethod
-    def _formatar_moeda(valor: Any) -> str:
-        try:
-            return f"R$ {float(valor or 0):.2f}".replace(".", ",")
-        except (TypeError, ValueError):
-            return "R$ 0,00"
-
-    @staticmethod
-    def _formatar_data(valor: Any) -> str:
-        if hasattr(valor, "strftime"):
-            return valor.strftime("%d/%m/%Y %H:%M")
-        return str(valor or "-")
 
     @staticmethod
     def _label_tipo(tipo: str) -> str:

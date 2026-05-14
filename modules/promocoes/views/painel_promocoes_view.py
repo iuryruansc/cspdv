@@ -12,14 +12,15 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QTableWidget,
-    QTableWidgetItem,
 )
 
 from modules.promocoes.services.promocao_service import PromocaoService
 from modules.promocoes.views.cadastro_promocao_view import CadastroPromocaoView
 from modules.promocoes.views.vincular_produtos_promocao_dialog import VincularProdutosPromocaoDialog
 from ui.promocoes.painel_promocoes import Ui_PainelPromocoes
+from utils.format_utils import formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
 class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixin):
@@ -142,7 +143,7 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
                 f"Alcance: {promocao.get('alcance') or '-'}"
             )
             for column, value in enumerate(valores):
-                item = QTableWidgetItem(value)
+                item = set_table_item(self.tablePromocoes, row, column, value)
                 item.setToolTip(tooltip)
                 if column == 2:
                     self._aplicar_estilo_tipo(item, str(promocao.get("tipo_desconto") or ""))
@@ -150,7 +151,6 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
                     self._aplicar_estilo_vigencia(item, str(promocao.get("status") or ""))
                 if column == 4:
                     self._aplicar_estilo_status(item, str(promocao.get("status") or ""))
-                self.tablePromocoes.setItem(row, column, item)
 
         if self.tablePromocoes.rowCount() > 0:
             self.tablePromocoes.selectRow(0)
@@ -183,13 +183,13 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
         for row, item in enumerate(itens_db):
             valores = [
                 str(item.get("produto") or "-"),
-                self._formatar_moeda(item.get("preco_original")),
-                self._formatar_moeda(item.get("preco_promocional")),
+                formatar_moeda(item.get("preco_original")),
+                formatar_moeda(item.get("preco_promocional")),
                 self._formatar_desconto(item),
                 str(item.get("observacao") or "-"),
             ]
             for column, valor in enumerate(valores):
-                self.tableItensPromocao.setItem(row, column, QTableWidgetItem(valor))
+                set_table_item(self.tableItensPromocao, row, column, valor)
         self._atualizar_status_promocao_selecionada(promocao, len(itens_db))
 
     def _abrir_nova_promocao(self) -> None:
@@ -327,19 +327,12 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
                 break
 
     @staticmethod
-    def _formatar_moeda(valor: Any) -> str:
-        try:
-            return f"R$ {float(valor or 0):.2f}".replace(".", ",")
-        except (TypeError, ValueError):
-            return "R$ 0,00"
-
-    @staticmethod
     def _formatar_desconto(item: dict[str, Any]) -> str:
         try:
             desconto = float(item.get("desconto_aplicado") or 0)
         except (TypeError, ValueError):
             desconto = 0.0
-        return f"R$ {desconto:.2f}".replace(".", ",") if desconto > 0 else "-"
+        return formatar_moeda(desconto) if desconto > 0 else "-"
 
     @staticmethod
     def _mapear_status_filtro(texto: str) -> str:

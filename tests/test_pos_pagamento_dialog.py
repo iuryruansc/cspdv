@@ -6,7 +6,6 @@ from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 def _venda_base(**overrides):
     venda = {
         "numero_venda": "V-1001",
@@ -28,7 +27,6 @@ def _venda_base(**overrides):
     }
     venda.update(overrides)
     return venda
-
 
 class TestPosPagamentoDialog:
     def test_monta_cupom_com_itens_pagamento_e_totais(self):

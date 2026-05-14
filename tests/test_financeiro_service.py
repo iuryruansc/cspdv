@@ -11,7 +11,6 @@ import pytest
 
 from modules.financeiro.services.financeiro_service import FinanceiroService
 
-
 class TestFinanceiroService:
     def test_registrar_recebimento_bloqueia_conta_invalida(self):
         with pytest.raises(ValueError, match="conta válida"):

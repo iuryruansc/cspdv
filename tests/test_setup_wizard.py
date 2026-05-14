@@ -460,7 +460,7 @@ class TestFluxoWizard:
             wizard._atualizar_ui()
             assert not wizard.btn_avancar.isHidden(), \
                 f"btn_avancar ocultado na página {i}"
-            
+
     def test_voltar_decrementa_pagina(self, wizard):
         wizard._current = 2
         wizard._atualizar_ui()
@@ -480,7 +480,7 @@ class TestFluxoWizard:
             wizard._atualizar_ui()
             assert not wizard.btn_voltar.isHidden(), \
                 f"btn_voltar ocultado na página {i}"
-            
+
     def test_nao_volta_alem_da_primeira(self, wizard):
         wizard._current = 0
         wizard._voltar()

@@ -127,14 +127,14 @@ class UsuarioModel:
         finally:
             cursor.close()
             conn.close()
-    
+
     @staticmethod
     def buscar_permissoes(perfil_id: int) -> list:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
             sql = """
-                SELECT p.chave 
+                SELECT p.chave
                 FROM permissoes p
                 INNER JOIN perfil_permissoes pp ON pp.permissao_id = p.id
                 WHERE pp.perfil_id = %s

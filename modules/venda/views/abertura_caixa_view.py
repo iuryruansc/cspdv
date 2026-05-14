@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QSpinBox,
     QTableWidget,
-    QTableWidgetItem,
     QWidget,
 )
 
@@ -24,6 +23,7 @@ from utils.format_utils import (
     formatar_moeda,
     numero_decimal,
 )
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso
 
 class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
@@ -247,7 +247,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
                 formatar_decimal(registro.get("valor_abertura")),
             ]
             for col_index, valor in enumerate(valores):
-                self.tableHistoricoAberturas.setItem(row_index, col_index, QTableWidgetItem(str(valor)))
+                set_table_item(self.tableHistoricoAberturas, row_index, col_index, valor)
 
     def preencher_caixa_existente(self, caixa_data: Dict[str, object]) -> None:
         pdv_label = str(caixa_data.get("pdv_label", ""))

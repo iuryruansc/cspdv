@@ -29,7 +29,6 @@ from modules.venda.services.cupom_service import (
     priorizar_desconto_manual_item,
     remover_desconto_item,
     restaurar_preco_promocional_item,
-    somar_quantidade_item,
     subtotal_itens,
     total_geral,
 )
@@ -326,9 +325,15 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.listaSugestoesProdutos.clear()
         for produto in produtos[:8]:
             nome = str(produto.get("nome") or "Produto")
+            codigo_fabricante = str(produto.get("cod_produto") or "").strip()
             codigo = str(produto.get("codigo_barras") or "---")
             preco = formatar_decimal(produto.get("preco_venda"))
-            item = QListWidgetItem(f"{nome}  |  Cód.: {codigo}  |  R$ {preco}")
+            partes = [nome]
+            if codigo_fabricante:
+                partes.append(f"Cód. Fab.: {codigo_fabricante}")
+            partes.append(f"Cód. Barras: {codigo}")
+            partes.append(f"R$ {preco}")
+            item = QListWidgetItem("  |  ".join(partes))
             item.setData(Qt.UserRole, dict(produto))
             self.listaSugestoesProdutos.addItem(item)
 
@@ -384,12 +389,13 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return
 
         produto_id = int(self._produto_atual.get("id") or 0)
-        item_existente = next(
-            (item for item in self._itens_venda if int(item.get("id") or 0) == produto_id),
-            None,
-        )
         estoque_disponivel = float(self._produto_atual.get("quantidade_estoque") or 0.0)
-        quantidade_total_solicitada = quantidade + int(item_existente.get("quantidade") or 0) if item_existente else quantidade
+        quantidade_ja_lancada = sum(
+            int(item.get("quantidade") or 0)
+            for item in self._itens_venda
+            if int(item.get("id") or 0) == produto_id
+        )
+        quantidade_total_solicitada = quantidade_ja_lancada + quantidade
 
         if not self._permitir_venda_sem_estoque() and quantidade_total_solicitada > int(estoque_disponivel):
             mostrar_aviso(
@@ -404,10 +410,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             self.lineEditQuantidade.selectAll()
             return
 
-        if item_existente:
-            somar_quantidade_item(item_existente, quantidade)
-        else:
-            self._itens_venda.append(criar_item_cupom(self._produto_atual, quantidade))
+        self._itens_venda.append(criar_item_cupom(self._produto_atual, quantidade))
 
         self._reconciliar_precos_promocionais()
         self._renderizar_cupom()

@@ -6,7 +6,6 @@ from ui.login.tela_de_login import Ui_TelaDeLogin
 from utils.app_logger import log_error, log_info
 from utils.system_runtime import descricao_ambiente, versao_referencia
 
-
 class LoginView(QDialog, Ui_TelaDeLogin):
     usuario_logado = None
 

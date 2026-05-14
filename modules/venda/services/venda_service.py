@@ -7,7 +7,6 @@ from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.venda.models.venda_model import VendaModel
 
-
 class VendaService:
     @staticmethod
     def _normalizar_itens(itens: List[Dict[str, Any]]) -> Tuple[bool, str, List[Dict[str, Any]]]:

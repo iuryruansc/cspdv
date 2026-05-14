@@ -10,14 +10,14 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QPushButton,
     QTableWidget,
-    QTableWidgetItem,
     QWidget,
 )
 
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.venda.services.caixa_service import CaixaService
 from ui.venda.tela_movimentacao_caixa import Ui_TelaMovimentacaoCaixa
-from utils.format_utils import aplicar_mascara_monetaria
+from utils.format_utils import aplicar_mascara_monetaria, formatar_moeda
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
 class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
@@ -110,11 +110,11 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
 
     def _carregar_resumo(self) -> None:
         resumo = CaixaService.obter_resumo_movimentacoes()
-        self.lblSaldoValor.setText(self._formatar_moeda(float(resumo.get("saldo_atual") or 0.0)))
-        self.lblSaldoAtualValor2.setText(self._formatar_moeda(float(resumo.get("saldo_atual") or 0.0)))
-        self.lblTotalSangriaValor.setText(self._formatar_moeda(float(resumo.get("total_sangrias") or 0.0)))
+        self.lblSaldoValor.setText(formatar_moeda(float(resumo.get("saldo_atual") or 0.0)))
+        self.lblSaldoAtualValor2.setText(formatar_moeda(float(resumo.get("saldo_atual") or 0.0)))
+        self.lblTotalSangriaValor.setText(formatar_moeda(float(resumo.get("total_sangrias") or 0.0)))
         entradas = float(resumo.get("total_suprimentos") or 0.0) + float(resumo.get("total_troco") or 0.0)
-        self.lblTotalSupValor.setText(self._formatar_moeda(entradas))
+        self.lblTotalSupValor.setText(formatar_moeda(entradas))
 
     def _carregar_historico(self) -> None:
         filtro = self.comboFiltroHist.currentText().strip().lower()
@@ -125,13 +125,12 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
             valores = (
                 str(row.get("hora_fmt") or "-"),
                 str(row.get("tipo_descricao") or "-"),
-                self._formatar_moeda(float(row.get("valor") or 0.0)),
+                formatar_moeda(float(row.get("valor") or 0.0)),
                 str(row.get("operador") or "-"),
                 str(row.get("observacao") or "-"),
             )
             for col_index, valor in enumerate(valores):
-                item = QTableWidgetItem(valor)
-                self.tableHistorico.setItem(row_index, col_index, item)
+                set_table_item(self.tableHistorico, row_index, col_index, valor)
 
     def _valor_digitado(self) -> float:
         texto = self.lineEditValor.text().strip().replace(".", "").replace(",", ".")
@@ -154,6 +153,3 @@ class MovimentacaoCaixaView(QWidget, Ui_TelaMovimentacaoCaixa):
         self._recarregar_tela()
         self.movimentacao_registrada.emit()
 
-    @staticmethod
-    def _formatar_moeda(valor: float) -> str:
-        return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")

@@ -8,7 +8,6 @@ from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.produtos.models.produto_model import ProdutoModel
 from modules.promocoes.models.promocao_model import PromocaoModel
 
-
 class PromocaoService:
     @staticmethod
     def gerar_proximo_codigo() -> str:

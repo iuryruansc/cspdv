@@ -18,7 +18,6 @@ from utils.format_utils import formatar_decimal
 from utils.image_utils import atualizar_preview_label
 from utils.ui_messages import mostrar_info
 
-
 class ConsultaPrecoDialog(QDialog):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -233,7 +232,7 @@ class ConsultaPrecoDialog(QDialog):
         produto_codigo_barras = ProdutoModel.buscar_por_codigo_barras(termo)
         if produto_codigo_barras:
             return produto_codigo_barras
-        
+
         produto_codigo = ProdutoModel.buscar_por_codigo(termo)
         if produto_codigo:
             return produto_codigo

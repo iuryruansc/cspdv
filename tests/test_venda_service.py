@@ -8,7 +8,6 @@ from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.venda.services.venda_service import VendaService
 
-
 class TestVendaService:
     def setup_method(self):
         CaixaSession.close()

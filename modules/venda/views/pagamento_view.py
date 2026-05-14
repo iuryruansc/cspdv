@@ -8,15 +8,14 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QPushButton,
     QTableWidget,
-    QTableWidgetItem,
     QWidget,
 )
 
 from modules.venda.views.finalizar_pendencia_dialog import FinalizarPendenciaDialog
 from ui.venda.tela_pagamento import Ui_TelaPagamento
 from utils.format_utils import formatar_moeda, numero_decimal
+from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_info
-
 
 class PagamentoView(QWidget, Ui_TelaPagamento):
     voltar_venda = pyqtSignal()
@@ -165,9 +164,9 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
     def _renderizar_pagamentos(self) -> None:
         self.tableFormasPagamento.setRowCount(len(self._pagamentos))
         for row, pagamento in enumerate(self._pagamentos):
-            self.tableFormasPagamento.setItem(row, 0, QTableWidgetItem(str(pagamento["forma"])))
-            self.tableFormasPagamento.setItem(row, 1, QTableWidgetItem(formatar_moeda(pagamento["valor"])))
-            self.tableFormasPagamento.setItem(row, 2, QTableWidgetItem("Remover"))
+            set_table_item(self.tableFormasPagamento, row, 0, str(pagamento["forma"]))
+            set_table_item(self.tableFormasPagamento, row, 1, formatar_moeda(pagamento["valor"]))
+            set_table_item(self.tableFormasPagamento, row, 2, "Remover")
 
     def _atualizar_resumo(self) -> None:
         total = numero_decimal((self._venda_data or {}).get("total"))

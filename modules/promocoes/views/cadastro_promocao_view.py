@@ -10,7 +10,6 @@ from ui.promocoes.cadastro_promocao import Ui_CadastroPromocao
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
-
 class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
     def __init__(self, parent=None, promocao_id: int | None = None):
         super().__init__(parent)
