@@ -1,9 +1,12 @@
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QShortcut, QWidget
+from PyQt5.QtWidgets import QMessageBox, QShortcut, QWidget
 
+from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from modules.auth.views.troca_operador_dialog import TrocaOperadorDialog
 from ui.login.selecao_modo import Ui_SelecaoModo
 from utils.system_runtime import descricao_ambiente, versao_referencia
+from utils.ui_messages import confirmar_acao
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 class SelecaoModoView(QWidget, Ui_SelecaoModo):
@@ -136,20 +139,103 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self._abrir_modulo(PainelPromocoesView, "painel_promocoes")
 
     def _exit(self):
-        from utils.ui_messages import confirmar_acao
+        if self._deve_bloquear_logout_por_caixa_aberto():
+            acao = self._mostrar_dialogo_saida_caixa_aberto()
+            if acao == "fechamento":
+                self._abrir_fechamento_caixa()
+            elif acao == "trocar_operador":
+                self._trocar_operador()
+            return
 
         usuario = self._usuario_atual()
         nome = usuario.get("nome", "") if usuario else ""
         if not confirmar_acao(self, "Confirmar Logout", f"Deseja realmente sair da sessão de {nome}?"):
             return
 
+        self._abrir_login()
+
+    def _deve_bloquear_logout_por_caixa_aberto(self) -> bool:
+        return SessionManager.should_block_close_with_open_caixa() and CaixaSession.has_open_caixa()
+
+    def _mostrar_dialogo_saida_caixa_aberto(self) -> str:
+        box = QMessageBox(self)
+        box.setIcon(QMessageBox.Warning)
+        box.setWindowTitle("Caixa aberto")
+        box.setText(
+            "Existe um caixa aberto neste PDV.\n\n"
+            "Para evitar que o caixa fique aberto por muito tempo, escolha como deseja continuar."
+        )
+        box.setStyleSheet(
+            """
+            QMessageBox {
+                background-color: #122c46;
+            }
+            QLabel {
+                color: #ffffff;
+                font-size: 13px;
+                min-width: 340px;
+            }
+            QPushButton {
+                min-width: 132px;
+                min-height: 34px;
+                padding: 6px 12px;
+                border-radius: 6px;
+                border: 1px solid #4b6f91;
+                background-color: #f4f8fc;
+                color: #16324f;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #dceaf7;
+            }
+            """
+        )
+
+        botao_fechamento = box.addButton("Ir para fechamento", QMessageBox.AcceptRole)
+        botao_trocar_operador = box.addButton("Trocar operador", QMessageBox.ActionRole)
+        botao_cancelar = box.addButton("Cancelar", QMessageBox.RejectRole)
+        botao_fechamento.setStyleSheet(
+            "QPushButton { background-color: #f5b23c; color: #16324f; border: 1px solid #dc9215; }"
+            "QPushButton:hover { background-color: #e3a225; }"
+        )
+        botao_trocar_operador.setStyleSheet(
+            "QPushButton { background-color: #3b84cf; color: white; border: 1px solid #2d6ca8; }"
+            "QPushButton:hover { background-color: #2f72b4; }"
+        )
+        botao_cancelar.setStyleSheet(
+            "QPushButton { background-color: #eef3f8; color: #16324f; border: 1px solid #90a9c1; }"
+            "QPushButton:hover { background-color: #dbe6f0; }"
+        )
+        box.setDefaultButton(botao_cancelar)
+        box.exec_()
+
+        clicado = box.clickedButton()
+        if clicado is botao_fechamento:
+            return "fechamento"
+        if clicado is botao_trocar_operador:
+            return "trocar_operador"
+        return "cancelar"
+
+    def _abrir_fechamento_caixa(self) -> None:
+        from modules.venda.views.fechar_caixa_dialog import FecharCaixaDialog
+
+        dialog = FecharCaixaDialog(self)
+        dialog.exec_()
+
+    def _trocar_operador(self) -> None:
+        dialog = TrocaOperadorDialog(self)
+        if dialog.exec_() == dialog.Accepted:
+            self._atualizar_operador()
+            self._verificar_acessos()
+
+    def _abrir_login(self) -> None:
         from modules.auth.views.login_view import LoginView
 
-        SessionManager.logout()
-        LoginView.usuario_logado = None
         self.hide()
         self.login = LoginView()
         if self.login.exec_() == LoginView.Accepted:
             self._atualizar_operador()
             self._verificar_acessos()
             self.show()
+            return
+        self.show()

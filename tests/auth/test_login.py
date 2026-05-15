@@ -129,3 +129,109 @@ class TestSelecaoModoView:
         assert view.shortcut_f3.isEnabled() is False
         assert view.shortcut_f4.isEnabled() is False
         assert view.shortcut_f5.isEnabled() is False
+
+    @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")
+    @patch("modules.auth.views.selecao_modo_view.descricao_ambiente", return_value="Ambiente de teste")
+    @patch("modules.auth.views.selecao_modo_view.versao_referencia", return_value="CSPdv v1.0.0")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.current_user", return_value={"id": 1, "nome": "Iury"})
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.has_permission", return_value=True)
+    @patch("modules.auth.views.selecao_modo_view.CaixaSession.has_open_caixa", return_value=True)
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.should_block_close_with_open_caixa", return_value=True)
+    def test_saida_com_caixa_aberto_cancelar_nao_executa_acao(
+        self,
+        _mock_block_close,
+        _mock_has_open_caixa,
+        _mock_has_permission,
+        _mock_current_user,
+        _mock_versao,
+        _mock_ambiente,
+        _mock_tamanho,
+    ):
+        view = SelecaoModoView()
+
+        with patch.object(view, "_mostrar_dialogo_saida_caixa_aberto", return_value="cancelar") as mock_dialog, patch.object(
+            view, "_abrir_fechamento_caixa"
+        ) as mock_fechamento, patch.object(view, "_trocar_operador") as mock_trocar:
+            view._exit()
+
+        mock_dialog.assert_called_once()
+        mock_fechamento.assert_not_called()
+        mock_trocar.assert_not_called()
+
+    @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")
+    @patch("modules.auth.views.selecao_modo_view.descricao_ambiente", return_value="Ambiente de teste")
+    @patch("modules.auth.views.selecao_modo_view.versao_referencia", return_value="CSPdv v1.0.0")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.current_user", return_value={"id": 1, "nome": "Iury"})
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.has_permission", return_value=True)
+    @patch("modules.auth.views.selecao_modo_view.CaixaSession.has_open_caixa", return_value=True)
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.should_block_close_with_open_caixa", return_value=True)
+    def test_saida_com_caixa_aberto_abre_fechamento(
+        self,
+        _mock_block_close,
+        _mock_has_open_caixa,
+        _mock_has_permission,
+        _mock_current_user,
+        _mock_versao,
+        _mock_ambiente,
+        _mock_tamanho,
+    ):
+        view = SelecaoModoView()
+
+        with patch.object(view, "_mostrar_dialogo_saida_caixa_aberto", return_value="fechamento"), patch.object(
+            view, "_abrir_fechamento_caixa"
+        ) as mock_fechamento, patch.object(view, "_trocar_operador") as mock_trocar:
+            view._exit()
+
+        mock_fechamento.assert_called_once()
+        mock_trocar.assert_not_called()
+
+    @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")
+    @patch("modules.auth.views.selecao_modo_view.descricao_ambiente", return_value="Ambiente de teste")
+    @patch("modules.auth.views.selecao_modo_view.versao_referencia", return_value="CSPdv v1.0.0")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.current_user", return_value={"id": 1, "nome": "Iury"})
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.has_permission", return_value=True)
+    @patch("modules.auth.views.selecao_modo_view.CaixaSession.has_open_caixa", return_value=True)
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.should_block_close_with_open_caixa", return_value=True)
+    def test_saida_com_caixa_aberto_troca_operador(
+        self,
+        _mock_block_close,
+        _mock_has_open_caixa,
+        _mock_has_permission,
+        _mock_current_user,
+        _mock_versao,
+        _mock_ambiente,
+        _mock_tamanho,
+    ):
+        view = SelecaoModoView()
+
+        with patch.object(view, "_mostrar_dialogo_saida_caixa_aberto", return_value="trocar_operador"), patch.object(
+            view, "_abrir_fechamento_caixa"
+        ) as mock_fechamento, patch.object(view, "_trocar_operador") as mock_trocar:
+            view._exit()
+
+        mock_fechamento.assert_not_called()
+        mock_trocar.assert_called_once()
+
+    @patch("modules.auth.views.selecao_modo_view.aplicar_tamanho_proporcional_tela")
+    @patch("modules.auth.views.selecao_modo_view.descricao_ambiente", return_value="Ambiente de teste")
+    @patch("modules.auth.views.selecao_modo_view.versao_referencia", return_value="CSPdv v1.0.0")
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.current_user", return_value={"id": 1, "nome": "Iury"})
+    @patch("modules.auth.views.selecao_modo_view.SessionManager.has_permission", return_value=True)
+    def test_trocar_operador_atualiza_contexto_quando_dialog_confirma(
+        self,
+        _mock_has_permission,
+        _mock_current_user,
+        _mock_versao,
+        _mock_ambiente,
+        _mock_tamanho,
+    ):
+        view = SelecaoModoView()
+
+        dialog_mock = type("DialogMock", (), {"Accepted": QDialog.Accepted, "exec_": lambda self: QDialog.Accepted})()
+        with patch("modules.auth.views.selecao_modo_view.TrocaOperadorDialog", return_value=dialog_mock), patch.object(
+            view, "_atualizar_operador"
+        ) as mock_atualizar, patch.object(view, "_verificar_acessos") as mock_verificar:
+            view._trocar_operador()
+
+        mock_atualizar.assert_called_once()
+        mock_verificar.assert_called_once()

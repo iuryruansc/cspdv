@@ -262,6 +262,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             f"Caixa aberto com sucesso para {caixa_data.get('pdv_label', 'o PDV selecionado')}.\n"
             "Os fluxos de venda, pre-venda e consulta ja podem ser conectados."
         )
+        self._mostrar_frente_venda()
 
     def _on_caixa_fechado(self, fechamento: dict) -> None:
         self._aplicar_estado_caixa()
