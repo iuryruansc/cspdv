@@ -16,6 +16,7 @@ class DetalhesProdutoDialog(QDialog, Ui_DetalhesProdutoDialog):
 
         campos = [
             ("Codigo interno:", produto.get("id")),
+            ("Codigo do produto:", produto.get("cod_produto") or "-"),
             ("Codigo de barras:", produto.get("codigo_barras")),
             ("Categoria:", produto.get("categoria_nome")),
             ("Marca:", produto.get("marca_nome")),

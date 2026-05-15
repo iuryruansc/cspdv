@@ -101,6 +101,7 @@ QPushButton:hover {
                 "hint": "Consulte itens cadastrados, acompanhe preco, estoque e relacoes principais antes de abrir o cadastro completo.",
                 "columns": [
                     ("codigo_barras", "Codigo de Barras"),
+                    ("cod_produto", "Codigo do Produto"),
                     ("nome", "Produto"),
                     ("categoria", "Categoria"),
                     ("marca", "Marca"),
@@ -225,6 +226,7 @@ QPushButton:hover {
         self.managementPage.btnAjustarQuantidade.clicked.connect(self._open_ajuste_quantidade)
         self.managementPage.btnToggleAtivo.clicked.connect(self._toggle_registro_ativo)
         self.managementPage.btnEditar.clicked.connect(self._editar_registro)
+        self.managementPage.tableResultados.itemDoubleClicked.connect(self._editar_registro_por_duplo_clique)
 
     def _setup_shortcuts(self) -> None:
         self.shortcutF1 = QShortcut(QKeySequence("F1"), self)
@@ -620,6 +622,11 @@ QPushButton:hover {
             fornecedor_id=int(registro_id),
             admin_view=self,
         )
+
+    def _editar_registro_por_duplo_clique(self, _item: QTableWidgetItem) -> None:
+        if getattr(self, "_current_management_key", None) != "produtos":
+            return
+        self._editar_registro()
 
     def _update_datetime(self) -> None:
         current = QDateTime.currentDateTime()
