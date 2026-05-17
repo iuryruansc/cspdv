@@ -1,5 +1,5 @@
 import bcrypt
-from typing import Any, Dict, List, Sequence, cast
+from typing import Any, Dict, List
 
 from database.connection import get_connection
 
@@ -136,10 +136,6 @@ class SetupModel:
 
     @staticmethod
     def _criar_formas_pagamento_padrao(cursor) -> None:
-        cursor.execute("SHOW COLUMNS FROM formas_pagamento")
-        colunas_rows = cast(List[Sequence[Any]], cursor.fetchall())
-        colunas = {str(coluna[0]) for coluna in colunas_rows}
-
         for forma in SetupModel._FORMAS_PAGAMENTO_PADRAO:
             cursor.execute(
                 "SELECT id FROM formas_pagamento WHERE UPPER(nome) = UPPER(%s) LIMIT 1",
@@ -148,26 +144,17 @@ class SetupModel:
             if cursor.fetchone():
                 continue
 
-            campos = ["nome", "tipo_sefaz", "permite_parcelamento", "taxa_administrativa", "ativo"]
-            valores = ["%s", "%s", "%s", "%s", "'S'"]
-            parametros = [
-                forma["nome"],
-                forma["tipo_sefaz"],
-                forma["permite_parcelamento"],
-                forma["taxa_administrativa"],
-            ]
-
-            if "createdAt" in colunas:
-                campos.append("createdAt")
-                valores.append("NOW()")
-            if "updatedAt" in colunas:
-                campos.append("updatedAt")
-                valores.append("NOW()")
-
             cursor.execute(
-                f"""
-                INSERT INTO formas_pagamento ({", ".join(campos)})
-                VALUES ({", ".join(valores)})
+                """
+                INSERT INTO formas_pagamento
+                    (nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo, createdAt, updatedAt)
+                VALUES
+                    (%s, %s, %s, %s, 'S', NOW(), NOW())
                 """,
-                tuple(parametros),
+                (
+                    forma["nome"],
+                    forma["tipo_sefaz"],
+                    forma["permite_parcelamento"],
+                    forma["taxa_administrativa"],
+                ),
             )

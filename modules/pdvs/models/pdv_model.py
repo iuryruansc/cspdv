@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, cast
 from database.connection import get_connection
 
 
-class FormaPagamentoModel:
+class PdvModel:
     @staticmethod
     def listar() -> List[Dict[str, Any]]:
         conn = get_connection()
@@ -13,13 +13,12 @@ class FormaPagamentoModel:
                 """
                 SELECT
                     id,
-                    nome,
-                    tipo_sefaz,
-                    permite_parcelamento,
-                    taxa_administrativa,
+                    identificacao,
+                    descricao,
+                    status,
                     ativo
-                FROM formas_pagamento
-                ORDER BY nome
+                FROM pdvs
+                ORDER BY identificacao
                 """
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
@@ -28,7 +27,7 @@ class FormaPagamentoModel:
             conn.close()
 
     @staticmethod
-    def buscar_por_id(forma_pagamento_id: int) -> Optional[Dict[str, Any]]:
+    def buscar_por_id(pdv_id: int) -> Optional[Dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
@@ -36,16 +35,15 @@ class FormaPagamentoModel:
                 """
                 SELECT
                     id,
-                    nome,
-                    tipo_sefaz,
-                    permite_parcelamento,
-                    taxa_administrativa,
+                    identificacao,
+                    descricao,
+                    status,
                     ativo
-                FROM formas_pagamento
+                FROM pdvs
                 WHERE id = %s
                 LIMIT 1
                 """,
-                (int(forma_pagamento_id),),
+                (int(pdv_id),),
             )
             return cast(Optional[Dict[str, Any]], cursor.fetchone())
         finally:
@@ -53,18 +51,18 @@ class FormaPagamentoModel:
             conn.close()
 
     @staticmethod
-    def buscar_por_nome(nome: str) -> Optional[Dict[str, Any]]:
+    def buscar_por_identificacao(identificacao: str) -> Optional[Dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute(
                 """
-                SELECT id, nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo
-                FROM formas_pagamento
-                WHERE UPPER(TRIM(nome)) = UPPER(TRIM(%s))
+                SELECT id, identificacao, descricao, status, ativo
+                FROM pdvs
+                WHERE UPPER(TRIM(identificacao)) = UPPER(TRIM(%s))
                 LIMIT 1
                 """,
-                (nome,),
+                (identificacao,),
             )
             return cast(Optional[Dict[str, Any]], cursor.fetchone())
         finally:
@@ -78,10 +76,10 @@ class FormaPagamentoModel:
         try:
             cursor.execute(
                 """
-                INSERT INTO formas_pagamento
-                    (nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo, createdAt, updatedAt)
+                INSERT INTO pdvs
+                    (identificacao, descricao, status, ativo, createdAt, updatedAt)
                 VALUES
-                    (%(nome)s, %(tipo_sefaz)s, %(permite_parcelamento)s, %(taxa_administrativa)s, %(ativo)s, NOW(), NOW())
+                    (%(identificacao)s, %(descricao)s, %(status)s, %(ativo)s, NOW(), NOW())
                 """,
                 dados,
             )
@@ -95,23 +93,22 @@ class FormaPagamentoModel:
             conn.close()
 
     @staticmethod
-    def atualizar(forma_pagamento_id: int, dados: Dict[str, Any]) -> bool:
+    def atualizar(pdv_id: int, dados: Dict[str, Any]) -> bool:
         conn = get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute(
                 """
-                UPDATE formas_pagamento
+                UPDATE pdvs
                 SET
-                    nome = %(nome)s,
-                    tipo_sefaz = %(tipo_sefaz)s,
-                    permite_parcelamento = %(permite_parcelamento)s,
-                    taxa_administrativa = %(taxa_administrativa)s,
+                    identificacao = %(identificacao)s,
+                    descricao = %(descricao)s,
+                    status = %(status)s,
                     ativo = %(ativo)s,
                     updatedAt = NOW()
                 WHERE id = %(id)s
                 """,
-                {**dados, "id": int(forma_pagamento_id)},
+                {**dados, "id": int(pdv_id)},
             )
             conn.commit()
             return cursor.rowcount > 0
@@ -123,13 +120,13 @@ class FormaPagamentoModel:
             conn.close()
 
     @staticmethod
-    def atualizar_status(forma_pagamento_id: int, ativo: str) -> bool:
+    def atualizar_status(pdv_id: int, ativo: str, status: str) -> bool:
         conn = get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute(
-                "UPDATE formas_pagamento SET ativo = %s WHERE id = %s",
-                (ativo, int(forma_pagamento_id)),
+                "UPDATE pdvs SET ativo = %s, status = %s WHERE id = %s",
+                (ativo, status, int(pdv_id)),
             )
             conn.commit()
             return cursor.rowcount > 0

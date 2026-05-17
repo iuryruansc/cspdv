@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
 
+
 class ConfiguracoesModel:
     @staticmethod
     def _registro_id(row: object) -> int | None:
@@ -42,7 +43,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute(
                 """
                 SELECT
@@ -156,7 +156,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -203,7 +202,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -273,7 +271,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -342,7 +339,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -407,7 +403,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -472,7 +467,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -542,7 +536,6 @@ class ConfiguracoesModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            ConfiguracoesModel._garantir_colunas_empresa(cursor)
             cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
             row = cast(object, cursor.fetchone())
             registro_id = ConfiguracoesModel._registro_id(row)
@@ -611,112 +604,3 @@ class ConfiguracoesModel:
             cursor.close()
             conn.close()
 
-    @staticmethod
-    def _garantir_colunas_empresa(cursor: Any) -> None:
-        cursor.execute("SHOW COLUMNS FROM config_empresa")
-        colunas = {str(coluna["Field"] if isinstance(coluna, dict) else coluna[0]) for coluna in cursor.fetchall()}
-
-        if "pdv_padrao_id" not in colunas:
-            cursor.execute("ALTER TABLE config_empresa ADD COLUMN pdv_padrao_id INT NULL")
-        if "moeda_padrao" not in colunas:
-            cursor.execute("ALTER TABLE config_empresa ADD COLUMN moeda_padrao VARCHAR(10) NULL DEFAULT 'BRL'")
-        if "regime_tributario_padrao" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN regime_tributario_padrao VARCHAR(40) NULL DEFAULT 'SIMPLES_NACIONAL'"
-            )
-        if "origem_mercadoria_padrao" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN origem_mercadoria_padrao VARCHAR(5) NULL DEFAULT '0'"
-            )
-        if "cfop_venda_padrao" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN cfop_venda_padrao VARCHAR(10) NULL DEFAULT '5102'"
-            )
-        if "cfop_devolucao_padrao" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN cfop_devolucao_padrao VARCHAR(10) NULL DEFAULT '1202'"
-            )
-        if "csosn_cst_padrao" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN csosn_cst_padrao VARCHAR(10) NULL DEFAULT '102'"
-            )
-        if "natureza_operacao_padrao" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN natureza_operacao_padrao VARCHAR(120) NULL DEFAULT 'VENDA DE MERCADORIA'"
-            )
-        if "exigir_ncm_cest_produto" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN exigir_ncm_cest_produto CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "exigir_unidade_tributavel_produto" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN exigir_unidade_tributavel_produto CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "cliente_padrao_venda" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN cliente_padrao_venda VARCHAR(40) NULL DEFAULT 'CONSUMIDOR_FINAL'"
-            )
-        if "regra_desconto_venda" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN regra_desconto_venda VARCHAR(40) NULL DEFAULT 'PERMITIR_DESCONTO'"
-            )
-        if "habilitar_venda_rapida_admin" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN habilitar_venda_rapida_admin CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "permitir_venda_sem_estoque" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN permitir_venda_sem_estoque CHAR(1) NULL DEFAULT 'N'"
-            )
-        if "fundo_inicial_sugerido" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN fundo_inicial_sugerido DECIMAL(10,2) NULL DEFAULT 0.00"
-            )
-        if "exigir_admin_sangria" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN exigir_admin_sangria CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "exigir_admin_reembolso" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN exigir_admin_reembolso CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "exigir_admin_diferenca_fechamento" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN exigir_admin_diferenca_fechamento CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "prioridade_promocional" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN prioridade_promocional VARCHAR(50) NULL DEFAULT 'PROMOCAO_ANTES_DESCONTO'"
-            )
-        if "bloquear_promocoes_simultaneas" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN bloquear_promocoes_simultaneas CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "ativar_promocoes_por_vigencia" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN ativar_promocoes_por_vigencia CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "horas_sessao_persistida" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN horas_sessao_persistida INT NULL DEFAULT 12"
-            )
-        if "restaurar_login_automaticamente" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN restaurar_login_automaticamente CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "bloquear_fechamento_programa_caixa_aberto" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN bloquear_fechamento_programa_caixa_aberto CHAR(1) NULL DEFAULT 'S'"
-            )
-        if "intervalo_backup_horas" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN intervalo_backup_horas INT NULL DEFAULT 24"
-            )
-        if "perfil_log" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN perfil_log VARCHAR(30) NULL DEFAULT 'OPERACIONAL'"
-            )
-        if "versao_referencia" not in colunas:
-            cursor.execute(
-                "ALTER TABLE config_empresa ADD COLUMN versao_referencia VARCHAR(60) NULL DEFAULT 'CSPdv v1.0.0'"
-            )

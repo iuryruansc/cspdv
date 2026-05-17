@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Sequence, cast
+from typing import Any, Dict, List, Optional, cast
 
 from database.connection import get_connection
 
@@ -169,49 +169,21 @@ class CaixaModel:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
-            cursor_colunas = conn.cursor()
-            try:
-                cursor_colunas.execute("SHOW COLUMNS FROM caixas")
-                colunas_rows = cast(List[Sequence[Any]], cursor_colunas.fetchall())
-                colunas = {str(coluna[0]) for coluna in colunas_rows}
-            finally:
-                cursor_colunas.close()
-
-            selecoes = [
-                "c.id",
-                "c.pdv_id",
-                "p.identificacao",
-                "p.descricao",
-                "ua.nome AS operador_abertura",
-                "c.data_abertura",
-                "c.valor_abertura",
-                "c.status",
-                "c.ativo" if "ativo" in colunas else "'S' AS ativo",
-            ]
-
-            if "data_fechamento" in colunas:
-                selecoes.append("c.data_fechamento")
-            else:
-                selecoes.append("NULL AS data_fechamento")
-
-            if "valor_fechamento" in colunas:
-                selecoes.append("c.valor_fechamento")
-            elif "valor_contado" in colunas:
-                selecoes.append("c.valor_contado AS valor_fechamento")
-            else:
-                selecoes.append("NULL AS valor_fechamento")
-
-            if "diferenca_fechamento" in colunas:
-                selecoes.append("c.diferenca_fechamento")
-            elif "diferenca" in colunas:
-                selecoes.append("c.diferenca AS diferenca_fechamento")
-            else:
-                selecoes.append("NULL AS diferenca_fechamento")
-
             cursor.execute(
-                f"""
+                """
                 SELECT
-                    {", ".join(selecoes)}
+                    c.id,
+                    c.pdv_id,
+                    p.identificacao,
+                    p.descricao,
+                    ua.nome AS operador_abertura,
+                    c.data_abertura,
+                    c.data_fechamento,
+                    c.valor_abertura,
+                    c.valor_fechamento,
+                    c.diferenca_fechamento,
+                    c.status,
+                    COALESCE(c.ativo, 'S') AS ativo
                 FROM caixas c
                 INNER JOIN pdvs p ON p.id = c.pdv_id
                 INNER JOIN usuarios ua ON ua.id = c.usuario_abertura_id
@@ -236,47 +208,26 @@ class CaixaModel:
         conn = get_connection()
         cursor = conn.cursor()
         try:
-            cursor.execute("SHOW COLUMNS FROM caixas")
-            colunas_rows = cast(List[Sequence[Any]], cursor.fetchall())
-            colunas = {str(coluna[0]) for coluna in colunas_rows}
-
-            atribuicoes = ["status = 'fechado'"]
-            parametros: List[Any] = []
-
-            if "usuario_fechamento_id" in colunas:
-                atribuicoes.append("usuario_fechamento_id = %s")
-                parametros.append(usuario_fechamento_id)
-            if "data_fechamento" in colunas:
-                atribuicoes.append("data_fechamento = NOW()")
-            if "valor_fechamento" in colunas:
-                atribuicoes.append("valor_fechamento = %s")
-                parametros.append(valor_fechamento)
-            if "valor_contado" in colunas:
-                atribuicoes.append("valor_contado = %s")
-                parametros.append(valor_fechamento)
-            if "diferenca_fechamento" in colunas:
-                atribuicoes.append("diferenca_fechamento = %s")
-                parametros.append(diferenca)
-            if "diferenca" in colunas:
-                atribuicoes.append("diferenca = %s")
-                parametros.append(diferenca)
-            if "observacoes_fechamento" in colunas:
-                atribuicoes.append("observacoes_fechamento = %s")
-                parametros.append(observacoes or "")
-            if "observacao_fechamento" in colunas:
-                atribuicoes.append("observacao_fechamento = %s")
-                parametros.append(observacoes or "")
-            if "updatedAt" in colunas:
-                atribuicoes.append("updatedAt = NOW()")
-
-            parametros.append(caixa_id)
             cursor.execute(
-                f"""
+                """
                 UPDATE caixas
-                SET {", ".join(atribuicoes)}
+                SET
+                    status = 'fechado',
+                    usuario_fechamento_id = %s,
+                    data_fechamento = NOW(),
+                    valor_fechamento = %s,
+                    diferenca_fechamento = %s,
+                    observacoes_fechamento = %s,
+                    updatedAt = NOW()
                 WHERE id = %s
                 """,
-                tuple(parametros),
+                (
+                    usuario_fechamento_id,
+                    valor_fechamento,
+                    diferenca,
+                    observacoes or "",
+                    caixa_id,
+                ),
             )
             conn.commit()
         except Exception:

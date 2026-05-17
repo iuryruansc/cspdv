@@ -17,7 +17,10 @@ O projeto cobre hoje o fluxo principal de uma operacao de pequeno e medio porte:
 - estoque com consulta e ajuste
 - promocoes com vinculo de produtos
 - configuracoes operacionais persistidas
+- parametros fiscais persistidos
+- gestao de PDVs, unidades e formas de pagamento no painel admin
 - backup manual e acompanhamento do ultimo backup
+- migrations de banco aplicadas automaticamente no startup
 
 O sistema ja se encontra em um estagio funcional para operacao assistida, com cobertura automatizada relevante nas areas criticas.
 
@@ -37,6 +40,8 @@ Dependencias principais em [requirements.txt](D:\Python\cspdv\requirements.txt).
 cspdv/
   core/
   database/
+    migrations/
+      versions/
   docs/
   modules/
     admin/
@@ -45,13 +50,16 @@ cspdv/
     clientes/
     estoque/
     financeiro/
+    formas_pagamento/
     fornecedores/
     marcas/
+    pdvs/
     produtos/
     promocoes/
     relatorios/
     setup/
     shared/
+    unidades/
     venda/
   ui/
   utils/
@@ -79,6 +87,8 @@ O projeto segue, de forma geral, esta separacao:
   - regras de negocio e orquestracao
 - `modules/*/views`
   - comportamento e integracao das telas
+- `database/migrations/*`
+  - evolucao versionada do schema
 - `ui/*`
   - layout visual gerado pelo Qt Designer
 - `utils/*`
@@ -94,6 +104,30 @@ Hoje o projeto ja usa alguns helpers compartilhados como base:
 - [utils/ui_messages.py](D:\Python\cspdv\utils\ui_messages.py)
 
 Mais detalhes em [docs/architecture.md](D:\Python\cspdv\docs\architecture.md).
+
+## Migrations e banco
+
+O projeto agora trabalha com schema governado por migrations.
+
+- mudancas estruturais no banco nao devem mais ser feitas em runtime dentro de `models`
+- toda alteracao de schema deve virar migration em [database/migrations/versions](D:\Python\cspdv\database\migrations\versions:1)
+- as migrations pendentes sao aplicadas automaticamente no inicio da aplicacao
+- as versoes aplicadas ficam registradas em `schema_migrations`
+
+Regra pratica:
+
+- mudou estrutura do banco: criar migration
+- mudou dado de configuracao ou cadastro: salvar normalmente via `services` e `models`
+
+Padrao atual de nomenclatura:
+
+- `YYYYMMDD_NNN_descricao_curta.py`
+
+Exemplos:
+
+- `20260517_001_config_empresa_defaults.py`
+- `20260517_004_caixas_closing_columns.py`
+- `20260517_007_referential_actions_history.py`
 
 ## Modulos atuais
 
@@ -113,10 +147,17 @@ Mais detalhes em [docs/architecture.md](D:\Python\cspdv\docs\architecture.md).
 
 - dashboard administrativo
 - alertas operacionais
-- acoes rapidas
+- acoes essenciais
 - gerenciamento central de cadastros
+- navegacao reorganizada por grupos
 - venda rapida sem sair do painel
 - configuracoes persistidas
+- area `Operacao e Fiscal`
+  - formas de pagamento
+  - caixas
+  - parametros fiscais
+  - unidades
+  - PDVs
 - status de backup
 
 ### Venda
@@ -150,6 +191,13 @@ Mais detalhes em [docs/architecture.md](D:\Python\cspdv\docs\architecture.md).
 - comprovante simples de recebimento
 - reembolsos registrados
 - consulta de venda
+
+### Operacao e Fiscal
+
+- formas de pagamento sincronizadas com a tela de pagamento
+- PDVs com cadastro, edicao e ativacao/desativacao
+- unidades com cadastro, edicao e ativacao/desativacao
+- parametros fiscais persistidos e ligados ao cadastro de produto
 
 ### Estoque
 
@@ -246,6 +294,8 @@ Entre as tabelas relevantes da operacao atual:
 - `promocao_marcas`
 - `promocao_pdvs`
 
+A estrutura atual do banco e preparada por migrations versionadas, e nao mais por autoajuste de schema em runtime nos fluxos principais.
+
 ## Como executar
 
 ### 1. Instale as dependencias
@@ -294,6 +344,12 @@ APP_VERSION=1.0.0
 python main.py
 ```
 
+### 4. Aplicar migrations manualmente, se necessario
+
+```bash
+python tools/migrar_banco.py
+```
+
 ## Testes
 
 A suite automatizada fica organizada por dominio em [tests](D:\Python\cspdv\tests:1).
@@ -309,7 +365,7 @@ pytest -q
 
 Estado atual validado:
 
-- `170` testes passando
+- `100+` testes passando nas baterias principais de regressao usadas durante a estabilizacao
 
 ## Documentacao auxiliar
 
@@ -325,6 +381,7 @@ O sistema esta adequado para:
 - piloto interno
 - homologacao operacional estruturada
 - evolucao incremental com base ja testada
+- evolucao de schema com migrations versionadas
 
 Ainda e recomendado validar o ambiente real de loja antes de producao plena, principalmente em:
 

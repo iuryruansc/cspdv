@@ -2,7 +2,17 @@ from typing import Any, Dict, List
 
 from PyQt5.QtCore import QDateTime, QTimer
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, QTableWidgetItem, QWidget
+from PyQt5.QtWidgets import (
+    QButtonGroup,
+    QFrame,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QShortcut,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
 
 from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
@@ -23,6 +33,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self._management_configs: Dict[str, Dict[str, Any]] = {}
         self._setup_user_context()
         self._setup_dashboard_actions()
+        self._setup_dashboard_layout()
         self._setup_datetime()
         self._setup_management_area()
         self._setup_navigation()
@@ -67,6 +78,135 @@ QPushButton:hover {
         self.sectionTitleHLayout.addWidget(self.btnFecharCaixaDashboard)
         self.btnFecharCaixaDashboard.hide()
 
+    def _setup_dashboard_layout(self) -> None:
+        self.lblAcoesTitle.setText("Ações Essenciais")
+        self.lblConfigEstruturalTitle.setText("Operação e Sistema")
+
+        self.btnAcaoCadFuncionario.hide()
+        self.btnAcaoCadUsuario.hide()
+        self.btnAcaoCadPerfil.hide()
+        self.btnAcaoCadPermissao.hide()
+        self.btnAcaoCadCargo.hide()
+
+        self.frameAcessoSistema.setMinimumSize(292, 0)
+        self.frameConfiguracaoEstrutural.setMinimumSize(292, 0)
+
+        self.frameAlertasDashboard = QFrame(self.frameUltimasVendas)
+        self.frameAlertasDashboard.setMinimumSize(292, 0)
+        self.frameAlertasDashboard.setStyleSheet(
+            """
+QFrame {
+ background-color: white;
+ border: 1px solid #a8c4d8;
+ border-radius: 6px;
+}
+QLabel[panelTitle="true"] {
+ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);
+ color: white;
+ font-size: 13px;
+ font-weight: bold;
+ padding: 6px 12px;
+ border-top-left-radius: 6px;
+ border-top-right-radius: 6px;
+}
+            """
+        )
+        self.frameAlertasDashboardLayout = QVBoxLayout(self.frameAlertasDashboard)
+        self.frameAlertasDashboardLayout.setContentsMargins(0, 0, 0, 0)
+        self.frameAlertasDashboardLayout.setSpacing(0)
+
+        self.lblAlertasDashboardTitle = QLabel("Alertas Prioritários", self.frameAlertasDashboard)
+        self.lblAlertasDashboardTitle.setProperty("panelTitle", True)
+        self.frameAlertasDashboardLayout.addWidget(self.lblAlertasDashboardTitle)
+
+        self.frameAlertasBody = QFrame(self.frameAlertasDashboard)
+        self.frameAlertasBodyLayout = QVBoxLayout(self.frameAlertasBody)
+        self.frameAlertasBodyLayout.setContentsMargins(14, 14, 14, 14)
+        self.frameAlertasBodyLayout.setSpacing(10)
+        self.frameAlertasDashboardLayout.addWidget(self.frameAlertasBody)
+
+        self.lblAlertasHint = QLabel(
+            "Acompanhe aqui os pontos que exigem ação rápida da administração.",
+            self.frameAlertasBody,
+        )
+        self.lblAlertasHint.setStyleSheet("font-size: 12px; color: #486a86;")
+        self.lblAlertasHint.setWordWrap(True)
+        self.frameAlertasBodyLayout.addWidget(self.lblAlertasHint)
+
+        self.frameEstruturalBodyLayout.removeWidget(self.lineResumoAlertas)
+        self.lineResumoAlertas.hide()
+        self.frameEstruturalBodyLayout.removeWidget(self.lblResumoAlertasTitulo)
+        self.lblResumoAlertasTitulo.hide()
+
+        for botao in [
+            self.btnResumoAlerta1,
+            self.btnResumoAlerta2,
+            self.btnResumoAlerta3,
+            self.btnResumoAlerta4,
+        ]:
+            self.frameEstruturalBodyLayout.removeWidget(botao)
+            self.frameAlertasBodyLayout.addWidget(botao)
+
+        self.dashboardPanelsLayout.addWidget(self.frameAlertasDashboard)
+        self.dashboardPanelsLayout.setStretch(0, 5)
+        self.dashboardPanelsLayout.setStretch(1, 2)
+        self.dashboardPanelsLayout.setStretch(2, 2)
+        self.dashboardPanelsLayout.setStretch(3, 2)
+
+    def _setup_placeholder_page(self) -> None:
+        parent_widget = self._central_widget_parent()
+        self.placeholderPage = QFrame(parent_widget)
+        self.placeholderPage.setStyleSheet(
+            """
+QFrame {
+ background-color: white;
+ border: 1px solid #a8c4d8;
+ border-radius: 6px;
+}
+QLabel[placeholderTitle="true"] {
+ color: #1a3a5c;
+ font-size: 18px;
+ font-weight: bold;
+}
+QLabel[placeholderHint="true"] {
+ color: #5d7f99;
+ font-size: 12px;
+}
+            """
+        )
+        layout = QVBoxLayout(self.placeholderPage)
+        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setSpacing(10)
+
+        self.lblPlaceholderTitle = QLabel("Area administrativa", self.placeholderPage)
+        self.lblPlaceholderTitle.setProperty("placeholderTitle", True)
+        layout.addWidget(self.lblPlaceholderTitle)
+
+        self.lblPlaceholderHint = QLabel("", self.placeholderPage)
+        self.lblPlaceholderHint.setWordWrap(True)
+        self.lblPlaceholderHint.setProperty("placeholderHint", True)
+        layout.addWidget(self.lblPlaceholderHint)
+
+        self.btnPlaceholderPrimary = QPushButton("Selecione uma opcao abaixo", self.placeholderPage)
+        self.btnPlaceholderPrimary.setStyleSheet(
+            """
+QPushButton {
+ background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3585c8, stop:1 #1a5fa0);
+ color: white;
+ font-size: 12px;
+ font-weight: bold;
+ border: none;
+ border-radius: 4px;
+ padding: 8px 14px;
+}
+QPushButton:hover { background: #2a74b8; }
+            """
+        )
+        layout.addWidget(self.btnPlaceholderPrimary)
+        layout.addStretch(1)
+        self.placeholderPage.hide()
+        self.mainContentVLayout.addWidget(self.placeholderPage)
+
     def _setup_user_context(self) -> None:
         usuario = SessionManager.current_user()
         if usuario:
@@ -96,6 +236,7 @@ QPushButton:hover {
         self.parametrosFiscaisPage = ParametrosFiscaisView(parent_widget)
         self.parametrosFiscaisPage.hide()
         self.mainContentVLayout.addWidget(self.parametrosFiscaisPage)
+        self._setup_placeholder_page()
 
         self._management_configs = {
             "produtos": {
@@ -223,6 +364,39 @@ QPushButton:hover {
                 "new_label": "Abrir caixa",
                 "shortcut": "F7",
             },
+            "unidades": {
+                "button": self.btnNavUnidades,
+                "title": "Unidades",
+                "section_title": "Gerenciamento de Unidades",
+                "hint": "Mantenha unidades comerciais e tributarias padronizadas para produtos e operacao fiscal.",
+                "columns": [
+                    ("id", "ID"),
+                    ("sigla", "Sigla"),
+                    ("descricao", "Descricao"),
+                    ("codigo_sefaz", "Codigo SEFAZ"),
+                    ("fracionavel", "Fracionavel"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_unidades,
+                "new_action": self._open_cadastro_unidade,
+                "new_label": "Nova unidade",
+            },
+            "pdvs": {
+                "button": self.btnNavPdvs,
+                "title": "PDVs",
+                "section_title": "Gerenciamento de PDVs",
+                "hint": "Mantenha os pontos de venda ativos, suas identificacoes e descricoes operacionais em um unico lugar.",
+                "columns": [
+                    ("id", "ID"),
+                    ("identificacao", "Identificacao"),
+                    ("descricao", "Descricao"),
+                    ("status", "Status"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_pdvs,
+                "new_action": self._open_cadastro_pdv,
+                "new_label": "Novo PDV",
+            },
         }
 
         for config in self._management_configs.values():
@@ -231,6 +405,34 @@ QPushButton:hover {
             if shortcut:
                 button.setText(f"({shortcut}) {config['title']}")
         self.btnNavFiscal.setText("(F8) Parâmetros Fiscais")
+
+        self._subnav_groups = {
+            "dashboard": [],
+            "cadastros": [
+                self.btnNavProdutosCadastro,
+                self.btnNavMarcas,
+                self.btnNavFornecedores,
+                self.btnNavCategorias,
+            ],
+            "acesso": [
+                self.btnNavPerfis,
+                self.btnNavPermissoes,
+                self.btnNavCargos,
+            ],
+            "financeiro": [
+                self.btnNavFormasPagamento,
+                self.btnNavCaixas,
+            ],
+            "relacionamento": [
+                self.btnNavClientesCadastro,
+            ],
+            "operacao_fiscal": [
+                self.btnNavFiscal,
+                self.btnNavUnidades,
+                self.btnNavPdvs,
+            ],
+            "configuracoes": [],
+        }
 
     def _setup_navigation(self) -> None:
         self.navGroup = QButtonGroup(self)
@@ -248,6 +450,15 @@ QPushButton:hover {
 
         self.btnNavDashboard.clicked.connect(lambda _=False: self._show_dashboard())
         self.btnNavProdutos.clicked.connect(lambda _=False: self._show_management_page("produtos"))
+        self.btnNavUsuarios.clicked.connect(
+            lambda _=False: self._show_placeholder_section(
+                primary_button=self.btnNavUsuarios,
+                title="Acesso e Estrutura",
+                hint="Use a subnavegação para organizar perfis, permissões e cargos do sistema.",
+                group_key="acesso",
+            )
+        )
+        self.btnNavVendas.clicked.connect(lambda _=False: self._show_management_page("formas_pagamento"))
         self.btnNavClientes.clicked.connect(lambda _=False: self._show_management_page("clientes"))
         self.btnNavLotes.clicked.connect(lambda _=False: self._show_parametros_fiscais())
         self.btnNavConfiguracoes.clicked.connect(lambda _=False: self._show_configuracoes())
@@ -256,6 +467,37 @@ QPushButton:hover {
         for key, config in self._management_configs.items():
             button = config["button"]
             button.clicked.connect(lambda _, target=key: self._show_management_page(target))
+
+        self.btnNavPerfis.clicked.connect(
+            lambda _=False: self._show_placeholder_section(
+                primary_button=self.btnNavUsuarios,
+                title="Perfis",
+                hint="Esta area agrupa os perfis de acesso da operacao. A tela detalhada pode ser adicionada depois sem mudar a navegacao.",
+                group_key="acesso",
+                primary_action_text="Perfis em preparação",
+                primary_action=None,
+            )
+        )
+        self.btnNavPermissoes.clicked.connect(
+            lambda _=False: self._show_placeholder_section(
+                primary_button=self.btnNavUsuarios,
+                title="Permissões",
+                hint="Aqui ficam as regras de autorizacao do sistema. A navegacao ja fica reservada para a expansao dessa area.",
+                group_key="acesso",
+                primary_action_text="Permissões em preparação",
+                primary_action=None,
+            )
+        )
+        self.btnNavCargos.clicked.connect(
+            lambda _=False: self._show_placeholder_section(
+                primary_button=self.btnNavUsuarios,
+                title="Cargos",
+                hint="Use esta seção para a estrutura organizacional. A visualização detalhada pode entrar depois sem reorganizar o painel.",
+                group_key="acesso",
+                primary_action_text="Cargos em preparação",
+                primary_action=None,
+            )
+        )
 
     def _setup_actions(self) -> None:
         self.btnAcaoCadProduto.clicked.connect(self._open_cadastro_produto)
@@ -292,13 +534,78 @@ QPushButton:hover {
         self.shortcutF8.activated.connect(self._show_parametros_fiscais)
 
     def _select_primary_nav(self, key: str) -> None:
-        if key == "clientes":
-            if not self.btnNavClientes.isChecked():
-                self.btnNavClientes.setChecked(True)
-            return
+        button_map = {
+            "produtos": self.btnNavProdutos,
+            "marcas": self.btnNavProdutos,
+            "fornecedores": self.btnNavProdutos,
+            "categorias": self.btnNavProdutos,
+            "clientes": self.btnNavClientes,
+            "formas_pagamento": self.btnNavVendas,
+            "caixas": self.btnNavVendas,
+            "unidades": self.btnNavLotes,
+            "pdvs": self.btnNavLotes,
+        }
+        button = button_map.get(key, self.btnNavProdutos)
+        if not button.isChecked():
+            button.setChecked(True)
 
-        if not self.btnNavProdutos.isChecked():
-            self.btnNavProdutos.setChecked(True)
+    def _set_subnav_group(self, group_key: str) -> None:
+        visible_buttons = set(self._subnav_groups.get(group_key, []))
+        all_buttons = [
+            self.btnNavProdutosCadastro,
+            self.btnNavMarcas,
+            self.btnNavFornecedores,
+            self.btnNavCategorias,
+            self.btnNavClientesCadastro,
+            self.btnNavPerfis,
+            self.btnNavPermissoes,
+            self.btnNavCargos,
+            self.btnNavFormasPagamento,
+            self.btnNavCaixas,
+            self.btnNavFiscal,
+            self.btnNavUnidades,
+            self.btnNavPdvs,
+        ]
+        for button in all_buttons:
+            button.setVisible(button in visible_buttons)
+        self.frameSubNavBar.setVisible(bool(visible_buttons))
+
+    def _hide_content_pages(self) -> None:
+        self.managementPage.hide()
+        self.configuracoesPage.hide()
+        self.parametrosFiscaisPage.hide()
+        self.placeholderPage.hide()
+        self.cardVendasHoje.hide()
+        self.cardFaturamento.hide()
+        self.cardProdutos.hide()
+        self.cardClientes.hide()
+        self.frameUltimasVendas.hide()
+
+    def _show_placeholder_section(
+        self,
+        *,
+        primary_button: QPushButton,
+        title: str,
+        hint: str,
+        group_key: str,
+        primary_action_text: str = "Selecione uma opcao abaixo",
+        primary_action=None,
+    ) -> None:
+        primary_button.setChecked(True)
+        self.lblSectionTitle.setText(title)
+        self.btnFrenteCaixa.hide()
+        self.btnFecharCaixaDashboard.hide()
+        self._hide_content_pages()
+        self._set_subnav_group(group_key)
+        self.placeholderPage.show()
+        self.lblPlaceholderTitle.setText(title)
+        self.lblPlaceholderHint.setText(hint)
+        self.btnPlaceholderPrimary.setText(primary_action_text)
+        self._desconectar_click(self.btnPlaceholderPrimary)
+        self.btnPlaceholderPrimary.setEnabled(primary_action is not None)
+        if primary_action is not None:
+            self.btnPlaceholderPrimary.clicked.connect(primary_action)
+        self._mark_subnav_button(None)
 
     def _show_dashboard(self) -> None:
         self.btnNavDashboard.setChecked(True)
@@ -306,9 +613,8 @@ QPushButton:hover {
         self.btnFrenteCaixa.show()
         self.btnFecharCaixaDashboard.show()
         self._atualizar_acao_caixa_dashboard()
-        self.managementPage.hide()
-        self.configuracoesPage.hide()
-        self.parametrosFiscaisPage.hide()
+        self._hide_content_pages()
+        self._set_subnav_group("dashboard")
         self.cardVendasHoje.show()
         self.cardFaturamento.show()
         self.cardProdutos.show()
@@ -320,25 +626,31 @@ QPushButton:hover {
     def _show_management_page(self, key: str) -> None:
         config = self._management_configs[key]
         self._select_primary_nav(key)
+        group_map = {
+            "produtos": "cadastros",
+            "marcas": "cadastros",
+            "fornecedores": "cadastros",
+            "categorias": "cadastros",
+            "clientes": "relacionamento",
+            "formas_pagamento": "financeiro",
+            "caixas": "financeiro",
+            "unidades": "operacao_fiscal",
+            "pdvs": "operacao_fiscal",
+        }
         self.lblSectionTitle.setText(config["section_title"])
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
-        self.cardVendasHoje.hide()
-        self.cardFaturamento.hide()
-        self.cardProdutos.hide()
-        self.cardClientes.hide()
-        self.frameUltimasVendas.hide()
+        self._hide_content_pages()
+        self._set_subnav_group(group_map.get(key, "cadastros"))
         self.managementPage.show()
-        self.configuracoesPage.hide()
-        self.parametrosFiscaisPage.hide()
         self.managementPage.btnNovo.setText(config["new_label"])
         self.managementPage.set_details_enabled(key in {"produtos", "caixas"})
         self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
         self.managementPage.set_edit_enabled(
-            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}
+            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}
         )
         self.managementPage.set_toggle_enabled(
-            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}
+            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}
         )
         self._desconectar_click(self.managementPage.btnNovo)
         self.managementPage.btnNovo.clicked.connect(config["new_action"])
@@ -352,14 +664,9 @@ QPushButton:hover {
         self.lblSectionTitle.setText("Configurações do Sistema")
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
-        self.cardVendasHoje.hide()
-        self.cardFaturamento.hide()
-        self.cardProdutos.hide()
-        self.cardClientes.hide()
-        self.frameUltimasVendas.hide()
-        self.managementPage.hide()
+        self._hide_content_pages()
+        self._set_subnav_group("configuracoes")
         self.configuracoesPage.show()
-        self.parametrosFiscaisPage.hide()
         self._mark_subnav_button(None)
 
     def _show_parametros_fiscais(self) -> None:
@@ -367,13 +674,8 @@ QPushButton:hover {
         self.lblSectionTitle.setText("Parâmetros Fiscais")
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
-        self.cardVendasHoje.hide()
-        self.cardFaturamento.hide()
-        self.cardProdutos.hide()
-        self.cardClientes.hide()
-        self.frameUltimasVendas.hide()
-        self.managementPage.hide()
-        self.configuracoesPage.hide()
+        self._hide_content_pages()
+        self._set_subnav_group("operacao_fiscal")
         self.parametrosFiscaisPage.show()
         self.parametrosFiscaisPage._carregar_dados()
         self._mark_subnav_button(self.btnNavFiscal)
@@ -444,7 +746,7 @@ QPushButton:hover {
 
         rows = FormaPagamentoModel.listar()
         for row in rows:
-            row["permite_parcelamento"] = "Sim" if str(row.get("permite_parcelamento") or "N").upper() == "S" else "Nao"
+            row["permite_parcelamento"] = "Sim" if str(row.get("permite_parcelamento") or "N").upper() == "S" else "Não"
             taxa = row.get("taxa_administrativa")
             try:
                 row["taxa_administrativa"] = f"{float(taxa or 0):.2f}".replace(".", ",")
@@ -456,6 +758,19 @@ QPushButton:hover {
         from modules.venda.services.caixa_service import CaixaService
 
         return CaixaService.listar_caixas_admin()
+
+    def _load_pdvs(self) -> List[Dict[str, Any]]:
+        from modules.pdvs.models.pdv_model import PdvModel
+
+        return PdvModel.listar()
+
+    def _load_unidades(self) -> List[Dict[str, Any]]:
+        from modules.unidades.models.unidade_model import UnidadeModel
+
+        rows = UnidadeModel.listar()
+        for row in rows:
+            row["fracionavel"] = "Sim" if bool(row.get("fracionavel")) else "Não"
+        return rows
 
     def _open_cadastro_produto(self) -> None:
         from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
@@ -490,6 +805,20 @@ QPushButton:hover {
         from modules.formas_pagamento.views.cadastro_forma_pagamento_view import CadastroFormaPagamentoView
 
         dialog = CadastroFormaPagamentoView(self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
+
+    def _open_cadastro_pdv(self) -> None:
+        from modules.pdvs.views.cadastro_pdv_view import CadastroPdvView
+
+        dialog = CadastroPdvView(self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
+
+    def _open_cadastro_unidade(self) -> None:
+        from modules.unidades.views.cadastro_unidade_view import CadastroUnidadeView
+
+        dialog = CadastroUnidadeView(self)
         if dialog.exec_():
             self._refresh_current_management_page()
 
@@ -631,7 +960,7 @@ QPushButton:hover {
 
         caixa_id = caixa.get("id")
         if caixa_id is None:
-            mostrar_aviso(self, "Caixa invÃ¡lido", "NÃ£o foi possÃ­vel identificar o caixa selecionado.")
+            mostrar_aviso(self, "Caixa invalido", "Nao foi possivel identificar o caixa selecionado.")
             return
 
         from modules.venda.services.caixa_service import CaixaService
@@ -639,7 +968,7 @@ QPushButton:hover {
 
         resumo = CaixaService.obter_resumo_por_caixa_id(int(caixa_id))
         if not resumo:
-            mostrar_aviso(self, "Caixa nÃ£o encontrado", "NÃ£o foi possÃ­vel carregar o resumo do caixa selecionado.")
+            mostrar_aviso(self, "Caixa nao encontrado", "Nao foi possivel carregar o resumo do caixa selecionado.")
             return
 
         dialog = ResumoCaixaAtualDialog(resumo, self)
@@ -648,7 +977,7 @@ QPushButton:hover {
 
     def _toggle_registro_ativo(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
-        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}:
+        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}:
             return
 
         row = self._obter_registro_selecionado(
@@ -691,7 +1020,7 @@ QPushButton:hover {
 
     def _editar_registro(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
-        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}:
+        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}:
             return
 
         row = self._obter_registro_selecionado(
@@ -826,19 +1155,23 @@ QPushButton:hover {
         self._atualizar_acao_caixa_dashboard()
 
     def _atualizar_resumo_estrutura(self, resumo: Dict[str, Any]) -> None:
-        self.lblResumoUsuarios.setText(f"Usuários ativos: {int(resumo.get('usuarios_ativos') or 0)}")
-        self.lblResumoPerfis.setText(f"Perfis ativos: {int(resumo.get('perfis_ativos') or 0)}")
+        self.lblResumoUsuarios.setText(
+            f"Acesso: usuarios ativos {int(resumo.get('usuarios_ativos') or 0)} | "
+            f"perfis ativos {int(resumo.get('perfis_ativos') or 0)}"
+        )
+        self.lblResumoPerfis.setText(
+            f"Operacao: PDVs ativos {int(resumo.get('pdvs_ativos') or 0)} | "
+            f"caixas abertos {int(resumo.get('caixas_abertos') or 0)}"
+        )
         self.lblResumoPdvs.setText(
-            f"PDVs ativos: {int(resumo.get('pdvs_ativos') or 0)} | "
-            f"Último backup: {str(resumo.get('ultimo_backup_resumo') or 'Nenhum backup realizado ainda')}"
+            f"Financeiro: recebimentos hoje {str(resumo.get('recebimentos_dia') or 'R$ 0,00')} | "
+            f"reembolsos hoje {str(resumo.get('reembolsos_dia') or 'R$ 0,00')}"
         )
         self.lblResumoCaixas.setText(
-            f"Caixas abertos: {int(resumo.get('caixas_abertos') or 0)} | "
-            f"Recebimentos hoje: {str(resumo.get('recebimentos_dia') or 'R$ 0,00')}"
+            f"Sistema: ultimo backup {str(resumo.get('ultimo_backup_resumo') or 'Nenhum backup realizado ainda')}"
         )
         self.lblResumoFormasPagamento.setText(
-            f"Formas de pagamento: {int(resumo.get('formas_pagamento_ativas') or 0)} | "
-            f"Reembolsos hoje: {str(resumo.get('reembolsos_dia') or 'R$ 0,00')}"
+            f"Formas de pagamento ativas: {int(resumo.get('formas_pagamento_ativas') or 0)}"
         )
         self._atualizar_alertas_dashboard(resumo.get("alertas_dashboard") or [])
 

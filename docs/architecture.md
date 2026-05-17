@@ -6,6 +6,8 @@
 cspdv/
   core/
   database/
+    migrations/
+      versions/
   docs/
   modules/
     admin/
@@ -37,6 +39,8 @@ cspdv/
 
 - `core/`: servicos transversais do sistema inteiro, como sessao e contexto operacional.
 - `database/`: conexao e infraestrutura de persistencia.
+- `database/migrations/`: governanca de schema e evolucao versionada do banco.
+- `database/migrations/versions/`: migrations incrementais aplicadas no startup.
 - `docs/`: arquitetura, comandos de apoio e material de homologacao.
 - `modules/<dominio>/models/`: acesso ao banco daquele dominio.
 - `modules/<dominio>/services/`: regras de negocio e orquestracao.
@@ -47,6 +51,32 @@ cspdv/
 - `tests/<dominio>/`: testes automatizados agrupados por contexto funcional.
 
 ## Convencoes atuais
+
+### Banco e migrations
+
+- alteracoes de estrutura do banco nao devem mais ser feitas em runtime dentro de `models/`
+- qualquer mudanca de schema deve virar migration em `database/migrations/versions/`
+- migrations pendentes sao aplicadas no inicio da aplicacao por:
+  - `main.py`
+  - `database/migrations/runner.py`
+- `schema_migrations` registra quais versoes ja foram aplicadas
+- dados de configuracao salvos pelo admin continuam sendo alterados normalmente via `services/` e `models/`
+- a regra pratica atual e:
+  - mudou schema: criar migration
+  - mudou valor de negocio/configuracao: salvar dado normalmente
+
+### Convencao de nomes para migrations
+
+- padrao:
+  - `YYYYMMDD_NNN_descricao_curta.py`
+- exemplos reais:
+  - `20260517_001_config_empresa_defaults.py`
+  - `20260517_004_caixas_closing_columns.py`
+  - `20260517_007_referential_actions_history.py`
+- recomendacao:
+  - uma migration por intencao estrutural clara
+  - usar nomes tecnicos curtos e previsiveis
+  - evitar nomes vagos como `ajustes.py` ou `migration_nova.py`
 
 ### Identidade de produto
 
@@ -90,3 +120,4 @@ Ao criar um novo recurso:
 5. reuse `core/`, `modules/shared/` e `utils/` antes de duplicar implementacao
 6. crie ou atualize testes no subdiretorio correspondente em `tests/`
 7. se surgir uma duplicacao pequena e recorrente, prefira extrair helper compartilhado em vez de replicar codigo
+8. se a funcionalidade exigir mudanca estrutural no banco, entregue a migration junto do recurso

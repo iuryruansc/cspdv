@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox, QWidget
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from database.connection import close_connection, get_connection_diagnostics
+from database.migrations.runner import run_pending_migrations
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.auth.views.login_view import LoginView
 from modules.auth.views.selecao_modo_view import SelecaoModoView
@@ -108,6 +109,9 @@ def main():
     backup_scheduler.iniciar()
 
     try:
+        applied_migrations = run_pending_migrations()
+        if applied_migrations:
+            log_info(f"Migrations aplicadas na inicializacao: {', '.join(applied_migrations)}")
         if SetupModel.is_first_run():
             wizard = SetupWizardView()
             QTimer.singleShot(0, lambda: _mostrar_dialog(wizard))
