@@ -321,11 +321,14 @@ class TestSetupModel:
         'email': 'admin@teste.com', 'senha': 'senha123',
     }
 
-    def _make_cursor(self, count=0, lastrowid=1):
+    def _make_cursor(self, count=0, lastrowid=1, fetchone_side_effect=None):
         cursor = MagicMock()
         cursor.__enter__ = MagicMock(return_value=cursor)
         cursor.__exit__  = MagicMock(return_value=False)
-        cursor.fetchone.return_value = (count,)
+        if fetchone_side_effect is None:
+            cursor.fetchone.return_value = (count,)
+        else:
+            cursor.fetchone.side_effect = fetchone_side_effect
         cursor.lastrowid = lastrowid
         return cursor
 
@@ -347,7 +350,7 @@ class TestSetupModel:
     def test_salvar_tudo_chama_commit(self, mock_get_conn):
         from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
-        cursor = self._make_cursor(lastrowid=1)
+        cursor = self._make_cursor(lastrowid=1, fetchone_side_effect=[(10,), (20,)])
         conn.cursor.return_value = cursor
 
         SetupModel.salvar_tudo(self.EMPRESA, self.PDV, self.ADMIN)
@@ -357,7 +360,7 @@ class TestSetupModel:
     def test_salvar_tudo_insere_nas_tabelas_corretas(self, mock_get_conn):
         from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
-        cursor = self._make_cursor(lastrowid=1)
+        cursor = self._make_cursor(lastrowid=1, fetchone_side_effect=[(10,), (20,)])
         conn.cursor.return_value = cursor
 
         SetupModel.salvar_tudo(self.EMPRESA, self.PDV, self.ADMIN)
@@ -366,9 +369,8 @@ class TestSetupModel:
             str(c.args[0]).lower()
             for c in cursor.execute.call_args_list
         )
-        for tabela in ['config_empresa', 'pdvs', 'cargos', 'perfis',
-                       'permissoes', 'perfil_permissoes', 'funcionarios', 'usuarios']:
-            assert tabela in sql_calls, f"INSERT em '{tabela}' não encontrado"
+        for tabela in ['config_empresa', 'pdvs', 'cargos', 'perfis', 'funcionarios', 'usuarios']:
+            assert tabela in sql_calls, f"SQL para '{tabela}' nao encontrado"
 
     @patch('modules.setup.models.setup_model.get_connection')
     def test_salvar_tudo_faz_rollback_em_erro(self, mock_get_conn):
@@ -388,7 +390,7 @@ class TestSetupModel:
     def test_salvar_tudo_senha_com_bcrypt(self, mock_get_conn):
         from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
-        cursor = self._make_cursor(lastrowid=1)
+        cursor = self._make_cursor(lastrowid=1, fetchone_side_effect=[(10,), (20,)])
         conn.cursor.return_value = cursor
 
         SetupModel.salvar_tudo(self.EMPRESA, self.PDV, self.ADMIN)
@@ -419,11 +421,21 @@ class TestSetupModel:
     def test_salvar_tudo_fecha_cursor(self, mock_get_conn):
         from modules.setup.models.setup_model import SetupModel
         conn   = mock_get_conn.return_value
-        cursor = self._make_cursor(lastrowid=1)
+        cursor = self._make_cursor(lastrowid=1, fetchone_side_effect=[(10,), (20,)])
         conn.cursor.return_value = cursor
 
         SetupModel.salvar_tudo(self.EMPRESA, self.PDV, self.ADMIN)
         cursor.close.assert_called_once()
+
+    @patch('modules.setup.models.setup_model.get_connection')
+    def test_salvar_tudo_falha_se_dados_base_nao_existirem(self, mock_get_conn):
+        from modules.setup.models.setup_model import SetupModel
+        conn = mock_get_conn.return_value
+        cursor = self._make_cursor(lastrowid=1, fetchone_side_effect=[None])
+        conn.cursor.return_value = cursor
+
+        with pytest.raises(RuntimeError, match='Execute os seeds do sistema antes de continuar o setup'):
+            SetupModel.salvar_tudo(self.EMPRESA, self.PDV, self.ADMIN)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # TestFluxoWizard — testa navegação e integração entre páginas

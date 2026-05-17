@@ -4,6 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List
 
+from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.financeiro.models.financeiro_model import FinanceiroModel
 
 class FinanceiroService:
@@ -139,7 +140,7 @@ class FinanceiroService:
         if not isinstance(data_recebimento, datetime):
             raise ValueError("Informe uma data de recebimento válida.")
 
-        return FinanceiroModel.registrar_recebimento_conta(
+        resultado = FinanceiroModel.registrar_recebimento_conta(
             conta_id=int(conta_id),
             usuario_id=int(usuario_id),
             caixa_id=int(caixa_id),
@@ -148,3 +149,19 @@ class FinanceiroService:
             observacao=str(observacao or "").strip(),
             data_recebimento=data_recebimento,
         )
+        AuditoriaService.registrar_evento(
+            evento="recebimento_pendencia",
+            categoria="financeiro",
+            entidade="conta_receber",
+            entidade_id=int(conta_id),
+            usuario_id=int(usuario_id),
+            caixa_id=int(caixa_id),
+            detalhes={
+                "venda_id": int(resultado.get("venda_id") or 0),
+                "forma_pagamento": str(resultado.get("forma_pagamento") or ""),
+                "valor_recebido": str(resultado.get("valor_recebido") or "0"),
+                "valor_aberto": str(resultado.get("valor_aberto") or "0"),
+                "status": str(resultado.get("status") or ""),
+            },
+        )
+        return resultado

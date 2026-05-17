@@ -5,6 +5,22 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, Sequence, Tuple, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    FLAG_SIM,
+    STATUS_CAIXA_ABERTO,
+    STATUS_CONTA_ABERTAS,
+    STATUS_CONTA_PARCIALMENTE_RECEBIDA,
+    STATUS_CONTA_PENDENTE,
+    STATUS_CONTA_QUITADA,
+    STATUS_PDV_ATIVO,
+    STATUS_REEMBOLSO_CONCLUIDO,
+    STATUS_VENDA_CONCLUIDA,
+    STATUS_VENDA_CONCLUIDA_COM_PENDENCIA,
+    STATUS_VENDA_OPERACIONAL,
+)
+
+STATUS_VENDA_SQL = "', '".join(STATUS_VENDA_OPERACIONAL)
+STATUS_CONTA_ABERTAS_SQL = "', '".join(STATUS_CONTA_ABERTAS)
 
 class FinanceiroModel:
     @staticmethod
@@ -16,10 +32,11 @@ class FinanceiroModel:
                 """
                 SELECT id, identificacao, descricao
                 FROM pdvs
-                WHERE ativo = 'S'
-                  AND status = 'ativo'
+                WHERE ativo = %s
+                  AND status = %s
                 ORDER BY identificacao
-                """
+                """,
+                (FLAG_SIM, STATUS_PDV_ATIVO),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -35,9 +52,10 @@ class FinanceiroModel:
                 """
                 SELECT id, nome
                 FROM formas_pagamento
-                WHERE ativo = 'S'
+                WHERE ativo = %s
                 ORDER BY nome
-                """
+                """,
+                (FLAG_SIM,),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -73,7 +91,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                 WHERE pp.data_pagamento >= %s
                   AND pp.data_pagamento < %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND v.status IN ('{STATUS_VENDA_SQL}')
                   {pdv_clause}
                   {forma_clause}
                 """,
@@ -91,12 +109,12 @@ class FinanceiroModel:
                 INNER JOIN caixas c ON c.id = cm.caixa_id
                 WHERE cm.data_hora >= %s
                   AND cm.data_hora < %s
-                  AND cm.ativo = 'S'
+                  AND cm.ativo = %s
                   AND cm.estornado = 0
                   AND mot.tipo_padrao IN ('suprimento', 'troco')
                   {FinanceiroModel._caixa_filter_clause(pdv_id)}
                 """,
-                tuple(params_entradas),
+                tuple([*params_entradas, FLAG_SIM]),
             )
             entradas_manuais = cast(Dict[str, Any], cursor.fetchone() or {})
 
@@ -110,12 +128,12 @@ class FinanceiroModel:
                 INNER JOIN caixas c ON c.id = cm.caixa_id
                 WHERE cm.data_hora >= %s
                   AND cm.data_hora < %s
-                  AND cm.ativo = 'S'
+                  AND cm.ativo = %s
                   AND cm.estornado = 0
                   AND mot.tipo_padrao = 'sangria'
                   {FinanceiroModel._caixa_filter_clause(pdv_id)}
                 """,
-                tuple(params_saidas),
+                tuple([*params_saidas, FLAG_SIM]),
             )
             sangrias = cast(Dict[str, Any], cursor.fetchone() or {})
 
@@ -141,14 +159,14 @@ class FinanceiroModel:
                 FROM venda_reembolsos vr
                 INNER JOIN vendas v ON v.id = vr.venda_id
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
-                WHERE vr.ativo = 'S'
-                  AND vr.status = 'CONCLUIDO'
+                WHERE vr.ativo = %s
+                  AND vr.status = %s
                   AND vr.data_hora >= %s
                   AND vr.data_hora < %s
                   {pdv_clause}
                   {reembolso_forma_clause}
                 """,
-                tuple(params_reembolsos),
+                tuple([FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO, *params_reembolsos]),
             )
             reembolsos = cast(Dict[str, Any], cursor.fetchone() or {})
 
@@ -159,10 +177,10 @@ class FinanceiroModel:
                     c.id,
                     c.valor_abertura
                 FROM caixas c
-                WHERE c.status = 'aberto'
+                WHERE c.status = %s
                   {FinanceiroModel._caixa_filter_clause(pdv_id)}
                 """,
-                tuple(params_saldo),
+                tuple([STATUS_CAIXA_ABERTO, *params_saldo]),
             )
             caixas_abertos = cast(List[Dict[str, Any]], cursor.fetchall() or [])
 
@@ -224,7 +242,7 @@ class FinanceiroModel:
                 INNER JOIN pdvs p ON p.id = c.pdv_id
                 LEFT JOIN usuarios u ON u.id = cm.usuario_id
                 LEFT JOIN formas_pagamento fp ON fp.id = cm.forma_pagamento_id
-                WHERE cm.ativo = 'S'
+                WHERE cm.ativo = %s
                   AND cm.estornado = 0
                   AND cm.data_hora >= %s
                   AND cm.data_hora < %s
@@ -232,7 +250,7 @@ class FinanceiroModel:
                 ORDER BY cm.data_hora DESC, cm.id DESC
                 LIMIT %s
                 """,
-                tuple(params),
+                tuple([FLAG_SIM, *params]),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -275,7 +293,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                 WHERE pp.data_pagamento >= %s
                   AND pp.data_pagamento < %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND v.status IN ('{STATUS_VENDA_SQL}')
                   {pdv_clause}
                   {forma_clause}
                 ORDER BY pp.data_pagamento DESC, pp.id DESC
@@ -335,7 +353,7 @@ class FinanceiroModel:
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
                   WHERE pp.data_pagamento >= %s
                     AND pp.data_pagamento < %s
-                    AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                    AND v.status IN ('{STATUS_VENDA_SQL}')
                     {pdv_clause}
                     {forma_clause}
                     {busca_clause}
@@ -383,20 +401,20 @@ class FinanceiroModel:
             if status_filtro == "TODAS":
                 status_clause = ""
             elif status_filtro in (None, "ABERTAS"):
-                status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')"
+                status_clause = f" AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}')"
             elif status_filtro == "PENDENTE":
-                status_clause = " AND cr.status = 'PENDENTE'"
+                status_clause = f" AND cr.status = '{STATUS_CONTA_PENDENTE}'"
             elif status_filtro == "PARCIALMENTE_RECEBIDA":
-                status_clause = " AND cr.status = 'PARCIALMENTE_RECEBIDA'"
+                status_clause = f" AND cr.status = '{STATUS_CONTA_PARCIALMENTE_RECEBIDA}'"
             elif status_filtro == "QUITADA":
-                status_clause = " AND cr.status = 'QUITADA'"
+                status_clause = f" AND cr.status = '{STATUS_CONTA_QUITADA}'"
             elif status_filtro == "VENCIDA":
-                status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()"
+                status_clause = f" AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}') AND cr.data_vencimento < CURDATE()"
             elif status_filtro == "VENCE_HOJE":
-                status_clause = " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento = CURDATE()"
+                status_clause = f" AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}') AND cr.data_vencimento = CURDATE()"
             elif status_filtro == "PROXIMOS_7_DIAS":
                 status_clause = (
-                    " AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')"
+                    f" AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}')"
                     " AND cr.data_vencimento > CURDATE()"
                     " AND cr.data_vencimento <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)"
                 )
@@ -416,27 +434,27 @@ class FinanceiroModel:
                         SELECT COUNT(*)
                         FROM contas_receber_recebimentos crr
                         WHERE crr.conta_receber_id = cr.id
-                          AND crr.ativo = 'S'
+                          AND crr.ativo = %s
                     ), 0) AS total_recebimentos,
                     (
                         SELECT MAX(crr.data_recebimento)
                         FROM contas_receber_recebimentos crr
                         WHERE crr.conta_receber_id = cr.id
-                          AND crr.ativo = 'S'
+                          AND crr.ativo = %s
                     ) AS ultimo_recebimento,
                     CASE
-                        WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE() THEN 1
+                        WHEN cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}') AND cr.data_vencimento < CURDATE() THEN 1
                         ELSE 0
                     END AS vencida,
                     CASE
-                        WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()
+                        WHEN cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}') AND cr.data_vencimento < CURDATE()
                         THEN DATEDIFF(CURDATE(), cr.data_vencimento)
                         ELSE 0
                     END AS dias_atraso
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
                 LEFT JOIN caixas cx ON cx.id = cr.caixa_id
-                WHERE cr.ativo = 'S'
+                WHERE cr.ativo = %s
                   AND cr.data_vencimento >= %s
                   AND cr.data_vencimento < %s
                   {pdv_clause}
@@ -445,7 +463,7 @@ class FinanceiroModel:
                 ORDER BY cr.data_vencimento ASC, cr.id DESC
                 LIMIT %s
                 """,
-                tuple(params),
+                tuple([FLAG_SIM, FLAG_SIM, FLAG_SIM, *params]),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -458,7 +476,7 @@ class FinanceiroModel:
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute(
-                """
+                f"""
                 SELECT
                     cr.id,
                     cr.venda_id,
@@ -473,17 +491,17 @@ class FinanceiroModel:
                     cr.data_vencimento,
                     cr.status,
                     CASE
-                        WHEN cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA') AND cr.data_vencimento < CURDATE()
+                        WHEN cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}') AND cr.data_vencimento < CURDATE()
                         THEN DATEDIFF(CURDATE(), cr.data_vencimento)
                         ELSE 0
                     END AS dias_atraso
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
                 WHERE cr.id = %s
-                  AND cr.ativo = 'S'
+                  AND cr.ativo = %s
                 LIMIT 1
                 """,
-                (int(conta_id),),
+                (int(conta_id), FLAG_SIM),
             )
             conta = cursor.fetchone()
             if not conta:
@@ -501,10 +519,10 @@ class FinanceiroModel:
                 LEFT JOIN formas_pagamento fp ON fp.id = crr.forma_pagamento_id
                 LEFT JOIN usuarios u ON u.id = crr.usuario_id
                 WHERE crr.conta_receber_id = %s
-                  AND crr.ativo = 'S'
+                  AND crr.ativo = %s
                 ORDER BY crr.data_recebimento DESC, crr.id DESC
                 """,
-                (int(conta_id),),
+                (int(conta_id), FLAG_SIM),
             )
             recebimentos = list(cursor.fetchall())
             ultimo_recebimento = recebimentos[0]["data_recebimento"] if recebimentos else None
@@ -548,10 +566,10 @@ class FinanceiroModel:
                     cr.status
                 FROM contas_receber cr
                 WHERE cr.id = %s
-                  AND cr.ativo = 'S'
+                  AND cr.ativo = %s
                 LIMIT 1
                 """,
-                (int(conta_id),),
+                (int(conta_id), FLAG_SIM),
             )
             conta = cursor.fetchone()
             if not conta:
@@ -581,7 +599,7 @@ class FinanceiroModel:
                 INSERT INTO contas_receber_recebimentos
                     (conta_receber_id, usuario_id, caixa_id, forma_pagamento_id, valor_recebido, data_recebimento, observacao, ativo, createdAt, updatedAt)
                 VALUES
-                    (%s, %s, %s, %s, %s, %s, %s, 'S', NOW(), NOW())
+                    (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                 """,
                 (
                     int(conta_id),
@@ -591,6 +609,7 @@ class FinanceiroModel:
                     float(valor_recebido),
                     data_recebimento,
                     observacao or None,
+                    FLAG_SIM,
                 ),
             )
 
@@ -612,7 +631,11 @@ class FinanceiroModel:
 
             novo_recebido = Decimal(str(conta.get("valor_recebido") or 0)) + valor_recebido
             novo_aberto = aberto_atual - valor_recebido
-            novo_status = "QUITADA" if novo_aberto <= Decimal("0.00") else "PARCIALMENTE_RECEBIDA"
+            novo_status = (
+                STATUS_CONTA_QUITADA
+                if novo_aberto <= Decimal("0.00")
+                else STATUS_CONTA_PARCIALMENTE_RECEBIDA
+            )
 
             cursor.execute(
                 """
@@ -626,16 +649,20 @@ class FinanceiroModel:
                 (float(novo_recebido), float(novo_aberto), novo_status, int(conta_id)),
             )
 
-            if novo_status == "QUITADA":
+            if novo_status == STATUS_CONTA_QUITADA:
                 cursor.execute(
                     """
                     UPDATE vendas
-                    SET status = 'CONCLUIDA',
+                    SET status = %s,
                         updatedAt = NOW()
                     WHERE id = %s
-                      AND status = 'CONCLUIDA_COM_PENDENCIA'
+                      AND status = %s
                     """,
-                    (int(conta["venda_id"]),),
+                    (
+                        STATUS_VENDA_CONCLUIDA,
+                        int(conta["venda_id"]),
+                        STATUS_VENDA_CONCLUIDA_COM_PENDENCIA,
+                    ),
                 )
 
             conn.commit()
@@ -696,7 +723,7 @@ class FinanceiroModel:
                 FROM venda_reembolsos vr
                 INNER JOIN vendas v ON v.id = vr.venda_id
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
-                WHERE vr.ativo = 'S'
+                WHERE vr.ativo = %s
                   AND vr.data_hora >= %s
                   AND vr.data_hora < %s
                   {pdv_clause}
@@ -704,7 +731,7 @@ class FinanceiroModel:
                 ORDER BY vr.data_hora DESC, vr.id DESC
                 LIMIT %s
                 """,
-                tuple(params),
+                tuple([FLAG_SIM, *params]),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -756,15 +783,15 @@ class FinanceiroModel:
                         FROM venda_reembolso_itens vri
                         INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
                         WHERE vri.item_venda_id = iv.id
-                          AND vr.ativo = 'S'
-                          AND vr.status = 'CONCLUIDO'
+                          AND vr.ativo = %s
+                          AND vr.status = %s
                     ), 0) AS quantidade_reembolsada
                 FROM itens_venda iv
                 LEFT JOIN produtos pr ON pr.id = iv.produto_id
                 WHERE iv.venda_id = %s
                 ORDER BY iv.id
                 """,
-                (int(venda_id),),
+                (FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO, int(venda_id)),
             )
             itens = list(cursor.fetchall())
             for item in itens:
@@ -796,10 +823,10 @@ class FinanceiroModel:
                     data_hora
                 FROM venda_reembolsos
                 WHERE venda_id = %s
-                  AND ativo = 'S'
+                  AND ativo = %s
                 ORDER BY data_hora DESC, id DESC
                 """,
-                (int(venda_id),),
+                (int(venda_id), FLAG_SIM),
             )
             reembolsos = list(cursor.fetchall())
 
@@ -836,12 +863,12 @@ class FinanceiroModel:
     @staticmethod
     def _somar_pagamentos_dinheiro_caixa(cursor: Any, caixa_id: int) -> Decimal:
         cursor.execute(
-            """
+            f"""
             SELECT COALESCE(SUM(pp.valor_pago), 0) AS total
             FROM pagamento_parcial pp
             INNER JOIN vendas v ON v.id = pp.venda_id
             WHERE v.caixa_id = %s
-              AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+              AND v.status IN ('{STATUS_VENDA_SQL}')
               AND LOWER(TRIM(pp.forma_pagamento)) = 'dinheiro'
             """,
             (caixa_id,),
@@ -858,11 +885,11 @@ class FinanceiroModel:
             FROM caixa_movimentacoes cm
             INNER JOIN caixa_motivos mot ON mot.id = cm.caixa_motivo_id
             WHERE cm.caixa_id = %s
-              AND cm.ativo = 'S'
+              AND cm.ativo = %s
               AND cm.estornado = 0
               AND mot.tipo_padrao IN ({marcadores})
             """,
-            tuple([caixa_id, *tipos]),
+            tuple([caixa_id, FLAG_SIM, *tipos]),
         )
         row = cast(Dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
@@ -875,10 +902,10 @@ class FinanceiroModel:
             FROM venda_reembolsos vr
             INNER JOIN vendas v ON v.id = vr.venda_id
             WHERE v.caixa_id = %s
-              AND vr.ativo = 'S'
-              AND vr.status = 'CONCLUIDO'
+              AND vr.ativo = %s
+              AND vr.status = %s
             """,
-            (caixa_id,),
+            (caixa_id, FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
         row = cast(Dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
@@ -900,13 +927,13 @@ class FinanceiroModel:
             SELECT COUNT(*) AS total
             FROM contas_receber cr
             LEFT JOIN caixas cx ON cx.id = cr.caixa_id
-            WHERE cr.ativo = 'S'
+            WHERE cr.ativo = %s
               AND cr.data_vencimento >= %s
               AND cr.data_vencimento < %s
-              AND cr.status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+              AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}')
               {FinanceiroModel._pdv_clause('cr.caixa_id', pdv_id, alias_caixa='cx')[0]}
             """,
-            tuple(params),
+            tuple([FLAG_SIM, *params]),
         )
         row = cast(Dict[str, Any], cursor.fetchone() or {})
         return int(row.get("total") or 0)

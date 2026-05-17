@@ -6,8 +6,16 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    FLAG_NAO,
+    FLAG_SIM,
+    STATUS_CONTA_PENDENTE,
+    STATUS_VENDA_CONCLUIDA,
+    STATUS_VENDA_OPERACIONAL,
+)
 
 CENT = Decimal("0.01")
+STATUS_VENDA_SQL = "', '".join(STATUS_VENDA_OPERACIONAL)
 
 @dataclass(frozen=True)
 class LoteAlocacao:
@@ -15,12 +23,7 @@ class LoteAlocacao:
     quantidade: int
 
 class VendaModel:
-    _STATUS_VENDA_OPERACIONAL = (
-        "CONCLUIDA",
-        "CONCLUIDA_COM_PENDENCIA",
-        "PARCIALMENTE_REEMBOLSADA",
-        "REEMBOLSADA",
-    )
+    _STATUS_VENDA_OPERACIONAL = STATUS_VENDA_OPERACIONAL
 
     @staticmethod
     def registrar_venda(
@@ -34,7 +37,7 @@ class VendaModel:
         desconto_global: float,
         valor_total: float,
         data_hora: datetime,
-        status_venda: str = "CONCLUIDA",
+        status_venda: str = STATUS_VENDA_CONCLUIDA,
         conta_receber: Optional[Dict[str, Any]] = None,
     ) -> int:
         conn = get_connection()
@@ -111,7 +114,7 @@ class VendaModel:
                         INSERT INTO movimentacao_estoque
                             (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
                         VALUES
-                            (%s, %s, %s, %s, %s, %s, %s, NULL, 'S', NOW(), NOW())
+                            (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
                         """,
                         (
                             alocacao.lote_id,
@@ -121,6 +124,7 @@ class VendaModel:
                             alocacao.quantidade,
                             funcionario_id,
                             f"Saida por venda #{venda_id}",
+                            FLAG_SIM,
                         ),
                     )
 
@@ -175,20 +179,20 @@ class VendaModel:
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute(
-                """
+                f"""
                 SELECT
                     COUNT(*) AS vendas_dia,
                     COALESCE(SUM(valor_total), 0) AS faturamento_total
                 FROM vendas
                 WHERE caixa_id = %s
-                  AND status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND status IN ('{STATUS_VENDA_SQL}')
                 """,
                 (caixa_id,),
             )
             vendas = cursor.fetchone() or {}
 
             cursor.execute(
-                """
+                f"""
                 SELECT
                     pp.forma_pagamento,
                     COUNT(*) AS qtd_vendas,
@@ -196,7 +200,7 @@ class VendaModel:
                 FROM pagamento_parcial pp
                 INNER JOIN vendas v ON v.id = pp.venda_id
                 WHERE v.caixa_id = %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND v.status IN ('{STATUS_VENDA_SQL}')
                 GROUP BY pp.forma_pagamento
                 ORDER BY pp.forma_pagamento
                 """,
@@ -205,12 +209,12 @@ class VendaModel:
             totais_forma_pagamento = list(cursor.fetchall())
 
             cursor.execute(
-                """
+                f"""
                 SELECT COALESCE(SUM(pp.valor_pago), 0) AS faturamento_dinheiro
                 FROM pagamento_parcial pp
                 INNER JOIN vendas v ON v.id = pp.venda_id
                 WHERE v.caixa_id = %s
-                  AND v.status IN ('CONCLUIDA', 'CONCLUIDA_COM_PENDENCIA', 'PARCIALMENTE_REEMBOLSADA', 'REEMBOLSADA')
+                  AND v.status IN ('{STATUS_VENDA_SQL}')
                   AND LOWER(pp.forma_pagamento) = 'dinheiro'
                 """,
                 (caixa_id,),
@@ -283,7 +287,7 @@ class VendaModel:
                     status, ativo, createdAt, updatedAt
                 )
             VALUES
-                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE', 'S', NOW(), NOW())
+                (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
             """,
             (
                 venda_id,
@@ -297,6 +301,8 @@ class VendaModel:
                 float(valor_aberto),
                 data_hora,
                 data_vencimento,
+                STATUS_CONTA_PENDENTE,
+                FLAG_SIM,
             ),
         )
 
@@ -357,7 +363,7 @@ class VendaModel:
         produto = cursor.fetchone()
         if not produto:
             raise ValueError(f"Produto ID {produto_id} não encontrado.")
-        if str(produto.get("ativo") or "N") != "S":
+        if str(produto.get("ativo") or FLAG_NAO) != FLAG_SIM:
             raise ValueError(f"O produto ID {produto_id} esta inativo.")
         return produto
 
@@ -368,10 +374,10 @@ class VendaModel:
             SELECT id, numero_lote, quantidade, data_validade
             FROM lotes
             WHERE produto_id = %s
-              AND ativo = 'S'
+              AND ativo = %s
             ORDER BY data_validade, id
             """,
-            (produto_id,),
+            (produto_id, FLAG_SIM),
         )
         return list(cursor.fetchall())
 
@@ -383,7 +389,7 @@ class VendaModel:
             INSERT INTO lotes
                 (produto_id, preco_compra, preco_venda, numero_lote, quantidade, data_validade, localizacao, createdAt, updatedAt, ativo)
             VALUES
-                (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW(), 'S')
+                (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW(), %s)
             """,
             (
                 produto_id,
@@ -393,6 +399,7 @@ class VendaModel:
                 quantidade_inicial,
                 date(2099, 12, 31),
                 "AUTO",
+                FLAG_SIM,
             ),
         )
 

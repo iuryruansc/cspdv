@@ -1,7 +1,21 @@
 from modules.clientes.models.cliente_model import ClienteModel
+from modules.shared.constants import alternar_flag, flag_ativa
 from utils.app_logger import log_error
 
+
 class ClienteService:
+    @staticmethod
+    def _cliente_eh_sistema(cliente):
+        return flag_ativa((cliente or {}).get("cliente_sistema"))
+
+    @staticmethod
+    def obter_consumidor_final():
+        try:
+            return ClienteModel.buscar_consumidor_final()
+        except Exception as exc:
+            log_error("Erro ao obter cliente padrao Consumidor Final.", exc)
+            return None
+
     @staticmethod
     def buscar_para_venda(termo):
         termo_limpo = str(termo or "").strip()
@@ -54,7 +68,7 @@ class ClienteService:
             return False, f"Erro ao salvar cliente:\n{exc}"
 
         if not cliente_id:
-            return False, "Não foi possível cadastrar o cliente."
+            return False, "Nao foi possivel cadastrar o cliente."
 
         return True, "Cliente cadastrado com sucesso!"
 
@@ -64,13 +78,19 @@ class ClienteService:
         if not valido:
             return False, mensagem
 
+        cliente = ClienteModel.buscar_por_id(int(cliente_id))
+        if not cliente:
+            return False, "Cliente nao encontrado."
+        if ClienteService._cliente_eh_sistema(cliente):
+            return False, "O cliente Consumidor Final e um registro do sistema e nao pode ser editado."
+
         try:
             atualizado = ClienteModel.atualizar(int(cliente_id), dados)
         except Exception as exc:
             return False, f"Erro ao atualizar cliente:\n{exc}"
 
         if not atualizado:
-            return False, "Não foi possível atualizar o cliente."
+            return False, "Nao foi possivel atualizar o cliente."
 
         return True, "Cliente atualizado com sucesso!"
 
@@ -78,10 +98,11 @@ class ClienteService:
     def alternar_status(cliente_id):
         cliente = ClienteModel.buscar_por_id(int(cliente_id))
         if not cliente:
-            return False, "Cliente não encontrado."
+            return False, "Cliente nao encontrado."
+        if ClienteService._cliente_eh_sistema(cliente):
+            return False, "O cliente Consumidor Final e um registro do sistema e nao pode ser desativado."
 
-        ativo_atual = str(cliente.get("ativo") or "N").strip().upper()
-        novo_status = "N" if ativo_atual == "S" else "S"
+        novo_status = alternar_flag(cliente.get("ativo"))
 
         try:
             atualizado = ClienteModel.atualizar_status(int(cliente_id), novo_status)
@@ -89,7 +110,7 @@ class ClienteService:
             return False, f"Erro ao atualizar status do cliente:\n{exc}"
 
         if not atualizado:
-            return False, "Não foi possível atualizar o status do cliente."
+            return False, "Nao foi possivel atualizar o status do cliente."
 
-        acao = "ativado" if novo_status == "S" else "desativado"
+        acao = "ativado" if flag_ativa(novo_status) else "desativado"
         return True, f"Cliente {acao} com sucesso!"

@@ -127,9 +127,10 @@ class TestReembolsoService:
         assert resultado is None
         assert "produto válido" in mensagem
 
+    @patch("modules.financeiro.services.reembolso_service.AuditoriaService.registrar_evento")
     @patch("modules.financeiro.services.reembolso_service.ReembolsoModel.registrar_reembolso")
     @patch("modules.financeiro.services.reembolso_service.FinanceiroService.obter_venda_detalhada")
-    def test_registrar_reembolso_monta_payload_valido(self, mock_obter_venda, mock_registrar):
+    def test_registrar_reembolso_monta_payload_valido(self, mock_obter_venda, mock_registrar, mock_auditar):
         SessionManager.login({"id": 7, "nome": "Operador", "permissoes": []}, persist=False)
         mock_registrar.return_value = 501
         mock_obter_venda.return_value = {
@@ -170,3 +171,4 @@ class TestReembolsoService:
         assert kwargs["itens"][0]["quantidade"] == 2
         assert kwargs["itens"][0]["valor_total"] == Decimal("15.00")
         assert kwargs["pagamentos"][0]["valor"] == Decimal("15.00")
+        mock_auditar.assert_called_once()

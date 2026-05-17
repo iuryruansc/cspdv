@@ -24,6 +24,7 @@ def _venda_data(**overrides):
         "numero_venda": 14,
         "cliente_id": 1,
         "cliente_nome": "Consumidor Final",
+        "cliente_eh_consumidor_final": True,
         "subtotal": 14.99,
         "desconto_global": 0.0,
         "desconto_itens": 0.0,
@@ -56,7 +57,7 @@ class TestPagamentoView:
         assert view.tableFormasPagamento.item(0, 1).text() == formatar_moeda(10.0)
         assert view.lblSomaTotalValor.text() == formatar_moeda(10.0)
         assert view.lblRestanteValor.text() == formatar_moeda(4.99)
-        assert view.btnFinalizarPendencia.isEnabled() is True
+        assert view.btnFinalizarPendencia.isEnabled() is False
         assert view.btnFecharPedido.isEnabled() is False
 
     def test_pagamento_exato_preenche_valor_restante(self):
@@ -109,7 +110,9 @@ class TestPagamentoView:
         mock_dialog_cls.return_value = dialog
 
         view = self._criar_view()
-        view.carregar_venda(_venda_data(total=20.0))
+        view.carregar_venda(
+            _venda_data(total=20.0, cliente_id=7, cliente_nome="Ana Souza", cliente_eh_consumidor_final=False)
+        )
         view._pagamentos = [{"forma": "Dinheiro", "valor": 5.0}]
         emitidos = []
         view.venda_finalizada.connect(lambda payload: emitidos.append(payload))

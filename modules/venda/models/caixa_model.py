@@ -1,6 +1,13 @@
 from typing import Any, Dict, List, Optional, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    FLAG_SIM,
+    STATUS_CAIXA_ABERTO,
+    STATUS_CAIXA_FECHADO,
+    STATUS_PDV_ATIVO,
+    STATUS_REEMBOLSO_CONCLUIDO,
+)
 
 class CaixaModel:
     _TIPOS_MOVIMENTACAO = {
@@ -18,9 +25,10 @@ class CaixaModel:
                 """
                 SELECT id, identificacao, descricao
                 FROM pdvs
-                WHERE ativo = 'S' AND status = 'ativo'
+                WHERE ativo = %s AND status = %s
                 ORDER BY identificacao
-                """
+                """,
+                (FLAG_SIM, STATUS_PDV_ATIVO),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -36,11 +44,11 @@ class CaixaModel:
                 """
                 SELECT id, pdv_id, usuario_abertura_id, data_abertura, valor_abertura, status
                 FROM caixas
-                WHERE pdv_id = %s AND status = 'aberto' AND ativo = 'S'
+                WHERE pdv_id = %s AND status = %s AND ativo = %s
                 ORDER BY data_abertura DESC
                 LIMIT 1
                 """,
-                (pdv_id,),
+                (pdv_id, STATUS_CAIXA_ABERTO, FLAG_SIM),
             )
             return cast(Optional[Dict[str, Any]], cursor.fetchone())
         finally:
@@ -68,12 +76,12 @@ class CaixaModel:
                 INNER JOIN pdvs p ON p.id = c.pdv_id
                 INNER JOIN usuarios u ON u.id = c.usuario_abertura_id
                 WHERE c.usuario_abertura_id = %s
-                  AND c.status = 'aberto'
-                  AND c.ativo = 'S'
+                  AND c.status = %s
+                  AND c.ativo = %s
                 ORDER BY c.data_abertura DESC
                 LIMIT 1
                 """,
-                (usuario_id,),
+                (usuario_id, STATUS_CAIXA_ABERTO, FLAG_SIM),
             )
             return cast(Optional[Dict[str, Any]], cursor.fetchone())
         finally:
@@ -125,9 +133,9 @@ class CaixaModel:
                     (pdv_id, usuario_abertura_id, data_abertura, valor_abertura,
                      status, usuario_fechamento_id, ativo, createdAt, updatedAt)
                 VALUES
-                    (%s, %s, NOW(), %s, 'aberto', %s, 'S', NOW(), NOW())
+                    (%s, %s, NOW(), %s, %s, %s, %s, NOW(), NOW())
                 """,
-                (pdv_id, usuario_id, valor_abertura, usuario_id),
+                (pdv_id, usuario_id, valor_abertura, STATUS_CAIXA_ABERTO, usuario_id, FLAG_SIM),
             )
             conn.commit()
             lastrowid = cursor.lastrowid
@@ -183,14 +191,14 @@ class CaixaModel:
                     c.valor_fechamento,
                     c.diferenca_fechamento,
                     c.status,
-                    COALESCE(c.ativo, 'S') AS ativo
+                    COALESCE(c.ativo, %s) AS ativo
                 FROM caixas c
                 INNER JOIN pdvs p ON p.id = c.pdv_id
                 INNER JOIN usuarios ua ON ua.id = c.usuario_abertura_id
                 ORDER BY c.data_abertura DESC, c.id DESC
                 LIMIT %s
                 """,
-                (limit,),
+                (FLAG_SIM, limit),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -212,7 +220,7 @@ class CaixaModel:
                 """
                 UPDATE caixas
                 SET
-                    status = 'fechado',
+                    status = %s,
                     usuario_fechamento_id = %s,
                     data_fechamento = NOW(),
                     valor_fechamento = %s,
@@ -222,6 +230,7 @@ class CaixaModel:
                 WHERE id = %s
                 """,
                 (
+                    STATUS_CAIXA_FECHADO,
                     usuario_fechamento_id,
                     valor_fechamento,
                     diferenca,
@@ -306,12 +315,12 @@ class CaixaModel:
                 LEFT JOIN caixa_motivos cm_tipo ON cm_tipo.id = cm.caixa_motivo_id
                 LEFT JOIN usuarios u ON u.id = cm.usuario_id
                 WHERE cm.caixa_id = %s
-                  AND COALESCE(cm.ativo, 'S') = 'S'
+                  AND COALESCE(cm.ativo, %s) = %s
                   AND COALESCE(cm.estornado, 0) = 0
                   {filtro_tipo}
                 ORDER BY cm.data_hora DESC, cm.id DESC
                 """,
-                tuple(parametros),
+                (caixa_id, FLAG_SIM, FLAG_SIM, *tuple(parametros[1:])),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -331,11 +340,11 @@ class CaixaModel:
                 FROM caixa_movimentacoes cm
                 LEFT JOIN caixa_motivos cm_tipo ON cm_tipo.id = cm.caixa_motivo_id
                 WHERE cm.caixa_id = %s
-                  AND COALESCE(cm.ativo, 'S') = 'S'
+                  AND COALESCE(cm.ativo, %s) = %s
                   AND COALESCE(cm.estornado, 0) = 0
                 GROUP BY LOWER(COALESCE(cm_tipo.tipo_padrao, ''))
                 """,
-                (caixa_id,),
+                (caixa_id, FLAG_SIM, FLAG_SIM),
             )
             totais_rows = cast(List[Dict[str, Any]], cursor.fetchall())
             totais = {
@@ -366,10 +375,10 @@ class CaixaModel:
                 FROM venda_reembolsos vr
                 INNER JOIN vendas v ON v.id = vr.venda_id
                 WHERE v.caixa_id = %s
-                  AND vr.ativo = 'S'
-                  AND vr.status = 'CONCLUIDO'
+                  AND vr.ativo = %s
+                  AND vr.status = %s
                 """,
-                (caixa_id,),
+                (caixa_id, FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
             )
             row = cast(Dict[str, Any], cursor.fetchone() or {})
             return float(row.get("total") or 0.0)

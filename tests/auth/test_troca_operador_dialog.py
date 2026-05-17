@@ -8,7 +8,6 @@ from modules.auth.views.troca_operador_dialog import TrocaOperadorDialog
 
 _app = QApplication.instance() or QApplication(sys.argv)
 
-
 class TestTrocaOperadorDialog:
     def setup_method(self):
         SessionManager.logout()
@@ -18,10 +17,12 @@ class TestTrocaOperadorDialog:
 
     @patch("modules.auth.views.troca_operador_dialog.CaixaSession.current", return_value={"pdv_label": "PDV-01", "valor_abertura": 50.0})
     @patch("modules.auth.views.troca_operador_dialog.SessionManager.session_persistence_enabled", return_value=False)
+    @patch("modules.auth.views.troca_operador_dialog.AuditoriaService.registrar_evento")
     @patch("modules.auth.views.troca_operador_dialog.UsuarioModel.autenticar")
     def test_confirma_troca_de_operador_valida(
         self,
         mock_autenticar,
+        mock_auditar,
         _mock_persistencia,
         _mock_caixa,
     ):
@@ -38,6 +39,7 @@ class TestTrocaOperadorDialog:
         assert atual is not None
         assert atual["id"] == 2
         assert dialog.novo_operador is not None
+        mock_auditar.assert_called_once()
 
     @patch("modules.auth.views.troca_operador_dialog.CaixaSession.current", return_value={"pdv_label": "PDV-01", "valor_abertura": 50.0})
     @patch("modules.auth.views.troca_operador_dialog.SessionManager.session_persistence_enabled", return_value=False)

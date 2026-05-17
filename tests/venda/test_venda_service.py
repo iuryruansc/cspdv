@@ -82,6 +82,21 @@ class TestVendaService:
         assert resultado is None
         assert "data de vencimento" in mensagem
 
+    def test_bloqueia_pendencia_com_consumidor_final(self):
+        self._abrir_contexto()
+        venda = self._venda_base()
+        venda["pagamentos"] = [{"forma": "Dinheiro", "valor": 5.0}]
+        venda["finalizar_com_pendencia"] = True
+        venda["valor_em_aberto"] = 10.0
+        venda["data_vencimento"] = "20/05/2026"
+        venda["cliente_eh_consumidor_final"] = True
+
+        sucesso, mensagem, resultado = VendaService.finalizar_venda(venda)
+
+        assert sucesso is False
+        assert resultado is None
+        assert "Consumidor Final" in mensagem
+
     @patch("modules.venda.services.venda_service.VendaModel.registrar_venda")
     def test_aceita_item_com_id_do_cupom_sem_produto_id(self, mock_registrar):
         self._abrir_contexto()

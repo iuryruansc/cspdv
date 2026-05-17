@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
+from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 from utils.app_logger import log_warning
@@ -147,6 +148,20 @@ class CaixaService:
             "status": "aberto",
         }
         CaixaSession.open(caixa_data)
+        AuditoriaService.registrar_evento(
+            evento="abertura_caixa",
+            categoria="caixa",
+            entidade="caixa",
+            entidade_id=int(caixa_id),
+            usuario_id=int(usuario_id),
+            caixa_id=int(caixa_id),
+            detalhes={
+                "pdv_id": int(pdv_id),
+                "pdv_label": pdv_label,
+                "valor_abertura": float(valor_abertura),
+                "observacoes": observacoes.strip(),
+            },
+        )
         return True, "Caixa aberto com sucesso.", caixa_data
 
     @staticmethod
@@ -373,6 +388,19 @@ class CaixaService:
                 valor=valor,
                 observacao=observacao.strip(),
             )
+            AuditoriaService.registrar_evento(
+                evento="movimentacao_caixa",
+                categoria="caixa",
+                entidade="caixa",
+                entidade_id=caixa_id,
+                usuario_id=usuario_id,
+                caixa_id=caixa_id,
+                detalhes={
+                    "tipo": tipo_normalizado,
+                    "valor": float(valor),
+                    "observacao": observacao.strip(),
+                },
+            )
             return True, "Movimentação registrada com sucesso."
         except Exception as exc:
             return False, f"Erro ao registrar movimentação: {exc}"
@@ -440,5 +468,19 @@ class CaixaService:
             "total_esperado": total_esperado,
             "diferenca": diferenca,
         }
+        AuditoriaService.registrar_evento(
+            evento="fechamento_caixa",
+            categoria="caixa",
+            entidade="caixa",
+            entidade_id=int(usuario["id"]),
+            usuario_id=int(operador["id"]),
+            caixa_id=int(usuario["id"]),
+            detalhes={
+                "valor_contado": float(valor_contado),
+                "total_esperado": float(total_esperado),
+                "diferenca": float(diferenca),
+                "observacoes": observacoes.strip(),
+            },
+        )
         CaixaSession.close()
         return True, "Caixa fechado com sucesso.", caixa_fechado

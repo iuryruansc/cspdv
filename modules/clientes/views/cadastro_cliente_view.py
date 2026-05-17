@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QIntValidator, QRegularExpressionValidator
-from PyQt5.QtWidgets import QLineEdit, QWidget
+from PyQt5.QtWidgets import QCheckBox, QLineEdit, QPlainTextEdit, QWidget
 
 from modules.clientes.models.cliente_model import ClienteModel
 from modules.clientes.services.cliente_service import ClienteService
@@ -16,6 +16,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
         super().__init__(None)
         self.setupUi(self)
         self._cliente_id = int(cliente_id) if cliente_id is not None else None
+        self._cliente_sistema = False
         self._parent_admin = admin_view
 
         self._configurar_validadores()
@@ -105,6 +106,25 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
         self.plainTextObservacao.setPlainText(str(cliente.get("observacao") or ""))
         self.checkBoxAtivo.setChecked(str(cliente.get("ativo") or "N").upper() == "S")
         self.btnSalvar.setText("Atualizar")
+        self._cliente_sistema = str(cliente.get("cliente_sistema") or "N").strip().upper() == "S"
+        if self._cliente_sistema:
+            self._configurar_modo_somente_leitura()
+
+    def _configurar_modo_somente_leitura(self):
+        self.lblBadge.setText("REGISTRO DO SISTEMA")
+        self.lblTabCadCliente.setText("Cliente do Sistema")
+        self.btnSalvar.setEnabled(False)
+        self.btnSalvar.setText("Protegido")
+        self.btnLimpar.setEnabled(False)
+
+        for campo in self.findChildren(QLineEdit):
+            campo.setReadOnly(True)
+
+        for campo in self.findChildren(QPlainTextEdit):
+            campo.setReadOnly(True)
+
+        for campo in self.findChildren(QCheckBox):
+            campo.setEnabled(False)
 
     def _coletar_dados(self):
         nome = texto_maiusculo(self.lineEditNome.text())
@@ -164,6 +184,14 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
         }
 
     def _save_cliente(self):
+        if self._cliente_sistema:
+            mostrar_aviso(
+                self,
+                "Registro protegido",
+                "O cliente Consumidor Final e um registro do sistema e nao pode ser editado.",
+            )
+            return
+
         self.limpar_erros()
         dados = self._coletar_dados()
         if dados is None:

@@ -22,6 +22,19 @@ from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.financeiro.services.financeiro_service import FinanceiroService
 from modules.financeiro.services.reembolso_service import ReembolsoService
+from modules.financeiro.views.novo_reembolso_dialog import NovoReembolsoDialog
+from modules.shared.constants import (
+    STATUS_CONTA_PARCIALMENTE_RECEBIDA,
+    STATUS_CONTA_PENDENTE,
+    STATUS_CONTA_QUITADA,
+    STATUS_CONTA_VENCIDA,
+    STATUS_REEMBOLSO_CANCELADO,
+    STATUS_REEMBOLSO_CONCLUIDO,
+    STATUS_VENDA_CONCLUIDA,
+    STATUS_VENDA_CONCLUIDA_COM_PENDENCIA,
+    STATUS_VENDA_PARCIALMENTE_REEMBOLSADA,
+    STATUS_VENDA_REEMBOLSADA,
+)
 from modules.venda.services.caixa_service import CaixaService
 from ui.financeiro.painel_financeiro import Ui_PainelFinanceiro
 from utils.combo_loader import combo_int
@@ -353,8 +366,6 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             )
             return
 
-        from modules.financeiro.views.novo_reembolso_dialog import NovoReembolsoDialog
-
         dialog = NovoReembolsoDialog(detalhes, self)
         if dialog.exec_() != dialog.Accepted or not dialog.resultado:
             return
@@ -609,16 +620,16 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_venda(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
-        if status_normalizado == "CONCLUIDA":
+        if status_normalizado == STATUS_VENDA_CONCLUIDA:
             PainelFinanceiroView._estilizar_item_status(item, "#ecfdf3", "#027a48")
             return
-        if status_normalizado == "CONCLUIDA_COM_PENDENCIA":
+        if status_normalizado == STATUS_VENDA_CONCLUIDA_COM_PENDENCIA:
             PainelFinanceiroView._estilizar_item_status(item, "#fff7e6", "#b54708")
             return
-        if status_normalizado == "PARCIALMENTE_REEMBOLSADA":
+        if status_normalizado == STATUS_VENDA_PARCIALMENTE_REEMBOLSADA:
             PainelFinanceiroView._estilizar_item_status(item, "#eff8ff", "#175cd3")
             return
-        if status_normalizado == "REEMBOLSADA":
+        if status_normalizado == STATUS_VENDA_REEMBOLSADA:
             PainelFinanceiroView._estilizar_item_status(item, "#fef3f2", "#b42318")
             return
         PainelFinanceiroView._estilizar_item_status(item, "#f2f4f7", "#344054")
@@ -626,16 +637,16 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_conta(item: QTableWidgetItem, status: str, vencida: bool) -> None:
         status_normalizado = status.strip().upper()
-        if vencida or status_normalizado == "VENCIDA":
+        if vencida or status_normalizado == STATUS_CONTA_VENCIDA:
             PainelFinanceiroView._estilizar_item_status(item, "#fef3f2", "#b42318")
             return
-        if status_normalizado == "PENDENTE":
+        if status_normalizado == STATUS_CONTA_PENDENTE:
             PainelFinanceiroView._estilizar_item_status(item, "#fff7e6", "#b54708")
             return
-        if status_normalizado == "PARCIALMENTE_RECEBIDA":
+        if status_normalizado == STATUS_CONTA_PARCIALMENTE_RECEBIDA:
             PainelFinanceiroView._estilizar_item_status(item, "#eff8ff", "#175cd3")
             return
-        if status_normalizado == "QUITADA":
+        if status_normalizado == STATUS_CONTA_QUITADA:
             PainelFinanceiroView._estilizar_item_status(item, "#ecfdf3", "#027a48")
             return
         PainelFinanceiroView._estilizar_item_status(item, "#f2f4f7", "#344054")
@@ -643,10 +654,10 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_reembolso(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
-        if status_normalizado == "CONCLUIDO":
+        if status_normalizado == STATUS_REEMBOLSO_CONCLUIDO:
             PainelFinanceiroView._estilizar_item_status(item, "#ecfdf3", "#027a48")
             return
-        if status_normalizado == "CANCELADO":
+        if status_normalizado == STATUS_REEMBOLSO_CANCELADO:
             PainelFinanceiroView._estilizar_item_status(item, "#fef3f2", "#b42318")
             return
         PainelFinanceiroView._estilizar_item_status(item, "#f2f4f7", "#344054")

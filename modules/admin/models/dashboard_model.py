@@ -4,6 +4,15 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    FLAG_SIM,
+    STATUS_CAIXA_ABERTO,
+    STATUS_CONTA_ABERTAS,
+    STATUS_PROMOCAO_ATIVA,
+    STATUS_REEMBOLSO_CONCLUIDO,
+)
+
+STATUS_CONTA_ABERTAS_SQL = "', '".join(STATUS_CONTA_ABERTAS)
 
 
 class DashboardAdminModel:
@@ -14,11 +23,11 @@ class DashboardAdminModel:
         try:
             produtos_ativos = DashboardAdminModel._contar(
                 cursor,
-                "SELECT COUNT(*) AS total FROM produtos WHERE ativo = 'S'",
+                f"SELECT COUNT(*) AS total FROM produtos WHERE ativo = '{FLAG_SIM}'",
             )
             clientes_ativos = DashboardAdminModel._contar(
                 cursor,
-                "SELECT COUNT(*) AS total FROM clientes WHERE ativo = 'S'",
+                f"SELECT COUNT(*) AS total FROM clientes WHERE ativo = '{FLAG_SIM}'",
             )
             usuarios_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "usuarios")
             perfis_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "perfis")
@@ -93,7 +102,7 @@ class DashboardAdminModel:
     @staticmethod
     def _contar_ativos_ou_total(cursor: Any, tabela: str) -> int:
         if tabela in {"usuarios", "perfis", "pdvs", "formas_pagamento"}:
-            cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela} WHERE ativo = 'S'")
+            cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela} WHERE ativo = '{FLAG_SIM}'")
         else:
             cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela}")
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
@@ -102,12 +111,13 @@ class DashboardAdminModel:
     @staticmethod
     def _contar_caixas_abertos(cursor: Any) -> int:
         cursor.execute(
-            """
+            f"""
             SELECT COUNT(*) AS total
             FROM caixas
-            WHERE LOWER(status) = 'aberto'
-              AND ativo = 'S'
-            """
+            WHERE LOWER(status) = %s
+              AND ativo = %s
+            """,
+            (STATUS_CAIXA_ABERTO, FLAG_SIM),
         )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
@@ -118,10 +128,11 @@ class DashboardAdminModel:
             """
             SELECT COUNT(*) AS total
             FROM contas_receber
-            WHERE ativo = 'S'
-              AND status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+            WHERE ativo = %s
+              AND status IN ('{STATUS_CONTA_ABERTAS_SQL}')
               AND data_vencimento < CURDATE()
-            """
+            """,
+            (FLAG_SIM,),
         )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
@@ -132,10 +143,11 @@ class DashboardAdminModel:
             """
             SELECT COUNT(*) AS total
             FROM promocoes
-            WHERE status = 'ATIVA'
+            WHERE status = %s
               AND data_fim < NOW()
-              AND ativo = 'S'
-            """
+              AND ativo = %s
+            """,
+            (STATUS_PROMOCAO_ATIVA, FLAG_SIM),
         )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
@@ -147,8 +159,9 @@ class DashboardAdminModel:
             SELECT COALESCE(SUM(valor_recebido), 0) AS total
             FROM contas_receber_recebimentos
             WHERE DATE(data_recebimento) = CURDATE()
-              AND ativo = 'S'
-            """
+              AND ativo = %s
+            """,
+            (FLAG_SIM,),
         )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return Decimal(str(resultado.get("total") or 0))
@@ -160,9 +173,10 @@ class DashboardAdminModel:
             SELECT COALESCE(SUM(valor_total), 0) AS total
             FROM venda_reembolsos
             WHERE DATE(data_hora) = CURDATE()
-              AND ativo = 'S'
-              AND status = 'CONCLUIDO'
-            """
+              AND ativo = %s
+              AND status = %s
+            """,
+            (FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
         resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
         return Decimal(str(resultado.get("total") or 0))

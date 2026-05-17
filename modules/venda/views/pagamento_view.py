@@ -252,7 +252,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.lblTrocoValor.setText(formatar_moeda(troco))
         self.btnFecharPedido.setEnabled(total > 0 and pagamentos >= total)
         cliente_id = int((self._venda_data or {}).get("cliente_id") or 0)
-        self.btnFinalizarPendencia.setEnabled(total > 0 and 0 < pagamentos < total and cliente_id > 0)
+        cliente_eh_consumidor_final = bool((self._venda_data or {}).get("cliente_eh_consumidor_final"))
+        self.btnFinalizarPendencia.setEnabled(
+            total > 0 and 0 < pagamentos < total and cliente_id > 0 and not cliente_eh_consumidor_final
+        )
 
     def _valor_restante(self) -> float:
         total = numero_decimal((self._venda_data or {}).get("total"))
@@ -276,6 +279,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
                 "numero_venda": self._venda_data.get("numero_venda"),
                 "cliente_id": self._venda_data.get("cliente_id"),
                 "cliente_nome": self._venda_data.get("cliente_nome"),
+                "cliente_eh_consumidor_final": self._venda_data.get("cliente_eh_consumidor_final"),
                 "data_hora_venda": QDateTime.currentDateTime().toString("dd/MM/yyyy HH:mm:ss"),
                 "itens": list(self._venda_data.get("itens") or []),
                 "subtotal": self._venda_data.get("subtotal"),
@@ -300,12 +304,13 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         pagamentos = sum(numero_decimal(item["valor"]) for item in self._pagamentos)
         restante = max(0.0, total - pagamentos)
         cliente_id = int(self._venda_data.get("cliente_id") or 0)
+        cliente_eh_consumidor_final = bool(self._venda_data.get("cliente_eh_consumidor_final"))
 
-        if cliente_id <= 0:
+        if cliente_id <= 0 or cliente_eh_consumidor_final:
             mostrar_info(
                 self,
                 "Cliente obrigatório",
-                "Selecione um cliente antes de finalizar a venda com pendência.",
+                "Selecione um cliente diferente de Consumidor Final antes de finalizar a venda com pendencia.",
             )
             return
 
@@ -330,6 +335,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
                 "numero_venda": self._venda_data.get("numero_venda"),
                 "cliente_id": self._venda_data.get("cliente_id"),
                 "cliente_nome": self._venda_data.get("cliente_nome"),
+                "cliente_eh_consumidor_final": self._venda_data.get("cliente_eh_consumidor_final"),
                 "data_hora_venda": QDateTime.currentDateTime().toString("dd/MM/yyyy HH:mm:ss"),
                 "itens": list(self._venda_data.get("itens") or []),
                 "subtotal": self._venda_data.get("subtotal"),

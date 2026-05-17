@@ -55,13 +55,19 @@ class TestSelecionarClienteDialog:
         assert dialog.lblStatus.text() == "Nenhum cliente encontrado."
         assert dialog.listaClientes.count() == 0
 
-    def test_usar_consumidor_final_limpa_cliente_e_aceita_dialog(self):
+    @patch(
+        "modules.venda.views.selecionar_cliente_dialog.ClienteService.obter_consumidor_final",
+        return_value={"id": 99, "nome": "Consumidor Final"},
+    )
+    def test_usar_consumidor_final_seleciona_registro_seeded(self, _mock_consumidor_final):
         dialog = SelecionarClienteDialog()
         dialog._cliente_selecionado = _cliente_base()
 
         dialog._usar_consumidor_final()
 
-        assert dialog.cliente_selecionado is None
+        assert dialog.cliente_selecionado is not None
+        assert dialog.cliente_selecionado["id"] == 99
+        assert dialog.cliente_selecionado["nome"] == "Consumidor Final"
         assert dialog.result() == QDialog.Accepted
 
     @patch("modules.venda.views.selecionar_cliente_dialog.ClienteService.buscar_para_venda")

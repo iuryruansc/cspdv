@@ -17,6 +17,14 @@ from PyQt5.QtWidgets import (
 from modules.promocoes.services.promocao_service import PromocaoService
 from modules.promocoes.views.cadastro_promocao_view import CadastroPromocaoView
 from modules.promocoes.views.vincular_produtos_promocao_dialog import VincularProdutosPromocaoDialog
+from modules.shared.constants import (
+    STATUS_PROMOCAO_AGENDADA,
+    STATUS_PROMOCAO_ATIVA,
+    STATUS_PROMOCAO_CANCELADA,
+    STATUS_PROMOCAO_EDITAVEL,
+    STATUS_PROMOCAO_ENCERRADA,
+    STATUS_PROMOCAO_RASCUNHO,
+)
 from ui.promocoes.painel_promocoes import Ui_PainelPromocoes
 from utils.format_utils import formatar_moeda
 from utils.operational_panel_mixin import PainelOperacionalMixin
@@ -160,9 +168,15 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
         self._atualizar_estado_acoes()
 
     def _atualizar_metricas(self) -> None:
-        total_ativas = sum(1 for promocao in self._promocoes_base if self._status_normalizado(promocao) == "ATIVA")
-        total_agendadas = sum(1 for promocao in self._promocoes_base if self._status_normalizado(promocao) == "AGENDADA")
-        total_encerradas = sum(1 for promocao in self._promocoes_base if self._status_normalizado(promocao) == "ENCERRADA")
+        total_ativas = sum(
+            1 for promocao in self._promocoes_base if self._status_normalizado(promocao) == STATUS_PROMOCAO_ATIVA
+        )
+        total_agendadas = sum(
+            1 for promocao in self._promocoes_base if self._status_normalizado(promocao) == STATUS_PROMOCAO_AGENDADA
+        )
+        total_encerradas = sum(
+            1 for promocao in self._promocoes_base if self._status_normalizado(promocao) == STATUS_PROMOCAO_ENCERRADA
+        )
         total_itens = sum(int(promocao.get("qtd_produtos") or 0) for promocao in self._promocoes_base)
 
         self.lblPromocoesAtivasValor.setText(str(total_ativas))
@@ -305,9 +319,9 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
 
         self.btnAtualizar.setEnabled(selecionada)
         self.btnDuplicarPromocao.setEnabled(selecionada)
-        self.btnVincularProdutos.setEnabled(selecionada and status in {"RASCUNHO", "AGENDADA", "ATIVA"})
-        self.btnEncerrarPromocao.setEnabled(selecionada and status in {"AGENDADA", "ATIVA"})
-        self.btnCancelarPromocao.setEnabled(selecionada and status in {"RASCUNHO", "AGENDADA", "ATIVA"})
+        self.btnVincularProdutos.setEnabled(selecionada and status in STATUS_PROMOCAO_EDITAVEL)
+        self.btnEncerrarPromocao.setEnabled(selecionada and status in {STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA})
+        self.btnCancelarPromocao.setEnabled(selecionada and status in STATUS_PROMOCAO_EDITAVEL)
         self._atualizar_tooltips_acoes(promocao, status)
 
     def _obter_promocao_selecionada(self) -> dict[str, Any] | None:
@@ -337,9 +351,9 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
     @staticmethod
     def _mapear_status_filtro(texto: str) -> str:
         mapa = {
-            "ATIVAS": "ATIVA",
-            "AGENDADAS": "AGENDADA",
-            "ENCERRADAS": "ENCERRADA",
+            "ATIVAS": STATUS_PROMOCAO_ATIVA,
+            "AGENDADAS": STATUS_PROMOCAO_AGENDADA,
+            "ENCERRADAS": STATUS_PROMOCAO_ENCERRADA,
         }
         return mapa.get(texto.strip().upper(), "")
 
@@ -365,11 +379,11 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
     @staticmethod
     def _label_status(status: str) -> str:
         mapa = {
-            "RASCUNHO": "Rascunho",
-            "AGENDADA": "Agendada",
-            "ATIVA": "Ativa",
-            "ENCERRADA": "Encerrada",
-            "CANCELADA": "Cancelada",
+            STATUS_PROMOCAO_RASCUNHO: "Rascunho",
+            STATUS_PROMOCAO_AGENDADA: "Agendada",
+            STATUS_PROMOCAO_ATIVA: "Ativa",
+            STATUS_PROMOCAO_ENCERRADA: "Encerrada",
+            STATUS_PROMOCAO_CANCELADA: "Cancelada",
         }
         return mapa.get(status.strip().upper(), status)
 
@@ -383,11 +397,11 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
     def _aplicar_estilo_status(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
         cores = {
-            "RASCUNHO": ("#7a5c00", "#fff3cd"),
-            "AGENDADA": ("#0f5f8f", "#d9ecfb"),
-            "ATIVA": ("#1d6a3a", "#dff7e6"),
-            "ENCERRADA": ("#546275", "#e6ebf2"),
-            "CANCELADA": ("#8a1f1f", "#f8d7da"),
+            STATUS_PROMOCAO_RASCUNHO: ("#7a5c00", "#fff3cd"),
+            STATUS_PROMOCAO_AGENDADA: ("#0f5f8f", "#d9ecfb"),
+            STATUS_PROMOCAO_ATIVA: ("#1d6a3a", "#dff7e6"),
+            STATUS_PROMOCAO_ENCERRADA: ("#546275", "#e6ebf2"),
+            STATUS_PROMOCAO_CANCELADA: ("#8a1f1f", "#f8d7da"),
         }
         cor_texto, cor_fundo = cores.get(status_normalizado, ("#315676", "#f2f7fb"))
         fonte = QFont(item.font())
@@ -414,14 +428,14 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
     def _aplicar_estilo_vigencia(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
         cores = {
-            "RASCUNHO": "#667085",
-            "AGENDADA": "#175cd3",
-            "ATIVA": "#027a48",
-            "ENCERRADA": "#475467",
-            "CANCELADA": "#b42318",
+            STATUS_PROMOCAO_RASCUNHO: "#667085",
+            STATUS_PROMOCAO_AGENDADA: "#175cd3",
+            STATUS_PROMOCAO_ATIVA: "#027a48",
+            STATUS_PROMOCAO_ENCERRADA: "#475467",
+            STATUS_PROMOCAO_CANCELADA: "#b42318",
         }
         fonte = QFont(item.font())
-        fonte.setBold(status_normalizado in {"AGENDADA", "ATIVA"})
+        fonte.setBold(status_normalizado in {STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA})
         item.setFont(fonte)
         item.setForeground(QBrush(QColor(cores.get(status_normalizado, "#315676"))))
 
@@ -458,14 +472,14 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
             f"Vincular produtos a '{nome}' enquanto ela estiver em Rascunho, Agendada ou Ativa."
         )
 
-        if status in {"AGENDADA", "ATIVA"}:
+        if status in {STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA}:
             self.btnEncerrarPromocao.setToolTip(f"Encerrar agora a promoção '{nome}'.")
         else:
             self.btnEncerrarPromocao.setToolTip(
                 f"A promoção '{nome}' está em status {status_label} e não pode ser encerrada."
             )
 
-        if status in {"RASCUNHO", "AGENDADA", "ATIVA"}:
+        if status in STATUS_PROMOCAO_EDITAVEL:
             self.btnCancelarPromocao.setToolTip(f"Cancelar a promoção '{nome}'.")
         else:
             self.btnCancelarPromocao.setToolTip(

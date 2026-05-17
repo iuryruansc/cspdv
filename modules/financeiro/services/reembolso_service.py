@@ -4,6 +4,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.session_manager import SessionManager
+from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.financeiro.models.reembolso_model import ReembolsoModel
 from modules.financeiro.services.financeiro_service import FinanceiroService
 
@@ -147,9 +148,32 @@ class ReembolsoService:
         except Exception as exc:
             return False, f"Erro ao registrar o reembolso: {exc}", None
 
-        return True, "Reembolso registrado com sucesso.", {
+        resultado = {
             "reembolso_id": reembolso_id,
             "venda_id": venda_id,
             "valor_total": valor_total,
             "tipo": tipo_reembolso,
         }
+        AuditoriaService.registrar_evento(
+            evento="reembolso_registrado",
+            categoria="financeiro",
+            entidade="reembolso",
+            entidade_id=int(reembolso_id or 0),
+            usuario_id=usuario_id,
+            detalhes={
+                "venda_id": venda_id,
+                "tipo": tipo_reembolso,
+                "motivo": motivo,
+                "valor_total": str(valor_total),
+                "itens": [
+                    {
+                        "item_venda_id": int(item["item_venda_id"]),
+                        "produto_id": int(item["produto_id"]),
+                        "quantidade": int(item["quantidade"]),
+                        "valor_total": str(item["valor_total"]),
+                    }
+                    for item in itens_validos
+                ],
+            },
+        )
+        return True, "Reembolso registrado com sucesso.", resultado

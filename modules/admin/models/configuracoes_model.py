@@ -3,6 +3,17 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Sequence, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    CLIENTE_PADRAO_CONSUMIDOR_FINAL,
+    FLAG_NAO,
+    FLAG_SIM,
+    PERFIL_LOG_OPERACIONAL,
+    PRIORIDADE_PROMOCAO_ANTES_DESCONTO,
+    REGIME_TRIBUTARIO_SIMPLES_NACIONAL,
+    REGRA_DESCONTO_PERMITIR,
+    bool_para_flag,
+    flag_ativa,
+)
 
 
 class ConfiguracoesModel:
@@ -29,9 +40,10 @@ class ConfiguracoesModel:
                 """
                 SELECT id, identificacao, descricao, status, ativo
                 FROM pdvs
-                WHERE COALESCE(ativo, 'S') = 'S'
+                WHERE COALESCE(ativo, %s) = %s
                 ORDER BY identificacao
-                """
+                """,
+                (FLAG_SIM, FLAG_SIM),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         finally:
@@ -87,7 +99,7 @@ class ConfiguracoesModel:
                 "pdv_padrao_id": registro.get("pdv_padrao_id"),
                 "moeda_padrao": str(registro.get("moeda_padrao") or "BRL"),
                 "regime_tributario_padrao": str(
-                    registro.get("regime_tributario_padrao") or "SIMPLES_NACIONAL"
+                    registro.get("regime_tributario_padrao") or REGIME_TRIBUTARIO_SIMPLES_NACIONAL
                 ),
                 "origem_mercadoria_padrao": str(
                     registro.get("origem_mercadoria_padrao") or "0"
@@ -98,53 +110,55 @@ class ConfiguracoesModel:
                 "natureza_operacao_padrao": str(
                     registro.get("natureza_operacao_padrao") or "VENDA DE MERCADORIA"
                 ),
-                "exigir_ncm_cest_produto": str(
-                    registro.get("exigir_ncm_cest_produto") or "S"
-                ).strip().upper()
-                == "S",
-                "exigir_unidade_tributavel_produto": str(
-                    registro.get("exigir_unidade_tributavel_produto") or "S"
-                ).strip().upper()
-                == "S",
-                "cliente_padrao_venda": str(registro.get("cliente_padrao_venda") or "CONSUMIDOR_FINAL"),
-                "regra_desconto_venda": str(registro.get("regra_desconto_venda") or "PERMITIR_DESCONTO"),
-                "habilitar_venda_rapida_admin": str(
-                    registro.get("habilitar_venda_rapida_admin") or "S"
-                ).strip().upper()
-                == "S",
-                "permitir_venda_sem_estoque": str(
-                    registro.get("permitir_venda_sem_estoque") or "N"
-                ).strip().upper()
-                == "S",
-                "fundo_inicial_sugerido": float(registro.get("fundo_inicial_sugerido") or 0.0),
-                "exigir_admin_sangria": str(registro.get("exigir_admin_sangria") or "S").strip().upper() == "S",
-                "exigir_admin_reembolso": str(registro.get("exigir_admin_reembolso") or "S").strip().upper() == "S",
-                "exigir_admin_diferenca_fechamento": str(
-                    registro.get("exigir_admin_diferenca_fechamento") or "S"
-                ).strip().upper()
-                == "S",
-                "prioridade_promocional": str(
-                    registro.get("prioridade_promocional") or "PROMOCAO_ANTES_DESCONTO"
+                "exigir_ncm_cest_produto": flag_ativa(
+                    registro.get("exigir_ncm_cest_produto"),
+                    default=FLAG_SIM,
                 ),
-                "bloquear_promocoes_simultaneas": str(
-                    registro.get("bloquear_promocoes_simultaneas") or "S"
-                ).strip().upper()
-                == "S",
-                "ativar_promocoes_por_vigencia": str(
-                    registro.get("ativar_promocoes_por_vigencia") or "S"
-                ).strip().upper()
-                == "S",
+                "exigir_unidade_tributavel_produto": flag_ativa(
+                    registro.get("exigir_unidade_tributavel_produto"),
+                    default=FLAG_SIM,
+                ),
+                "cliente_padrao_venda": str(
+                    registro.get("cliente_padrao_venda") or CLIENTE_PADRAO_CONSUMIDOR_FINAL
+                ),
+                "regra_desconto_venda": str(registro.get("regra_desconto_venda") or REGRA_DESCONTO_PERMITIR),
+                "habilitar_venda_rapida_admin": flag_ativa(
+                    registro.get("habilitar_venda_rapida_admin"),
+                    default=FLAG_SIM,
+                ),
+                "permitir_venda_sem_estoque": flag_ativa(
+                    registro.get("permitir_venda_sem_estoque"),
+                    default=FLAG_NAO,
+                ),
+                "fundo_inicial_sugerido": float(registro.get("fundo_inicial_sugerido") or 0.0),
+                "exigir_admin_sangria": flag_ativa(registro.get("exigir_admin_sangria"), default=FLAG_SIM),
+                "exigir_admin_reembolso": flag_ativa(registro.get("exigir_admin_reembolso"), default=FLAG_SIM),
+                "exigir_admin_diferenca_fechamento": flag_ativa(
+                    registro.get("exigir_admin_diferenca_fechamento"),
+                    default=FLAG_SIM,
+                ),
+                "prioridade_promocional": str(
+                    registro.get("prioridade_promocional") or PRIORIDADE_PROMOCAO_ANTES_DESCONTO
+                ),
+                "bloquear_promocoes_simultaneas": flag_ativa(
+                    registro.get("bloquear_promocoes_simultaneas"),
+                    default=FLAG_SIM,
+                ),
+                "ativar_promocoes_por_vigencia": flag_ativa(
+                    registro.get("ativar_promocoes_por_vigencia"),
+                    default=FLAG_SIM,
+                ),
                 "horas_sessao_persistida": int(registro.get("horas_sessao_persistida") or 12),
-                "restaurar_login_automaticamente": str(
-                    registro.get("restaurar_login_automaticamente") or "S"
-                ).strip().upper()
-                == "S",
-                "bloquear_fechamento_programa_caixa_aberto": str(
-                    registro.get("bloquear_fechamento_programa_caixa_aberto") or "S"
-                ).strip().upper()
-                == "S",
+                "restaurar_login_automaticamente": flag_ativa(
+                    registro.get("restaurar_login_automaticamente"),
+                    default=FLAG_SIM,
+                ),
+                "bloquear_fechamento_programa_caixa_aberto": flag_ativa(
+                    registro.get("bloquear_fechamento_programa_caixa_aberto"),
+                    default=FLAG_SIM,
+                ),
                 "intervalo_backup_horas": int(registro.get("intervalo_backup_horas") or 24),
-                "perfil_log": str(registro.get("perfil_log") or "OPERACIONAL"),
+                "perfil_log": str(registro.get("perfil_log") or PERFIL_LOG_OPERACIONAL),
                 "versao_referencia": str(registro.get("versao_referencia") or "CSPdv v1.0.0"),
             }
         finally:
@@ -220,8 +234,8 @@ class ConfiguracoesModel:
                     (
                         cliente_padrao_venda,
                         regra_desconto_venda,
-                        "S" if habilitar_venda_rapida_admin else "N",
-                        "S" if permitir_venda_sem_estoque else "N",
+                        bool_para_flag(habilitar_venda_rapida_admin),
+                        bool_para_flag(permitir_venda_sem_estoque),
                         registro_id,
                     ),
                 )
@@ -247,8 +261,8 @@ class ConfiguracoesModel:
                         "Empresa em configuração",
                         cliente_padrao_venda,
                         regra_desconto_venda,
-                        "S" if habilitar_venda_rapida_admin else "N",
-                        "S" if permitir_venda_sem_estoque else "N",
+                        bool_para_flag(habilitar_venda_rapida_admin),
+                        bool_para_flag(permitir_venda_sem_estoque),
                     ),
                 )
 
@@ -288,9 +302,9 @@ class ConfiguracoesModel:
                     """,
                     (
                         fundo_inicial_sugerido,
-                        "S" if exigir_admin_sangria else "N",
-                        "S" if exigir_admin_reembolso else "N",
-                        "S" if exigir_admin_diferenca_fechamento else "N",
+                        bool_para_flag(exigir_admin_sangria),
+                        bool_para_flag(exigir_admin_reembolso),
+                        bool_para_flag(exigir_admin_diferenca_fechamento),
                         registro_id,
                     ),
                 )
@@ -315,9 +329,9 @@ class ConfiguracoesModel:
                         "Empresa em configuração",
                         "Empresa em configuração",
                         fundo_inicial_sugerido,
-                        "S" if exigir_admin_sangria else "N",
-                        "S" if exigir_admin_reembolso else "N",
-                        "S" if exigir_admin_diferenca_fechamento else "N",
+                        bool_para_flag(exigir_admin_sangria),
+                        bool_para_flag(exigir_admin_reembolso),
+                        bool_para_flag(exigir_admin_diferenca_fechamento),
                     ),
                 )
 
@@ -355,8 +369,8 @@ class ConfiguracoesModel:
                     """,
                     (
                         prioridade_promocional,
-                        "S" if bloquear_promocoes_simultaneas else "N",
-                        "S" if ativar_promocoes_por_vigencia else "N",
+                        bool_para_flag(bloquear_promocoes_simultaneas),
+                        bool_para_flag(ativar_promocoes_por_vigencia),
                         registro_id,
                     ),
                 )
@@ -380,8 +394,8 @@ class ConfiguracoesModel:
                         "Empresa em configuração",
                         "Empresa em configuração",
                         prioridade_promocional,
-                        "S" if bloquear_promocoes_simultaneas else "N",
-                        "S" if ativar_promocoes_por_vigencia else "N",
+                        bool_para_flag(bloquear_promocoes_simultaneas),
+                        bool_para_flag(ativar_promocoes_por_vigencia),
                     ),
                 )
 
@@ -419,8 +433,8 @@ class ConfiguracoesModel:
                     """,
                     (
                         int(horas_sessao_persistida),
-                        "S" if restaurar_login_automaticamente else "N",
-                        "S" if bloquear_fechamento_programa_caixa_aberto else "N",
+                        bool_para_flag(restaurar_login_automaticamente),
+                        bool_para_flag(bloquear_fechamento_programa_caixa_aberto),
                         registro_id,
                     ),
                 )
@@ -444,8 +458,8 @@ class ConfiguracoesModel:
                         "Empresa em configuração",
                         "Empresa em configuração",
                         int(horas_sessao_persistida),
-                        "S" if restaurar_login_automaticamente else "N",
-                        "S" if bloquear_fechamento_programa_caixa_aberto else "N",
+                        bool_para_flag(restaurar_login_automaticamente),
+                        bool_para_flag(bloquear_fechamento_programa_caixa_aberto),
                     ),
                 )
 

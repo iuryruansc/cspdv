@@ -370,6 +370,9 @@ Estado atual validado:
 ## Documentacao auxiliar
 
 - [docs/architecture.md](D:\Python\cspdv\docs\architecture.md)
+- [docs/migrations.md](D:\Python\cspdv\docs\migrations.md)
+- [docs/seeds.md](D:\Python\cspdv\docs\seeds.md)
+- [docs/maintenance.md](D:\Python\cspdv\docs\maintenance.md)
 - [docs/tooling_commands.md](D:\Python\cspdv\docs\tooling_commands.md)
 - [docs/homologacao/checklist_homologacao_operacional.xlsx](D:\Python\cspdv\docs\homologacao\checklist_homologacao_operacional.xlsx)
 

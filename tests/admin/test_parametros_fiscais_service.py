@@ -19,8 +19,9 @@ def test_salvar_parametros_fiscais_bloqueia_cfop_invalido():
     assert "cfop padrão de venda" in mensagem.lower()
 
 
+@patch("modules.admin.services.configuracoes_service.AuditoriaService.registrar_evento")
 @patch("modules.admin.services.configuracoes_service.ConfiguracoesModel.salvar_parametros_fiscais")
-def test_salvar_parametros_fiscais_normaliza_e_persiste(mock_salvar):
+def test_salvar_parametros_fiscais_normaliza_e_persiste(mock_salvar, mock_auditar):
     sucesso, mensagem = ConfiguracoesService.salvar_parametros_fiscais(
         regime_tributario_label="Simples Nacional",
         origem_mercadoria_label="0 - Nacional",
@@ -44,3 +45,4 @@ def test_salvar_parametros_fiscais_normaliza_e_persiste(mock_salvar):
         exigir_ncm_cest_produto=False,
         exigir_unidade_tributavel_produto=False,
     )
+    mock_auditar.assert_called_once()

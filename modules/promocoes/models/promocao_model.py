@@ -3,6 +3,12 @@ from __future__ import annotations
 from typing import Any, Dict, List, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    FLAG_SIM,
+    STATUS_PROMOCAO_AGENDADA,
+    STATUS_PROMOCAO_ATIVA,
+    STATUS_PROMOCAO_RASCUNHO,
+)
 
 class PromocaoModel:
     @staticmethod
@@ -129,15 +135,16 @@ class PromocaoModel:
                      desconto_percentual, desconto_valor, preco_fixo, data_inicio, data_fim,
                      cumulativa, aplica_em_todos_pdvs, ativo, usuario_id, createdAt, updatedAt)
                 VALUES
-                    (%s, %s, %s, %s, 'RASCUNHO', %s, %s,
+                    (%s, %s, %s, %s, %s, %s, %s,
                      %s, %s, %s, %s, %s,
-                     %s, 'S', %s, %s, NOW(), NOW())
+                     %s, %s, %s, %s, NOW(), NOW())
                 """,
                 (
                     str(novo_codigo).strip().upper(),
                     str(promocao.get("nome") or ""),
                     str(promocao.get("classificacao") or "PROMOCAO"),
                     str(promocao.get("tipo_desconto") or "PERCENTUAL"),
+                    STATUS_PROMOCAO_RASCUNHO,
                     str(promocao.get("descricao") or ""),
                     str(promocao.get("observacao") or ""),
                     float(promocao.get("desconto_percentual") or 0),
@@ -146,7 +153,8 @@ class PromocaoModel:
                     data_inicio,
                     data_fim,
                     str(promocao.get("cumulativa") or "N"),
-                    str(promocao.get("ativo") or "S"),
+                    FLAG_SIM,
+                    str(promocao.get("ativo") or FLAG_SIM),
                     int(promocao.get("usuario_id") or 0),
                 ),
             )
@@ -171,9 +179,9 @@ class PromocaoModel:
                     NOW()
                 FROM promocao_produtos
                 WHERE promocao_id = %s
-                  AND ativo = 'S'
+                  AND ativo = %s
                 """,
-                (novo_id, int(promocao_id)),
+                (novo_id, int(promocao_id), FLAG_SIM),
             )
             conn.commit()
             return novo_id
@@ -269,14 +277,14 @@ class PromocaoModel:
                     p.desconto_valor,
                     p.preco_fixo
                 FROM promocoes p
-                LEFT JOIN promocao_produtos pp2 ON pp2.promocao_id = p.id AND pp2.ativo = 'S'
+                LEFT JOIN promocao_produtos pp2 ON pp2.promocao_id = p.id AND pp2.ativo = %s
                 LEFT JOIN (
                     SELECT
                         pp.promocao_id,
                         GROUP_CONCAT(pr.nome SEPARATOR ' | ') AS produtos_texto
                     FROM promocao_produtos pp
                     INNER JOIN produtos pr ON pr.id = pp.produto_id
-                    WHERE pp.ativo = 'S'
+                    WHERE pp.ativo = %s
                     GROUP BY pp.promocao_id
                 ) pp ON pp.promocao_id = p.id
                 WHERE {" AND ".join(filtros)}
@@ -285,7 +293,7 @@ class PromocaoModel:
                     p.data_inicio, p.data_fim, p.desconto_percentual, p.desconto_valor, p.preco_fixo
                 ORDER BY p.data_inicio DESC, p.id DESC
                 """,
-                params,
+                [FLAG_SIM, FLAG_SIM, *params],
             )
             return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
         finally:
@@ -308,10 +316,10 @@ class PromocaoModel:
                     COALESCE(pp.observacao, '') AS observacao
                 FROM promocao_produtos pp
                 INNER JOIN produtos pr ON pr.id = pp.produto_id
-                WHERE pp.promocao_id = %s AND pp.ativo = 'S'
+                WHERE pp.promocao_id = %s AND pp.ativo = %s
                 ORDER BY pr.nome
                 """,
-                (int(promocao_id),),
+                (int(promocao_id), FLAG_SIM),
             )
             return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
         finally:
@@ -357,7 +365,7 @@ class PromocaoModel:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
         try:
-            filtros = ["p.ativo = 'S'"]
+            filtros = ["p.ativo = %s"]
             params: list[Any] = [int(promocao_id)]
 
             termo = str(busca or "").strip()
@@ -395,14 +403,14 @@ class PromocaoModel:
                 LEFT JOIN promocao_produtos pp
                     ON pp.promocao_id = %s
                    AND pp.produto_id = p.id
-                   AND pp.ativo = 'S'
+                   AND pp.ativo = %s
                 WHERE {" AND ".join(filtros)}
                 ORDER BY
                     CASE WHEN pp.id IS NULL THEN 1 ELSE 0 END,
                     p.nome
                 LIMIT 150
                 """,
-                params,
+                [int(promocao_id), FLAG_SIM, *params, FLAG_SIM],
             )
             return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
         finally:
@@ -429,19 +437,28 @@ class PromocaoModel:
                 INNER JOIN promocoes atual
                     ON atual.id = %s
                 WHERE pp.produto_id = %s
-                  AND pp.ativo = 'S'
+                  AND pp.ativo = %s
                   AND p.id <> %s
-                  AND p.ativo = 'S'
-                  AND p.status IN ('AGENDADA', 'ATIVA')
+                  AND p.ativo = %s
+                  AND p.status IN (%s, %s)
                   AND atual.data_inicio <= p.data_fim
                   AND atual.data_fim >= p.data_inicio
                 ORDER BY
-                    CASE p.status WHEN 'ATIVA' THEN 0 ELSE 1 END,
+                    CASE p.status WHEN %s THEN 0 ELSE 1 END,
                     p.data_inicio,
                     p.id
                 LIMIT 1
                 """,
-                (int(promocao_id), int(produto_id), int(promocao_id)),
+                (
+                    int(promocao_id),
+                    int(produto_id),
+                    FLAG_SIM,
+                    int(promocao_id),
+                    FLAG_SIM,
+                    STATUS_PROMOCAO_AGENDADA,
+                    STATUS_PROMOCAO_ATIVA,
+                    STATUS_PROMOCAO_ATIVA,
+                ),
             )
             return cast(Dict[str, Any] | None, cursor.fetchone())
         finally:
@@ -479,7 +496,7 @@ class PromocaoModel:
                         preco_promocional = %s,
                         desconto_aplicado = %s,
                         observacao = %s,
-                        ativo = 'S',
+                        ativo = %s,
                         updatedAt = NOW()
                     WHERE id = %s
                     """,
@@ -488,6 +505,7 @@ class PromocaoModel:
                         preco_promocional,
                         desconto_aplicado,
                         observacao or None,
+                        FLAG_SIM,
                         int(existente.get("id") or 0),
                     ),
                 )
@@ -497,7 +515,7 @@ class PromocaoModel:
                     INSERT INTO promocao_produtos
                         (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
                     VALUES
-                        (%s, %s, %s, %s, %s, %s, 'S', NOW(), NOW())
+                        (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
                         int(promocao_id),
@@ -506,6 +524,7 @@ class PromocaoModel:
                         preco_promocional,
                         desconto_aplicado,
                         observacao or None,
+                        FLAG_SIM,
                     ),
                 )
             conn.commit()
@@ -528,9 +547,9 @@ class PromocaoModel:
                     updatedAt = NOW()
                 WHERE promocao_id = %s
                   AND produto_id = %s
-                  AND ativo = 'S'
+                  AND ativo = %s
                 """,
-                (int(promocao_id), int(produto_id)),
+                (int(promocao_id), int(produto_id), FLAG_SIM),
             )
             conn.commit()
         except Exception:

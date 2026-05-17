@@ -4,6 +4,33 @@ from database.connection import get_connection
 
 class ClienteModel:
     @staticmethod
+    def buscar_consumidor_final() -> Optional[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    nome,
+                    cpf,
+                    telefone,
+                    cidade,
+                    estado,
+                    cliente_sistema,
+                    ativo
+                FROM clientes
+                WHERE cliente_sistema = 'S'
+                ORDER BY id
+                LIMIT 1
+                """
+            )
+            return cast(Optional[Dict[str, Any]], cursor.fetchone())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def buscar_para_venda(termo: str, limite: int = 20) -> List[Dict[str, Any]]:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
@@ -20,9 +47,11 @@ class ClienteModel:
                     telefone,
                     cidade,
                     estado,
+                    cliente_sistema,
                     ativo
                 FROM clientes
                 WHERE ativo = 'S'
+                  AND cliente_sistema = 'N'
                   AND (
                     UPPER(nome) LIKE %s
                     OR cpf LIKE %s
@@ -57,6 +86,7 @@ class ClienteModel:
                     telefone,
                     cidade,
                     estado,
+                    cliente_sistema,
                     ativo
                 FROM clientes
                 ORDER BY nome
@@ -87,6 +117,7 @@ class ClienteModel:
                     cidade,
                     estado,
                     observacao,
+                    cliente_sistema,
                     ativo
                 FROM clientes
                 WHERE id = %s

@@ -2,6 +2,14 @@ from typing import Any, Dict, Tuple
 
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
 from modules.pdvs.models.pdv_model import PdvModel
+from modules.shared.constants import (
+    FLAG_NAO,
+    FLAG_SIM,
+    STATUS_PDV_ATIVO,
+    STATUS_PDV_INATIVO,
+    alternar_flag,
+    flag_ativa,
+)
 from modules.venda.models.caixa_model import CaixaModel
 
 ResultadoOperacao = Tuple[bool, str]
@@ -12,8 +20,8 @@ class PdvService:
     def _normalizar_dados(dados: Dict[str, Any]) -> Dict[str, Any]:
         identificacao = str(dados.get("identificacao") or "").strip().upper()
         descricao = str(dados.get("descricao") or "").strip()
-        ativo = "S" if str(dados.get("ativo") or "N").strip().upper() == "S" else "N"
-        status = "ativo" if ativo == "S" else "inativo"
+        ativo = FLAG_SIM if flag_ativa(dados.get("ativo"), default=FLAG_NAO) else FLAG_NAO
+        status = STATUS_PDV_ATIVO if ativo == FLAG_SIM else STATUS_PDV_INATIVO
         return {
             "identificacao": identificacao,
             "descricao": descricao,
@@ -73,11 +81,10 @@ class PdvService:
         if not registro:
             return False, "PDV não encontrado."
 
-        ativo_atual = str(registro.get("ativo") or "N").strip().upper()
-        novo_status_ativo = "N" if ativo_atual == "S" else "S"
-        novo_status_texto = "ativo" if novo_status_ativo == "S" else "inativo"
+        novo_status_ativo = alternar_flag(registro.get("ativo"))
+        novo_status_texto = STATUS_PDV_ATIVO if novo_status_ativo == FLAG_SIM else STATUS_PDV_INATIVO
 
-        if novo_status_ativo == "N":
+        if novo_status_ativo == FLAG_NAO:
             caixa_aberto = CaixaModel.buscar_caixa_aberto_por_pdv(int(pdv_id))
             if caixa_aberto:
                 return False, "Não é possível desativar um PDV com caixa aberto."
@@ -97,5 +104,5 @@ class PdvService:
 
         if not atualizado:
             return False, "Não foi possível atualizar o status do PDV."
-        acao = "ativado" if novo_status_ativo == "S" else "desativado"
+        acao = "ativado" if novo_status_ativo == FLAG_SIM else "desativado"
         return True, f"PDV {acao} com sucesso!"

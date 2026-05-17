@@ -7,6 +7,10 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
 
 from ui.financeiro.consulta_conta_receber_dialog import Ui_ConsultaContaReceberDialog
+from modules.shared.constants import (
+    STATUS_CONTA_ABERTAS,
+    STATUS_CONTA_QUITADA,
+)
 from utils.format_utils import formatar_data, formatar_data_hora, formatar_moeda
 from utils.table_widget_utils import set_table_item
 
@@ -40,7 +44,7 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         self.plainObservacao.setPlainText(str(conta.get("observacao") or "Sem observações registradas."))
         self._aplicar_estilo_status()
         aberto = Decimal(str(conta.get("valor_aberto") or 0))
-        conta_aberta = str(conta.get("status") or "").upper() in {"PENDENTE", "PARCIALMENTE_RECEBIDA"} and aberto > Decimal("0.00")
+        conta_aberta = str(conta.get("status") or "").upper() in STATUS_CONTA_ABERTAS and aberto > Decimal("0.00")
         self.btnReceberAgora.setVisible(conta_aberta)
         self.btnReceberAgora.setEnabled(conta_aberta)
         self._fill_recebimentos(self._detalhes.get("recebimentos") or [])
@@ -56,10 +60,10 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
     def _aplicar_estilo_status(self) -> None:
         status = str(self._conta.get("status") or "").upper()
         dias_atraso = int((self._detalhes.get("resumo") or {}).get("dias_atraso") or 0)
-        if status in {"PENDENTE", "PARCIALMENTE_RECEBIDA"} and dias_atraso > 0:
+        if status in STATUS_CONTA_ABERTAS and dias_atraso > 0:
             self.lblStatusValor.setProperty("status", "atrasada")
             self.lblDiasAtrasoValor.setStyleSheet("color:#b42318;")
-        elif status == "QUITADA":
+        elif status == STATUS_CONTA_QUITADA:
             self.lblStatusValor.setProperty("status", "quitada")
             self.lblDiasAtrasoValor.setStyleSheet("color:#123f6f;")
         else:

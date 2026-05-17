@@ -5,6 +5,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from modules.shared.constants import (
+    STATUS_VENDA_CONCLUIDA,
+    STATUS_VENDA_CONCLUIDA_COM_PENDENCIA,
+)
 from modules.venda.models.venda_model import VendaModel
 
 class VendaService:
@@ -72,6 +76,7 @@ class VendaService:
         data_hora = datetime.now()
         cliente_id_raw = venda_data.get("cliente_id")
         cliente_id = int(cliente_id_raw) if cliente_id_raw not in (None, "", 0) else None
+        cliente_eh_consumidor_final = bool(venda_data.get("cliente_eh_consumidor_final"))
         valor_total = float(venda_data.get("total") or 0.0)
         desconto_global = float(venda_data.get("desconto_global") or 0.0)
         venda_com_pendencia = bool(venda_data.get("finalizar_com_pendencia"))
@@ -90,6 +95,8 @@ class VendaService:
         if venda_com_pendencia:
             if cliente_id is None:
                 return False, "Selecione um cliente para concluir a venda com pendência.", None
+            if cliente_eh_consumidor_final:
+                return False, "Selecione um cliente diferente de Consumidor Final para concluir a venda com pendencia.", None
             if valor_pago >= valor_total or valor_em_aberto <= 0:
                 return False, "O pagamento parcial informado não gera uma pendência válida.", None
             data_vencimento = str(venda_data.get("data_vencimento") or "").strip()
@@ -107,7 +114,11 @@ class VendaService:
                 desconto_global=desconto_global,
                 valor_total=valor_total,
                 data_hora=data_hora,
-                status_venda="CONCLUIDA_COM_PENDENCIA" if venda_com_pendencia else "CONCLUIDA",
+                status_venda=(
+                    STATUS_VENDA_CONCLUIDA_COM_PENDENCIA
+                    if venda_com_pendencia
+                    else STATUS_VENDA_CONCLUIDA
+                ),
                 conta_receber=(
                     {
                         "cliente_id": cliente_id,
@@ -129,6 +140,10 @@ class VendaService:
             **venda_data,
             "numero_venda": venda_id,
             "data_hora_venda": data_hora.strftime("%d/%m/%Y %H:%M:%S"),
-            "status": "CONCLUIDA_COM_PENDENCIA" if venda_com_pendencia else "CONCLUIDA",
+            "status": (
+                STATUS_VENDA_CONCLUIDA_COM_PENDENCIA
+                if venda_com_pendencia
+                else STATUS_VENDA_CONCLUIDA
+            ),
         }
         return True, "Venda registrada com sucesso.", venda_finalizada

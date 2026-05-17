@@ -29,6 +29,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         super().__init__(parent)
         self.setupUi(self)
         aplicar_tamanho_proporcional_tela(self)
+        self.btnNavAuditoria.setText("Auditoria")
 
         self._management_configs: Dict[str, Dict[str, Any]] = {}
         self._setup_user_context()
@@ -397,6 +398,25 @@ QPushButton:hover { background: #2a74b8; }
                 "new_action": self._open_cadastro_pdv,
                 "new_label": "Novo PDV",
             },
+            "auditoria": {
+                "button": self.btnNavAuditoria,
+                "title": "Auditoria",
+                "section_title": "Trilha de Auditoria",
+                "hint": "Consulte eventos criticos registrados pelo sistema para rastrear operacoes, configuracoes e fluxo de caixa.",
+                "columns": [
+                    ("id", "ID"),
+                    ("data_hora", "Data / Hora"),
+                    ("categoria", "Categoria"),
+                    ("evento", "Evento"),
+                    ("usuario", "Operador"),
+                    ("caixa", "Caixa"),
+                    ("entidade", "Entidade"),
+                    ("entidade_id", "ID Entidade"),
+                ],
+                "loader": self._load_auditoria,
+                "new_action": self._refresh_current_management_page,
+                "new_label": "Atualizar eventos",
+            },
         }
 
         for config in self._management_configs.values():
@@ -431,6 +451,7 @@ QPushButton:hover { background: #2a74b8; }
                 self.btnNavUnidades,
                 self.btnNavPdvs,
             ],
+            "auditoria": [],
             "configuracoes": [],
         }
 
@@ -444,6 +465,7 @@ QPushButton:hover { background: #2a74b8; }
             self.btnNavVendas,
             self.btnNavClientes,
             self.btnNavLotes,
+            self.btnNavAuditoria,
             self.btnNavConfiguracoes,
         ):
             self.navGroup.addButton(button)
@@ -461,6 +483,7 @@ QPushButton:hover { background: #2a74b8; }
         self.btnNavVendas.clicked.connect(lambda _=False: self._show_management_page("formas_pagamento"))
         self.btnNavClientes.clicked.connect(lambda _=False: self._show_management_page("clientes"))
         self.btnNavLotes.clicked.connect(lambda _=False: self._show_parametros_fiscais())
+        self.btnNavAuditoria.clicked.connect(lambda _=False: self._show_management_page("auditoria"))
         self.btnNavConfiguracoes.clicked.connect(lambda _=False: self._show_configuracoes())
         self.btnNavFiscal.clicked.connect(lambda _=False: self._show_parametros_fiscais())
 
@@ -544,10 +567,20 @@ QPushButton:hover { background: #2a74b8; }
             "caixas": self.btnNavVendas,
             "unidades": self.btnNavLotes,
             "pdvs": self.btnNavLotes,
+            "auditoria": self.btnNavAuditoria,
         }
         button = button_map.get(key, self.btnNavProdutos)
         if not button.isChecked():
             button.setChecked(True)
+        self._atualizar_estilo_nav_principal(key)
+
+    def _atualizar_estilo_nav_principal(self, active_key: str) -> None:
+        if active_key == "auditoria":
+            self.btnNavAuditoria.setStyleSheet(
+                "color: white; background-color: rgba(255,255,255,20); border-bottom: 3px solid #ffe080;"
+            )
+            return
+        self.btnNavAuditoria.setStyleSheet("")
 
     def _set_subnav_group(self, group_key: str) -> None:
         visible_buttons = set(self._subnav_groups.get(group_key, []))
@@ -560,11 +593,11 @@ QPushButton:hover { background: #2a74b8; }
             self.btnNavPerfis,
             self.btnNavPermissoes,
             self.btnNavCargos,
-            self.btnNavFormasPagamento,
-            self.btnNavCaixas,
-            self.btnNavFiscal,
-            self.btnNavUnidades,
-            self.btnNavPdvs,
+              self.btnNavFormasPagamento,
+              self.btnNavCaixas,
+              self.btnNavFiscal,
+              self.btnNavUnidades,
+              self.btnNavPdvs,
         ]
         for button in all_buttons:
             button.setVisible(button in visible_buttons)
@@ -636,6 +669,7 @@ QPushButton:hover { background: #2a74b8; }
             "caixas": "financeiro",
             "unidades": "operacao_fiscal",
             "pdvs": "operacao_fiscal",
+            "auditoria": "auditoria",
         }
         self.lblSectionTitle.setText(config["section_title"])
         self.btnFrenteCaixa.hide()
@@ -644,7 +678,7 @@ QPushButton:hover { background: #2a74b8; }
         self._set_subnav_group(group_map.get(key, "cadastros"))
         self.managementPage.show()
         self.managementPage.btnNovo.setText(config["new_label"])
-        self.managementPage.set_details_enabled(key in {"produtos", "caixas"})
+        self.managementPage.set_details_enabled(key in {"produtos", "caixas", "auditoria"})
         self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
         self.managementPage.set_edit_enabled(
             key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}
@@ -652,8 +686,10 @@ QPushButton:hover { background: #2a74b8; }
         self.managementPage.set_toggle_enabled(
             key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}
         )
+        self.managementPage.btnNovo.setVisible(key != "auditoria")
         self._desconectar_click(self.managementPage.btnNovo)
-        self.managementPage.btnNovo.clicked.connect(config["new_action"])
+        if key != "auditoria":
+            self.managementPage.btnNovo.clicked.connect(config["new_action"])
         if key == "caixas":
             self._atualizar_acao_caixa_management_page()
         self._mark_subnav_button(config["button"])
@@ -763,6 +799,11 @@ QPushButton:hover { background: #2a74b8; }
         from modules.pdvs.models.pdv_model import PdvModel
 
         return PdvModel.listar()
+
+    def _load_auditoria(self) -> List[Dict[str, Any]]:
+        from modules.auditoria.services.auditoria_service import AuditoriaService
+
+        return AuditoriaService.listar_eventos(limit=300)
 
     def _load_unidades(self) -> List[Dict[str, Any]]:
         from modules.unidades.models.unidade_model import UnidadeModel
@@ -948,6 +989,10 @@ QPushButton:hover { background: #2a74b8; }
             self._abrir_detalhes_produto()
             return
 
+        if current_key == "auditoria":
+            self._abrir_detalhes_auditoria()
+            return
+
         if current_key != "caixas":
             return
 
@@ -975,6 +1020,41 @@ QPushButton:hover { background: #2a74b8; }
         dialog.setWindowTitle(f"Resumo do Caixa #{int(caixa_id)}")
         dialog.exec_()
 
+    def _abrir_detalhes_auditoria(self) -> None:
+        evento = self._obter_registro_selecionado(
+            "Selecione um evento",
+            "Escolha um evento na tabela antes de visualizar os detalhes.",
+        )
+        if not evento:
+            return
+
+        evento_id = evento.get("id")
+        if evento_id is None:
+            mostrar_aviso(self, "Evento invalido", "Nao foi possivel identificar o evento selecionado.")
+            return
+
+        from modules.auditoria.services.auditoria_service import AuditoriaService
+
+        detalhado = AuditoriaService.obter_evento_detalhado(int(evento_id))
+        if not detalhado:
+            mostrar_aviso(self, "Evento nao encontrado", "Nao foi possivel carregar os detalhes do evento.")
+            return
+
+        detalhes = str(detalhado.get("detalhes_formatados") or "Sem detalhes adicionais.")
+        texto = (
+            f"ID: {detalhado.get('id')}\n"
+            f"Data/Hora: {detalhado.get('data_hora')}\n"
+            f"Categoria: {detalhado.get('categoria_label')}\n"
+            f"Evento: {detalhado.get('evento_label')}\n"
+            f"Operador: {detalhado.get('usuario_label')}\n"
+            f"Caixa: {detalhado.get('caixa_label')}\n"
+            f"PDV: {detalhado.get('pdv_identificacao') or '-'}\n"
+            f"Entidade: {detalhado.get('entidade_label')}\n"
+            f"ID Entidade: {detalhado.get('entidade_id') or '-'}\n\n"
+            f"Detalhes:\n{detalhes}"
+        )
+        mostrar_info(self, f"Auditoria #{int(evento_id)}", texto)
+
     def _toggle_registro_ativo(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
         if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}:
@@ -985,6 +1065,13 @@ QPushButton:hover { background: #2a74b8; }
             "Escolha um registro na tabela antes de alterar o status.",
         )
         if not row:
+            return
+        if current_key == "clientes" and str(row.get("cliente_sistema") or "N").strip().upper() == "S":
+            mostrar_aviso(
+                self,
+                "Registro protegido",
+                "O cliente Consumidor Final e um registro do sistema e nao pode ser desativado.",
+            )
             return
 
         contexto = self._obter_contexto_status(current_key, row)
@@ -1028,6 +1115,13 @@ QPushButton:hover { background: #2a74b8; }
             "Escolha um registro na tabela antes de editar.",
         )
         if not row:
+            return
+        if current_key == "clientes" and str(row.get("cliente_sistema") or "N").strip().upper() == "S":
+            mostrar_aviso(
+                self,
+                "Registro protegido",
+                "O cliente Consumidor Final e um registro do sistema e nao pode ser editado.",
+            )
             return
 
         if current_key == "produtos":

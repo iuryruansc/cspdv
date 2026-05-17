@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.auth.models.usuario_model import UsuarioModel
 from utils.app_logger import log_info
 from utils.ui_messages import mostrar_aviso
@@ -226,6 +227,22 @@ class TrocaOperadorDialog(QDialog):
 
         LoginView.usuario_logado = SessionManager.current_user()
         self._novo_operador = usuario
+        AuditoriaService.registrar_evento(
+            evento="troca_operador",
+            categoria="acesso",
+            entidade="caixa",
+            entidade_id=int(self._caixa_atual.get("id") or 0) or None,
+            usuario_id=int(usuario.get("id") or 0),
+            caixa_id=int(self._caixa_atual.get("id") or 0) or None,
+            detalhes={
+                "operador_anterior_id": int(usuario_atual.get("id") or 0),
+                "operador_anterior_nome": str(usuario_atual.get("nome") or ""),
+                "novo_operador_id": int(usuario.get("id") or 0),
+                "novo_operador_nome": str(usuario.get("nome") or ""),
+                "motivo": motivo,
+                "pdv_label": str(self._caixa_atual.get("pdv_label") or ""),
+            },
+        )
         log_info(
             "Troca de operador realizada no caixa "
             f"{self._caixa_atual.get('pdv_label', 'atual')}: "

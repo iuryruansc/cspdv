@@ -8,6 +8,7 @@ from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from database.connection import close_connection, get_connection_diagnostics
 from database.migrations.runner import run_pending_migrations
+from database.seeds.runner import run_pending_seeds
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.auth.views.login_view import LoginView
 from modules.auth.views.selecao_modo_view import SelecaoModoView
@@ -112,6 +113,9 @@ def main():
         applied_migrations = run_pending_migrations()
         if applied_migrations:
             log_info(f"Migrations aplicadas na inicializacao: {', '.join(applied_migrations)}")
+        applied_seeds = run_pending_seeds()
+        if applied_seeds:
+            log_info(f"Seeds aplicados na inicializacao: {', '.join(applied_seeds)}")
         if SetupModel.is_first_run():
             wizard = SetupWizardView()
             QTimer.singleShot(0, lambda: _mostrar_dialog(wizard))

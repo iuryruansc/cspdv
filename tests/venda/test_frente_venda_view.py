@@ -51,6 +51,10 @@ def _criar_view(*, params_venda=None, params_promocoes=None):
             "modules.venda.views.frente_venda_view.ConfiguracoesService.carregar_parametros_promocoes",
             return_value=params_promocoes or _params_promocoes(),
         ),
+        patch(
+            "modules.venda.views.frente_venda_view.ClienteService.obter_consumidor_final",
+            return_value={"id": 1, "nome": "Consumidor Final"},
+        ),
         patch("modules.venda.views.frente_venda_view.atualizar_preview_label", return_value=None),
     ):
         view = FrenteVendaView()
@@ -176,3 +180,19 @@ class TestFrenteVendaView:
         assert len(view._itens_venda) == 1
         assert view._itens_venda[0]["quantidade"] == 2
         mock_aviso.assert_called_once()
+
+    def test_venda_padrao_emite_cliente_seeded_com_flag_de_consumidor_final(self):
+        view = _criar_view()
+        view._itens_venda = [criar_item_cupom(_produto_base(), 1)]
+        emitidos = []
+        view.pagamento_solicitado.connect(lambda payload: emitidos.append(payload))
+
+        with patch("modules.venda.views.frente_venda_view.ConfirmarVendaDialog") as mock_dialog_cls:
+            dialog = mock_dialog_cls.return_value
+            dialog.Accepted = 1
+            dialog.exec_.return_value = 1
+            view._abrir_confirmacao_venda()
+
+        assert len(emitidos) == 1
+        assert emitidos[0]["cliente_id"] == 1
+        assert emitidos[0]["cliente_eh_consumidor_final"] is True

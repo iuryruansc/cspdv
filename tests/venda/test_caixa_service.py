@@ -30,6 +30,24 @@ class TestCaixaService:
         assert sucesso is False
         assert "caixa aberto" in mensagem.lower()
 
+    @patch("modules.venda.services.caixa_service.AuditoriaService.registrar_evento")
+    @patch("modules.venda.services.caixa_service.CaixaModel.abrir_caixa", return_value=31)
+    @patch("modules.venda.services.caixa_service.CaixaModel.buscar_caixa_aberto_por_pdv", return_value=None)
+    def test_abrir_caixa_registra_auditoria(self, _mock_caixa_aberto, _mock_abrir, mock_auditar):
+        sucesso, _mensagem, caixa_data = CaixaService.abrir_caixa(
+            pdv_id=1,
+            pdv_label="PDV-01 - Caixa Principal",
+            usuario_id=9,
+            usuario_nome="Operador",
+            valor_abertura=50.0,
+            observacoes="Abertura normal",
+            breakdown={},
+        )
+
+        assert sucesso is True
+        assert caixa_data is not None
+        mock_auditar.assert_called_once()
+
     @patch.object(CaixaService, "_carregar_parametros_caixa", return_value={"exigir_admin_sangria": True})
     @patch.object(CaixaService, "validar_admin_para_diferenca", return_value=False)
     def test_registrar_sangria_exige_admin_quando_configurado(self, _mock_admin, _mock_parametros):
@@ -76,6 +94,30 @@ class TestCaixaService:
 
         assert sucesso is False
         assert "saldo atual" in mensagem.lower()
+
+    @patch("modules.venda.services.caixa_service.AuditoriaService.registrar_evento")
+    @patch("modules.venda.services.caixa_service.CaixaModel.registrar_movimentacao")
+    @patch.object(CaixaService, "_carregar_parametros_caixa", return_value={"exigir_admin_sangria": False})
+    @patch.object(CaixaService, "obter_resumo_movimentacoes", return_value={"saldo_atual": 100.0})
+    def test_registrar_movimentacao_com_sucesso_registra_auditoria(
+        self,
+        _mock_resumo,
+        _mock_parametros,
+        _mock_registrar,
+        mock_auditar,
+    ):
+        CaixaSession.open({"id": 1, "valor_abertura": 100.0})
+        SessionManager.login({"id": 10, "nome": "Operador", "permissoes": []}, persist=False)
+
+        sucesso, _mensagem = CaixaService.registrar_movimentacao(
+            tipo="suprimento",
+            valor=20.0,
+            observacao="Entrada manual",
+            admin_password="",
+        )
+
+        assert sucesso is True
+        mock_auditar.assert_called_once()
 
     @patch("modules.venda.services.caixa_service.UsuarioModel.buscar_sessao_por_id")
     @patch.object(CaixaService, "_carregar_parametros_caixa", return_value={"exigir_admin_diferenca_fechamento": True})
@@ -164,6 +206,7 @@ class TestCaixaService:
         assert resumo["total_reembolsos"] == 7.0
         assert resumo["saldo_atual"] == 138.0
 
+    @patch("modules.venda.services.caixa_service.AuditoriaService.registrar_evento")
     @patch("modules.venda.services.caixa_service.CaixaModel.fechar_caixa")
     @patch("modules.venda.services.caixa_service.UsuarioModel.buscar_sessao_por_id")
     @patch.object(CaixaService, "_carregar_parametros_caixa", return_value={"exigir_admin_diferenca_fechamento": False})
@@ -174,6 +217,7 @@ class TestCaixaService:
         _mock_parametros,
         mock_buscar_usuario,
         mock_fechar_caixa,
+        mock_auditar,
     ):
         CaixaSession.open({"id": 1, "usuario_id": 5})
         mock_buscar_usuario.return_value = {"id": 5, "nome": "Operador"}
@@ -193,6 +237,7 @@ class TestCaixaService:
         assert fechamento["diferenca"] == 10.0
         assert CaixaSession.current() is None
         mock_fechar_caixa.assert_called_once()
+        mock_auditar.assert_called_once()
 
     @patch("modules.venda.services.caixa_service.CaixaModel.listar_caixas_admin")
     def test_listar_caixas_admin_formata_linhas_para_o_painel(self, mock_listar):

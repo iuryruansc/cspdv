@@ -2,7 +2,19 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
+from modules.shared.constants import (
+    CLIENTE_PADRAO_CONSUMIDOR_FINAL,
+    PERFIL_LOG_DETALHADO,
+    PERFIL_LOG_OPERACIONAL,
+    PERFIL_LOG_SILENCIOSO,
+    PRIORIDADE_DESCONTO_ANTES_PROMOCAO,
+    PRIORIDADE_PROMOCAO_ANTES_DESCONTO,
+    REGIME_TRIBUTARIO_SIMPLES_NACIONAL,
+    REGRA_DESCONTO_EXIGIR_AUTORIZACAO,
+    REGRA_DESCONTO_PERMITIR,
+)
 from utils.format_utils import numero_decimal
 
 class ConfiguracoesService:
@@ -11,24 +23,24 @@ class ConfiguracoesService:
         "Dólar (USD)": "USD",
     }
     _MAPA_CLIENTE_PADRAO = {
-        "Consumidor Final": "CONSUMIDOR_FINAL",
+        "Consumidor Final": CLIENTE_PADRAO_CONSUMIDOR_FINAL,
         "Selecionar no momento da venda": "SELECIONAR_NO_MOMENTO",
     }
     _MAPA_REGRA_DESCONTO = {
-        "Permitir desconto manual": "PERMITIR_DESCONTO",
-        "Exigir autorização para desconto": "EXIGIR_AUTORIZACAO",
+        "Permitir desconto manual": REGRA_DESCONTO_PERMITIR,
+        "Exigir autorização para desconto": REGRA_DESCONTO_EXIGIR_AUTORIZACAO,
     }
     _MAPA_PRIORIDADE_PROMOCIONAL = {
-        "Promoção antes do desconto manual": "PROMOCAO_ANTES_DESCONTO",
-        "Desconto manual antes da promoção": "DESCONTO_ANTES_PROMOCAO",
+        "Promoção antes do desconto manual": PRIORIDADE_PROMOCAO_ANTES_DESCONTO,
+        "Desconto manual antes da promoção": PRIORIDADE_DESCONTO_ANTES_PROMOCAO,
     }
     _MAPA_PERFIL_LOG = {
-        "Operacional": "OPERACIONAL",
-        "Detalhado": "DETALHADO",
-        "Silencioso": "SILENCIOSO",
+        "Operacional": PERFIL_LOG_OPERACIONAL,
+        "Detalhado": PERFIL_LOG_DETALHADO,
+        "Silencioso": PERFIL_LOG_SILENCIOSO,
     }
     _MAPA_REGIME_TRIBUTARIO = {
-        "Simples Nacional": "SIMPLES_NACIONAL",
+        "Simples Nacional": REGIME_TRIBUTARIO_SIMPLES_NACIONAL,
         "Lucro Presumido": "LUCRO_PRESUMIDO",
         "Lucro Real": "LUCRO_REAL",
         "MEI": "MEI",
@@ -38,6 +50,15 @@ class ConfiguracoesService:
         "1 - Estrangeira (importação direta)": "1",
         "2 - Estrangeira (mercado interno)": "2",
     }
+
+    @staticmethod
+    def _auditar_configuracao(area: str, detalhes: Dict[str, Any]) -> None:
+        AuditoriaService.registrar_evento(
+            evento="configuracao_atualizada",
+            categoria="configuracoes",
+            entidade=area,
+            detalhes=detalhes,
+        )
 
     @staticmethod
     def carregar_empresa_pdv() -> Dict[str, Any]:
@@ -52,8 +73,12 @@ class ConfiguracoesService:
     def carregar_parametros_venda() -> Dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
-            "cliente_padrao_venda": str(empresa.get("cliente_padrao_venda") or "CONSUMIDOR_FINAL"),
-            "regra_desconto_venda": str(empresa.get("regra_desconto_venda") or "EXIGIR_AUTORIZACAO"),
+            "cliente_padrao_venda": str(
+                empresa.get("cliente_padrao_venda") or CLIENTE_PADRAO_CONSUMIDOR_FINAL
+            ),
+            "regra_desconto_venda": str(
+                empresa.get("regra_desconto_venda") or REGRA_DESCONTO_EXIGIR_AUTORIZACAO
+            ),
             "habilitar_venda_rapida_admin": bool(empresa.get("habilitar_venda_rapida_admin", True)),
             "permitir_venda_sem_estoque": bool(empresa.get("permitir_venda_sem_estoque", True)),
         }
@@ -75,7 +100,7 @@ class ConfiguracoesService:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "prioridade_promocional": str(
-                empresa.get("prioridade_promocional") or "PROMOCAO_ANTES_DESCONTO"
+                empresa.get("prioridade_promocional") or PRIORIDADE_PROMOCAO_ANTES_DESCONTO
             ),
             "bloquear_promocoes_simultaneas": bool(
                 empresa.get("bloquear_promocoes_simultaneas", True)
@@ -103,7 +128,7 @@ class ConfiguracoesService:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "intervalo_backup_horas": int(empresa.get("intervalo_backup_horas") or 24),
-            "perfil_log": str(empresa.get("perfil_log") or "OPERACIONAL"),
+            "perfil_log": str(empresa.get("perfil_log") or PERFIL_LOG_OPERACIONAL),
             "versao_referencia": str(empresa.get("versao_referencia") or "CSPdv v1.0.0"),
         }
 
@@ -112,7 +137,7 @@ class ConfiguracoesService:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "regime_tributario_padrao": str(
-                empresa.get("regime_tributario_padrao") or "SIMPLES_NACIONAL"
+                empresa.get("regime_tributario_padrao") or REGIME_TRIBUTARIO_SIMPLES_NACIONAL
             ),
             "origem_mercadoria_padrao": str(empresa.get("origem_mercadoria_padrao") or "0"),
             "cfop_venda_padrao": str(empresa.get("cfop_venda_padrao") or "5102"),
@@ -139,6 +164,14 @@ class ConfiguracoesService:
             pdv_padrao_id=int(pdv_padrao_id) if pdv_padrao_id is not None else None,
             moeda_padrao=moeda,
         )
+        ConfiguracoesService._auditar_configuracao(
+            "empresa_pdv",
+            {
+                "razao_social": razao,
+                "pdv_padrao_id": int(pdv_padrao_id) if pdv_padrao_id is not None else None,
+                "moeda_padrao": moeda,
+            },
+        )
         return True, "Dados de Empresa e PDV salvos com sucesso."
 
     @staticmethod
@@ -151,11 +184,11 @@ class ConfiguracoesService:
     ) -> tuple[bool, str]:
         cliente_padrao = ConfiguracoesService._MAPA_CLIENTE_PADRAO.get(
             str(cliente_padrao_label or "").strip(),
-            "CONSUMIDOR_FINAL",
+            CLIENTE_PADRAO_CONSUMIDOR_FINAL,
         )
         regra_desconto = ConfiguracoesService._MAPA_REGRA_DESCONTO.get(
             str(regra_desconto_label or "").strip(),
-            "PERMITIR_DESCONTO",
+            REGRA_DESCONTO_PERMITIR,
         )
 
         ConfiguracoesModel.salvar_parametros_venda(
@@ -163,6 +196,15 @@ class ConfiguracoesService:
             regra_desconto_venda=regra_desconto,
             habilitar_venda_rapida_admin=habilitar_venda_rapida_admin,
             permitir_venda_sem_estoque=permitir_venda_sem_estoque,
+        )
+        ConfiguracoesService._auditar_configuracao(
+            "parametros_venda",
+            {
+                "cliente_padrao_venda": cliente_padrao,
+                "regra_desconto_venda": regra_desconto,
+                "habilitar_venda_rapida_admin": bool(habilitar_venda_rapida_admin),
+                "permitir_venda_sem_estoque": bool(permitir_venda_sem_estoque),
+            },
         )
         return True, "Parâmetros de Venda salvos com sucesso."
 
@@ -184,6 +226,15 @@ class ConfiguracoesService:
             exigir_admin_reembolso=exigir_admin_reembolso,
             exigir_admin_diferenca_fechamento=exigir_admin_diferenca_fechamento,
         )
+        ConfiguracoesService._auditar_configuracao(
+            "parametros_caixa",
+            {
+                "fundo_inicial_sugerido": float(fundo_inicial_sugerido),
+                "exigir_admin_sangria": bool(exigir_admin_sangria),
+                "exigir_admin_reembolso": bool(exigir_admin_reembolso),
+                "exigir_admin_diferenca_fechamento": bool(exigir_admin_diferenca_fechamento),
+            },
+        )
         return True, "Parâmetros de Caixa salvos com sucesso."
 
     @staticmethod
@@ -195,12 +246,20 @@ class ConfiguracoesService:
     ) -> tuple[bool, str]:
         prioridade_promocional = ConfiguracoesService._MAPA_PRIORIDADE_PROMOCIONAL.get(
             str(prioridade_promocional_label or "").strip(),
-            "PROMOCAO_ANTES_DESCONTO",
+            PRIORIDADE_PROMOCAO_ANTES_DESCONTO,
         )
         ConfiguracoesModel.salvar_parametros_promocoes(
             prioridade_promocional=prioridade_promocional,
             bloquear_promocoes_simultaneas=bloquear_promocoes_simultaneas,
             ativar_promocoes_por_vigencia=ativar_promocoes_por_vigencia,
+        )
+        ConfiguracoesService._auditar_configuracao(
+            "parametros_promocoes",
+            {
+                "prioridade_promocional": prioridade_promocional,
+                "bloquear_promocoes_simultaneas": bool(bloquear_promocoes_simultaneas),
+                "ativar_promocoes_por_vigencia": bool(ativar_promocoes_por_vigencia),
+            },
         )
         return True, "Parâmetros de Promoções salvos com sucesso."
 
@@ -224,6 +283,16 @@ class ConfiguracoesService:
             restaurar_login_automaticamente=restaurar_login_automaticamente,
             bloquear_fechamento_programa_caixa_aberto=bloquear_fechamento_programa_caixa_aberto,
         )
+        ConfiguracoesService._auditar_configuracao(
+            "parametros_seguranca",
+            {
+                "horas_sessao_persistida": int(horas),
+                "restaurar_login_automaticamente": bool(restaurar_login_automaticamente),
+                "bloquear_fechamento_programa_caixa_aberto": bool(
+                    bloquear_fechamento_programa_caixa_aberto
+                ),
+            },
+        )
         return True, "Parâmetros de Segurança e Sessão salvos com sucesso."
 
     @staticmethod
@@ -243,7 +312,7 @@ class ConfiguracoesService:
 
         perfil_log = ConfiguracoesService._MAPA_PERFIL_LOG.get(
             str(perfil_log_label or "").strip(),
-            "OPERACIONAL",
+            PERFIL_LOG_OPERACIONAL,
         )
         versao = str(versao_referencia or "").strip() or "CSPdv v1.0.0"
 
@@ -251,6 +320,14 @@ class ConfiguracoesService:
             intervalo_backup_horas=intervalo,
             perfil_log=perfil_log,
             versao_referencia=versao,
+        )
+        ConfiguracoesService._auditar_configuracao(
+            "parametros_sistema",
+            {
+                "intervalo_backup_horas": int(intervalo),
+                "perfil_log": perfil_log,
+                "versao_referencia": versao,
+            },
         )
         return True, "Parâmetros de Sistema salvos com sucesso."
 
@@ -268,7 +345,7 @@ class ConfiguracoesService:
     ) -> tuple[bool, str]:
         regime = ConfiguracoesService._MAPA_REGIME_TRIBUTARIO.get(
             str(regime_tributario_label or "").strip(),
-            "SIMPLES_NACIONAL",
+            REGIME_TRIBUTARIO_SIMPLES_NACIONAL,
         )
         origem = ConfiguracoesService._MAPA_ORIGEM_MERCADORIA.get(
             str(origem_mercadoria_label or "").strip(),
@@ -297,6 +374,19 @@ class ConfiguracoesService:
             natureza_operacao_padrao=natureza,
             exigir_ncm_cest_produto=exigir_ncm_cest_produto,
             exigir_unidade_tributavel_produto=exigir_unidade_tributavel_produto,
+        )
+        ConfiguracoesService._auditar_configuracao(
+            "parametros_fiscais",
+            {
+                "regime_tributario_padrao": regime,
+                "origem_mercadoria_padrao": origem,
+                "cfop_venda_padrao": cfop_venda,
+                "cfop_devolucao_padrao": cfop_devolucao,
+                "csosn_cst_padrao": csosn_cst,
+                "natureza_operacao_padrao": natureza,
+                "exigir_ncm_cest_produto": bool(exigir_ncm_cest_produto),
+                "exigir_unidade_tributavel_produto": bool(exigir_unidade_tributavel_produto),
+            },
         )
         return True, "Parâmetros Fiscais salvos com sucesso."
 
@@ -338,7 +428,7 @@ class ConfiguracoesService:
 
     @staticmethod
     def label_cliente_padrao(codigo: str | None) -> str:
-        codigo_normalizado = str(codigo or "CONSUMIDOR_FINAL").strip().upper()
+        codigo_normalizado = str(codigo or CLIENTE_PADRAO_CONSUMIDOR_FINAL).strip().upper()
         for label, valor in ConfiguracoesService._MAPA_CLIENTE_PADRAO.items():
             if valor == codigo_normalizado:
                 return label
@@ -346,7 +436,7 @@ class ConfiguracoesService:
 
     @staticmethod
     def label_regra_desconto(codigo: str | None) -> str:
-        codigo_normalizado = str(codigo or "PERMITIR_DESCONTO").strip().upper()
+        codigo_normalizado = str(codigo or REGRA_DESCONTO_PERMITIR).strip().upper()
         for label, valor in ConfiguracoesService._MAPA_REGRA_DESCONTO.items():
             if valor == codigo_normalizado:
                 return label
@@ -354,7 +444,7 @@ class ConfiguracoesService:
 
     @staticmethod
     def label_prioridade_promocional(codigo: str | None) -> str:
-        codigo_normalizado = str(codigo or "PROMOCAO_ANTES_DESCONTO").strip().upper()
+        codigo_normalizado = str(codigo or PRIORIDADE_PROMOCAO_ANTES_DESCONTO).strip().upper()
         for label, valor in ConfiguracoesService._MAPA_PRIORIDADE_PROMOCIONAL.items():
             if valor == codigo_normalizado:
                 return label
@@ -362,7 +452,7 @@ class ConfiguracoesService:
 
     @staticmethod
     def label_perfil_log(codigo: str | None) -> str:
-        codigo_normalizado = str(codigo or "OPERACIONAL").strip().upper()
+        codigo_normalizado = str(codigo or PERFIL_LOG_OPERACIONAL).strip().upper()
         for label, valor in ConfiguracoesService._MAPA_PERFIL_LOG.items():
             if valor == codigo_normalizado:
                 return label
@@ -370,7 +460,7 @@ class ConfiguracoesService:
 
     @staticmethod
     def label_regime_tributario(codigo: str | None) -> str:
-        codigo_normalizado = str(codigo or "SIMPLES_NACIONAL").strip().upper()
+        codigo_normalizado = str(codigo or REGIME_TRIBUTARIO_SIMPLES_NACIONAL).strip().upper()
         for label, valor in ConfiguracoesService._MAPA_REGIME_TRIBUTARIO.items():
             if valor == codigo_normalizado:
                 return label

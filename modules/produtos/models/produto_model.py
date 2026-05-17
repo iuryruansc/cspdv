@@ -1,6 +1,7 @@
 from typing import Optional, Dict, Any, List, cast
 from database.connection import get_connection
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
+from modules.shared.constants import STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA
 from utils.app_logger import log_error
 
 class ProdutoModel:
@@ -46,7 +47,7 @@ class ProdutoModel:
                         WHERE pp2.produto_id = p.id
                           AND pp2.ativo = 'S'
                           AND pr2.ativo = 'S'
-                          AND pr2.status IN ('ATIVA', 'AGENDADA')
+                          AND pr2.status IN (%s, %s)
                           AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim
                         ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
                         LIMIT 1
@@ -107,7 +108,7 @@ class ProdutoModel:
                         WHERE pp2.produto_id = p.id
                           AND pp2.ativo = 'S'
                           AND pr2.ativo = 'S'
-                          AND pr2.status = 'ATIVA'
+                          AND pr2.status = %s
                         ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
                         LIMIT 1
                     )
@@ -140,22 +141,27 @@ class ProdutoModel:
                 """
 
         try:
+            parametros = [
+                termo_limpo,
+                termo_codigo,
+                termo_limpo,
+                termo_codigo,
+                termo_nome,
+                termo_limpo,
+                termo_limpo,
+                termo_limpo,
+                termo_codigo,
+                termo_prefixo,
+                termo_codigo,
+                limite,
+            ]
+            if ativar_por_vigencia:
+                parametros = [STATUS_PROMOCAO_ATIVA, STATUS_PROMOCAO_AGENDADA, *parametros]
+            else:
+                parametros = [STATUS_PROMOCAO_ATIVA, *parametros]
             cursor.execute(
                 query,
-                (
-                    termo_limpo,
-                    termo_codigo,
-                    termo_limpo,
-                    termo_codigo,
-                    termo_nome,
-                    termo_limpo,
-                    termo_limpo,
-                    termo_limpo,
-                    termo_codigo,
-                    termo_prefixo,
-                    termo_codigo,
-                    limite,
-                ),
+                tuple(parametros),
             )
             return cast(List[Dict[str, Any]], cursor.fetchall())
         except Exception as e:

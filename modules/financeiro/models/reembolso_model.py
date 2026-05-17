@@ -5,6 +5,12 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Dict, List, Sequence, cast
 
 from database.connection import get_connection
+from modules.shared.constants import (
+    FLAG_SIM,
+    STATUS_REEMBOLSO_CONCLUIDO,
+    STATUS_VENDA_PARCIALMENTE_REEMBOLSADA,
+    STATUS_VENDA_REEMBOLSADA,
+)
 
 CENT = Decimal("0.01")
 
@@ -33,15 +39,17 @@ class ReembolsoModel:
                 INSERT INTO venda_reembolsos
                     (venda_id, tipo, status, valor_total, motivo, observacao, usuario_id, data_hora, ativo, createdAt, updatedAt)
                 VALUES
-                    (%s, %s, 'CONCLUIDO', %s, %s, %s, %s, NOW(), 'S', NOW(), NOW())
+                    (%s, %s, %s, %s, %s, %s, %s, NOW(), %s, NOW(), NOW())
                 """,
                 (
                     int(venda_id),
                     str(tipo),
+                    STATUS_REEMBOLSO_CONCLUIDO,
                     float(total_reembolso),
                     str(motivo),
                     str(observacao or ""),
                     int(usuario_id),
+                    FLAG_SIM,
                 ),
             )
             reembolso_id = int(cursor.lastrowid or 0)
@@ -94,7 +102,7 @@ class ReembolsoModel:
                     INSERT INTO movimentacao_estoque
                         (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
                     VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, NULL, 'S', NOW(), NOW())
+                        (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
                     """,
                     (
                         lote_id,
@@ -104,6 +112,7 @@ class ReembolsoModel:
                         quantidade,
                         usuario_id,
                         f"Entrada por reembolso #{reembolso_id}",
+                        FLAG_SIM,
                     ),
                 )
 
@@ -166,15 +175,19 @@ class ReembolsoModel:
             SELECT COALESCE(SUM(valor_total), 0) AS total_reembolsado
             FROM venda_reembolsos
             WHERE venda_id = %s
-              AND ativo = 'S'
-              AND status = 'CONCLUIDO'
+              AND ativo = %s
+              AND status = %s
             """,
-            (int(venda_id),),
+            (int(venda_id), FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
         totais = cast(Dict[str, Any], cursor.fetchone() or {})
         total_reembolsado = Decimal(str(totais.get("total_reembolsado") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
 
-        novo_status = "REEMBOLSADA" if total_reembolsado >= valor_total_venda else "PARCIALMENTE_REEMBOLSADA"
+        novo_status = (
+            STATUS_VENDA_REEMBOLSADA
+            if total_reembolsado >= valor_total_venda
+            else STATUS_VENDA_PARCIALMENTE_REEMBOLSADA
+        )
         cursor.execute(
             """
             UPDATE vendas

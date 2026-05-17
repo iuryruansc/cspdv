@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
 
 from ui.venda.tela_cupom_nao_fiscal import Ui_CupomNaoFiscal
+from modules.shared.constants import STATUS_VENDA_CONCLUIDA_COM_PENDENCIA
 from utils.format_utils import formatar_inteiro, formatar_moeda
 
 class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
@@ -90,7 +91,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
                 [
                     f"Em aberto: {formatar_moeda(valor_em_aberto)}",
                     f"Vencimento: {vencimento or '--/--/----'}",
-                    f"Status: {str(self._venda_data.get('status') or 'CONCLUIDA_COM_PENDENCIA').replace('_', ' ')}",
+                    f"Status: {str(self._venda_data.get('status') or STATUS_VENDA_CONCLUIDA_COM_PENDENCIA).replace('_', ' ')}",
                 ]
             )
         linhas.extend(

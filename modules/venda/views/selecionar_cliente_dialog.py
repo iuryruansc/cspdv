@@ -13,6 +13,7 @@ class SelecionarClienteDialog(QDialog, Ui_SelecionarClienteDialog):
         self.setupUi(self)
         self.setModal(True)
         self._cliente_selecionado: Optional[Dict[str, Any]] = None
+        self._cliente_consumidor_final = ClienteService.obter_consumidor_final()
 
         self.lineBusca.textChanged.connect(self._buscar_clientes)
         self.lineBusca.returnPressed.connect(self._selecionar_cliente)
@@ -56,7 +57,7 @@ class SelecionarClienteDialog(QDialog, Ui_SelecionarClienteDialog):
         self.listaClientes.setCurrentRow(0)
 
     def _usar_consumidor_final(self) -> None:
-        self._cliente_selecionado = None
+        self._cliente_selecionado = dict(self._cliente_consumidor_final) if self._cliente_consumidor_final else None
         self.accept()
 
     def _selecionar_cliente(self) -> None:

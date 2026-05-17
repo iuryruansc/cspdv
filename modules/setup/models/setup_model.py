@@ -1,17 +1,31 @@
 import bcrypt
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from database.connection import get_connection
 
 class SetupModel:
-    _FORMAS_PAGAMENTO_PADRAO = [
-        {"nome": "Dinheiro", "tipo_sefaz": "01", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
-        {"nome": "PIX", "tipo_sefaz": "17", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
-        {"nome": "Cartao Debito", "tipo_sefaz": "04", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
-        {"nome": "Cartao Credito", "tipo_sefaz": "03", "permite_parcelamento": "S", "taxa_administrativa": 0.00},
-        {"nome": "Vale Refeicao", "tipo_sefaz": "10", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
-        {"nome": "Cheque", "tipo_sefaz": "02", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
-    ]
+    @staticmethod
+    def _scalar_value(row: Any) -> Any | None:
+        if not row:
+            return None
+        if isinstance(row, dict):
+            return next(iter(row.values()), None)
+        return row[0]
+
+    @staticmethod
+    def _buscar_id_por_nome(cursor: Any, tabela: str, coluna: str, valor: str) -> int:
+        cursor.execute(
+            f"SELECT id FROM {tabela} WHERE UPPER(TRIM({coluna})) = UPPER(TRIM(%s)) LIMIT 1",
+            (valor,),
+        )
+        row = cursor.fetchone()
+        id_encontrado = SetupModel._scalar_value(row)
+        if id_encontrado is None:
+            raise RuntimeError(
+                f"Dado base nao encontrado em {tabela}: {valor}. "
+                "Execute os seeds do sistema antes de continuar o setup."
+            )
+        return int(id_encontrado)
 
     @staticmethod
     def is_first_run() -> bool:
@@ -59,43 +73,8 @@ class SetupModel:
                 pdv,
             )
 
-            cursor.execute(
-                "INSERT INTO cargos (nome_cargo, createdAt, updatedAt, ativo) "
-                "VALUES ('Administrador', NOW(), NOW(), 'S')"
-            )
-            cargo_id = cursor.lastrowid
-
-            cursor.execute(
-                """
-                INSERT INTO perfis (nome, descricao, ativo, updateAt)
-                VALUES ('Admin Master', 'Acesso irrestrito a todos os modulos do sistema', 'S', NOW())
-                """
-            )
-            perfil_id = cursor.lastrowid
-
-            permissoes_base = [
-                ("sistema.master", "Acesso Irrestrito (Master)"),
-                ("vendas.pdv", "Acesso ao PDV (Frente de Caixa)"),
-                ("estoque.gerenciar", "Cadastro e Edicao de Produtos"),
-                ("financeiro.total", "Acesso Completo ao Modulo Financeiro"),
-                ("relatorios.ver", "Visualizacao de Relatorios e Dashboards"),
-            ]
-
-            permissoes_ids = []
-            for chave, nome_amigavel in permissoes_base:
-                cursor.execute(
-                    "INSERT INTO permissoes (chave, nome_amigavel) VALUES (%s, %s)",
-                    (chave, nome_amigavel),
-                )
-                permissoes_ids.append(cursor.lastrowid)
-
-            for perm_id in permissoes_ids:
-                cursor.execute(
-                    "INSERT INTO perfil_permissoes (perfil_id, permissao_id) VALUES (%s, %s)",
-                    (perfil_id, perm_id),
-                )
-
-            SetupModel._criar_formas_pagamento_padrao(cursor)
+            cargo_id = SetupModel._buscar_id_por_nome(cursor, "cargos", "nome_cargo", "Administrador")
+            perfil_id = SetupModel._buscar_id_por_nome(cursor, "perfis", "nome", "Admin Master")
 
             cursor.execute(
                 """
@@ -133,28 +112,3 @@ class SetupModel:
         finally:
             cursor.close()
             conn.close()
-
-    @staticmethod
-    def _criar_formas_pagamento_padrao(cursor) -> None:
-        for forma in SetupModel._FORMAS_PAGAMENTO_PADRAO:
-            cursor.execute(
-                "SELECT id FROM formas_pagamento WHERE UPPER(nome) = UPPER(%s) LIMIT 1",
-                (forma["nome"],),
-            )
-            if cursor.fetchone():
-                continue
-
-            cursor.execute(
-                """
-                INSERT INTO formas_pagamento
-                    (nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo, createdAt, updatedAt)
-                VALUES
-                    (%s, %s, %s, %s, 'S', NOW(), NOW())
-                """,
-                (
-                    forma["nome"],
-                    forma["tipo_sefaz"],
-                    forma["permite_parcelamento"],
-                    forma["taxa_administrativa"],
-                ),
-            )
