@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QButtonGroup, QMainWindow, QPushButton, QShortcut, Q
 from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.admin.views.configuracoes_view import ConfiguracoesView
+from modules.admin.views.parametros_fiscais_view import ParametrosFiscaisView
 from modules.admin.views.widgets import ManagementPageWidget
 from ui.admin.painel_admin import Ui_PainelAdmin
 from utils.system_runtime import descricao_ambiente, versao_referencia
@@ -92,6 +93,9 @@ QPushButton:hover {
         self.configuracoesPage = ConfiguracoesView(parent_widget)
         self.configuracoesPage.hide()
         self.mainContentVLayout.addWidget(self.configuracoesPage)
+        self.parametrosFiscaisPage = ParametrosFiscaisView(parent_widget)
+        self.parametrosFiscaisPage.hide()
+        self.mainContentVLayout.addWidget(self.parametrosFiscaisPage)
 
         self._management_configs = {
             "produtos": {
@@ -181,6 +185,44 @@ QPushButton:hover {
                 "new_label": "Novo cliente",
                 "shortcut": "F5",
             },
+            "formas_pagamento": {
+                "button": self.btnNavFormasPagamento,
+                "title": "Formas de Pagamento",
+                "section_title": "Gerenciamento de Formas de Pagamento",
+                "hint": "Mantenha as formas aceitas no caixa, seus codigos SEFAZ, parcelamento e taxas administrativas em um unico ponto.",
+                "columns": [
+                    ("id", "ID"),
+                    ("nome", "Forma"),
+                    ("tipo_sefaz", "Tipo SEFAZ"),
+                    ("permite_parcelamento", "Parcelamento"),
+                    ("taxa_administrativa", "Taxa (%)"),
+                    ("ativo", "Ativo"),
+                ],
+                "loader": self._load_formas_pagamento,
+                "new_action": self._open_cadastro_forma_pagamento,
+                "new_label": "Nova forma de pagamento",
+                "shortcut": "F6",
+            },
+            "caixas": {
+                "button": self.btnNavCaixas,
+                "title": "Caixas",
+                "section_title": "Acompanhamento de Caixas",
+                "hint": "Acompanhe aberturas, fechamentos e o historico operacional dos caixas sem sair do painel administrativo.",
+                "columns": [
+                    ("id", "ID"),
+                    ("pdv", "Caixa / PDV"),
+                    ("operador", "Operador"),
+                    ("abertura", "Abertura"),
+                    ("fechamento", "Fechamento"),
+                    ("fundo", "Fundo Inicial"),
+                    ("diferenca", "Diferenca"),
+                    ("status", "Status"),
+                ],
+                "loader": self._load_caixas,
+                "new_action": self._open_frente_caixa,
+                "new_label": "Abrir caixa",
+                "shortcut": "F7",
+            },
         }
 
         for config in self._management_configs.values():
@@ -188,6 +230,7 @@ QPushButton:hover {
             shortcut = config.get("shortcut")
             if shortcut:
                 button.setText(f"({shortcut}) {config['title']}")
+        self.btnNavFiscal.setText("(F8) Parâmetros Fiscais")
 
     def _setup_navigation(self) -> None:
         self.navGroup = QButtonGroup(self)
@@ -206,7 +249,9 @@ QPushButton:hover {
         self.btnNavDashboard.clicked.connect(lambda _=False: self._show_dashboard())
         self.btnNavProdutos.clicked.connect(lambda _=False: self._show_management_page("produtos"))
         self.btnNavClientes.clicked.connect(lambda _=False: self._show_management_page("clientes"))
+        self.btnNavLotes.clicked.connect(lambda _=False: self._show_parametros_fiscais())
         self.btnNavConfiguracoes.clicked.connect(lambda _=False: self._show_configuracoes())
+        self.btnNavFiscal.clicked.connect(lambda _=False: self._show_parametros_fiscais())
 
         for key, config in self._management_configs.items():
             button = config["button"]
@@ -222,7 +267,7 @@ QPushButton:hover {
         self.btnFecharCaixaDashboard.clicked.connect(self._open_fechamento_caixa_dashboard)
         self.btnSair.clicked.connect(self._exit)
         self.managementPage.btnAtualizar.clicked.connect(self._refresh_current_management_page)
-        self.managementPage.btnDetalhes.clicked.connect(self._abrir_detalhes_produto)
+        self.managementPage.btnDetalhes.clicked.connect(self._abrir_detalhes_registro)
         self.managementPage.btnAjustarQuantidade.clicked.connect(self._open_ajuste_quantidade)
         self.managementPage.btnToggleAtivo.clicked.connect(self._toggle_registro_ativo)
         self.managementPage.btnEditar.clicked.connect(self._editar_registro)
@@ -239,6 +284,12 @@ QPushButton:hover {
         self.shortcutF4.activated.connect(lambda: self._show_management_page("categorias"))
         self.shortcutF5 = QShortcut(QKeySequence("F5"), self)
         self.shortcutF5.activated.connect(lambda: self._show_management_page("clientes"))
+        self.shortcutF6 = QShortcut(QKeySequence("F6"), self)
+        self.shortcutF6.activated.connect(lambda: self._show_management_page("formas_pagamento"))
+        self.shortcutF7 = QShortcut(QKeySequence("F7"), self)
+        self.shortcutF7.activated.connect(lambda: self._show_management_page("caixas"))
+        self.shortcutF8 = QShortcut(QKeySequence("F8"), self)
+        self.shortcutF8.activated.connect(self._show_parametros_fiscais)
 
     def _select_primary_nav(self, key: str) -> None:
         if key == "clientes":
@@ -257,6 +308,7 @@ QPushButton:hover {
         self._atualizar_acao_caixa_dashboard()
         self.managementPage.hide()
         self.configuracoesPage.hide()
+        self.parametrosFiscaisPage.hide()
         self.cardVendasHoje.show()
         self.cardFaturamento.show()
         self.cardProdutos.show()
@@ -278,13 +330,20 @@ QPushButton:hover {
         self.frameUltimasVendas.hide()
         self.managementPage.show()
         self.configuracoesPage.hide()
+        self.parametrosFiscaisPage.hide()
         self.managementPage.btnNovo.setText(config["new_label"])
-        self.managementPage.set_details_enabled(key == "produtos")
+        self.managementPage.set_details_enabled(key in {"produtos", "caixas"})
         self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
-        self.managementPage.set_edit_enabled(key in {"produtos", "marcas", "fornecedores", "categorias", "clientes"})
-        self.managementPage.set_toggle_enabled(key in {"produtos", "marcas", "fornecedores", "categorias", "clientes"})
+        self.managementPage.set_edit_enabled(
+            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}
+        )
+        self.managementPage.set_toggle_enabled(
+            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}
+        )
         self._desconectar_click(self.managementPage.btnNovo)
         self.managementPage.btnNovo.clicked.connect(config["new_action"])
+        if key == "caixas":
+            self._atualizar_acao_caixa_management_page()
         self._mark_subnav_button(config["button"])
         self._populate_management_page(key)
 
@@ -300,11 +359,27 @@ QPushButton:hover {
         self.frameUltimasVendas.hide()
         self.managementPage.hide()
         self.configuracoesPage.show()
+        self.parametrosFiscaisPage.hide()
         self._mark_subnav_button(None)
 
+    def _show_parametros_fiscais(self) -> None:
+        self.btnNavLotes.setChecked(True)
+        self.lblSectionTitle.setText("Parâmetros Fiscais")
+        self.btnFrenteCaixa.hide()
+        self.btnFecharCaixaDashboard.hide()
+        self.cardVendasHoje.hide()
+        self.cardFaturamento.hide()
+        self.cardProdutos.hide()
+        self.cardClientes.hide()
+        self.frameUltimasVendas.hide()
+        self.managementPage.hide()
+        self.configuracoesPage.hide()
+        self.parametrosFiscaisPage.show()
+        self.parametrosFiscaisPage._carregar_dados()
+        self._mark_subnav_button(self.btnNavFiscal)
+
     def _mark_subnav_button(self, active_button: QPushButton | None) -> None:
-        for config in self._management_configs.values():
-            button = config["button"]
+        for button in [config["button"] for config in self._management_configs.values()] + [self.btnNavFiscal]:
             if button is active_button:
                 button.setStyleSheet(
                     "color: #1a5fa0; background-color: rgba(53,133,200,30); border-bottom: 2px solid #3585c8;"
@@ -336,6 +411,8 @@ QPushButton:hover {
         current_key = getattr(self, "_current_management_key", None)
         if current_key:
             self._populate_management_page(current_key)
+            if current_key == "caixas":
+                self._atualizar_acao_caixa_management_page()
 
     def _load_produtos(self) -> List[Dict[str, Any]]:
         from modules.produtos.models.produto_model import ProdutoModel
@@ -361,6 +438,24 @@ QPushButton:hover {
         from modules.clientes.models.cliente_model import ClienteModel
 
         return ClienteModel.listar_resumo()
+
+    def _load_formas_pagamento(self) -> List[Dict[str, Any]]:
+        from modules.formas_pagamento.models.forma_pagamento_model import FormaPagamentoModel
+
+        rows = FormaPagamentoModel.listar()
+        for row in rows:
+            row["permite_parcelamento"] = "Sim" if str(row.get("permite_parcelamento") or "N").upper() == "S" else "Nao"
+            taxa = row.get("taxa_administrativa")
+            try:
+                row["taxa_administrativa"] = f"{float(taxa or 0):.2f}".replace(".", ",")
+            except (TypeError, ValueError):
+                row["taxa_administrativa"] = "0,00"
+        return rows
+
+    def _load_caixas(self) -> List[Dict[str, Any]]:
+        from modules.venda.services.caixa_service import CaixaService
+
+        return CaixaService.listar_caixas_admin()
 
     def _open_cadastro_produto(self) -> None:
         from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
@@ -390,6 +485,13 @@ QPushButton:hover {
         from modules.clientes.views.cadastro_cliente_view import CadastroClienteView
 
         self._abrir_cadastro_externo(CadastroClienteView, "cadastro_cliente", admin_view=self)
+
+    def _open_cadastro_forma_pagamento(self) -> None:
+        from modules.formas_pagamento.views.cadastro_forma_pagamento_view import CadastroFormaPagamentoView
+
+        dialog = CadastroFormaPagamentoView(self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
 
     def _abrir_cadastro_externo(self, view_cls, attr_name: str, **kwargs) -> None:
         self.hide()
@@ -455,6 +557,16 @@ QPushButton:hover {
                 "service_call": ClienteService.alternar_status,
                 "invalid_title": "Registro inválido",
             }
+        if current_key == "formas_pagamento":
+            from modules.formas_pagamento.services.forma_pagamento_service import FormaPagamentoService
+
+            return {
+                "entity_label": "forma de pagamento",
+                "nome": str(row.get("nome") or "forma de pagamento"),
+                "entity_id": row.get("id"),
+                "service_call": FormaPagamentoService.alternar_status,
+                "invalid_title": "Registro inválido",
+            }
         return None
 
     def _open_ajuste_quantidade(self) -> None:
@@ -501,9 +613,42 @@ QPushButton:hover {
         dialog = DetalhesProdutoDialog(detalhes, self)
         dialog.exec_()
 
+    def _abrir_detalhes_registro(self) -> None:
+        current_key = getattr(self, "_current_management_key", None)
+        if current_key == "produtos":
+            self._abrir_detalhes_produto()
+            return
+
+        if current_key != "caixas":
+            return
+
+        caixa = self._obter_registro_selecionado(
+            "Selecione um caixa",
+            "Escolha um caixa na tabela antes de visualizar os detalhes.",
+        )
+        if not caixa:
+            return
+
+        caixa_id = caixa.get("id")
+        if caixa_id is None:
+            mostrar_aviso(self, "Caixa invÃ¡lido", "NÃ£o foi possÃ­vel identificar o caixa selecionado.")
+            return
+
+        from modules.venda.services.caixa_service import CaixaService
+        from modules.venda.views.resumo_caixa_atual_dialog import ResumoCaixaAtualDialog
+
+        resumo = CaixaService.obter_resumo_por_caixa_id(int(caixa_id))
+        if not resumo:
+            mostrar_aviso(self, "Caixa nÃ£o encontrado", "NÃ£o foi possÃ­vel carregar o resumo do caixa selecionado.")
+            return
+
+        dialog = ResumoCaixaAtualDialog(resumo, self)
+        dialog.setWindowTitle(f"Resumo do Caixa #{int(caixa_id)}")
+        dialog.exec_()
+
     def _toggle_registro_ativo(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
-        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes"}:
+        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}:
             return
 
         row = self._obter_registro_selecionado(
@@ -546,7 +691,7 @@ QPushButton:hover {
 
     def _editar_registro(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
-        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes"}:
+        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento"}:
             return
 
         row = self._obter_registro_selecionado(
@@ -610,6 +755,22 @@ QPushButton:hover {
             )
             return
 
+        if current_key == "formas_pagamento":
+            registro_id = row.get("id")
+            if registro_id is None:
+                mostrar_aviso(
+                    self,
+                    "Forma de pagamento inválida",
+                    "Não foi possível identificar a forma de pagamento selecionada.",
+                )
+                return
+            from modules.formas_pagamento.views.cadastro_forma_pagamento_view import CadastroFormaPagamentoView
+
+            dialog = CadastroFormaPagamentoView(self, forma_pagamento_id=int(registro_id))
+            if dialog.exec_():
+                self._refresh_current_management_page()
+            return
+
         registro_id = row.get("id_fornecedor")
         if registro_id is None:
             mostrar_aviso(self, "Fornecedor inválido", "Não foi possível identificar o fornecedor selecionado.")
@@ -624,7 +785,12 @@ QPushButton:hover {
         )
 
     def _editar_registro_por_duplo_clique(self, _item: QTableWidgetItem) -> None:
-        if getattr(self, "_current_management_key", None) != "produtos":
+        current_key = getattr(self, "_current_management_key", None)
+        if current_key == "caixas":
+            self._abrir_detalhes_registro()
+            return
+
+        if current_key != "produtos":
             return
         self._editar_registro()
 
@@ -796,6 +962,29 @@ QPushButton:hover {
         self.btnFrenteCaixa.setEnabled(True)
         self.btnFecharCaixaDashboard.hide()
 
+    def _atualizar_acao_caixa_management_page(self) -> None:
+        from core.caixa_session import CaixaSession
+        from modules.venda.services.caixa_service import CaixaService
+
+        usuario = SessionManager.current_user() or {}
+        if not CaixaSession.has_open_caixa():
+            CaixaService.restaurar_caixa_aberto(usuario.get("id"))
+
+        self._desconectar_click(self.managementPage.btnNovo)
+        if CaixaSession.has_open_caixa():
+            self.managementPage.btnNovo.setText("Fechar caixa")
+            self.managementPage.btnNovo.setToolTip(
+                "Abre o fechamento do caixa atual diretamente pela area de caixas."
+            )
+            self.managementPage.btnNovo.clicked.connect(self._open_fechamento_caixa_dashboard)
+            return
+
+        self.managementPage.btnNovo.setText("Abrir caixa")
+        self.managementPage.btnNovo.setToolTip(
+            "Abre o fluxo de abertura de caixa diretamente pela area de caixas."
+        )
+        self.managementPage.btnNovo.clicked.connect(self._open_frente_caixa)
+
     def _populate_dashboard_sales(self, rows: List[Dict[str, Any]]) -> None:
         self.tableUltimasVendas.setRowCount(len(rows))
         headers = self.tableUltimasVendas.horizontalHeader()
@@ -852,6 +1041,8 @@ QPushButton:hover {
             if dialog.exec_() != dialog.Accepted:
                 return
             self._atualizar_acao_caixa_dashboard()
+            if getattr(self, "_current_management_key", None) == "caixas":
+                self._refresh_current_management_page()
             mostrar_info(
                 self,
                 "Caixa aberto",
@@ -888,6 +1079,8 @@ QPushButton:hover {
         self.fechar_caixa_dialog = FecharCaixaDialog(self)
         self.fechar_caixa_dialog.exec_()
         self._load_dashboard_cards()
+        if getattr(self, "_current_management_key", None) == "caixas":
+            self._refresh_current_management_page()
 
     def _exit(self) -> None:
         from modules.auth.views.selecao_modo_view import SelecaoModoView

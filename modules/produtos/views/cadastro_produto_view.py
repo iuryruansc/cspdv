@@ -6,6 +6,7 @@ from PyQt5.QtCore import QRegularExpression, QTimer, Qt
 from PyQt5.QtGui import QDoubleValidator, QIntValidator, QPixmap, QRegularExpressionValidator
 from PyQt5.QtWidgets import QFileDialog, QWidget, QLineEdit, QComboBox
 
+from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.shared.models.combo_models import (
     CategoriaModel,
     FornecedorModel,
@@ -268,6 +269,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
 
     def _salvar_produto(self):
         self.limpar_erros()
+        parametros_fiscais = ConfiguracoesService.carregar_parametros_fiscais()
 
         id_categoria = combo_id(self.comboCategoria)
         id_marca = combo_id(self.comboMarca)

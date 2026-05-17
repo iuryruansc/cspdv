@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+from modules.financeiro.services.financeiro_service import FinanceiroService
 from modules.venda.views.finalizar_pendencia_dialog import FinalizarPendenciaDialog
 from ui.venda.tela_pagamento import Ui_TelaPagamento
 from utils.format_utils import formatar_moeda, numero_decimal
@@ -61,23 +62,25 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.setupUi(self)
         self._venda_data: Optional[Dict[str, Any]] = None
         self._pagamentos: List[Dict[str, Any]] = []
-        self._forma_selecionada = "Dinheiro"
-        self._botoes_forma = {
-            "Dinheiro": self.btnDinheiro,
-            "PIX": self.btnPix,
-            "Cartao Debito": self.btnCartaoDebito,
-            "Cartao Credito": self.btnCartaoCredito,
-            "Vale Refeicao": self.btnValeRefeicao,
-            "Cheque": self.btnCheque,
-        }
+        self._forma_selecionada = ""
+        self._botoes_forma_ordenados = [
+            self.btnDinheiro,
+            self.btnPix,
+            self.btnCartaoDebito,
+            self.btnCartaoCredito,
+            self.btnValeRefeicao,
+            self.btnCheque,
+        ]
+        self._atalhos_forma = ["F1", "F2", "F3", "F4", "F5", "F6"]
+        self._botoes_forma: Dict[str, QPushButton] = {}
         self._timer = QTimer(self)
         self._timer.setInterval(1000)
         self._timer.timeout.connect(self._atualizar_data_hora)
         self._timer.start()
         self._configurar_interface()
+        self._carregar_formas_pagamento()
         self._conectar_sinais()
         self._atualizar_data_hora()
-        self._atualizar_forma_selecionada("Dinheiro")
         self._atualizar_resumo()
 
     def carregar_venda(self, venda_data: Dict[str, Any]) -> None:
@@ -98,14 +101,81 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.btnFecharPedido.setToolTip("Finalizar pagamento")
         self.btnFinalizarPendencia.setToolTip("Concluir a venda com saldo em aberto para recebimento posterior")
 
+    @staticmethod
+    def _normalizar_forma_pagamento(valor: str) -> str:
+        return (
+            str(valor or "")
+            .strip()
+            .lower()
+            .replace("ã", "a")
+            .replace("á", "a")
+            .replace("â", "a")
+            .replace("é", "e")
+            .replace("ê", "e")
+            .replace("í", "i")
+            .replace("ó", "o")
+            .replace("ô", "o")
+            .replace("õ", "o")
+            .replace("ú", "u")
+            .replace("ç", "c")
+        )
+
+    def _carregar_formas_pagamento(self) -> None:
+        formas = FinanceiroService.listar_formas_pagamento()
+        ordem_preferida = {
+            "dinheiro": 0,
+            "pix": 1,
+            "cartao debito": 2,
+            "cartao credito": 3,
+            "vale refeicao": 4,
+            "cheque": 5,
+        }
+        icones = {
+            "dinheiro": "💸",
+            "pix": "⚡",
+            "cartao debito": "💳",
+            "cartao credito": "💳",
+            "vale refeicao": "🍴",
+            "cheque": "📄",
+        }
+        formas_ativas = sorted(
+            list(formas or []),
+            key=lambda forma: (
+                ordem_preferida.get(self._normalizar_forma_pagamento(str(forma.get("nome") or "")), 99),
+                str(forma.get("nome") or "").upper(),
+            ),
+        )
+
+        self._botoes_forma.clear()
+        for indice, botao in enumerate(self._botoes_forma_ordenados):
+            if indice >= len(formas_ativas):
+                botao.hide()
+                botao.setEnabled(False)
+                botao.setText("")
+                continue
+
+            forma = formas_ativas[indice]
+            nome = str(forma.get("nome") or f"Forma {indice + 1}").strip()
+            nome_normalizado = self._normalizar_forma_pagamento(nome)
+            icone = icones.get(nome_normalizado, "💳")
+            atalho = self._atalhos_forma[indice]
+
+            botao.show()
+            botao.setEnabled(True)
+            botao.setCheckable(True)
+            botao.setShortcut(atalho)
+            botao.setText(f"{icone}  {nome}   ({atalho})")
+            self._botoes_forma[nome] = botao
+
+        if formas_ativas:
+            self._atualizar_forma_selecionada(str(formas_ativas[0].get("nome") or ""))
+        else:
+            self._forma_selecionada = ""
+
     def _conectar_sinais(self) -> None:
         self.btnVoltar.clicked.connect(self.voltar_venda.emit)
-        self.btnDinheiro.clicked.connect(lambda: self._atualizar_forma_selecionada("Dinheiro"))
-        self.btnPix.clicked.connect(lambda: self._atualizar_forma_selecionada("PIX"))
-        self.btnCartaoDebito.clicked.connect(lambda: self._atualizar_forma_selecionada("Cartao Debito"))
-        self.btnCartaoCredito.clicked.connect(lambda: self._atualizar_forma_selecionada("Cartao Credito"))
-        self.btnValeRefeicao.clicked.connect(lambda: self._atualizar_forma_selecionada("Vale Refeicao"))
-        self.btnCheque.clicked.connect(lambda: self._atualizar_forma_selecionada("Cheque"))
+        for nome, botao in self._botoes_forma.items():
+            botao.clicked.connect(lambda _=False, forma=nome: self._atualizar_forma_selecionada(forma))
 
         for texto, botao in (
             ("0", self.btn0),
@@ -151,6 +221,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.lineEditValor.setText(f"{restante:.2f}".replace(".", ","))
 
     def _lancar_pagamento(self) -> None:
+        if not self._forma_selecionada:
+            mostrar_info(self, "Forma de pagamento", "Nenhuma forma de pagamento ativa está disponível para lançamento.")
+            return
+
         valor = numero_decimal(self.lineEditValor.text())
         if valor <= 0:
             mostrar_info(self, "Valor inválido", "Informe um valor maior que zero para lançar o pagamento.")

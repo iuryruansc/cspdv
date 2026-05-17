@@ -50,6 +50,14 @@ class ConfiguracoesModel:
                     razao_social,
                     pdv_padrao_id,
                     moeda_padrao,
+                    regime_tributario_padrao,
+                    origem_mercadoria_padrao,
+                    cfop_venda_padrao,
+                    cfop_devolucao_padrao,
+                    csosn_cst_padrao,
+                    natureza_operacao_padrao,
+                    exigir_ncm_cest_produto,
+                    exigir_unidade_tributavel_produto,
                     cliente_padrao_venda,
                     regra_desconto_venda,
                     habilitar_venda_rapida_admin,
@@ -78,6 +86,26 @@ class ConfiguracoesModel:
                 "razao_social": str(registro.get("razao_social") or ""),
                 "pdv_padrao_id": registro.get("pdv_padrao_id"),
                 "moeda_padrao": str(registro.get("moeda_padrao") or "BRL"),
+                "regime_tributario_padrao": str(
+                    registro.get("regime_tributario_padrao") or "SIMPLES_NACIONAL"
+                ),
+                "origem_mercadoria_padrao": str(
+                    registro.get("origem_mercadoria_padrao") or "0"
+                ),
+                "cfop_venda_padrao": str(registro.get("cfop_venda_padrao") or "5102"),
+                "cfop_devolucao_padrao": str(registro.get("cfop_devolucao_padrao") or "1202"),
+                "csosn_cst_padrao": str(registro.get("csosn_cst_padrao") or "102"),
+                "natureza_operacao_padrao": str(
+                    registro.get("natureza_operacao_padrao") or "VENDA DE MERCADORIA"
+                ),
+                "exigir_ncm_cest_produto": str(
+                    registro.get("exigir_ncm_cest_produto") or "S"
+                ).strip().upper()
+                == "S",
+                "exigir_unidade_tributavel_produto": str(
+                    registro.get("exigir_unidade_tributavel_produto") or "S"
+                ).strip().upper()
+                == "S",
                 "cliente_padrao_venda": str(registro.get("cliente_padrao_venda") or "CONSUMIDOR_FINAL"),
                 "regra_desconto_venda": str(registro.get("regra_desconto_venda") or "PERMITIR_DESCONTO"),
                 "habilitar_venda_rapida_admin": str(
@@ -500,6 +528,90 @@ class ConfiguracoesModel:
             conn.close()
 
     @staticmethod
+    def salvar_parametros_fiscais(
+        *,
+        regime_tributario_padrao: str,
+        origem_mercadoria_padrao: str,
+        cfop_venda_padrao: str,
+        cfop_devolucao_padrao: str,
+        csosn_cst_padrao: str,
+        natureza_operacao_padrao: str,
+        exigir_ncm_cest_produto: bool,
+        exigir_unidade_tributavel_produto: bool,
+    ) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            ConfiguracoesModel._garantir_colunas_empresa(cursor)
+            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
+            row = cast(object, cursor.fetchone())
+            registro_id = ConfiguracoesModel._registro_id(row)
+
+            payload = (
+                regime_tributario_padrao,
+                origem_mercadoria_padrao,
+                cfop_venda_padrao,
+                cfop_devolucao_padrao,
+                csosn_cst_padrao,
+                natureza_operacao_padrao,
+                "S" if exigir_ncm_cest_produto else "N",
+                "S" if exigir_unidade_tributavel_produto else "N",
+            )
+
+            if registro_id is not None:
+                cursor.execute(
+                    """
+                    UPDATE config_empresa
+                    SET regime_tributario_padrao = %s,
+                        origem_mercadoria_padrao = %s,
+                        cfop_venda_padrao = %s,
+                        cfop_devolucao_padrao = %s,
+                        csosn_cst_padrao = %s,
+                        natureza_operacao_padrao = %s,
+                        exigir_ncm_cest_produto = %s,
+                        exigir_unidade_tributavel_produto = %s,
+                        updatedAt = NOW()
+                    WHERE id = %s
+                    """,
+                    (*payload, registro_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO config_empresa
+                        (
+                            razao_social,
+                            nome_fantasia,
+                            regime_tributario_padrao,
+                            origem_mercadoria_padrao,
+                            cfop_venda_padrao,
+                            cfop_devolucao_padrao,
+                            csosn_cst_padrao,
+                            natureza_operacao_padrao,
+                            exigir_ncm_cest_produto,
+                            exigir_unidade_tributavel_produto,
+                            createdAt,
+                            updatedAt
+                        )
+                    VALUES
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                    """,
+                    (
+                        "Empresa em configuração",
+                        "Empresa em configuração",
+                        *payload,
+                    ),
+                )
+
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def _garantir_colunas_empresa(cursor: Any) -> None:
         cursor.execute("SHOW COLUMNS FROM config_empresa")
         colunas = {str(coluna["Field"] if isinstance(coluna, dict) else coluna[0]) for coluna in cursor.fetchall()}
@@ -508,6 +620,38 @@ class ConfiguracoesModel:
             cursor.execute("ALTER TABLE config_empresa ADD COLUMN pdv_padrao_id INT NULL")
         if "moeda_padrao" not in colunas:
             cursor.execute("ALTER TABLE config_empresa ADD COLUMN moeda_padrao VARCHAR(10) NULL DEFAULT 'BRL'")
+        if "regime_tributario_padrao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN regime_tributario_padrao VARCHAR(40) NULL DEFAULT 'SIMPLES_NACIONAL'"
+            )
+        if "origem_mercadoria_padrao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN origem_mercadoria_padrao VARCHAR(5) NULL DEFAULT '0'"
+            )
+        if "cfop_venda_padrao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN cfop_venda_padrao VARCHAR(10) NULL DEFAULT '5102'"
+            )
+        if "cfop_devolucao_padrao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN cfop_devolucao_padrao VARCHAR(10) NULL DEFAULT '1202'"
+            )
+        if "csosn_cst_padrao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN csosn_cst_padrao VARCHAR(10) NULL DEFAULT '102'"
+            )
+        if "natureza_operacao_padrao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN natureza_operacao_padrao VARCHAR(120) NULL DEFAULT 'VENDA DE MERCADORIA'"
+            )
+        if "exigir_ncm_cest_produto" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN exigir_ncm_cest_produto CHAR(1) NULL DEFAULT 'S'"
+            )
+        if "exigir_unidade_tributavel_produto" not in colunas:
+            cursor.execute(
+                "ALTER TABLE config_empresa ADD COLUMN exigir_unidade_tributavel_produto CHAR(1) NULL DEFAULT 'S'"
+            )
         if "cliente_padrao_venda" not in colunas:
             cursor.execute(
                 "ALTER TABLE config_empresa ADD COLUMN cliente_padrao_venda VARCHAR(40) NULL DEFAULT 'CONSUMIDOR_FINAL'"

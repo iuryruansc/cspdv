@@ -91,6 +91,13 @@ class TestCadastroProdutoView:
     @patch("modules.produtos.views.cadastro_produto_view.mostrar_info")
     @patch("modules.produtos.views.cadastro_produto_view.atualizar_preview_label")
     @patch("modules.produtos.views.cadastro_produto_view.ProdutoService.cadastrar_produto", return_value=(True, "Produto cadastrado"))
+    @patch(
+        "modules.produtos.views.cadastro_produto_view.ConfiguracoesService.carregar_parametros_fiscais",
+        return_value={
+            "exigir_ncm_cest_produto": False,
+            "exigir_unidade_tributavel_produto": False,
+        },
+    )
     @patch("modules.produtos.views.cadastro_produto_view.UnidadeModel.listar_ativas", return_value=_itens_combo())
     @patch("modules.produtos.views.cadastro_produto_view.FornecedorModel.listar_ativos", return_value=_itens_combo())
     @patch("modules.produtos.views.cadastro_produto_view.MarcaModel.listar_ativas", return_value=_itens_combo())
@@ -101,6 +108,7 @@ class TestCadastroProdutoView:
         _mock_marca,
         _mock_fornecedor,
         _mock_unidade,
+        _mock_parametros_fiscais,
         mock_cadastrar,
         _mock_preview,
         mock_info,
@@ -123,4 +131,52 @@ class TestCadastroProdutoView:
         payload = mock_cadastrar.call_args.args[0]
         assert payload["cod_produto"] == "FAB-123"
         assert payload["codigo_barras"] == "7891000100301"
+        mock_info.assert_called_once()
+
+    @patch("modules.produtos.views.cadastro_produto_view.mostrar_info")
+    @patch("modules.produtos.views.cadastro_produto_view.atualizar_preview_label")
+    @patch("modules.produtos.views.cadastro_produto_view.ProdutoService.cadastrar_produto", return_value=(True, "Produto cadastrado"))
+    @patch(
+        "modules.produtos.views.cadastro_produto_view.ConfiguracoesService.carregar_parametros_fiscais",
+        return_value={
+            "exigir_ncm_cest_produto": False,
+            "exigir_unidade_tributavel_produto": False,
+        },
+    )
+    @patch("modules.produtos.views.cadastro_produto_view.UnidadeModel.listar_ativas", return_value=_itens_combo())
+    @patch("modules.produtos.views.cadastro_produto_view.FornecedorModel.listar_ativos", return_value=_itens_combo())
+    @patch("modules.produtos.views.cadastro_produto_view.MarcaModel.listar_ativas", return_value=_itens_combo())
+    @patch("modules.produtos.views.cadastro_produto_view.CategoriaModel.listar_ativas", return_value=_itens_combo())
+    def test_salvar_aceita_campos_fiscais_vazios_quando_parametro_desabilita_exigencia(
+        self,
+        _mock_categoria,
+        _mock_marca,
+        _mock_fornecedor,
+        _mock_unidade,
+        _mock_parametros_fiscais,
+        mock_cadastrar,
+        _mock_preview,
+        mock_info,
+    ):
+        view = CadastroProdutoView()
+        view.lineEditCodigo.setText("fab-999")
+        view.lineEditCodigoBarras.setText("7891000100301")
+        view.lineEditDescricao.setText("Chocolate")
+        view.lineEditPrecoCusto.setText("4.20")
+        view.lineEditPrecoVenda.setText("7.49")
+        view.lineEditQuantidadeEstoque.setText("10")
+        view.comboCategoria.setCurrentIndex(1)
+        view.comboMarca.setCurrentIndex(1)
+        view.comboBox.setCurrentIndex(1)
+        view.comboUnidade.setCurrentIndex(1)
+        view.comboUnidadeTributavel.setCurrentIndex(0)
+        view.lineEditNcm.clear()
+        view.lineEditCest.clear()
+
+        view._salvar_produto()
+
+        payload = mock_cadastrar.call_args.args[0]
+        assert payload["ncm"] == ""
+        assert payload["cest"] == ""
+        assert payload["unidade_tributavel_id"] is None
         mock_info.assert_called_once()

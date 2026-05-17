@@ -41,10 +41,12 @@ class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
 
     def set_edit_enabled(self, enabled: bool) -> None:
         self._edit_allowed = enabled
+        self.btnEditar.setVisible(enabled)
         self._update_action_states()
 
     def set_toggle_enabled(self, enabled: bool) -> None:
         self._toggle_allowed = enabled
+        self.btnToggleAtivo.setVisible(enabled)
         self._update_action_states()
 
     def selected_row(self) -> Dict[str, Any] | None:

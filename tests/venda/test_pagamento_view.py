@@ -9,6 +9,16 @@ from utils.format_utils import formatar_moeda
 _app = QApplication.instance() or QApplication(sys.argv)
 
 
+FORMAS_PAGAMENTO_PADRAO = [
+    {"id": 1, "nome": "Dinheiro"},
+    {"id": 2, "nome": "PIX"},
+    {"id": 3, "nome": "Cartao Debito"},
+    {"id": 4, "nome": "Cartao Credito"},
+    {"id": 5, "nome": "Vale Refeicao"},
+    {"id": 6, "nome": "Cheque"},
+]
+
+
 def _venda_data(**overrides):
     venda = {
         "numero_venda": 14,
@@ -26,8 +36,16 @@ def _venda_data(**overrides):
 
 
 class TestPagamentoView:
+    @staticmethod
+    def _criar_view():
+        with patch(
+            "modules.venda.views.pagamento_view.FinanceiroService.listar_formas_pagamento",
+            return_value=FORMAS_PAGAMENTO_PADRAO,
+        ):
+            return PagamentoView()
+
     def test_lanca_pagamento_atualiza_tabela_e_resumo(self):
-        view = PagamentoView()
+        view = self._criar_view()
         view.carregar_venda(_venda_data())
         view.lineEditValor.setText("10,00")
 
@@ -42,7 +60,7 @@ class TestPagamentoView:
         assert view.btnFecharPedido.isEnabled() is False
 
     def test_pagamento_exato_preenche_valor_restante(self):
-        view = PagamentoView()
+        view = self._criar_view()
         view.carregar_venda(_venda_data(total=20.0))
         view._pagamentos = [{"forma": "PIX", "valor": 7.5}]
 
@@ -51,7 +69,7 @@ class TestPagamentoView:
         assert view.lineEditValor.text() == "12,50"
 
     def test_remover_pagamento_recalcula_resumo(self):
-        view = PagamentoView()
+        view = self._criar_view()
         view.carregar_venda(_venda_data())
         view._pagamentos = [
             {"forma": "Dinheiro", "valor": 10.0},
@@ -67,7 +85,7 @@ class TestPagamentoView:
         assert view.lblSomaTotalValor.text() == formatar_moeda(4.99)
 
     def test_finalizar_pagamento_emite_payload(self):
-        view = PagamentoView()
+        view = self._criar_view()
         view.carregar_venda(_venda_data())
         view._pagamentos = [{"forma": "Dinheiro", "valor": 14.99}]
         emitidos = []
@@ -90,7 +108,7 @@ class TestPagamentoView:
         dialog.resultado = {"data_vencimento": "20/05/2026", "observacao": "Retorno"}
         mock_dialog_cls.return_value = dialog
 
-        view = PagamentoView()
+        view = self._criar_view()
         view.carregar_venda(_venda_data(total=20.0))
         view._pagamentos = [{"forma": "Dinheiro", "valor": 5.0}]
         emitidos = []
@@ -104,3 +122,18 @@ class TestPagamentoView:
         assert payload["valor_em_aberto"] == 15.0
         assert payload["data_vencimento"] == "20/05/2026"
         assert payload["observacao_pendencia"] == "Retorno"
+
+    def test_sincroniza_botoes_com_formas_ativas_do_admin(self):
+        formas = [
+            {"id": 7, "nome": "PIX"},
+            {"id": 8, "nome": "Dinheiro"},
+            {"id": 9, "nome": "Voucher Loja"},
+        ]
+        with patch("modules.venda.views.pagamento_view.FinanceiroService.listar_formas_pagamento", return_value=formas):
+            view = PagamentoView()
+
+        assert "Dinheiro" in view.btnDinheiro.text()
+        assert "PIX" in view.btnPix.text()
+        assert "Voucher Loja" in view.btnCartaoDebito.text()
+        assert view.btnCartaoCredito.isHidden() is True
+        assert view._forma_selecionada == "Dinheiro"

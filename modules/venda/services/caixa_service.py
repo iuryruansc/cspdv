@@ -7,6 +7,7 @@ from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 from utils.app_logger import log_warning
+from utils.format_utils import formatar_moeda
 
 class CaixaService:
     @staticmethod
@@ -46,6 +47,38 @@ class CaixaService:
     @staticmethod
     def listar_ultimas_aberturas(limit: int = 10) -> List[Dict[str, Any]]:
         return CaixaModel.listar_ultimas_aberturas(limit)
+
+    @staticmethod
+    def listar_caixas_admin(limit: int = 120) -> List[Dict[str, Any]]:
+        caixas = CaixaModel.listar_caixas_admin(limit)
+        rows: List[Dict[str, Any]] = []
+
+        for caixa in caixas:
+            identificacao = str(caixa.get("identificacao") or "PDV")
+            descricao = str(caixa.get("descricao") or "").strip()
+            pdv_label = identificacao if not descricao else f"{identificacao} - {descricao}"
+            data_fechamento = caixa.get("data_fechamento")
+            valor_fechamento = caixa.get("valor_fechamento")
+            diferenca = caixa.get("diferenca_fechamento")
+
+            rows.append(
+                {
+                    "id": int(caixa.get("id") or 0),
+                    "pdv": pdv_label,
+                    "operador": str(caixa.get("operador_abertura") or "-"),
+                    "abertura": CaixaService._formatar_data_hora(caixa.get("data_abertura")),
+                    "fechamento": CaixaService._formatar_data_hora(data_fechamento) if data_fechamento else "-",
+                    "fundo": formatar_moeda(float(caixa.get("valor_abertura") or 0.0)),
+                    "valor_fechamento": formatar_moeda(float(valor_fechamento or 0.0))
+                    if valor_fechamento not in (None, "")
+                    else "-",
+                    "diferenca": formatar_moeda(float(diferenca or 0.0)) if diferenca not in (None, "") else "-",
+                    "status": str(caixa.get("status") or "-").capitalize(),
+                    "ativo": "Sim" if str(caixa.get("ativo") or "N").upper() == "S" else "Nao",
+                }
+            )
+
+        return rows
 
     @staticmethod
     def restaurar_caixa_aberto(usuario_id: Optional[int]) -> Optional[Dict[str, Any]]:
@@ -171,29 +204,78 @@ class CaixaService:
         if not caixa_id:
             return None
 
+        return CaixaService.obter_resumo_por_caixa_id(int(caixa_id), caixa_sessao=caixa)
+
+    @staticmethod
+    def obter_resumo_por_caixa_id(
+        caixa_id: int,
+        *,
+        caixa_sessao: Optional[Dict[str, Any]] = None,
+    ) -> Optional[Dict[str, Any]]:
         detalhes = CaixaModel.buscar_caixa_por_id(int(caixa_id))
         if not detalhes:
             return None
 
-        resumo_fechamento = CaixaService.obter_resumo_fechamento()
-        resumo_movimentacoes = CaixaService.obter_resumo_movimentacoes()
+        fundo_inicial = float(detalhes.get("valor_abertura") or (caixa_sessao or {}).get("valor_abertura") or 0.0)
+        total_sangrias = 0.0
+        total_suprimentos = 0.0
+        total_troco = 0.0
+        total_reembolsos = 0.0
+        faturamento_dinheiro = 0.0
+        vendas_dia = 0
+        faturamento_total = 0.0
+        totais_forma_pagamento: List[Dict[str, Any]] = []
+
+        try:
+            resumo_operacional = CaixaModel.obter_resumo_operacional(int(caixa_id))
+            resumo_movimentacoes = CaixaModel.obter_resumo_movimentacoes(int(caixa_id))
+            total_reembolsos = float(CaixaModel.obter_total_reembolsos(int(caixa_id)) or 0.0)
+            faturamento_dinheiro = float(resumo_operacional.get("faturamento_dinheiro") or 0.0)
+            vendas_dia = int(resumo_operacional.get("vendas_dia") or 0)
+            faturamento_total = float(resumo_operacional.get("faturamento_total") or 0.0)
+            totais_forma_pagamento = list(resumo_operacional.get("totais_forma_pagamento") or [])
+            total_sangrias = float(resumo_movimentacoes.get("total_sangrias") or 0.0)
+            total_suprimentos = float(
+                resumo_movimentacoes.get("total_suprimentos")
+                or resumo_movimentacoes.get("total_entradas_manuais")
+                or 0.0
+            )
+            total_troco = float(resumo_movimentacoes.get("total_troco") or 0.0)
+        except Exception as exc:
+            log_warning(f"Falha ao montar resumo do caixa {caixa_id}: {exc}")
+
+        total_esperado = (
+            fundo_inicial
+            - total_sangrias
+            + total_suprimentos
+            + faturamento_dinheiro
+            - total_reembolsos
+        )
+        saldo_atual = (
+            fundo_inicial
+            + faturamento_dinheiro
+            + total_suprimentos
+            + total_troco
+            - total_sangrias
+            - total_reembolsos
+        )
 
         return {
             "caixa_id": int(detalhes["id"]),
             "pdv_label": f"{detalhes['identificacao']} - {detalhes['descricao']}",
-            "operador": str(detalhes.get("usuario_nome") or caixa.get("usuario_nome") or "Operador"),
+            "operador": str(detalhes.get("usuario_nome") or (caixa_sessao or {}).get("usuario_nome") or "Operador"),
             "data_abertura": CaixaService._formatar_data_hora(detalhes.get("data_abertura")),
             "status": str(detalhes.get("status") or "aberto").capitalize(),
-            "fundo_inicial": float(resumo_fechamento.get("fundo_inicial") or 0.0),
-            "vendas_dia": int(resumo_fechamento.get("vendas_dia") or 0),
-            "faturamento_total": float(resumo_fechamento.get("faturamento_total") or 0.0),
-            "faturamento_dinheiro": float(resumo_fechamento.get("faturamento_dinheiro") or 0.0),
-            "total_sangrias": float(resumo_movimentacoes.get("total_sangrias") or 0.0),
-            "total_suprimentos": float(resumo_movimentacoes.get("total_suprimentos") or 0.0),
-            "total_troco": float(resumo_movimentacoes.get("total_troco") or 0.0),
-            "saldo_atual": float(resumo_movimentacoes.get("saldo_atual") or 0.0),
-            "total_esperado": float(resumo_fechamento.get("total_esperado") or 0.0),
-            "totais_forma_pagamento": list(resumo_fechamento.get("totais_forma_pagamento") or []),
+            "fundo_inicial": fundo_inicial,
+            "vendas_dia": vendas_dia,
+            "faturamento_total": faturamento_total,
+            "faturamento_dinheiro": faturamento_dinheiro,
+            "total_sangrias": total_sangrias,
+            "total_suprimentos": total_suprimentos,
+            "total_troco": total_troco,
+            "saldo_atual": saldo_atual,
+            "total_esperado": total_esperado,
+            "totais_forma_pagamento": totais_forma_pagamento,
         }
 
     @staticmethod

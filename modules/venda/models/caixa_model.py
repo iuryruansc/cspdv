@@ -165,6 +165,67 @@ class CaixaModel:
             conn.close()
 
     @staticmethod
+    def listar_caixas_admin(limit: int = 120) -> List[Dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor_colunas = conn.cursor()
+            try:
+                cursor_colunas.execute("SHOW COLUMNS FROM caixas")
+                colunas_rows = cast(List[Sequence[Any]], cursor_colunas.fetchall())
+                colunas = {str(coluna[0]) for coluna in colunas_rows}
+            finally:
+                cursor_colunas.close()
+
+            selecoes = [
+                "c.id",
+                "c.pdv_id",
+                "p.identificacao",
+                "p.descricao",
+                "ua.nome AS operador_abertura",
+                "c.data_abertura",
+                "c.valor_abertura",
+                "c.status",
+                "c.ativo" if "ativo" in colunas else "'S' AS ativo",
+            ]
+
+            if "data_fechamento" in colunas:
+                selecoes.append("c.data_fechamento")
+            else:
+                selecoes.append("NULL AS data_fechamento")
+
+            if "valor_fechamento" in colunas:
+                selecoes.append("c.valor_fechamento")
+            elif "valor_contado" in colunas:
+                selecoes.append("c.valor_contado AS valor_fechamento")
+            else:
+                selecoes.append("NULL AS valor_fechamento")
+
+            if "diferenca_fechamento" in colunas:
+                selecoes.append("c.diferenca_fechamento")
+            elif "diferenca" in colunas:
+                selecoes.append("c.diferenca AS diferenca_fechamento")
+            else:
+                selecoes.append("NULL AS diferenca_fechamento")
+
+            cursor.execute(
+                f"""
+                SELECT
+                    {", ".join(selecoes)}
+                FROM caixas c
+                INNER JOIN pdvs p ON p.id = c.pdv_id
+                INNER JOIN usuarios ua ON ua.id = c.usuario_abertura_id
+                ORDER BY c.data_abertura DESC, c.id DESC
+                LIMIT %s
+                """,
+                (limit,),
+            )
+            return cast(List[Dict[str, Any]], cursor.fetchall())
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def fechar_caixa(
         caixa_id: int,
         usuario_fechamento_id: int,

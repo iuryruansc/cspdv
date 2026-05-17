@@ -2,11 +2,13 @@
     python -m pytest tests/test_caixa_service.py -v
 """
 
+from datetime import datetime
 from unittest.mock import patch
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.venda.services.caixa_service import CaixaService
+from utils.format_utils import formatar_moeda
 
 class TestCaixaService:
     def setup_method(self):
@@ -191,3 +193,87 @@ class TestCaixaService:
         assert fechamento["diferenca"] == 10.0
         assert CaixaSession.current() is None
         mock_fechar_caixa.assert_called_once()
+
+    @patch("modules.venda.services.caixa_service.CaixaModel.listar_caixas_admin")
+    def test_listar_caixas_admin_formata_linhas_para_o_painel(self, mock_listar):
+        mock_listar.return_value = [
+            {
+                "id": 15,
+                "identificacao": "PDV-01",
+                "descricao": "Caixa Principal",
+                "operador_abertura": "Iury",
+                "data_abertura": datetime(2026, 5, 16, 9, 30),
+                "data_fechamento": None,
+                "valor_abertura": 50.0,
+                "valor_fechamento": None,
+                "diferenca_fechamento": None,
+                "status": "aberto",
+                "ativo": "S",
+            }
+        ]
+
+        rows = CaixaService.listar_caixas_admin()
+
+        assert rows == [
+            {
+                "id": 15,
+                "pdv": "PDV-01 - Caixa Principal",
+                "operador": "Iury",
+                "abertura": "16/05/2026 09:30",
+                "fechamento": "-",
+                "fundo": formatar_moeda(50.0),
+                "valor_fechamento": "-",
+                "diferenca": "-",
+                "status": "Aberto",
+                "ativo": "Sim",
+            }
+        ]
+
+    @patch("modules.venda.services.caixa_service.CaixaModel.obter_total_reembolsos", return_value=5.0)
+    @patch("modules.venda.services.caixa_service.CaixaModel.obter_resumo_movimentacoes")
+    @patch("modules.venda.services.caixa_service.CaixaModel.obter_resumo_operacional")
+    @patch("modules.venda.services.caixa_service.CaixaModel.buscar_caixa_por_id")
+    def test_obter_resumo_por_caixa_id_monta_resumo_independente_da_sessao(
+        self,
+        mock_buscar,
+        mock_operacional,
+        mock_movimentacoes,
+        _mock_reembolsos,
+    ):
+        mock_buscar.return_value = {
+            "id": 21,
+            "identificacao": "PDV-02",
+            "descricao": "Caixa Loja 2",
+            "usuario_nome": "Ana",
+            "data_abertura": datetime(2026, 5, 16, 8, 0),
+            "valor_abertura": 80.0,
+            "status": "fechado",
+        }
+        mock_operacional.return_value = {
+            "faturamento_dinheiro": 120.0,
+            "vendas_dia": 8,
+            "faturamento_total": 180.0,
+            "totais_forma_pagamento": [{"forma_pagamento": "Dinheiro", "qtd_vendas": 4, "total": 120.0}],
+        }
+        mock_movimentacoes.return_value = {
+            "total_sangrias": 20.0,
+            "total_suprimentos": 10.0,
+            "total_troco": 3.0,
+        }
+
+        resumo = CaixaService.obter_resumo_por_caixa_id(21)
+
+        assert resumo is not None
+        assert resumo["caixa_id"] == 21
+        assert resumo["pdv_label"] == "PDV-02 - Caixa Loja 2"
+        assert resumo["operador"] == "Ana"
+        assert resumo["status"] == "Fechado"
+        assert resumo["fundo_inicial"] == 80.0
+        assert resumo["vendas_dia"] == 8
+        assert resumo["faturamento_total"] == 180.0
+        assert resumo["faturamento_dinheiro"] == 120.0
+        assert resumo["total_sangrias"] == 20.0
+        assert resumo["total_suprimentos"] == 10.0
+        assert resumo["total_troco"] == 3.0
+        assert resumo["total_esperado"] == 185.0
+        assert resumo["saldo_atual"] == 188.0

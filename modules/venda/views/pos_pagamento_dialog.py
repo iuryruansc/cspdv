@@ -31,7 +31,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
         self.btnFechar.clicked.disconnect()
 
         self.btnImprimir.setText("Imprimir comprovante")
-        self.btnImprimir.setMinimumWidth(150)
+        self.btnImprimir.setMinimumWidth(180)
         self.btnImprimir.clicked.connect(self._acao_imprimir)
         self.btnFinalizarSemImpressao.clicked.connect(self._acao_sem_impressao)
 

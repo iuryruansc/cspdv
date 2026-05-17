@@ -598,7 +598,7 @@ class Ui_PainelAdmin(object):
         self.btnNavUsuarios.setText(_translate("PainelAdmin", "Acesso"))
         self.btnNavVendas.setText(_translate("PainelAdmin", "Financeiro"))
         self.btnNavClientes.setText(_translate("PainelAdmin", "Relacionamento"))
-        self.btnNavLotes.setText(_translate("PainelAdmin", "Fiscal e Estoque"))
+        self.btnNavLotes.setText(_translate("PainelAdmin", "Operação e Fiscal"))
         self.btnNavProdutosCadastro.setText(_translate("PainelAdmin", "(F1) Produtos"))
         self.btnNavMarcas.setText(_translate("PainelAdmin", "(F2) Marcas"))
         self.btnNavFornecedores.setText(_translate("PainelAdmin", "(F3) Fornecedores"))
