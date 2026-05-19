@@ -68,7 +68,7 @@ def get_connection_pool():
                 pool_reset_session=True,
                 **config,
             )
-        except Error as exc:
+        except Exception as exc:
             raise ConnectionError(f"Nao foi possivel criar o pool de conexoes: {exc}")
 
     return _connection_pool
@@ -78,13 +78,13 @@ def get_connection():
         if _usar_pool():
             return get_connection_pool().get_connection()
         return mysql.connector.connect(**_db_config())
-    except Error as exc:
+    except Exception as exc:
         raise ConnectionError(f"Nao foi possivel conectar ao banco de dados: {exc}")
 
 def get_server_connection():
     try:
         return mysql.connector.connect(**_db_config(include_database=False))
-    except Error as exc:
+    except Exception as exc:
         raise ConnectionError(f"Nao foi possivel conectar ao servidor MySQL: {exc}")
 
 

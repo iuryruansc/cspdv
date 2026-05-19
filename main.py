@@ -72,6 +72,20 @@ def _mostrar_erro_conexao(mensagem):
             f"Caminho esperado: {env_path}\n\n"
             "Se necessário, copie `.env.example` para `.env` e preencha os dados do MySQL.\n\n"
         )
+    elif "localization support" in mensagem.lower():
+        orientacao = (
+            "O driver MySQL do ambiente nao conseguiu carregar os recursos de idioma da instalacao.\n"
+            "Gere novamente o executavel para incluir os modulos auxiliares do conector, ou revise o empacotamento.\n\n"
+        )
+    elif "access denied" in mensagem.lower():
+        orientacao = (
+            "Verifique usuario e senha do MySQL no arquivo `.env`.\n"
+            f"Caminho esperado: {env_path}\n\n"
+        )
+    elif "can't connect" in mensagem.lower() or "nao foi possivel conectar" in mensagem.lower():
+        orientacao = (
+            "Confirme se o servidor MySQL esta ligado, acessivel na rede e liberado na porta configurada.\n\n"
+        )
 
     QMessageBox.critical(
         None,
@@ -146,6 +160,10 @@ def main():
             if wizard.exec_() != SetupWizardView.Accepted or not wizard.foi_concluido():
                 return 0
     except ConnectionError as exc:
+        _mostrar_erro_conexao(str(exc))
+        return 1
+    except Exception as exc:
+        log_exception("Falha ao iniciar servicos de banco", type(exc), exc, exc.__traceback__)
         _mostrar_erro_conexao(str(exc))
         return 1
 
