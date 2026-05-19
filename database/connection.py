@@ -2,10 +2,11 @@ import os
 from typing import Any, Sequence, cast
 
 import mysql.connector
-from dotenv import load_dotenv
 from mysql.connector import Error, pooling
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+from utils.runtime_paths import load_project_dotenv
+
+load_project_dotenv()
 
 _connection_pool = None
 

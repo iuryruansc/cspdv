@@ -13,10 +13,11 @@ from PyQt5.QtCore import QObject, QTimer
 
 from database.connection import get_connection
 from utils.app_logger import log_error, log_info, log_warning
+from utils.runtime_paths import app_root
 from utils.system_runtime import intervalo_backup_horas
 
 UTC = timezone.utc
-APP_ROOT = Path(__file__).resolve().parents[1]
+APP_ROOT = app_root()
 BACKUP_ROOT = Path(os.getenv("CSPDV_BACKUP_DIR", APP_ROOT / "backups" / "database"))
 STATE_FILE = BACKUP_ROOT / "backup_state.json"
 

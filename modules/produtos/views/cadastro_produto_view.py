@@ -21,10 +21,11 @@ from utils.admin_return_mixin import RetornoPainelAdminMixin
 from utils.format_utils import formatar_decimal, numero_decimal
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.image_utils import atualizar_preview_label, resolver_caminho_arquivo
+from utils.runtime_paths import writable_path
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
 class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, RetornoPainelAdminMixin):
-    MEDIA_PRODUTOS_DIR = Path(__file__).resolve().parents[3] / "media" / "produtos"
+    MEDIA_PRODUTOS_DIR = writable_path("media", "produtos")
 
     def __init__(self, parent=None, produto_id=None, admin_view=None, return_view=None):
         super().__init__(None)

@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QLabel
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+from utils.runtime_paths import resolve_existing_path
 
 def resolver_caminho_arquivo(caminho_relativo: Any) -> Optional[Path]:
     if not caminho_relativo:
@@ -13,9 +13,9 @@ def resolver_caminho_arquivo(caminho_relativo: Any) -> Optional[Path]:
 
     caminho = Path(str(caminho_relativo))
     if caminho.is_absolute():
-        return caminho
+        return caminho if caminho.exists() else None
 
-    return PROJECT_ROOT / caminho
+    return resolve_existing_path(caminho)
 
 def atualizar_preview_label(
     label: QLabel,

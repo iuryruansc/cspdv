@@ -306,6 +306,12 @@ A estrutura atual do banco e preparada por migrations versionadas, e nao mais po
 pip install -r requirements.txt
 ```
 
+Se tambem for gerar o executavel:
+
+```bash
+pip install -r requirements-build.txt
+```
+
 ### 2. Configure o `.env`
 
 Variaveis esperadas pelo projeto:
@@ -377,6 +383,7 @@ Estado atual validado:
 - [docs/migrations.md](D:\Python\cspdv\docs\migrations.md)
 - [docs/seeds.md](D:\Python\cspdv\docs\seeds.md)
 - [docs/maintenance.md](D:\Python\cspdv\docs\maintenance.md)
+- [docs/packaging.md](D:\Python\cspdv\docs\packaging.md)
 - [docs/tooling_commands.md](D:\Python\cspdv\docs\tooling_commands.md)
 - [docs/homologacao/checklist_homologacao_operacional.xlsx](D:\Python\cspdv\docs\homologacao\checklist_homologacao_operacional.xlsx)
 

@@ -16,8 +16,20 @@ pyrcc5 "nome da imagem".qrc -o "nome da imagem".py
 
 ## Empacotamento
 
-Gerar executavel com `pyinstaller`:
+Instalar a dependencia de build:
 
 ```bash
-pyinstaller --onefile --noconsole "nome do arquivo que sera convertido".py
+pip install -r requirements-build.txt
+```
+
+Gerar executavel oficial com o `.spec` do projeto:
+
+```bash
+.\tools\empacotar.ps1
+```
+
+Ou manualmente:
+
+```bash
+python -m PyInstaller --noconfirm --clean cspdv.spec
 ```

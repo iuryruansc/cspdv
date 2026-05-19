@@ -1,6 +1,5 @@
 import sys
 
-from dotenv import find_dotenv, load_dotenv
 from PyQt5.QtCore import QEvent, QObject, QTimer
 from PyQt5.QtWidgets import QApplication, QMessageBox, QWidget
 
@@ -17,10 +16,11 @@ from modules.setup.models.setup_model import SetupModel
 from modules.setup.views.setup_wizard_view import SetupWizardView
 from utils.app_logger import log_exception, log_info
 from utils.backup_runtime import BackupScheduler
+from utils.runtime_paths import load_project_dotenv
 from utils.system_runtime import carregar_parametros_sistema, descricao_ambiente
 from utils.ui_messages import mostrar_aviso
 
-load_dotenv(find_dotenv())
+load_project_dotenv()
 
 def _excepthook(tipo, valor, tb):
     log_exception("Erro não tratado", tipo, valor, tb)
