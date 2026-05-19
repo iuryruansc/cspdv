@@ -68,6 +68,10 @@ def dotenv_file_path() -> Path | None:
     return None
 
 
+def expected_dotenv_path() -> Path:
+    return writable_path(".env")
+
+
 def load_project_dotenv() -> Path | None:
     caminho = dotenv_file_path()
     if caminho is not None:

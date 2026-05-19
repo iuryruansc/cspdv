@@ -16,7 +16,7 @@ from modules.setup.models.setup_model import SetupModel
 from modules.setup.views.setup_wizard_view import SetupWizardView
 from utils.app_logger import log_exception, log_info
 from utils.backup_runtime import BackupScheduler
-from utils.runtime_paths import load_project_dotenv
+from utils.runtime_paths import expected_dotenv_path, load_project_dotenv
 from utils.system_runtime import carregar_parametros_sistema, descricao_ambiente
 from utils.ui_messages import mostrar_aviso
 
@@ -51,6 +51,7 @@ def _mostrar_dialog(dialog):
 
 def _mostrar_erro_conexao(mensagem):
     diagnostics = get_connection_diagnostics()
+    env_path = expected_dotenv_path()
     detalhes = [
         f"Modo: {diagnostics['mode']}",
         f"Host: {diagnostics['host']}:{diagnostics['port']}",
@@ -64,12 +65,21 @@ def _mostrar_erro_conexao(mensagem):
         detalhes.append(f"Pool name: {diagnostics.get('pool_name', '-')}")
         detalhes.append(f"Pool size: {diagnostics.get('pool_size', '-')}")
 
+    orientacao = ""
+    if not str(diagnostics["database"] or "").strip():
+        orientacao = (
+            "Verifique o arquivo de configuração `.env` ao lado do executável.\n"
+            f"Caminho esperado: {env_path}\n\n"
+            "Se necessário, copie `.env.example` para `.env` e preencha os dados do MySQL.\n\n"
+        )
+
     QMessageBox.critical(
         None,
         "Falha na conexão com o banco",
         (
             "Não foi possível iniciar o sistema porque a conexão com o banco falhou.\n\n"
-            f"{mensagem}\n\n"
+            + orientacao
+            + f"{mensagem}\n\n"
             + "\n".join(detalhes)
         ),
     )

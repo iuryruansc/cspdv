@@ -33,3 +33,9 @@ Ou manualmente:
 ```bash
 python -m PyInstaller --noconfirm --clean cspdv.spec
 ```
+
+Gerar installer com `Inno Setup`:
+
+```bash
+.\tools\gerar_installer.ps1
+```

@@ -37,6 +37,7 @@ MANIFEST
 *.manifest
 *.spec
 !cspdv.spec
+dist-installer/
 
 # Installer logs
 pip-log.txt

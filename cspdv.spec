@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+from PyInstaller.utils.hooks import collect_submodules
+
 
 PROJECT_ROOT = Path.cwd()
 MEDIA_DIR = PROJECT_ROOT / "media"
@@ -10,13 +12,17 @@ datas = []
 if MEDIA_DIR.exists():
     datas.append((str(MEDIA_DIR), "media"))
 
+hiddenimports = []
+hiddenimports += collect_submodules("database.migrations.versions")
+hiddenimports += collect_submodules("database.seeds.versions")
+
 
 a = Analysis(
     ["main.py"],
     pathex=[str(PROJECT_ROOT)],
     binaries=[],
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

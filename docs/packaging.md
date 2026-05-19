@@ -36,6 +36,8 @@ Regras principais:
 
 - [cspdv.spec](D:\Python\cspdv\cspdv.spec)
 - [empacotar.ps1](D:\Python\cspdv\tools\empacotar.ps1)
+- [gerar_installer.ps1](D:\Python\cspdv\tools\gerar_installer.ps1)
+- [CSPdv.iss](D:\Python\cspdv\installer\CSPdv.iss)
 - [.env.example](D:\Python\cspdv\.env.example)
 
 ## Como gerar
@@ -57,6 +59,27 @@ Ou manualmente:
 ```powershell
 python -m PyInstaller --noconfirm --clean cspdv.spec
 ```
+
+## Como gerar o installer
+
+Depois de gerar o executável, instale o Inno Setup 6 e rode:
+
+```powershell
+.\tools\gerar_installer.ps1
+```
+
+Resultado esperado:
+
+- `dist-installer/Setup_CSPdv.exe`
+
+Melhorias do installer atual:
+
+- sincroniza `APP_NAME` e `APP_VERSION` a partir de [.env.example](D:\Python\cspdv\.env.example)
+- cria atalhos
+- copia `.env.example`
+- cria `.env` se ele ainda nao existir
+- pode abrir o `.env` automaticamente ao final da instalacao
+- pode abrir a pasta de instalacao ao final da instalacao
 
 ## Resultado esperado
 
@@ -80,3 +103,4 @@ Se a operacao precisar editar ou reaproveitar imagens fora do bundle, tambem e v
 - o usuario do MySQL ainda precisa ter acesso ao servidor configurado
 - o sistema cria automaticamente o banco configurado se ele nao existir
 - depois aplica migrations e seeds no startup
+- o instalador copia `.env.example` e cria `.env` se ele ainda nao existir

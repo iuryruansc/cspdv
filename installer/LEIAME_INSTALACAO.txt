@@ -1,0 +1,11 @@
+CSPdv - Pos-instalacao
+=======================
+
+1. Verifique o arquivo .env na pasta de instalacao.
+2. Preencha DB_HOST, DB_PORT, DB_USER, DB_PASSWORD e DB_NAME com os dados do MySQL.
+3. Execute o programa normalmente.
+
+Observacoes:
+- o sistema cria o banco automaticamente se ele nao existir
+- depois aplica migrations e seeds no startup
+- se o MySQL nao estiver acessivel, o programa exibira uma mensagem de orientacao
