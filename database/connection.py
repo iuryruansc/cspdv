@@ -9,23 +9,25 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 _connection_pool = None
 
-def _db_config():
+def _db_config(*, include_database: bool = True):
     host = os.getenv("DB_HOST", "127.0.0.1").strip()
 
     if host.lower() == "localhost":
         host = "127.0.0.1"
 
-    return {
+    config = {
         "host": host,
         "port": int(os.getenv("DB_PORT", 3306)),
         "user": os.getenv("DB_USER"),
         "password": os.getenv("DB_PASSWORD"),
-        "database": os.getenv("DB_NAME"),
         "charset": "utf8mb4",
         "autocommit": False,
         "connection_timeout": int(os.getenv("DB_CONNECTION_TIMEOUT", 5)),
         "use_pure": True,
     }
+    if include_database:
+        config["database"] = os.getenv("DB_NAME")
+    return config
 
 def _usar_pool():
     return os.getenv("DB_USE_POOL", "").strip().lower() in {"1", "true", "yes", "on"}
@@ -66,7 +68,7 @@ def get_connection_pool():
                 **config,
             )
         except Error as exc:
-            raise ConnectionError(f"Não foi possível criar o pool de conexões: {exc}")
+            raise ConnectionError(f"Nao foi possivel criar o pool de conexoes: {exc}")
 
     return _connection_pool
 
@@ -76,7 +78,14 @@ def get_connection():
             return get_connection_pool().get_connection()
         return mysql.connector.connect(**_db_config())
     except Error as exc:
-        raise ConnectionError(f"Não foi possível conectar ao banco de dados: {exc}")
+        raise ConnectionError(f"Nao foi possivel conectar ao banco de dados: {exc}")
+
+def get_server_connection():
+    try:
+        return mysql.connector.connect(**_db_config(include_database=False))
+    except Error as exc:
+        raise ConnectionError(f"Nao foi possivel conectar ao servidor MySQL: {exc}")
+
 
 def close_connection():
     global _connection_pool
@@ -93,7 +102,7 @@ if __name__ == "__main__":
             tabelas = cast(list[Sequence[Any]], cursor.fetchall())
 
         log_info(
-            "Modo de conexão: "
+            "Modo de conexao: "
             f"{diagnostics['mode'], diagnostics['pool_enabled'], diagnostics['pool_initialized'], diagnostics.get('pool_name', '-'), diagnostics.get('pool_size', '-')}"
         )
         log_info(f"Conectado ao banco '{os.getenv('DB_NAME')}' em {os.getenv('DB_HOST')}")
@@ -103,7 +112,7 @@ if __name__ == "__main__":
 
         conn.close()
     except ConnectionError as exc:
-        log_error("Erro de conexão.", exc)
+        log_error("Erro de conexao.", exc)
     except Error as exc:
         log_error("Erro no banco de dados.", exc)
     finally:

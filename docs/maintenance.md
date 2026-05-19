@@ -19,9 +19,10 @@ python tools/manutencao_banco.py
 
 Sem parametros, ele executa:
 
-1. migrations pendentes
-2. seeds pendentes
-3. validacao de baseline
+1. bootstrap do banco configurado em `DB_NAME`, se ele ainda nao existir
+2. migrations pendentes
+3. seeds pendentes
+4. validacao de baseline
 
 ## Modos disponiveis
 

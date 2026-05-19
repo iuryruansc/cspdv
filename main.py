@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMessageBox, QWidget
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
+from database.bootstrap import bootstrap_database
 from database.connection import close_connection, get_connection_diagnostics
 from database.migrations.runner import run_pending_migrations
 from database.seeds.runner import run_pending_seeds
@@ -34,7 +35,17 @@ def _mostrar_dialog(dialog):
         frame.moveCenter(screen.availableGeometry().center())
         dialog.move(frame.topLeft())
 
-    dialog.show()
+    if dialog.__class__.__name__ in {
+        "SelecaoModoView",
+        "PainelAdminView",
+        "PainelEstoqueView",
+        "PainelFinanceiroView",
+        "PainelPromocoesView",
+        "FrenteLojaView",
+    }:
+        dialog.showMaximized()
+    else:
+        dialog.show()
     dialog.raise_()
     dialog.activateWindow()
 
@@ -110,6 +121,9 @@ def main():
     backup_scheduler.iniciar()
 
     try:
+        database_created = bootstrap_database()
+        if database_created:
+            log_info("Banco de dados criado automaticamente na inicializacao.")
         applied_migrations = run_pending_migrations()
         if applied_migrations:
             log_info(f"Migrations aplicadas na inicializacao: {', '.join(applied_migrations)}")

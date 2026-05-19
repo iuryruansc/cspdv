@@ -112,6 +112,8 @@ O projeto agora trabalha com schema governado por migrations.
 - mudancas estruturais no banco nao devem mais ser feitas em runtime dentro de `models`
 - toda alteracao de schema deve virar migration em [database/migrations/versions](D:\Python\cspdv\database\migrations\versions:1)
 - as migrations pendentes sao aplicadas automaticamente no inicio da aplicacao
+- o banco configurado em `DB_NAME` e criado automaticamente se ainda nao existir
+- a baseline estrutural inicial do sistema tambem e criada por migration, permitindo bootstrap a partir de banco vazio
 - as versoes aplicadas ficam registradas em `schema_migrations`
 
 Regra pratica:
@@ -343,6 +345,8 @@ APP_VERSION=1.0.0
 ```bash
 python main.py
 ```
+
+Se o servidor MySQL estiver acessivel e o usuario tiver permissao, o sistema cria automaticamente o banco definido em `DB_NAME` antes de aplicar migrations e seeds.
 
 ### 4. Aplicar migrations manualmente, se necessario
 

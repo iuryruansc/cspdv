@@ -10,6 +10,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from database.connection import close_connection
+from database.bootstrap import bootstrap_database
 from database.maintenance.validator import ValidationReport, validate_database_baseline
 from database.migrations.runner import run_pending_migrations
 from database.seeds.runner import run_pending_seeds
@@ -55,6 +56,10 @@ def main(argv: list[str] | None = None) -> int:
     should_migrate = args.migrate or run_all
     should_seed = args.seed or run_all
     should_validate = args.validate or run_all
+
+    database_created = bootstrap_database()
+    if database_created:
+        print("Banco de dados criado automaticamente.")
 
     if should_migrate:
         applied = run_pending_migrations()

@@ -225,3 +225,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
     def _cancelar(self, refresh=False):
         self.hide()
         self._mostrar_painel_admin(refresh=refresh)
+
+    def closeEvent(self, a0):
+        super().closeEvent(a0)
+        self._mostrar_painel_admin()

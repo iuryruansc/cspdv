@@ -333,7 +333,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     def _voltar_para_selecao(self) -> None:
         if self._admin_view is not None:
             self.hide()
-            self._admin_view.show()
+            self._admin_view.showMaximized()
             self._admin_view.raise_()
             self._admin_view.activateWindow()
             return
@@ -345,7 +345,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
 
         self.hide()
         self.selecao = SelecaoModoView()
-        self.selecao.show()
+        self.selecao.showMaximized()
 
     def _usuario_tem_acessos_multiplos(self) -> bool:
         usuario = SessionManager.current_user() or {}

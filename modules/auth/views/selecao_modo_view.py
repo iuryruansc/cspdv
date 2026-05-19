@@ -101,7 +101,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.hide()
         view = view_cls()
         setattr(self, attr_name, view)
-        view.show()
+        view.showMaximized()
 
     def _open_pdv(self):
         if not self._tem_permissao("vendas.pdv"):
@@ -236,6 +236,6 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         if self.login.exec_() == LoginView.Accepted:
             self._atualizar_operador()
             self._verificar_acessos()
-            self.show()
+            self.showMaximized()
             return
-        self.show()
+        self.showMaximized()

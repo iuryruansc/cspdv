@@ -1334,7 +1334,7 @@ QPushButton:hover { background: #2a74b8; }
 
             self.hide()
             self.painel_financeiro = PainelFinanceiroView()
-            self.painel_financeiro.show()
+            self.painel_financeiro.showMaximized()
             return
 
         if acao == "abrir_promocoes":
@@ -1349,7 +1349,7 @@ QPushButton:hover { background: #2a74b8; }
 
             self.hide()
             self.painel_promocoes = PainelPromocoesView()
-            self.painel_promocoes.show()
+            self.painel_promocoes.showMaximized()
             return
 
         if acao == "fechar_caixa":
@@ -1514,4 +1514,4 @@ QPushButton:hover { background: #2a74b8; }
 
         self.hide()
         self.selecao = SelecaoModoView()
-        self.selecao.show()
+        self.selecao.showMaximized()

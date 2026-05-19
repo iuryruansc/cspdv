@@ -8,9 +8,12 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from database.connection import close_connection
+from database.bootstrap import bootstrap_database
 from database.migrations.runner import run_pending_migrations
 
 def main() -> int:
+    if bootstrap_database():
+        print("Banco de dados criado automaticamente.")
     applied = run_pending_migrations()
     if applied:
         print("Migrations aplicadas:")

@@ -45,6 +45,8 @@ As migrations pendentes rodam no startup da aplicacao por:
 
 - `main.py`
 
+Antes disso, o sistema tenta criar o banco configurado em `DB_NAME` caso ele ainda nao exista.
+
 Tambem podem ser executadas manualmente por:
 
 ```powershell
@@ -75,6 +77,7 @@ Boas praticas:
 
 A base atual ja tem migrations para:
 
+- baseline inicial completa do schema para bancos vazios
 - defaults e colunas de `config_empresa`
 - colunas operacionais de fechamento de caixa
 - timestamps de tabelas operacionais
