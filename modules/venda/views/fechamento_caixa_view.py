@@ -64,8 +64,12 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
     def _configurar_formulario(self) -> None:
         aplicar_mascara_monetaria(self.lineEditValorContado)
         self.lineEditValorContado.setText("0,00")
-        self.lineEditValorContado.textChanged.connect(self._atualizar_diferenca)
         self.btnFecharCaixa.clicked.connect(self._confirmar_fechamento)
+        self.cardFundoCaixa.hide()
+        self.cardDiferenca.hide()
+        self.frameTotalEsperado.hide()
+        self.lblStatusCaixaAberto.setText("● Caixa aberto")
+        self._aplicar_status_caixa("#78dd8b")
 
     def _atualizar_data_hora(self) -> None:
         self.lblHDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm"))
@@ -81,12 +85,8 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         self.lblTotalSupValor.setText(f"+ {self._formatar_moeda(float(self._resumo['total_suprimentos']))}")
         self.lblFaturamentoValor.setText(f"+ {self._formatar_moeda(float(self._resumo['faturamento_dinheiro']))}")
         self.lblTotalEspValor.setText(self._formatar_moeda(total_esperado))
-        valor_digitado = self.lineEditValorContado.text().strip()
-        if not valor_digitado or self._valor_contado() == self._ultimo_total_esperado:
-            self.lineEditValorContado.setText(self._numero_para_campo(total_esperado))
         self._ultimo_total_esperado = total_esperado
         self._popular_totais_pagamento(self._resumo.get("totais_forma_pagamento", []))
-        self._atualizar_diferenca()
 
     def _popular_totais_pagamento(self, totais: List[Dict[str, Any]]) -> None:
         self.tableTotaisPgto.setRowCount(len(totais))
@@ -104,25 +104,6 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         if not texto:
             return 0.0
         return float(texto)
-
-    def _atualizar_diferenca(self) -> None:
-        total_esperado = float(self._resumo.get("total_esperado") or 0.0)
-        diferenca = round(self._valor_contado() - total_esperado, 2)
-        self.lblCardDifValor.setText(self._formatar_moeda(diferenca))
-
-        if abs(diferenca) < 0.009:
-            cor = "#78dd8b"
-            texto_status = "● Caixa aberto"
-        elif diferenca > 0:
-            cor = "#f0b44c"
-            texto_status = "● Diferença positiva identificada"
-        else:
-            cor = "#ff7c7c"
-            texto_status = "● Diferença negativa identificada"
-
-        self._aplicar_estilo_diferenca(cor)
-        self.lblStatusCaixaAberto.setText(texto_status)
-        self._aplicar_status_caixa(cor)
 
     def _confirmar_fechamento(self) -> None:
         valor_contado = self._valor_contado()
@@ -166,13 +147,6 @@ class FechamentoCaixaView(QWidget, Ui_TelaFechamentoCaixa):
         absoluto = abs(valor)
         texto = f"{absoluto:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         return f"{sinal}R$ {texto}"
-
-    @staticmethod
-    def _numero_para_campo(valor: float) -> str:
-        return f"{valor:.2f}".replace(".", ",")
-
-    def _aplicar_estilo_diferenca(self, cor: str) -> None:
-        self.lblCardDifValor.setStyleSheet(f"font-size:34px;font-weight:bold;color:{cor};")
 
     def _aplicar_status_caixa(self, cor: str) -> None:
         self.lblStatusCaixaAberto.setStyleSheet(f"color:{cor};font-size:11px;font-weight:bold;")

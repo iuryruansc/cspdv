@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QMessageBox
 from ui.venda.confirmar_fechamento_caixa_dialog import (
     Ui_ConfirmarFechamentoCaixaDialog,
     Ui_FechamentoRealizadoDialog,
@@ -67,11 +67,36 @@ class ConfirmarFechamentoCaixaDialog(QDialog, Ui_ConfirmarFechamentoCaixaDialog)
             and abs(self._diferenca) > 0.009
             and not self.lineSenhaAdmin.text().strip()
         ):
-            mostrar_aviso(
-                self,
-                "Autorizacao necessaria",
-                "Informe a senha do administrador para concluir o fechamento com diferenca.",
+            box = QMessageBox(self)
+            box.setIcon(QMessageBox.Warning)
+            box.setWindowTitle("Autorizacao necessaria")
+            box.setText("Informe a senha do administrador para concluir o fechamento com diferenca.")
+            box.setStyleSheet(
+                """
+                QMessageBox {
+                    background-color: #f7fbff;
+                }
+                QLabel {
+                    color: #16324f;
+                    font-size: 13px;
+                    min-width: 340px;
+                }
+                QPushButton {
+                    min-width: 110px;
+                    min-height: 34px;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    border: 1px solid #b6c9da;
+                    background-color: #eef4fa;
+                    color: #16324f;
+                    font-weight: bold;
+                }
+                QPushButton:hover {
+                    background-color: #dce9f5;
+                }
+                """
             )
+            box.exec_()
             self.lineSenhaAdmin.setFocus()
             return
 

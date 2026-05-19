@@ -152,6 +152,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         if not confirmar_acao(self, "Confirmar Logout", f"Deseja realmente sair da sessão de {nome}?"):
             return
 
+        SessionManager.logout()
         self._abrir_login()
 
     def _deve_bloquear_logout_por_caixa_aberto(self) -> bool:
@@ -238,4 +239,4 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
             self._verificar_acessos()
             self.showMaximized()
             return
-        self.showMaximized()
+        self.close()
