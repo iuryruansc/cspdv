@@ -1,5 +1,4 @@
 import re
-from itertools import count
 from typing import Any, Dict, List, Optional
 
 from PyQt5.QtCore import QDateTime, QEvent, QTimer, Qt, pyqtSignal
@@ -38,6 +37,8 @@ from modules.venda.views.consulta_preco_dialog import ConsultaPrecoDialog
 from modules.venda.views.confirmar_venda_dialog import ConfirmarVendaDialog
 from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
 from modules.venda.views.selecionar_cliente_dialog import SelecionarClienteDialog
+from modules.venda.models.venda_model import VendaModel
+from core.caixa_session import CaixaSession
 from modules.shared.constants import (
     CLIENTE_PADRAO_CONSUMIDOR_FINAL,
     PRIORIDADE_DESCONTO_ANTES_PROMOCAO,
@@ -51,7 +52,6 @@ from utils.image_utils import atualizar_preview_label
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
 class FrenteVendaView(QWidget, Ui_FrenteVenda):
-    _sequencia_venda = count(1)
     pagamento_solicitado = pyqtSignal(dict)
 
     lineEditDescricaoProduto: QLineEdit
@@ -84,7 +84,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self._numero_venda = next(self._sequencia_venda)
+        self._numero_venda: Optional[int] = None
         self._produto_atual: Optional[Dict[str, Any]] = None
         self._itens_venda: List[Dict[str, Any]] = []
         self._cliente_atual: Optional[Dict[str, Any]] = None
@@ -116,6 +116,17 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if app is not None:
             app.installEventFilter(self)
         QTimer.singleShot(0, self.lineEditDescricaoProduto.setFocus)
+
+    def _rotulo_numero_venda(self) -> str:
+        return str(self._numero_venda) if self._numero_venda is not None else "Nova"
+
+    def _atualizar_numero_venda_sessao(self) -> None:
+        caixa = CaixaSession.current() or {}
+        caixa_id = caixa.get("id")
+        self._numero_venda = VendaModel.proximo_numero_sessao_caixa(
+            int(caixa_id) if caixa_id not in (None, "", 0) else None
+        )
+        self.lblNumVendaValor.setText(self._rotulo_numero_venda())
 
     def showEvent(self, a0) -> None:
         super().showEvent(a0)
@@ -239,7 +250,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.tableCupom.itemClicked.connect(self._ao_clicar_item_cupom)
 
     def _configurar_venda_inicial(self) -> None:
-        self.lblNumVendaValor.setText(str(self._numero_venda))
+        self._atualizar_numero_venda_sessao()
         if self._cliente_padrao_venda() == "CONSUMIDOR_FINAL":
             self._aplicar_consumidor_final()
         else:
@@ -590,6 +601,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._linha_cupom_selecionada = None
         self._desconto_global_valor = 0.0
         self.tableCupom.setRowCount(0)
+        self._atualizar_numero_venda_sessao()
         if self._cliente_padrao_venda() == "CONSUMIDOR_FINAL":
             self._aplicar_consumidor_final()
         else:
@@ -601,6 +613,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def _abrir_confirmacao_venda(self) -> None:
         if not self._garantir_cliente_conforme_regra():
             return
+        self._atualizar_numero_venda_sessao()
         dialog = ConfirmarVendaDialog(
             numero_venda=self._numero_venda,
             cliente_nome=self.lblClienteNome.text().strip() or "Consumidor Final",

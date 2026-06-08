@@ -26,6 +26,56 @@ class VendaModel:
     _STATUS_VENDA_OPERACIONAL = STATUS_VENDA_OPERACIONAL
 
     @staticmethod
+    def proximo_numero_venda() -> int | None:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT AUTO_INCREMENT AS proximo_numero
+                FROM information_schema.TABLES
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'vendas'
+                """
+            )
+            row = cursor.fetchone() or {}
+            proximo_numero = row.get("proximo_numero") if isinstance(row, dict) else None
+            if proximo_numero in (None, "", 0):
+                cursor.execute("SELECT COALESCE(MAX(id), 0) + 1 AS proximo_numero FROM vendas")
+                row = cursor.fetchone() or {}
+                proximo_numero = row.get("proximo_numero") if isinstance(row, dict) else None
+            return int(proximo_numero) if proximo_numero not in (None, "", 0) else None
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def proximo_numero_sessao_caixa(caixa_id: int | None) -> int | None:
+        if not caixa_id:
+            return None
+
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                f"""
+                SELECT COUNT(*) AS total_vendas
+                FROM vendas
+                WHERE caixa_id = %s
+                  AND status IN ('{STATUS_VENDA_SQL}')
+                """,
+                (int(caixa_id),),
+            )
+            row = cursor.fetchone() or {}
+            total_vendas = row.get("total_vendas") if isinstance(row, dict) else None
+            if total_vendas in (None, "", 0):
+                return 1
+            return int(total_vendas) + 1
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
     def registrar_venda(
         *,
         cliente_id: int | None,

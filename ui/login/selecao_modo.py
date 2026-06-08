@@ -36,6 +36,23 @@ class Ui_SelecaoModo(object):
 " font-size: 12px;\n"
 " color: #a8c3da;\n"
 "}\n"
+"QFrame#frameAtalhos {\n"
+" background-color: rgba(255,255,255,0.04);\n"
+" border: 1px solid #234d72;\n"
+" border-radius: 10px;\n"
+"}\n"
+"QLabel#lblAtalhosTitulo {\n"
+" background-color: transparent;\n"
+" color: #d8ebfb;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+" text-transform: uppercase;\n"
+"}\n"
+"QLabel#lblAtalhosTexto {\n"
+" background-color: transparent;\n"
+" color: #b6cbdf;\n"
+" font-size: 11px;\n"
+"}\n"
 "QFrame[card=\"true\"] {\n"
 " background-color: #112c47;\n"
 " border: 1px solid #234d72;\n"
@@ -106,8 +123,8 @@ class Ui_SelecaoModo(object):
         self.mainVLayout.setSpacing(0)
         self.mainVLayout.setObjectName("mainVLayout")
         self.frameHero = QtWidgets.QFrame(SelecaoModo)
-        self.frameHero.setMinimumSize(QtCore.QSize(0, 146))
-        self.frameHero.setMaximumSize(QtCore.QSize(16777215, 146))
+        self.frameHero.setMinimumSize(QtCore.QSize(0, 180))
+        self.frameHero.setMaximumSize(QtCore.QSize(16777215, 180))
         self.frameHero.setObjectName("frameHero")
         self.heroVLayout = QtWidgets.QVBoxLayout(self.frameHero)
         self.heroVLayout.setContentsMargins(28, 24, 28, 20)
@@ -127,6 +144,24 @@ class Ui_SelecaoModo(object):
         self.lblSubtitulo = QtWidgets.QLabel(self.frameHero)
         self.lblSubtitulo.setObjectName("lblSubtitulo")
         self.heroVLayout.addWidget(self.lblSubtitulo)
+        self.frameAtalhos = QtWidgets.QFrame(self.frameHero)
+        self.frameAtalhos.setMinimumSize(QtCore.QSize(0, 34))
+        self.frameAtalhos.setMaximumSize(QtCore.QSize(16777215, 40))
+        self.frameAtalhos.setObjectName("frameAtalhos")
+        self.frameAtalhosLayout = QtWidgets.QHBoxLayout(self.frameAtalhos)
+        self.frameAtalhosLayout.setContentsMargins(14, 6, 14, 6)
+        self.frameAtalhosLayout.setSpacing(10)
+        self.frameAtalhosLayout.setObjectName("frameAtalhosLayout")
+        self.lblAtalhosTitulo = QtWidgets.QLabel(self.frameAtalhos)
+        self.lblAtalhosTitulo.setObjectName("lblAtalhosTitulo")
+        self.frameAtalhosLayout.addWidget(self.lblAtalhosTitulo)
+        spacerItemAtalhos = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.frameAtalhosLayout.addItem(spacerItemAtalhos)
+        self.lblAtalhosTexto = QtWidgets.QLabel(self.frameAtalhos)
+        self.lblAtalhosTexto.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignVCenter)
+        self.lblAtalhosTexto.setObjectName("lblAtalhosTexto")
+        self.frameAtalhosLayout.addWidget(self.lblAtalhosTexto)
+        self.heroVLayout.addWidget(self.frameAtalhos)
         self.mainVLayout.addWidget(self.frameHero)
         self.layoutContent = QtWidgets.QGridLayout()
         self.layoutContent.setContentsMargins(26, 24, 26, 24)
@@ -248,12 +283,21 @@ class Ui_SelecaoModo(object):
         self.cardResumoLayout.setContentsMargins(24, 22, 24, 22)
         self.cardResumoLayout.setSpacing(14)
         self.cardResumoLayout.setObjectName("cardResumoLayout")
+        self.lblResumoBadge = QtWidgets.QLabel(self.cardResumo)
+        self.lblResumoBadge.setObjectName("lblResumoBadge")
+        self.cardResumoLayout.addWidget(self.lblResumoBadge)
         self.lblResumoTitle = QtWidgets.QLabel(self.cardResumo)
         self.lblResumoTitle.setObjectName("lblResumoTitle")
         self.cardResumoLayout.addWidget(self.lblResumoTitle)
         self.lblResumoText3 = QtWidgets.QLabel(self.cardResumo)
+        self.lblResumoText3.setWordWrap(True)
         self.lblResumoText3.setObjectName("lblResumoText3")
         self.cardResumoLayout.addWidget(self.lblResumoText3)
+        spacerItem6 = QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.cardResumoLayout.addItem(spacerItem6)
+        self.btnResumoRelatorios = QtWidgets.QPushButton(self.cardResumo)
+        self.btnResumoRelatorios.setObjectName("btnResumoRelatorios")
+        self.cardResumoLayout.addWidget(self.btnResumoRelatorios)
         self.layoutContent.addWidget(self.cardResumo, 1, 2, 1, 1)
         self.mainVLayout.addLayout(self.layoutContent)
         self.frameFooter = QtWidgets.QFrame(SelecaoModo)

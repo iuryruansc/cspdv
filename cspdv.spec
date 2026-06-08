@@ -15,6 +15,7 @@ if MEDIA_DIR.exists():
 hiddenimports = []
 hiddenimports += collect_submodules("database.migrations.versions")
 hiddenimports += collect_submodules("database.seeds.versions")
+hiddenimports += collect_submodules("mysql.connector.locales")
 
 
 a = Analysis(

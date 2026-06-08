@@ -49,4 +49,4 @@ class PainelOperacionalMixin:
         host = cast(_PainelOperacionalHost, self)
         host.hide()
         self.selecao = SelecaoModoView()
-        self.selecao.show()
+        self.selecao.showMaximized()

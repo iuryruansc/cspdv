@@ -1,5 +1,6 @@
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QMessageBox, QShortcut, QWidget
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QMessageBox, QShortcut, QWidget
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
@@ -16,6 +17,35 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         super().__init__(parent)
         self.setupUi(self)
         aplicar_tamanho_proporcional_tela(self, proporcao_largura=0.88, proporcao_altura=0.86)
+        self.lblAtalhosTitulo.setText("Atalhos rápidos")
+        self.lblAtalhosTexto.setText(
+            "<html><head/><body><table cellspacing=\"0\" cellpadding=\"0\" style=\"line-height:1.6;\">"
+            "<tr>"
+            "<td style=\"padding-right:10px;\"><span style=\"display:inline-block; min-width:32px; padding:2px 8px; border-radius:10px; background:#2a4f75; color:#d8ecff; font-weight:700; text-align:center;\">F1</span></td>"
+            "<td style=\"padding-right:22px;\">Frente de Caixa</td>"
+            "<td style=\"padding-right:10px;\"><span style=\"display:inline-block; min-width:32px; padding:2px 8px; border-radius:10px; background:#2a4f75; color:#d8ecff; font-weight:700; text-align:center;\">F2</span></td>"
+            "<td style=\"padding-right:22px;\">Administração</td>"
+            "<td style=\"padding-right:10px;\"><span style=\"display:inline-block; min-width:32px; padding:2px 8px; border-radius:10px; background:#2a4f75; color:#d8ecff; font-weight:700; text-align:center;\">F3</span></td>"
+            "<td style=\"padding-right:22px;\">Estoque</td>"
+            "<td style=\"padding-right:10px;\"><span style=\"display:inline-block; min-width:32px; padding:2px 8px; border-radius:10px; background:#2a4f75; color:#d8ecff; font-weight:700; text-align:center;\">F4</span></td>"
+            "<td style=\"padding-right:22px;\">Financeiro</td>"
+            "<td style=\"padding-right:10px;\"><span style=\"display:inline-block; min-width:32px; padding:2px 8px; border-radius:10px; background:#2a4f75; color:#d8ecff; font-weight:700; text-align:center;\">F5</span></td>"
+            "<td style=\"padding-right:22px;\">Promoções</td>"
+            "<td style=\"padding-right:10px;\"><span style=\"display:inline-block; min-width:32px; padding:2px 8px; border-radius:10px; background:#2a4f75; color:#d8ecff; font-weight:700; text-align:center;\">F6</span></td>"
+            "<td>Relatórios</td>"
+            "</tr></table></body></html>"
+        )
+        self.lblResumoBadge.setText("F6 • RELATÓRIOS")
+        self.lblResumoBadge.setProperty("moduleBadge", "true")
+        self.lblResumoTitle.setText("Relatórios")
+        self.lblResumoTitle.setProperty("moduleTitle", "true")
+        self.lblResumoText3.setText("Indicadores, análises e exportações para apoiar a gestão operacional e o acompanhamento do negócio.")
+        self.lblResumoText3.setWordWrap(True)
+        self.lblResumoText3.setProperty("moduleDesc", "true")
+        self.btnResumoRelatorios.setText("Abrir Relatórios")
+        self.btnResumoRelatorios.setToolTip("[F6] Relatórios")
+        self.btnResumoRelatorios.setProperty("moduleCard", "true")
+        self._montar_atalhos_rapidos()
         self._configurar_atalhos()
         self._cards_modulos = [
             ("vendas.pdv", self.cardFrenteCaixa, self.shortcut_f1),
@@ -57,8 +87,49 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.shortcut_f5 = QShortcut(QKeySequence("F5"), self)
         self.shortcut_f5.activated.connect(self._open_promocoes)
 
+        self.shortcut_f6 = QShortcut(QKeySequence("F6"), self)
+        self.shortcut_f6.activated.connect(self._open_relatorios)
+
         self.shortcut_esc = QShortcut(QKeySequence("Esc"), self)
         self.shortcut_esc.activated.connect(self._exit)
+
+    def _montar_atalhos_rapidos(self) -> None:
+        self.lblAtalhosTexto.hide()
+        self._atalhos_rapidos_widget = QWidget(self.frameAtalhos)
+        layout = QHBoxLayout(self._atalhos_rapidos_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(16)
+        layout.setObjectName("atalhosRapidosLayout")
+
+        atalhos = [
+            ("F1", "Frente de Caixa"),
+            ("F2", "Administração"),
+            ("F3", "Estoque"),
+            ("F4", "Financeiro"),
+            ("F5", "Promoções"),
+            ("F6", "Relatórios"),
+        ]
+        for indice, (tecla, descricao) in enumerate(atalhos):
+            chip = QLabel(tecla, self._atalhos_rapidos_widget)
+            chip.setAlignment(Qt.AlignCenter)
+            chip.setMinimumWidth(34)
+            chip.setStyleSheet(
+                "QLabel {"
+                " padding: 2px 8px;"
+                " border-radius: 10px;"
+                " background: #2a4f75;"
+                " color: #d8ecff;"
+                " font-weight: 700;"
+                "}"
+            )
+            texto = QLabel(descricao, self._atalhos_rapidos_widget)
+            texto.setStyleSheet("QLabel { color: #d8ebfb; font-size: 11px; }")
+            layout.addWidget(chip)
+            layout.addWidget(texto)
+            if indice < len(atalhos) - 1:
+                layout.addSpacing(14)
+
+        self.frameAtalhosLayout.addWidget(self._atalhos_rapidos_widget, 1)
 
     def _conectar_eventos(self):
         self.btnFrenteCaixa.clicked.connect(self._open_pdv)
@@ -66,6 +137,7 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         self.btnEstoque.clicked.connect(self._open_estoque)
         self.btnFinanceiro.clicked.connect(self._open_financeiro)
         self.btnRelatorios.clicked.connect(self._open_promocoes)
+        self.btnResumoRelatorios.clicked.connect(self._open_relatorios)
         self.btnSairSessao.clicked.connect(self._exit)
 
     def _tem_permissao(self, chave_requerida):
@@ -81,21 +153,23 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
             if tem_acesso:
                 cards_visiveis.append(card)
 
+        tem_relatorios = self._tem_permissao("relatorios.ver")
+        self.cardResumo.setVisible(tem_relatorios)
+        self.shortcut_f6.setEnabled(tem_relatorios)
+        if tem_relatorios:
+            cards_visiveis.append(self.cardResumo)
+
         self._reorganizar_cards(cards_visiveis)
 
     def _reorganizar_cards(self, cards_visiveis):
         for _, card, _ in self._cards_modulos:
             self.layoutContent.removeWidget(card)
+        self.layoutContent.removeWidget(self.cardResumo)
 
         for indice, card in enumerate(cards_visiveis):
             linha = indice // self.COLUNAS_CARDS
             coluna = indice % self.COLUNAS_CARDS
             self.layoutContent.addWidget(card, linha, coluna)
-
-        linha_resumo = len(cards_visiveis) // self.COLUNAS_CARDS
-        coluna_resumo = len(cards_visiveis) % self.COLUNAS_CARDS
-        self.layoutContent.removeWidget(self.cardResumo)
-        self.layoutContent.addWidget(self.cardResumo, linha_resumo, coluna_resumo)
 
     def _abrir_modulo(self, view_cls, attr_name: str) -> None:
         self.hide()
@@ -137,6 +211,13 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
         from modules.promocoes.views.painel_promocoes_view import PainelPromocoesView
 
         self._abrir_modulo(PainelPromocoesView, "painel_promocoes")
+
+    def _open_relatorios(self):
+        if not self._tem_permissao("relatorios.ver"):
+            return
+        from modules.relatorios.views.painel_relatorios_view import PainelRelatoriosView
+
+        self._abrir_modulo(PainelRelatoriosView, "painel_relatorios")
 
     def _exit(self):
         if self._deve_bloquear_logout_por_caixa_aberto():

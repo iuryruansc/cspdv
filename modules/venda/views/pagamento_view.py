@@ -86,7 +86,8 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
     def carregar_venda(self, venda_data: Dict[str, Any]) -> None:
         self._venda_data = dict(venda_data)
         self._pagamentos = []
-        self.lblNumVendaValor.setText(str(venda_data.get("numero_venda") or "---"))
+        numero_venda = venda_data.get("numero_venda")
+        self.lblNumVendaValor.setText(str(numero_venda) if numero_venda not in (None, "", 0) else "Nova")
         self.lblClienteValor.setText(str(venda_data.get("cliente_nome") or "Consumidor Final"))
         total = numero_decimal(venda_data.get("total"))
         descontos = numero_decimal(venda_data.get("desconto_total"))

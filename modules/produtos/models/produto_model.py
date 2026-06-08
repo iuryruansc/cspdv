@@ -58,6 +58,7 @@ class ProdutoModel:
                 LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
                 LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
                 WHERE p.ativo = 'S'
+                  AND COALESCE(p.quantidade_estoque, 0) > 0
                   AND (
                     p.cod_produto = %s
                     OR p.cod_produto LIKE %s
@@ -118,6 +119,7 @@ class ProdutoModel:
                 LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
                 LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
                 WHERE p.ativo = 'S'
+                  AND COALESCE(p.quantidade_estoque, 0) > 0
                   AND (
                     p.cod_produto = %s
                     OR p.cod_produto LIKE %s

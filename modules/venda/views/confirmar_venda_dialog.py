@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from PyQt5.QtCore import QDateTime, Qt
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QTableWidget
@@ -38,7 +38,7 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
     def __init__(
         self,
         *,
-        numero_venda: int,
+        numero_venda: Optional[int],
         cliente_nome: str,
         itens_venda: List[Dict[str, Any]],
         subtotal: float,
@@ -163,7 +163,7 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
         )
 
     def _popular_dados(self) -> None:
-        self.lblNumVendaValor.setText(str(self._numero_venda))
+        self.lblNumVendaValor.setText(str(self._numero_venda) if self._numero_venda else "Nova")
         self.lblClienteValor.setText(self._cliente_nome or "Consumidor Final")
         self.lblOperadorValor.setText(self._nome_operador())
         self.lblDataHoraValor.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy HH:mm"))
