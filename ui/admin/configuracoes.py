@@ -418,7 +418,7 @@ class Ui_ConfiguracoesWidget(object):
         self.lblHint.setText(
             _translate(
                 "ConfiguracoesWidget",
-                "Organize parâmetros iniciais de empresa, vendas, caixa, promoções e segurança sem sair do painel administrativo.",
+                "Configure parâmetros iniciais de empresa, vendas, caixa, promoções e segurança.",
             )
         )
         self.btnRestaurarPadroes.setText(_translate("ConfiguracoesWidget", "Restaurar padrões"))

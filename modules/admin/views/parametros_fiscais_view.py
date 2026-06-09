@@ -75,8 +75,7 @@ class ParametrosFiscaisView(QFrame):
         root.addWidget(self.lblTitle)
 
         self.lblHint = QLabel(
-            "Defina defaults fiscais da operação e as exigências mínimas do cadastro de produto. "
-            "Esta área prepara o sistema para emissão fiscal futura e padroniza os campos tributários.",
+            "Configure os padrões fiscais da operação e as exigências mínimas do cadastro de produto.",
             self,
         )
         self.lblHint.setWordWrap(True)

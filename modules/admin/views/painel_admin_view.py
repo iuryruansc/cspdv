@@ -244,7 +244,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavProdutosCadastro,
                 "title": "Produtos",
                 "section_title": "Gerenciamento de Produtos",
-                "hint": "Consulte itens cadastrados, acompanhe preco, estoque e relacoes principais antes de abrir o cadastro completo.",
+                "hint": "Gerencie o catálogo de produtos, preços e estoque.",
                 "columns": [
                     ("codigo_barras", "Codigo de Barras"),
                     ("cod_produto", "Codigo do Produto"),
@@ -265,7 +265,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavMarcas,
                 "title": "Marcas",
                 "section_title": "Gerenciamento de Marcas",
-                "hint": "Marcas ficam dentro do painel para agilizar cadastros auxiliares e manter o operador no mesmo contexto.",
+                "hint": "Gerencie marcas cadastradas e adicione novas quando necessário.",
                 "columns": [
                     ("id", "ID"),
                     ("nome_marca", "Marca"),
@@ -280,7 +280,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavFornecedores,
                 "title": "Fornecedores",
                 "section_title": "Gerenciamento de Fornecedores",
-                "hint": "Consulte os fornecedores ativos e acesse o cadastro completo quando precisar de uma inclusao mais detalhada.",
+                "hint": "Gerencie os fornecedores cadastrados e acesse o cadastro completo quando precisar de uma inclusão mais detalhada.",
                 "columns": [
                     ("nome_fantasia", "Nome Fantasia"),
                     ("cnpj_cpf", "CNPJ / CPF"),
@@ -298,7 +298,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavCategorias,
                 "title": "Categorias",
                 "section_title": "Gerenciamento de Categorias",
-                "hint": "Categorias curtas tambem permanecem dentro do admin para um fluxo mais rapido de organizacao dos produtos.",
+                "hint": "Gerencie as categorias dos produtos e crie novas quando necessário.",
                 "columns": [
                     ("id", "ID"),
                     ("nome", "Categoria"),
@@ -313,7 +313,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavClientesCadastro,
                 "title": "Clientes",
                 "section_title": "Gerenciamento de Clientes",
-                "hint": "Consulte clientes ativos, acompanhe os dados principais e abra o cadastro completo quando precisar atualizar o relacionamento.",
+                "hint": "Gerencie os clientes cadastrados e acesse o cadastro completo quando precisar atualizar dados cadastrais.",
                 "columns": [
                     ("nome", "Nome"),
                     ("cpf", "CPF"),
@@ -331,7 +331,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavFormasPagamento,
                 "title": "Formas de Pagamento",
                 "section_title": "Gerenciamento de Formas de Pagamento",
-                "hint": "Mantenha as formas aceitas no caixa, seus codigos SEFAZ, parcelamento e taxas administrativas em um unico ponto.",
+                "hint": "Gerencie formas de pagamento aceitas no caixa, códigos SEFAZ, parcelamentos e taxas administrativas.",
                 "columns": [
                     ("id", "ID"),
                     ("nome", "Forma"),
@@ -349,7 +349,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavCaixas,
                 "title": "Caixas",
                 "section_title": "Acompanhamento de Caixas",
-                "hint": "Acompanhe aberturas, fechamentos e o historico operacional dos caixas sem sair do painel administrativo.",
+                "hint": "Acompanhe aberturas, fechamentos e o histórico operacional dos caixas.",
                 "columns": [
                     ("id", "ID"),
                     ("pdv", "Caixa / PDV"),
@@ -369,7 +369,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavUnidades,
                 "title": "Unidades",
                 "section_title": "Gerenciamento de Unidades",
-                "hint": "Mantenha unidades comerciais e tributarias padronizadas para produtos e operacao fiscal.",
+                "hint": "Gerencie unidades comerciais e tributárias padronizadas para produtos e operação fiscal.",
                 "columns": [
                     ("id", "ID"),
                     ("sigla", "Sigla"),
@@ -386,7 +386,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavPdvs,
                 "title": "PDVs",
                 "section_title": "Gerenciamento de PDVs",
-                "hint": "Mantenha os pontos de venda ativos, suas identificacoes e descricoes operacionais em um unico lugar.",
+                "hint": "Gerencie os pontos de venda ativos, suas identificações e descrições operacionais.",
                 "columns": [
                     ("id", "ID"),
                     ("identificacao", "Identificacao"),
@@ -402,7 +402,7 @@ QPushButton:hover { background: #2a74b8; }
                 "button": self.btnNavAuditoria,
                 "title": "Auditoria",
                 "section_title": "Trilha de Auditoria",
-                "hint": "Consulte eventos criticos registrados pelo sistema para rastrear operacoes, configuracoes e fluxo de caixa.",
+                "hint": "Rastreie operações, configurações e movimentações de caixa registradas pelo sistema.",
                 "columns": [
                     ("id", "ID"),
                     ("data_hora", "Data / Hora"),
@@ -433,6 +433,7 @@ QPushButton:hover { background: #2a74b8; }
                 self.btnNavMarcas,
                 self.btnNavFornecedores,
                 self.btnNavCategorias,
+                self.btnNavClientesCadastro,
             ],
             "acesso": [
                 self.btnNavPerfis,
@@ -443,9 +444,7 @@ QPushButton:hover { background: #2a74b8; }
                 self.btnNavFormasPagamento,
                 self.btnNavCaixas,
             ],
-            "relacionamento": [
-                self.btnNavClientesCadastro,
-            ],
+            "relacionamento": [],
             "operacao_fiscal": [
                 self.btnNavFiscal,
                 self.btnNavUnidades,
@@ -458,12 +457,12 @@ QPushButton:hover { background: #2a74b8; }
     def _setup_navigation(self) -> None:
         self.navGroup = QButtonGroup(self)
         self.navGroup.setExclusive(True)
+        self.btnNavClientes.hide()
         for button in (
             self.btnNavDashboard,
             self.btnNavProdutos,
             self.btnNavUsuarios,
             self.btnNavVendas,
-            self.btnNavClientes,
             self.btnNavLotes,
             self.btnNavAuditoria,
             self.btnNavConfiguracoes,
@@ -481,7 +480,6 @@ QPushButton:hover { background: #2a74b8; }
             )
         )
         self.btnNavVendas.clicked.connect(lambda _=False: self._show_management_page("formas_pagamento"))
-        self.btnNavClientes.clicked.connect(lambda _=False: self._show_management_page("clientes"))
         self.btnNavLotes.clicked.connect(lambda _=False: self._show_parametros_fiscais())
         self.btnNavAuditoria.clicked.connect(lambda _=False: self._show_management_page("auditoria"))
         self.btnNavConfiguracoes.clicked.connect(lambda _=False: self._show_configuracoes())
@@ -562,7 +560,7 @@ QPushButton:hover { background: #2a74b8; }
             "marcas": self.btnNavProdutos,
             "fornecedores": self.btnNavProdutos,
             "categorias": self.btnNavProdutos,
-            "clientes": self.btnNavClientes,
+            "clientes": self.btnNavProdutos,
             "formas_pagamento": self.btnNavVendas,
             "caixas": self.btnNavVendas,
             "unidades": self.btnNavLotes,
@@ -664,7 +662,7 @@ QPushButton:hover { background: #2a74b8; }
             "marcas": "cadastros",
             "fornecedores": "cadastros",
             "categorias": "cadastros",
-            "clientes": "relacionamento",
+            "clientes": "cadastros",
             "formas_pagamento": "financeiro",
             "caixas": "financeiro",
             "unidades": "operacao_fiscal",
