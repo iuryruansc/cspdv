@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence, cast
-
 from database.seeds.runner import SeedCursorLike
 
 VERSION = "20260517_001"
@@ -28,27 +26,19 @@ CAIXA_MOTIVOS = [
     {"descricao": "Reforco de Troco", "tipo_padrao": "troco"},
 ]
 
-def _rows(cursor: SeedCursorLike) -> Sequence[Sequence[Any] | Mapping[str, Any]]:
-    return cast(Sequence[Sequence[Any] | Mapping[str, Any]], cursor.fetchall())
-
-
-def _exists_by_name(cursor: SeedCursorLike, table_name: str, column_name: str, value: str) -> bool:
-    cursor.execute(
-        f"SELECT 1 FROM {table_name} WHERE UPPER(TRIM({column_name})) = UPPER(TRIM(%s)) LIMIT 1",
-        (value,),
-    )
-    return bool(_rows(cursor))
 
 def apply(cursor: SeedCursorLike) -> None:
     for forma in FORMAS_PAGAMENTO:
-        if _exists_by_name(cursor, "formas_pagamento", "nome", str(forma["nome"])):
-            continue
         cursor.execute(
             """
             INSERT INTO formas_pagamento
                 (nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo, createdAt, updatedAt)
             VALUES
                 (%s, %s, %s, %s, 'S', NOW(), NOW())
+            ON DUPLICATE KEY UPDATE
+                permite_parcelamento = VALUES(permite_parcelamento),
+                taxa_administrativa = VALUES(taxa_administrativa),
+                updatedAt = NOW()
             """,
             (
                 forma["nome"],
@@ -59,14 +49,17 @@ def apply(cursor: SeedCursorLike) -> None:
         )
 
     for unidade in UNIDADES:
-        if _exists_by_name(cursor, "unidades_medida", "sigla", str(unidade["sigla"])):
-            continue
         cursor.execute(
             """
             INSERT INTO unidades_medida
                 (sigla, descricao, codigo_sefaz, `fracionável`, ativo, createdAt, updatedAt)
             VALUES
                 (%s, %s, %s, %s, 'S', NOW(), NOW())
+            ON DUPLICATE KEY UPDATE
+                descricao = VALUES(descricao),
+                codigo_sefaz = VALUES(codigo_sefaz),
+                `fracionável` = VALUES(`fracionável`),
+                updatedAt = NOW()
             """,
             (
                 unidade["sigla"],
@@ -77,14 +70,15 @@ def apply(cursor: SeedCursorLike) -> None:
         )
 
     for motivo in CAIXA_MOTIVOS:
-        if _exists_by_name(cursor, "caixa_motivos", "tipo_padrao", str(motivo["tipo_padrao"])):
-            continue
         cursor.execute(
             """
             INSERT INTO caixa_motivos
                 (descricao, tipo_padrao, ativo, createdAt, updatedAt)
             VALUES
                 (%s, %s, 'S', NOW(), NOW())
+            ON DUPLICATE KEY UPDATE
+                descricao = VALUES(descricao),
+                updatedAt = NOW()
             """,
             (
                 motivo["descricao"],
