@@ -311,7 +311,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.lineEditValor.setText(texto + trecho)
 
     def _limpar_valor(self) -> None:
-        self.lineEditValor.clear()
+        #self.lineEditValor.clear()
+        textoatual = self.lineEditValor.text().strip()
+        textonovo = textoatual[:-1]
+        self.lineEditValor.setText(textonovo)
 
     def _usar_pagamento_exato(self) -> None:
         restante = self._valor_restante()
