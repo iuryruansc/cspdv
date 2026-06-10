@@ -13,7 +13,7 @@ FORMAS_PAGAMENTO = [
     {"nome": "Cartao Debito", "tipo_sefaz": "04", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
     {"nome": "Cartao Credito", "tipo_sefaz": "03", "permite_parcelamento": "S", "taxa_administrativa": 0.00},
     {"nome": "Vale Refeicao", "tipo_sefaz": "10", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
-    {"nome": "Cheque", "tipo_sefaz": "02", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
+    {"nome": "Pag. Parcial", "tipo_sefaz": "02", "permite_parcelamento": "N", "taxa_administrativa": 0.00},
 ]
 
 UNIDADES = [

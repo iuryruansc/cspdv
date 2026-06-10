@@ -193,14 +193,21 @@ class VendaModel:
                 valor_pago = Decimal(str(pagamento.get("valor") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
                 if not forma_pagamento or valor_pago <= 0:
                     continue
+
+                parcelas = pagamento.get("parcelas")
+                taxa_administrativa = pagamento.get("taxa_administrativa", 0.0)
+
                 cursor.execute(
                     """
                     INSERT INTO pagamento_parcial
-                        (venda_id, data_pagamento, valor_pago, forma_pagamento, observacao, createdAt, updatedAt)
+                        (venda_id, data_pagamento, valor_pago, forma_pagamento, observacao,
+                         parcelas, taxa_administrativa, createdAt, updatedAt)
                     VALUES
-                        (%s, %s, %s, %s, NULL, NOW(), NOW())
+                        (%s, %s, %s, %s, NULL, %s, %s, NOW(), NOW())
                     """,
-                    (venda_id, data_hora, float(valor_pago), forma_pagamento),
+                    (venda_id, data_hora, float(valor_pago), forma_pagamento,
+                     parcelas if parcelas and parcelas > 1 else None,
+                     float(taxa_administrativa) if taxa_administrativa else 0.0),
                 )
 
             if conta_receber:

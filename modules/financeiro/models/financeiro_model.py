@@ -50,7 +50,7 @@ class FinanceiroModel:
         try:
             cursor.execute(
                 """
-                SELECT id, nome
+                SELECT id, nome, permite_parcelamento, taxa_administrativa
                 FROM formas_pagamento
                 WHERE ativo = %s
                 ORDER BY nome

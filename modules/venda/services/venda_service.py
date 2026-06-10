@@ -87,7 +87,7 @@ class VendaService:
             return False, "O total da venda precisa ser maior que zero.", None
         if desconto_global < 0:
             return False, "O desconto global da venda não pode ser negativo.", None
-        if valor_pago <= 0:
+        if valor_pago <= 0 and not venda_com_pendencia:
             return False, "O total pago precisa ser maior que zero.", None
         if not venda_com_pendencia and valor_pago + 0.009 < valor_total:
             return False, "O total pago é insuficiente para concluir a venda sem pendência.", None

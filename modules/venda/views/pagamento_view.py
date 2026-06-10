@@ -4,10 +4,14 @@ from typing import Any, Dict, List, Optional
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
 from PyQt5.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
+    QSpinBox,
     QTableWidget,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -63,6 +67,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._venda_data: Optional[Dict[str, Any]] = None
         self._pagamentos: List[Dict[str, Any]] = []
         self._forma_selecionada = ""
+        self._formas_pagamento_dados: Dict[str, Dict[str, Any]] = {}
         self._botoes_forma_ordenados = [
             self.btnDinheiro,
             self.btnPix,
@@ -73,11 +78,15 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         ]
         self._atalhos_forma = ["F1", "F2", "F3", "F4", "F5", "F6"]
         self._botoes_forma: Dict[str, QPushButton] = {}
+        self._frame_parcelas: Optional[QFrame] = None
+        self._spin_parcelas: Optional[QSpinBox] = None
+        self._lbl_parcela_info: Optional[QLabel] = None
         self._timer = QTimer(self)
         self._timer.setInterval(1000)
         self._timer.timeout.connect(self._atualizar_data_hora)
         self._timer.start()
         self._configurar_interface()
+        self._criar_widget_parcelas()
         self._carregar_formas_pagamento()
         self._conectar_sinais()
         self._atualizar_data_hora()
@@ -101,6 +110,76 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
     def _configurar_interface(self) -> None:
         self.btnFecharPedido.setToolTip("Finalizar pagamento")
         self.btnFinalizarPendencia.setToolTip("Concluir a venda com saldo em aberto para recebimento posterior")
+
+    def _criar_widget_parcelas(self) -> None:
+        self._frame_parcelas = QFrame(self.frameNumpad)
+        self._frame_parcelas.setStyleSheet(
+            "QFrame{background-color:#f0f6fc;border:2px solid #3585c8;border-radius:6px;padding:8px;}"
+        )
+        layout = QVBoxLayout(self._frame_parcelas)
+        layout.setContentsMargins(10, 8, 10, 8)
+        layout.setSpacing(4)
+
+        lbl_titulo = QLabel("Parcelamento")
+        lbl_titulo.setStyleSheet("font-size:12px;font-weight:bold;color:#1a3a5c;")
+        layout.addWidget(lbl_titulo)
+
+        linha = QHBoxLayout()
+        linha.setSpacing(8)
+        lbl_qtd = QLabel("Parcelas:")
+        lbl_qtd.setStyleSheet("font-size:12px;color:#1a3a5c;")
+        linha.addWidget(lbl_qtd)
+
+        self._spin_parcelas = QSpinBox()
+        self._spin_parcelas.setRange(1, 18)
+        self._spin_parcelas.setValue(1)
+        self._spin_parcelas.setStyleSheet(
+            "QSpinBox{font-size:14px;font-weight:bold;padding:4px 8px;border:1px solid #a8c4d8;border-radius:4px;}"
+        )
+        self._spin_parcelas.valueChanged.connect(self._atualizar_info_parcelas)
+        linha.addWidget(self._spin_parcelas)
+        linha.addStretch()
+        layout.addLayout(linha)
+
+        self._lbl_parcela_info = QLabel("")
+        self._lbl_parcela_info.setStyleSheet("font-size:11px;color:#4a6a8a;")
+        self._lbl_parcela_info.setWordWrap(True)
+        layout.addWidget(self._lbl_parcela_info)
+
+        self.numpadVL.insertWidget(0, self._frame_parcelas)
+        self._frame_parcelas.hide()
+
+    def _atualizar_info_parcelas(self) -> None:
+        if not self._frame_parcelas or not self._spin_parcelas or not self._lbl_parcela_info:
+            return
+        if not self._forma_selecionada:
+            self._lbl_parcela_info.setText("")
+            return
+
+        dados = self._formas_pagamento_dados.get(self._forma_selecionada, {})
+        permite = str(dados.get("permite_parcelamento") or "N").upper() == "S"
+        taxa = float(dados.get("taxa_administrativa") or 0.0)
+
+        if not permite:
+            self._lbl_parcela_info.setText("")
+            return
+
+        valor = numero_decimal(self.lineEditValor.text())
+        parcelas = self._spin_parcelas.value()
+
+        if valor <= 0:
+            self._lbl_parcela_info.setText("Informe um valor para ver o detalhamento")
+            return
+
+        valor_total_com_taxa = valor * (1 + taxa / 100) if taxa > 0 else valor
+        valor_parcela = valor_total_com_taxa / parcelas if parcelas > 0 else 0
+
+        linhas = []
+        linhas.append(f"{parcelas}x de {formatar_moeda(valor_parcela)}")
+        if taxa > 0:
+            linhas.append(f"Total com taxa: {formatar_moeda(valor_total_com_taxa)} (taxa: {taxa:.1f}%)")
+
+        self._lbl_parcela_info.setText("\n".join(linhas))
 
     @staticmethod
     def _normalizar_forma_pagamento(valor: str) -> str:
@@ -129,7 +208,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             "cartao debito": 2,
             "cartao credito": 3,
             "vale refeicao": 4,
-            "cheque": 5,
+            "pag. parcial": 5,
         }
         icones = {
             "dinheiro": "💸",
@@ -137,7 +216,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             "cartao debito": "💳",
             "cartao credito": "💳",
             "vale refeicao": "🍴",
-            "cheque": "📄",
+            "pag. parcial": "",
         }
         formas_ativas = sorted(
             list(formas or []),
@@ -148,6 +227,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         )
 
         self._botoes_forma.clear()
+        self._formas_pagamento_dados.clear()
         for indice, botao in enumerate(self._botoes_forma_ordenados):
             if indice >= len(formas_ativas):
                 botao.hide()
@@ -160,6 +240,11 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             nome_normalizado = self._normalizar_forma_pagamento(nome)
             icone = icones.get(nome_normalizado, "💳")
             atalho = self._atalhos_forma[indice]
+
+            self._formas_pagamento_dados[nome] = {
+                "permite_parcelamento": forma.get("permite_parcelamento", "N"),
+                "taxa_administrativa": forma.get("taxa_administrativa", 0.0),
+            }
 
             botao.show()
             botao.setEnabled(True)
@@ -205,6 +290,17 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         for nome, botao in self._botoes_forma.items():
             botao.setChecked(nome == forma)
 
+        dados = self._formas_pagamento_dados.get(forma, {})
+        permite = str(dados.get("permite_parcelamento") or "N").upper() == "S"
+
+        if permite and self._frame_parcelas:
+            self._frame_parcelas.show()
+            if self._spin_parcelas:
+                self._spin_parcelas.setValue(1)
+            self._atualizar_info_parcelas()
+        elif self._frame_parcelas:
+            self._frame_parcelas.hide()
+
     def _inserir_valor(self, trecho: str) -> None:
         texto = self.lineEditValor.text().strip()
         if trecho == ",":
@@ -231,15 +327,43 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             mostrar_info(self, "Valor inválido", "Informe um valor maior que zero para lançar o pagamento.")
             return
 
-        self._pagamentos.append({"forma": self._forma_selecionada, "valor": valor})
+        pagamento: Dict[str, Any] = {"forma": self._forma_selecionada, "valor": valor}
+
+        dados = self._formas_pagamento_dados.get(self._forma_selecionada, {})
+        permite = str(dados.get("permite_parcelamento") or "N").upper() == "S"
+
+        if permite and self._spin_parcelas and self._spin_parcelas.value() > 1:
+            parcelas = self._spin_parcelas.value()
+            taxa = float(dados.get("taxa_administrativa") or 0.0)
+            valor_total_com_taxa = valor * (1 + taxa / 100) if taxa > 0 else valor
+            valor_parcela = valor_total_com_taxa / parcelas
+
+            pagamento["parcelas"] = parcelas
+            pagamento["taxa_administrativa"] = taxa
+            pagamento["valor_parcela"] = valor_parcela
+
+        self._pagamentos.append(pagamento)
         self.lineEditValor.clear()
+        if self._spin_parcelas:
+            self._spin_parcelas.setValue(1)
         self._renderizar_pagamentos()
         self._atualizar_resumo()
+
+        if self._normalizar_forma_pagamento(self._forma_selecionada) == "pag. parcial":
+            restante = self._valor_restante()
+            if restante > 0:
+                self._finalizar_com_pendencia()
 
     def _renderizar_pagamentos(self) -> None:
         self.tableFormasPagamento.setRowCount(len(self._pagamentos))
         for row, pagamento in enumerate(self._pagamentos):
-            set_table_item(self.tableFormasPagamento, row, 0, str(pagamento["forma"]))
+            parcelas = pagamento.get("parcelas")
+            if parcelas and parcelas > 1:
+                texto_forma = f"{pagamento['forma']} ({parcelas}x)"
+            else:
+                texto_forma = str(pagamento["forma"])
+
+            set_table_item(self.tableFormasPagamento, row, 0, texto_forma)
             set_table_item(self.tableFormasPagamento, row, 1, formatar_moeda(pagamento["valor"]))
             set_table_item(self.tableFormasPagamento, row, 2, "Remover")
 
@@ -255,7 +379,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         cliente_id = int((self._venda_data or {}).get("cliente_id") or 0)
         cliente_eh_consumidor_final = bool((self._venda_data or {}).get("cliente_eh_consumidor_final"))
         self.btnFinalizarPendencia.setEnabled(
-            total > 0 and 0 < pagamentos < total and cliente_id > 0 and not cliente_eh_consumidor_final
+            total > 0 and pagamentos < total and cliente_id > 0 and not cliente_eh_consumidor_final
         )
 
     def _valor_restante(self) -> float:
@@ -315,11 +439,11 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             )
             return
 
-        if pagamentos <= 0 or restante <= 0:
+        if restante <= 0:
             mostrar_info(
                 self,
                 "Pendência inválida",
-                "Lance um pagamento parcial antes de concluir a venda com pendência.",
+                "Não há saldo em aberto para gerar uma pendência.",
             )
             return
 

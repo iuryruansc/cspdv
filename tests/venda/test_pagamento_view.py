@@ -15,7 +15,7 @@ FORMAS_PAGAMENTO_PADRAO = [
     {"id": 3, "nome": "Cartao Debito"},
     {"id": 4, "nome": "Cartao Credito"},
     {"id": 5, "nome": "Vale Refeicao"},
-    {"id": 6, "nome": "Cheque"},
+    {"id": 6, "nome": "Pag. Parcial"},
 ]
 
 
