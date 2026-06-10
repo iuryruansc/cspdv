@@ -5,6 +5,7 @@ from PyQt5.QtCore import QDateTime, QEvent, QTimer, Qt, pyqtSignal
 from PyQt5.QtGui import QIntValidator, QKeyEvent
 from PyQt5.QtWidgets import (
     QApplication,
+    QDialog,
     QLabel,
     QInputDialog,
     QLineEdit,
@@ -37,7 +38,9 @@ from modules.venda.views.consulta_preco_dialog import ConsultaPrecoDialog
 from modules.venda.views.confirmar_venda_dialog import ConfirmarVendaDialog
 from modules.venda.views.modal_consulta_produto_view import ModalConsultaProdutoView
 from modules.venda.views.selecionar_cliente_dialog import SelecionarClienteDialog
+from modules.venda.views.importar_pre_venda_dialog import ImportarPreVendaDialog
 from modules.venda.models.venda_model import VendaModel
+from modules.venda.services.pre_venda_service import PreVendaService
 from core.caixa_session import CaixaSession
 from modules.shared.constants import (
     CLIENTE_PADRAO_CONSUMIDOR_FINAL,
@@ -75,6 +78,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     btnAtalhoF2: Any
     btnAtalhoF3: Any
     btnAtalhoF7: Any
+    btnAtalhoF8: Any
+    btnAtalhoF9: Any
     btnAtalhoF10: Any
     btnAlterarCliente: Any
     btnFecharVenda: Any
@@ -174,6 +179,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             Qt.Key_F5: self._cancelar_item_selecionado,
             Qt.Key_F6: self._cancelar_venda,
             Qt.Key_F7: self._abrir_consulta_preco,
+            Qt.Key_F8: self._salvar_pre_venda,
+            Qt.Key_F9: self._importar_pre_venda,
             Qt.Key_F10: self._abrir_desconto,
         }
         acao = mapa.get(Qt.Key(key_event.key()))
@@ -242,6 +249,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.btnAtalhoF2.clicked.connect(self._abrir_consulta_produto)
         self.btnAtalhoF3.clicked.connect(self._ajustar_quantidade_item)
         self.btnAtalhoF7.clicked.connect(self._abrir_consulta_preco)
+        self.btnAtalhoF8.clicked.connect(self._salvar_pre_venda)
+        self.btnAtalhoF9.clicked.connect(self._importar_pre_venda)
         self.btnAtalhoF10.clicked.connect(self._abrir_desconto)
         self.btnAlterarCliente.clicked.connect(self._alterar_cliente)
         self.btnFecharVenda.clicked.connect(self._abrir_confirmacao_venda)
@@ -818,3 +827,91 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             "Selecione o cliente da venda antes de continuar.",
         )
         return self._alterar_cliente()
+
+    def _salvar_pre_venda(self) -> None:
+        if not self._itens_venda:
+            mostrar_aviso(
+                self,
+                "Pré-Venda",
+                "Adicione pelo menos um item antes de salvar a pré-venda.",
+            )
+            return
+
+        caixa = CaixaSession.current() or {}
+        caixa_id = int(caixa.get("id") or 0)
+        if caixa_id <= 0:
+            mostrar_aviso(
+                self,
+                "Pré-Venda",
+                "Não há caixa aberto para salvar a pré-venda.",
+            )
+            return
+
+        from core.session_manager import SessionManager
+        usuario = SessionManager.current_user() or {}
+        usuario_id = int(usuario.get("id") or 0)
+
+        cliente_id = None
+        if self._cliente_atual:
+            cliente_id = int(self._cliente_atual.get("id") or 0) or None
+
+        valor_total = total_geral(self._itens_venda, self._desconto_global_valor)
+        desconto_itens = desconto_itens_total(self._itens_venda)
+
+        sucesso, mensagem, pre_venda_id = PreVendaService.salvar_pre_venda(
+            usuario_id=usuario_id,
+            caixa_id=caixa_id,
+            cliente_id=cliente_id,
+            itens=list(self._itens_venda),
+            desconto_global=self._desconto_global_valor,
+            desconto_itens=desconto_itens,
+            desconto_total=self._desconto_global_valor + desconto_itens,
+            valor_total=valor_total,
+        )
+
+        if sucesso:
+            mostrar_info(self, "Pré-Venda", mensagem)
+            self._cancelar_venda()
+        else:
+            mostrar_aviso(self, "Pré-Venda", mensagem)
+
+    def _importar_pre_venda(self) -> None:
+        dialog = ImportarPreVendaDialog(self)
+        if dialog.exec_() != QDialog.Accepted or not dialog.resultado:
+            return
+
+        pv = dialog.resultado
+        itens = pv.get("itens") or []
+        if not itens:
+            mostrar_aviso(
+                self,
+                "Importar Pré-Venda",
+                "Esta pré-venda não contém itens válidos.",
+            )
+            return
+
+        self._itens_venda = list(itens)
+        self._desconto_global_valor = float(pv.get("desconto_global") or 0.0)
+
+        cliente_id = pv.get("cliente_id")
+        if cliente_id:
+            self._cliente_atual = {
+                "id": cliente_id,
+                "nome": pv.get("cliente_nome") or "Consumidor Final",
+            }
+            self._cliente_selecionado_manualmente = True
+            self.lblClienteNome.setText(
+                pv.get("cliente_nome") or "Consumidor Final"
+            )
+
+        self._renderizar_cupom()
+
+        pre_venda_id = pv.get("id")
+        if pre_venda_id:
+            PreVendaService.marcar_importada(pre_venda_id, 0)
+
+        mostrar_info(
+            self,
+            "Importar Pré-Venda",
+            f"Pré-venda importada com sucesso.",
+        )

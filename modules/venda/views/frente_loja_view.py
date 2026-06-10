@@ -14,6 +14,7 @@ from modules.venda.views.modal_consulta_produto_view import ModalConsultaProduto
 from modules.venda.views.movimentacao_caixa_view import MovimentacaoCaixaView
 from modules.venda.views.pagamento_view import PagamentoView
 from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
+from modules.venda.views.pre_vendas_view import PreVendasView
 from modules.venda.views.resumo_caixa_atual_dialog import ResumoCaixaAtualDialog
 from ui.venda.frente_loja import Ui_FrenteLoja
 from utils.ui_messages import mostrar_aviso, mostrar_info
@@ -34,6 +35,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
     btnNavMovimentacao: QPushButton
     btnNavFechamento: QPushButton
     stackedContent: QStackedWidget
+    pre_vendas_view: PreVendasView | None
 
     def __init__(self, parent=None, *, admin_view=None):
         super().__init__(parent)
@@ -70,7 +72,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
         self.btnSairLoja.clicked.connect(self._voltar_para_selecao)
         self.btnNavAbertura.clicked.connect(self._mostrar_abertura_caixa)
         self.btnNavVendas.clicked.connect(self._mostrar_frente_venda)
-        self.btnNavPreVenda.clicked.connect(lambda: self._selecionar_secao("PRE-VENDA"))
+        self.btnNavPreVenda.clicked.connect(self._mostrar_pre_vendas)
         self.btnNavConsulta.clicked.connect(self._mostrar_consulta_produto)
         self.btnNavMovimentacao.clicked.connect(self._mostrar_movimentacao_caixa)
         self.btnNavFechamento.clicked.connect(self._mostrar_fechamento_caixa)
@@ -206,6 +208,20 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             titulo="VENDAS",
         )
 
+    def _mostrar_pre_vendas(self) -> None:
+        self.pre_vendas_view = self._obter_ou_criar_widget_fluxo(
+            "pre_vendas_view",
+            PreVendasView,
+            signal_name="pre_venda_importada",
+            handler=self._on_pre_venda_importada,
+        )
+
+        self._mostrar_widget_fluxo(
+            widget=self.pre_vendas_view,
+            botao_ativo=self.btnNavPreVenda,
+            titulo="PRE-VENDAS",
+        )
+
     def _mostrar_consulta_produto(self) -> None:
         self._atualizar_menu_lateral(self.btnNavConsulta)
         self.lblSecaoPrincipal.setText("VENDAS")
@@ -277,6 +293,7 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             "pagamento_view",
             "movimentacao_caixa_view",
             "fechamento_caixa_view",
+            "pre_vendas_view",
         )
         self.stackedContent.setCurrentIndex(0)
         self.lblSecaoPrincipal.setText("VENDAS")
@@ -312,6 +329,25 @@ class FrenteLojaView(QMainWindow, Ui_FrenteLoja):
             f"Venda n° {venda_registrada.get('numero_venda')} finalizada com sucesso.\n"
             "Selecione o próximo fluxo operacional."
         )
+
+    def _on_pre_venda_importada(self, dados_venda: dict) -> None:
+        self._mostrar_frente_venda()
+        if self.frente_venda_view is not None:
+            self.frente_venda_view._itens_venda = list(dados_venda.get("itens") or [])
+            cliente_id = dados_venda.get("cliente_id")
+            if cliente_id:
+                self.frente_venda_view._cliente_atual = {
+                    "id": cliente_id,
+                    "nome": dados_venda.get("cliente_nome") or "Consumidor Final",
+                }
+                self.frente_venda_view.lblClienteNome.setText(
+                    dados_venda.get("cliente_nome") or "Consumidor Final"
+                )
+            self.frente_venda_view._desconto_global_valor = float(
+                dados_venda.get("desconto_global") or 0.0
+            )
+            self.frente_venda_view._renderizar_cupom()
+            self.frente_venda_view._atualizar_resumo()
 
     def _reiniciar_fluxo_venda(self) -> None:
         self._descartar_widget_fluxo("frente_venda_view")

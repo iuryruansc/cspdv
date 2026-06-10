@@ -62,6 +62,10 @@ STATUS_PROMOCAO_EDITAVEL = (
     STATUS_PROMOCAO_ATIVA,
 )
 
+STATUS_PRE_VENDA_PENDENTE = "PENDENTE"
+STATUS_PRE_VENDA_IMPORTADA = "IMPORTADA"
+STATUS_PRE_VENDA_CANCELADA = "CANCELADA"
+
 
 def flag_ativa(valor: object, *, default: str = FLAG_NAO) -> bool:
     return str(valor or default).strip().upper() == FLAG_SIM

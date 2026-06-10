@@ -5,7 +5,7 @@ from PyQt5 import QtCore, QtWidgets
 class Ui_ConfirmarFechamentoCaixaDialog(object):
     def setupUi(self, ConfirmarFechamentoCaixaDialog):
         ConfirmarFechamentoCaixaDialog.setObjectName("ConfirmarFechamentoCaixaDialog")
-        ConfirmarFechamentoCaixaDialog.resize(460, 260)
+        ConfirmarFechamentoCaixaDialog.resize(460, 200)
         ConfirmarFechamentoCaixaDialog.setStyleSheet(
             """
             QDialog {
@@ -61,37 +61,6 @@ class Ui_ConfirmarFechamentoCaixaDialog(object):
         self.lblTitulo.setStyleSheet("font-size: 15px; font-weight: bold; color: #163a59;")
         self.verticalLayout.addWidget(self.lblTitulo)
 
-        self.summaryCard = QtWidgets.QFrame(ConfirmarFechamentoCaixaDialog)
-        self.summaryCard.setObjectName("summaryCard")
-        self.summaryLayout = QtWidgets.QVBoxLayout(self.summaryCard)
-        self.summaryLayout.setContentsMargins(16, 14, 16, 14)
-        self.summaryLayout.setSpacing(10)
-
-        self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setContentsMargins(0, 0, 0, 0)
-        self.formLayout.setHorizontalSpacing(22)
-        self.formLayout.setVerticalSpacing(10)
-
-        self.lblTotal = QtWidgets.QLabel(self.summaryCard)
-        self.lblTotal.setStyleSheet("color: #5f7891; font-size: 12px; font-weight: bold;")
-        self.valueTotal = QtWidgets.QLabel(self.summaryCard)
-        self.valueTotal.setStyleSheet("color: #17324d; font-size: 13px; font-weight: bold;")
-        self.formLayout.addRow(self.lblTotal, self.valueTotal)
-
-        self.lblContado = QtWidgets.QLabel(self.summaryCard)
-        self.lblContado.setStyleSheet("color: #5f7891; font-size: 12px; font-weight: bold;")
-        self.valueContado = QtWidgets.QLabel(self.summaryCard)
-        self.valueContado.setStyleSheet("color: #17324d; font-size: 13px; font-weight: bold;")
-        self.formLayout.addRow(self.lblContado, self.valueContado)
-
-        self.lblDiferenca = QtWidgets.QLabel(self.summaryCard)
-        self.lblDiferenca.setStyleSheet("color: #5f7891; font-size: 12px; font-weight: bold;")
-        self.valueDiferenca = QtWidgets.QLabel(self.summaryCard)
-        self.formLayout.addRow(self.lblDiferenca, self.valueDiferenca)
-
-        self.summaryLayout.addLayout(self.formLayout)
-        self.verticalLayout.addWidget(self.summaryCard)
-
         self.lblAviso = QtWidgets.QLabel(ConfirmarFechamentoCaixaDialog)
         self.lblAviso.setWordWrap(True)
         self.lblAviso.setObjectName("lblAviso")
@@ -119,9 +88,6 @@ class Ui_ConfirmarFechamentoCaixaDialog(object):
         _translate = QtCore.QCoreApplication.translate
         ConfirmarFechamentoCaixaDialog.setWindowTitle(_translate("ConfirmarFechamentoCaixaDialog", "Confirmar Fechamento"))
         self.lblTitulo.setText(_translate("ConfirmarFechamentoCaixaDialog", "Confirme os dados do fechamento do caixa"))
-        self.lblTotal.setText(_translate("ConfirmarFechamentoCaixaDialog", "Total esperado:"))
-        self.lblContado.setText(_translate("ConfirmarFechamentoCaixaDialog", "Valor contado:"))
-        self.lblDiferenca.setText(_translate("ConfirmarFechamentoCaixaDialog", "Diferenca:"))
         self.lineSenhaAdmin.setPlaceholderText(_translate("ConfirmarFechamentoCaixaDialog", "Senha do administrador"))
         self.btnCancelar.setText(_translate("ConfirmarFechamentoCaixaDialog", "Cancelar"))
         self.btnConfirmar.setText(_translate("ConfirmarFechamentoCaixaDialog", "Confirmar fechamento"))

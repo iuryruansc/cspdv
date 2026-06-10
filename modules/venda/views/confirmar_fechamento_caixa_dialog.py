@@ -11,9 +11,9 @@ class ConfirmarFechamentoCaixaDialog(QDialog, Ui_ConfirmarFechamentoCaixaDialog)
     def __init__(
         self,
         *,
-        total_esperado: float,
-        valor_contado: float,
-        diferenca: float,
+        total_esperado: float = 0.0,
+        valor_contado: float = 0.0,
+        diferenca: float = 0.0,
         exigir_admin_diferenca: bool = True,
         parent=None,
     ):
@@ -23,11 +23,6 @@ class ConfirmarFechamentoCaixaDialog(QDialog, Ui_ConfirmarFechamentoCaixaDialog)
         self._diferenca = diferenca
         self._exigir_admin_diferenca = exigir_admin_diferenca
         self.admin_password = ""
-        cor = "#2f9e44" if abs(diferenca) < 0.009 else "#d94841"
-        self.valueTotal.setText(self._formatar_moeda(total_esperado))
-        self.valueContado.setText(self._formatar_moeda(valor_contado))
-        self.valueDiferenca.setText(self._formatar_moeda(diferenca))
-        self.valueDiferenca.setStyleSheet(f"color: {cor}; font-size: 15px; font-weight: bold;")
         self.lineSenhaAdmin.setEchoMode(self.lineSenhaAdmin.Password)
         self.btnConfirmar.setDefault(True)
         self.btnCancelar.clicked.connect(self.reject)
