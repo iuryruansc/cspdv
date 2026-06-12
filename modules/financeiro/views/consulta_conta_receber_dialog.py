@@ -47,7 +47,16 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         conta_aberta = str(conta.get("status") or "").upper() in STATUS_CONTA_ABERTAS and aberto > Decimal("0.00")
         self.btnReceberAgora.setVisible(conta_aberta)
         self.btnReceberAgora.setEnabled(conta_aberta)
+        self._fill_itens(self._detalhes.get("itens_venda") or [])
         self._fill_recebimentos(self._detalhes.get("recebimentos") or [])
+
+    def _fill_itens(self, itens: List[Dict[str, Any]]) -> None:
+        self.tableItens.setRowCount(len(itens))
+        for row, item in enumerate(itens):
+            set_table_item(self.tableItens, row, 0, str(item.get("codigo_barras") or "-"), alignment=Qt.AlignCenter)
+            set_table_item(self.tableItens, row, 1, str(item.get("produto") or "-"))
+            set_table_item(self.tableItens, row, 2, str(int(item.get("quantidade") or 0)), alignment=Qt.AlignCenter)
+            set_table_item(self.tableItens, row, 3, formatar_moeda(item.get("total_item")), alignment=Qt.AlignRight | Qt.AlignVCenter)
 
     def _fill_recebimentos(self, recebimentos: List[Dict[str, Any]]) -> None:
         self.tableRecebimentos.setRowCount(len(recebimentos))

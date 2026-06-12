@@ -53,6 +53,7 @@ class VendaService:
         caixa_id = int(caixa.get("id") or 0)
         itens = list(venda_data.get("itens") or [])
         pagamentos = list(venda_data.get("pagamentos") or [])
+        venda_com_pendencia = bool(venda_data.get("finalizar_com_pendencia"))
 
         if usuario_id <= 0 or funcionario_id <= 0:
             return False, "Não foi possível identificar o operador da venda.", None
@@ -60,7 +61,7 @@ class VendaService:
             return False, "Não há caixa aberto para registrar a venda.", None
         if not itens:
             return False, "Adicione pelo menos um item antes de finalizar a venda.", None
-        if not pagamentos:
+        if not pagamentos and not venda_com_pendencia:
             return False, "Lance pelo menos um pagamento antes de finalizar a venda.", None
 
         ok_itens, mensagem_itens, itens_validos = VendaService._normalizar_itens(itens)
@@ -79,7 +80,6 @@ class VendaService:
         cliente_eh_consumidor_final = bool(venda_data.get("cliente_eh_consumidor_final"))
         valor_total = float(venda_data.get("total") or 0.0)
         desconto_global = float(venda_data.get("desconto_global") or 0.0)
-        venda_com_pendencia = bool(venda_data.get("finalizar_com_pendencia"))
         valor_pago = sum(float(item.get("valor") or 0.0) for item in pagamentos_validos)
         valor_em_aberto = float(venda_data.get("valor_em_aberto") or max(0.0, valor_total - valor_pago))
 

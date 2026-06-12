@@ -526,9 +526,31 @@ class FinanceiroModel:
             )
             recebimentos = list(cursor.fetchall())
             ultimo_recebimento = recebimentos[0]["data_recebimento"] if recebimentos else None
+
+            itens: list[Dict[str, Any]] = []
+            venda_id = conta.get("venda_id")
+            if venda_id:
+                cursor.execute(
+                    """
+                    SELECT
+                        COALESCE(pr.codigo_barras, '-') AS codigo_barras,
+                        COALESCE(pr.nome, '-') AS produto,
+                        iv.quantidade,
+                        iv.preco_unitario,
+                        (iv.quantidade * iv.preco_unitario) AS total_item
+                    FROM itens_venda iv
+                    LEFT JOIN produtos pr ON pr.id = iv.produto_id
+                    WHERE iv.venda_id = %s
+                    ORDER BY iv.id
+                    """,
+                    (int(venda_id),),
+                )
+                itens = list(cursor.fetchall())
+
             return {
                 "conta": conta,
                 "recebimentos": recebimentos,
+                "itens_venda": itens,
                 "resumo": {
                     "quantidade_recebimentos": len(recebimentos),
                     "ultimo_recebimento": ultimo_recebimento,

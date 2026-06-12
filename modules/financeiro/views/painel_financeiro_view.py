@@ -74,6 +74,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._carregar_painel()
 
     def _configurar_tabelas(self) -> None:
+        self.tablePagamentos.cellDoubleClicked.connect(self._consultar_venda)
         self.tableContasReceber.cellDoubleClicked.connect(self._abrir_detalhe_conta)
         self.tablePagamentos.itemSelectionChanged.connect(self._atualizar_contexto_selecao)
         self.tableContasReceber.itemSelectionChanged.connect(self._atualizar_contexto_selecao)

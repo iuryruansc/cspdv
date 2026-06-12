@@ -81,6 +81,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._frame_parcelas: Optional[QFrame] = None
         self._spin_parcelas: Optional[QSpinBox] = None
         self._lbl_parcela_info: Optional[QLabel] = None
+        self._cents = 0
         self._timer = QTimer(self)
         self._timer.setInterval(1000)
         self._timer.timeout.connect(self._atualizar_data_hora)
@@ -104,7 +105,8 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self.lblValorTotalValor.setText(formatar_moeda(total))
         self.lblDescontosValor.setText(formatar_moeda(descontos))
         self.tableFormasPagamento.setRowCount(0)
-        self.lineEditValor.setText("")
+        self._cents = 0
+        self._atualizar_display_valor()
         self._atualizar_resumo()
 
     def _configurar_interface(self) -> None:
@@ -164,7 +166,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             self._lbl_parcela_info.setText("")
             return
 
-        valor = numero_decimal(self.lineEditValor.text())
+        valor = self._cents / 100
         parcelas = self._spin_parcelas.value()
 
         if valor <= 0:
@@ -302,30 +304,34 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             self._frame_parcelas.hide()
 
     def _inserir_valor(self, trecho: str) -> None:
-        texto = self.lineEditValor.text().strip()
         if trecho == ",":
-            if "," in texto:
-                return
-            self.lineEditValor.setText((texto or "0") + ",")
             return
-        self.lineEditValor.setText(texto + trecho)
+        if not trecho.isdigit():
+            return
+        if self._cents >= 10000000:
+            return
+        self._cents = self._cents * 10 + int(trecho)
+        self._atualizar_display_valor()
+
+    def _atualizar_display_valor(self) -> None:
+        valor = self._cents / 100
+        self.lineEditValor.setText(f"{valor:.2f}".replace(".", ","))
 
     def _limpar_valor(self) -> None:
-        #self.lineEditValor.clear()
-        textoatual = self.lineEditValor.text().strip()
-        textonovo = textoatual[:-1]
-        self.lineEditValor.setText(textonovo)
+        self._cents = self._cents // 10
+        self._atualizar_display_valor()
 
     def _usar_pagamento_exato(self) -> None:
         restante = self._valor_restante()
-        self.lineEditValor.setText(f"{restante:.2f}".replace(".", ","))
+        self._cents = int(round(restante * 100))
+        self._atualizar_display_valor()
 
     def _lancar_pagamento(self) -> None:
         if not self._forma_selecionada:
             mostrar_info(self, "Forma de pagamento", "Nenhuma forma de pagamento ativa está disponível para lançamento.")
             return
 
-        valor = numero_decimal(self.lineEditValor.text())
+        valor = self._cents / 100
         if valor <= 0:
             mostrar_info(self, "Valor inválido", "Informe um valor maior que zero para lançar o pagamento.")
             return
@@ -346,7 +352,8 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             pagamento["valor_parcela"] = valor_parcela
 
         self._pagamentos.append(pagamento)
-        self.lineEditValor.clear()
+        self._cents = 0
+        self._atualizar_display_valor()
         if self._spin_parcelas:
             self._spin_parcelas.setValue(1)
         self._renderizar_pagamentos()
