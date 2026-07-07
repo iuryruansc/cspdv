@@ -436,7 +436,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="mainHLayout" stretch="6,3,3">
+    <layout class="QHBoxLayout" name="mainHLayout" stretch="7,2,3">
      <property name="spacing">
       <number>10</number>
      </property>
@@ -546,7 +546,7 @@
            <bool>true</bool>
           </attribute>
           <attribute name="verticalHeaderDefaultSectionSize">
-           <number>24</number>
+           <number>25</number>
           </attribute>
           <attribute name="verticalHeaderHighlightSections">
            <bool>true</bool>

@@ -117,6 +117,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._configurar_venda_inicial()
         self._atualizar_data_hora()
         self._relogio_timer.start()
+        self.tableCupom.setWordWrap(True) #alteração para quebra automática de linha na coluna nome do produto
         app = QApplication.instance()
         if app is not None:
             app.installEventFilter(self)
@@ -547,7 +548,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def _sincronizar_item_alterado(self, row: int) -> None:
         self._selecionar_item_cupom(row)
         self._renderizar_cupom()
-        self.tableCupom.selectRow(row)
+        self.tableCupom.selectRow(row)  #alteração
+        self.tableCupom.resizeRowsToContents()
 
     def _limpar_selecao_cupom(self) -> None:
         self.tableCupom.blockSignals(True)
@@ -580,6 +582,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
                 if col in (2, 3, 4, 5):
                     table_item.setTextAlignment(int(Qt.AlignRight | Qt.AlignVCenter))
                 self.tableCupom.setItem(row, col, table_item)
+                self.tableCupom.resizeRowsToContents() #alteração para ajustar a altura das linhas com base no conteúdo
 
         desconto_itens = desconto_itens_total(self._itens_venda)
         total_itens = quantidade_total_itens(self._itens_venda)

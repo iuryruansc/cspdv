@@ -159,7 +159,7 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
         self.tableResumoItens.horizontalHeader().setStretchLastSection(True)
         self.tableResumoItens.setAlternatingRowColors(True)
         self.tableResumoItens.setHorizontalHeaderLabels(
-            ["Código", "Descrição", "Qtd.", "Vl. Unit.", "Subtotal"]
+            ["Código", "Descrição", "Qtd.", "Vl. Unit.", "Desconto", "Subtotal"]
         )
 
     def _popular_dados(self) -> None:
@@ -185,6 +185,7 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
                 str(item.get("nome") or ""),
                 formatar_inteiro(item.get("quantidade") or 0),
                 formatar_decimal(item.get("preco_venda") or 0.0),
+                formatar_decimal(item.get("desconto") or 0.0),
                 formatar_decimal(item.get("total") or 0.0),
             )
             for col, valor in enumerate(valores):
@@ -193,7 +194,7 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
                     row,
                     col,
                     valor,
-                    alignment=Qt.AlignRight | Qt.AlignVCenter if col in (2, 3, 4) else Qt.AlignLeft | Qt.AlignVCenter,
+                    alignment=Qt.AlignRight | Qt.AlignVCenter if col in (2, 3, 4, 5) else Qt.AlignLeft | Qt.AlignVCenter,
                 )
 
     @staticmethod
