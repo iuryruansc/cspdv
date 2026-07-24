@@ -50,7 +50,7 @@ class DashboardAdminModel:
             )
             resumo = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
             vendas_hoje = int(resumo.get("vendas_hoje") or 0)
-            faturamento_dia = Decimal(str(resumo.get("faturamento_dia") or 0))
+            faturamento_dia = Decimal(str(resumo.get("faturamento_dia") or 0)) - Decimal(str(reembolsos_dia or 0))
             ultimas_vendas = DashboardAdminModel._buscar_ultimas_vendas(cursor)
 
             return {

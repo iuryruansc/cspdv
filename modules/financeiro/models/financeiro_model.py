@@ -193,8 +193,8 @@ class FinanceiroModel:
                 saldo_atual -= FinanceiroModel._somar_movimentacao_caixa(cursor, caixa_id, ("sangria",))
                 saldo_atual -= FinanceiroModel._somar_reembolsos_caixa(cursor, caixa_id)
 
-            total_entradas = Decimal(recebimentos.get("total") or 0) + Decimal(entradas_manuais.get("total") or 0)
-            total_saidas = Decimal(sangrias.get("total") or 0) + Decimal(reembolsos.get("total") or 0)
+            total_entradas = Decimal(recebimentos.get("total") or 0) + Decimal(entradas_manuais.get("total") or 0) - Decimal(reembolsos.get("total") or 0)
+            total_saidas = Decimal(sangrias.get("total") or 0)
 
             return {
                 "saldo_atual_caixa": saldo_atual,
@@ -815,7 +815,7 @@ class FinanceiroModel:
                 """,
                 (FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO, int(venda_id)),
             )
-            itens = list(cursor.fetchall())
+            itens = [dict(item) for item in cursor.fetchall()]
             for item in itens:
                 quantidade = int(item.get("quantidade") or 0)
                 quantidade_reembolsada = int(item.get("quantidade_reembolsada") or 0)
@@ -920,12 +920,14 @@ class FinanceiroModel:
     def _somar_reembolsos_caixa(cursor: Any, caixa_id: int) -> Decimal:
         cursor.execute(
             """
-            SELECT COALESCE(SUM(vr.valor_total), 0) AS total
+            SELECT COALESCE(SUM(vrp.valor), 0) AS total
             FROM venda_reembolsos vr
             INNER JOIN vendas v ON v.id = vr.venda_id
+            INNER JOIN venda_reembolso_pagamentos vrp ON vrp.reembolso_id = vr.id
             WHERE v.caixa_id = %s
               AND vr.ativo = %s
               AND vr.status = %s
+              AND LOWER(TRIM(vrp.forma_pagamento)) = 'dinheiro'
             """,
             (caixa_id, FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
