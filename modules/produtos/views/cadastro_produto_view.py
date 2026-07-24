@@ -288,9 +288,6 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         quantidade_texto = self.lineEditQuantidadeEstoque.text().replace(",", ".")
 
         erros = []
-        if not cod_produto:
-            erros.append("Código: informe o código do fabricante.")
-            self.marcar_invalido(self.lineEditCodigo)
         if not nome:
             erros.append("Descrição do Produto: preencha o nome do produto.")
             self.marcar_invalido(self.lineEditDescricao)

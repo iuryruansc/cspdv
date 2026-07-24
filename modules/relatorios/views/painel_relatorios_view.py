@@ -77,6 +77,8 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
         self.chipsFrame.setVisible(index != 0)
         self.framePeriodoFiltro.setVisible(index != 0)
         self.stackedContent.setCurrentIndex(index)
+        if index != 0:
+            self.chipsFrame.updateGeometry()
         self._gerar_relatorio()
 
     def _configurar_tabelas(self) -> None:

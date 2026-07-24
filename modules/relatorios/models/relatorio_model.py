@@ -145,7 +145,7 @@ class RelatorioModel:
                     SELECT
                         vri.produto_id,
                         SUM(vri.quantidade) AS qtd_reembolso,
-                        SUM(vri.quantidade * vri.preco_unitario) AS receita_reembolso
+                        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
                     FROM venda_reembolso_itens vri
                     INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
                     WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
@@ -154,7 +154,7 @@ class RelatorioModel:
                 ) reemb ON reemb.produto_id = iv.produto_id
                 WHERE v.data_hora >= %s AND v.data_hora < %s
                   AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY pr.nome
+                GROUP BY iv.produto_id, pr.nome
                 HAVING quantidade > 0
                 ORDER BY quantidade DESC
                 LIMIT 10
@@ -269,7 +269,7 @@ class RelatorioModel:
                     SELECT
                         vri.produto_id,
                         SUM(vri.quantidade) AS qtd_reembolso,
-                        SUM(vri.quantidade * vri.preco_unitario) AS receita_reembolso
+                        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
                     FROM venda_reembolso_itens vri
                     INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
                     WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
@@ -278,10 +278,10 @@ class RelatorioModel:
                 ) reemb ON reemb.produto_id = iv.produto_id
                 WHERE v.data_hora >= %s AND v.data_hora < %s
                   AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY pr.nome
+                GROUP BY iv.produto_id, pr.nome
                 HAVING quantidade > 0
                 ORDER BY quantidade DESC
-                LIMIT 15
+                LIMIT 10
                 """,
                 (inicio, fim, inicio, fim),
             )
@@ -466,7 +466,7 @@ class RelatorioModel:
                     SELECT
                         vri.produto_id,
                         SUM(vri.quantidade) AS qtd_reembolso,
-                        SUM(vri.quantidade * vri.preco_unitario) AS receita_reembolso
+                        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
                     FROM venda_reembolso_itens vri
                     INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
                     WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
@@ -475,7 +475,7 @@ class RelatorioModel:
                 ) reemb ON reemb.produto_id = iv.produto_id
                 WHERE v.data_hora >= %s AND v.data_hora < %s
                   AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY pr.nome
+                GROUP BY iv.produto_id, pr.nome
                 HAVING quantidade > 0
                 ORDER BY quantidade DESC
                 LIMIT 10

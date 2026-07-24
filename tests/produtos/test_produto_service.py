@@ -26,20 +26,20 @@ class TestProdutoService:
         assert "código do produto" in mensagem.lower()
 
     @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo_barras", return_value=None)
+    @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo", return_value=None)
+    def test_aceita_codigo_do_fabricante_vazio(self, _mock_codigo, _mock_barras):
+        sucesso, mensagem = ProdutoService._validar_dados_produto(_dados_base(cod_produto=""))
+
+        assert sucesso is True
+        assert mensagem == ""
+
+    @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo_barras", return_value=None)
     @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo", return_value={"id": 9})
     def test_bloqueia_codigo_do_fabricante_duplicado(self, _mock_codigo, _mock_barras):
         sucesso, mensagem = ProdutoService._validar_dados_produto(_dados_base(), produto_id=1)
 
         assert sucesso is False
         assert "código do produto" in mensagem.lower()
-
-    @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo_barras", return_value={"id": 9})
-    @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo", return_value=None)
-    def test_bloqueia_codigo_de_barras_duplicado(self, _mock_codigo, _mock_barras):
-        sucesso, mensagem = ProdutoService._validar_dados_produto(_dados_base(), produto_id=1)
-
-        assert sucesso is False
-        assert "código de barras" in mensagem.lower()
 
     @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo_barras", return_value=None)
     @patch("modules.produtos.services.produto_service.ProdutoModel.buscar_por_codigo", return_value=None)

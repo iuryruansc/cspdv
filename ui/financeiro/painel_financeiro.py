@@ -116,12 +116,15 @@ class Ui_PainelFinanceiro(object):
 "QPushButton:hover { background-color: #2b74b4; }\n"
 "QPushButton#btnConsultarVenda { background-color: #5b6f86; }\n"
 "QPushButton#btnConsultarVenda:hover { background-color: #4a5d73; }\n"
-"QPushButton#btnReceberPendencia { background-color: #f0a039; }\n"
-"QPushButton#btnReceberPendencia:hover { background-color: #de8b22; }\n"
-"QPushButton#btnRegistrarReembolso { background-color: #d9534f; }\n"
-"QPushButton#btnRegistrarReembolso:hover { background-color: #c64542; }\n"
-"QPushButton#btnRegistrarMovimento { background-color: #5cb85c; }\n"
-"QPushButton#btnRegistrarMovimento:hover { background-color: #4aa14a; }\n"
+"QToolButton {\n"
+" background-color: #6c7ea0; color: white; border: none; border-radius: 4px;\n"
+" padding: 6px 12px; font-size: 11px; font-weight: bold; min-height: 34px;\n"
+"}\n"
+"QToolButton:hover { background-color: #5a6d80; }\n"
+"QToolButton::menu-indicator { image: none; width: 0; }\n"
+"QMenu { background-color: white; border: 1px solid #b8cde0; border-radius: 4px; padding: 4px 0; }\n"
+"QMenu::item { padding: 8px 24px; font-size: 12px; color: #24415e; }\n"
+"QMenu::item:selected { background-color: #dbeafe; color: #1a3a5c; }\n"
 "       ")
         self.frameToolbar.setObjectName("frameToolbar")
         self.toolbarLayout = QtWidgets.QVBoxLayout(self.frameToolbar)
@@ -195,34 +198,58 @@ class Ui_PainelFinanceiro(object):
         self.toolbarAcoesLayout.setContentsMargins(10, 8, 10, 8)
         self.toolbarAcoesLayout.setSpacing(8)
         self.toolbarAcoesLayout.setObjectName("toolbarAcoesLayout")
-        self.btnAtualizar = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnAtualizar.setMinimumWidth(84)
-        self.btnAtualizar.setObjectName("btnAtualizar")
-        self.toolbarAcoesLayout.addWidget(self.btnAtualizar)
-        self.btnConsultarVenda = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnConsultarVenda.setMinimumWidth(114)
-        self.btnConsultarVenda.setObjectName("btnConsultarVenda")
-        self.toolbarAcoesLayout.addWidget(self.btnConsultarVenda)
-        self.btnReceberPendencia = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnReceberPendencia.setMinimumWidth(132)
-        self.btnReceberPendencia.setObjectName("btnReceberPendencia")
-        self.toolbarAcoesLayout.addWidget(self.btnReceberPendencia)
-        self.btnRegistrarReembolso = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnRegistrarReembolso.setMinimumWidth(120)
-        self.btnRegistrarReembolso.setObjectName("btnRegistrarReembolso")
-        self.toolbarAcoesLayout.addWidget(self.btnRegistrarReembolso)
-        self.btnAbrirCaixa = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnAbrirCaixa.setMinimumWidth(96)
-        self.btnAbrirCaixa.setObjectName("btnAbrirCaixa")
-        self.toolbarAcoesLayout.addWidget(self.btnAbrirCaixa)
-        self.btnFecharCaixa = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnFecharCaixa.setMinimumWidth(96)
-        self.btnFecharCaixa.setObjectName("btnFecharCaixa")
-        self.toolbarAcoesLayout.addWidget(self.btnFecharCaixa)
-        self.btnRegistrarMovimento = QtWidgets.QPushButton(self.frameToolbar)
-        self.btnRegistrarMovimento.setMinimumWidth(142)
-        self.btnRegistrarMovimento.setObjectName("btnRegistrarMovimento")
-        self.toolbarAcoesLayout.addWidget(self.btnRegistrarMovimento)
+
+        self.btnOperacoes = QtWidgets.QToolButton(self.frameToolbar)
+        self.btnOperacoes.setMinimumWidth(110)
+        self.btnOperacoes.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.btnOperacoes.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.btnOperacoes.setObjectName("btnOperacoes")
+        self.menuOperacoes = QtWidgets.QMenu(self.btnOperacoes)
+        self.menuOperacoes.setObjectName("menuOperacoes")
+        self.btnOperacoes.setMenu(self.menuOperacoes)
+        self.actionAtualizar = QtWidgets.QAction(self.menuOperacoes)
+        self.actionAtualizar.setObjectName("actionAtualizar")
+        self.menuOperacoes.addAction(self.actionAtualizar)
+        self.actionConsultarVenda = QtWidgets.QAction(self.menuOperacoes)
+        self.actionConsultarVenda.setObjectName("actionConsultarVenda")
+        self.menuOperacoes.addAction(self.actionConsultarVenda)
+        self.toolbarAcoesLayout.addWidget(self.btnOperacoes)
+
+        self.btnCaixa = QtWidgets.QToolButton(self.frameToolbar)
+        self.btnCaixa.setMinimumWidth(100)
+        self.btnCaixa.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.btnCaixa.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.btnCaixa.setObjectName("btnCaixa")
+        self.menuCaixa = QtWidgets.QMenu(self.btnCaixa)
+        self.menuCaixa.setObjectName("menuCaixa")
+        self.btnCaixa.setMenu(self.menuCaixa)
+        self.actionAbrirCaixa = QtWidgets.QAction(self.menuCaixa)
+        self.actionAbrirCaixa.setObjectName("actionAbrirCaixa")
+        self.menuCaixa.addAction(self.actionAbrirCaixa)
+        self.actionFecharCaixa = QtWidgets.QAction(self.menuCaixa)
+        self.actionFecharCaixa.setObjectName("actionFecharCaixa")
+        self.menuCaixa.addAction(self.actionFecharCaixa)
+        self.toolbarAcoesLayout.addWidget(self.btnCaixa)
+
+        self.btnFinanceiro = QtWidgets.QToolButton(self.frameToolbar)
+        self.btnFinanceiro.setMinimumWidth(110)
+        self.btnFinanceiro.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        self.btnFinanceiro.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.btnFinanceiro.setObjectName("btnFinanceiro")
+        self.menuFinanceiro = QtWidgets.QMenu(self.btnFinanceiro)
+        self.menuFinanceiro.setObjectName("menuFinanceiro")
+        self.btnFinanceiro.setMenu(self.menuFinanceiro)
+        self.actionReceberPendencia = QtWidgets.QAction(self.menuFinanceiro)
+        self.actionReceberPendencia.setObjectName("actionReceberPendencia")
+        self.menuFinanceiro.addAction(self.actionReceberPendencia)
+        self.actionNovoReembolso = QtWidgets.QAction(self.menuFinanceiro)
+        self.actionNovoReembolso.setObjectName("actionNovoReembolso")
+        self.menuFinanceiro.addAction(self.actionNovoReembolso)
+        self.actionRegistrarMovimento = QtWidgets.QAction(self.menuFinanceiro)
+        self.actionRegistrarMovimento.setObjectName("actionRegistrarMovimento")
+        self.menuFinanceiro.addAction(self.actionRegistrarMovimento)
+        self.toolbarAcoesLayout.addWidget(self.btnFinanceiro)
+
         spacerItem3 = QtWidgets.QSpacerItem(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.toolbarAcoesLayout.addItem(spacerItem3)
         self.toolbarLayout.addWidget(self.frameToolbarActions)
@@ -292,7 +319,7 @@ class Ui_PainelFinanceiro(object):
         self.tablesLayout.setObjectName("tablesLayout")
         self.frameCaixaMovimentacoes = QtWidgets.QFrame(self.centralWidget)
         self.frameCaixaMovimentacoes.setStyleSheet("\n"
-"QFrame#frameCaixaMovimentacoes, QFrame#frameRecebimentos {\n"
+"QFrame#frameCaixaMovimentacoes {\n"
 " background-color: white;\n"
 " border: 1px solid #b8cde0;\n"
 " border-radius: 6px;\n"
@@ -304,28 +331,6 @@ class Ui_PainelFinanceiro(object):
 " font-weight: bold;\n"
 " padding: 8px 12px;\n"
 " border-bottom: 1px solid #d8e3ee;\n"
-"}\n"
-"QLabel#lblRecebimentosSection {\n"
-" background-color: #eef4fa;\n"
-" color: #415a77;\n"
-" border-bottom: 1px solid #d8e3ee;\n"
-" border-top-left-radius: 6px;\n"
-" border-top-right-radius: 6px;\n"
-"}\n"
-"QLabel#lblContasReceberSection {\n"
-" background-color: #fff4e5;\n"
-" color: #9a3412;\n"
-" font-size: 13px;\n"
-" font-weight: 800;\n"
-" padding: 9px 12px;\n"
-" border-top: 1px solid #f3d3a1;\n"
-" border-bottom: 1px solid #f3d3a1;\n"
-"}\n"
-"QLabel#lblReembolsosSection {\n"
-" background-color: #fef0f0;\n"
-" color: #991b1b;\n"
-" border-top: 1px solid #f3c4c4;\n"
-" border-bottom: 1px solid #f3c4c4;\n"
 "}\n"
 "QTableWidget {\n"
 " border: none;\n"
@@ -379,24 +384,68 @@ class Ui_PainelFinanceiro(object):
         self.tableCaixaMovimentacoes.horizontalHeader().setStretchLastSection(True)
         self.frameCaixaMovimentacoesLayout.addWidget(self.tableCaixaMovimentacoes)
         self.tablesLayout.addWidget(self.frameCaixaMovimentacoes)
-        self.frameRecebimentos = QtWidgets.QFrame(self.centralWidget)
-        self.frameRecebimentos.setMinimumSize(QtCore.QSize(500, 0))
-        self.frameRecebimentos.setObjectName("frameRecebimentos")
-        self.frameRecebimentosLayout = QtWidgets.QVBoxLayout(self.frameRecebimentos)
-        self.frameRecebimentosLayout.setContentsMargins(8, 8, 8, 8)
-        self.frameRecebimentosLayout.setSpacing(8)
-        self.frameRecebimentosLayout.setObjectName("frameRecebimentosLayout")
-        self.lblRecebimentosSection = QtWidgets.QLabel(self.frameRecebimentos)
-        self.lblRecebimentosSection.setObjectName("lblRecebimentosSection")
-        self.frameRecebimentosLayout.addWidget(self.lblRecebimentosSection)
-        self.tablePagamentos = QtWidgets.QTableWidget(self.frameRecebimentos)
+        self.tabWidgetRight = QtWidgets.QTabWidget(self.centralWidget)
+        self.tabWidgetRight.setStyleSheet("\n"
+"QTabWidget::pane {\n"
+" border: 1px solid #b8cde0;\n"
+" border-radius: 6px;\n"
+" background-color: white;\n"
+"}\n"
+"QTabBar::tab {\n"
+" background-color: #eef5fb;\n"
+" color: #46627d;\n"
+" border: 1px solid #b8cde0;\n"
+" border-bottom: none;\n"
+" border-top-left-radius: 6px;\n"
+" border-top-right-radius: 6px;\n"
+" padding: 8px 24px;\n"
+" margin-right: 2px;\n"
+" font-size: 12px;\n"
+" font-weight: 600;\n"
+" min-width: 130px;\n"
+"}\n"
+"QTabBar::tab:selected {\n"
+" background-color: white;\n"
+" color: #1a3a5c;\n"
+" border-bottom: 2px solid #3585c8;\n"
+" font-weight: 800;\n"
+"}\n"
+"QTabBar::tab:hover:!selected {\n"
+" background-color: #dce8f4;\n"
+"}\n"
+"QTableWidget {\n"
+" border: none;\n"
+" background-color: white;\n"
+" gridline-color: #dce8f0;\n"
+" font-size: 12px;\n"
+" selection-background-color: #dbeafe;\n"
+" selection-color: #102a43;\n"
+"}\n"
+"QHeaderView::section {\n"
+" background-color: #f0f6fc;\n"
+" color: #1a3a5c;\n"
+" font-size: 11px;\n"
+" font-weight: bold;\n"
+" border: none;\n"
+" border-right: 1px solid #dce8f0;\n"
+" border-bottom: 2px solid #3585c8;\n"
+" padding: 5px 6px;\n"
+"}\n"
+"           ")
+        self.tabWidgetRight.setObjectName("tabWidgetRight")
+        self.tabVendas = QtWidgets.QWidget()
+        self.tabVendas.setObjectName("tabVendas")
+        self.tabVendasLayout = QtWidgets.QVBoxLayout(self.tabVendas)
+        self.tabVendasLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabVendasLayout.setSpacing(0)
+        self.tabVendasLayout.setObjectName("tabVendasLayout")
+        self.tablePagamentos = QtWidgets.QTableWidget(self.tabVendas)
         self.tablePagamentos.setRowCount(0)
         self.tablePagamentos.setColumnCount(5)
         self.tablePagamentos.setObjectName("tablePagamentos")
         self.tablePagamentos.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tablePagamentos.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tablePagamentos.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tablePagamentos.setMinimumHeight(150)
         item = QtWidgets.QTableWidgetItem()
         self.tablePagamentos.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
@@ -414,18 +463,21 @@ class Ui_PainelFinanceiro(object):
         self.tablePagamentos.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         self.tablePagamentos.horizontalHeader().setStretchLastSection(True)
         self.tablePagamentos.verticalHeader().setVisible(False)
-        self.frameRecebimentosLayout.addWidget(self.tablePagamentos)
-        self.lblContasReceberSection = QtWidgets.QLabel(self.frameRecebimentos)
-        self.lblContasReceberSection.setObjectName("lblContasReceberSection")
-        self.frameRecebimentosLayout.addWidget(self.lblContasReceberSection)
-        self.tableContasReceber = QtWidgets.QTableWidget(self.frameRecebimentos)
+        self.tabVendasLayout.addWidget(self.tablePagamentos)
+        self.tabWidgetRight.addTab(self.tabVendas, "")
+        self.tabContas = QtWidgets.QWidget()
+        self.tabContas.setObjectName("tabContas")
+        self.tabContasLayout = QtWidgets.QVBoxLayout(self.tabContas)
+        self.tabContasLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabContasLayout.setSpacing(0)
+        self.tabContasLayout.setObjectName("tabContasLayout")
+        self.tableContasReceber = QtWidgets.QTableWidget(self.tabContas)
         self.tableContasReceber.setRowCount(0)
         self.tableContasReceber.setColumnCount(5)
         self.tableContasReceber.setObjectName("tableContasReceber")
         self.tableContasReceber.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableContasReceber.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableContasReceber.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tableContasReceber.setMinimumHeight(300)
         item = QtWidgets.QTableWidgetItem()
         self.tableContasReceber.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
@@ -443,18 +495,21 @@ class Ui_PainelFinanceiro(object):
         self.tableContasReceber.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         self.tableContasReceber.horizontalHeader().setStretchLastSection(True)
         self.tableContasReceber.verticalHeader().setVisible(False)
-        self.frameRecebimentosLayout.addWidget(self.tableContasReceber)
-        self.lblReembolsosSection = QtWidgets.QLabel(self.frameRecebimentos)
-        self.lblReembolsosSection.setObjectName("lblReembolsosSection")
-        self.frameRecebimentosLayout.addWidget(self.lblReembolsosSection)
-        self.tableReembolsos = QtWidgets.QTableWidget(self.frameRecebimentos)
+        self.tabContasLayout.addWidget(self.tableContasReceber)
+        self.tabWidgetRight.addTab(self.tabContas, "")
+        self.tabReembolsos = QtWidgets.QWidget()
+        self.tabReembolsos.setObjectName("tabReembolsos")
+        self.tabReembolsosLayout = QtWidgets.QVBoxLayout(self.tabReembolsos)
+        self.tabReembolsosLayout.setContentsMargins(0, 0, 0, 0)
+        self.tabReembolsosLayout.setSpacing(0)
+        self.tabReembolsosLayout.setObjectName("tabReembolsosLayout")
+        self.tableReembolsos = QtWidgets.QTableWidget(self.tabReembolsos)
         self.tableReembolsos.setRowCount(0)
         self.tableReembolsos.setColumnCount(5)
         self.tableReembolsos.setObjectName("tableReembolsos")
         self.tableReembolsos.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableReembolsos.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableReembolsos.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
-        self.tableReembolsos.setMinimumHeight(140)
         item = QtWidgets.QTableWidgetItem()
         self.tableReembolsos.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
@@ -472,8 +527,9 @@ class Ui_PainelFinanceiro(object):
         self.tableReembolsos.horizontalHeader().setSectionResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         self.tableReembolsos.horizontalHeader().setStretchLastSection(True)
         self.tableReembolsos.verticalHeader().setVisible(False)
-        self.frameRecebimentosLayout.addWidget(self.tableReembolsos)
-        self.tablesLayout.addWidget(self.frameRecebimentos)
+        self.tabReembolsosLayout.addWidget(self.tableReembolsos)
+        self.tabWidgetRight.addTab(self.tabReembolsos, "")
+        self.tablesLayout.addWidget(self.tabWidgetRight)
         self.tablesLayout.setStretch(0, 6)
         self.tablesLayout.setStretch(1, 5)
         self.contentVLayout.addLayout(self.tablesLayout)
@@ -518,29 +574,32 @@ class Ui_PainelFinanceiro(object):
         self.lblPeriodoDe.setText(_translate("PainelFinanceiro", "De"))
         self.lblPeriodoAte.setProperty("filterLabel", _translate("PainelFinanceiro", "true"))
         self.lblPeriodoAte.setText(_translate("PainelFinanceiro", "Até"))
-        self.btnAtualizar.setText(_translate("PainelFinanceiro", "Atualizar"))
-        self.btnConsultarVenda.setText(_translate("PainelFinanceiro", "Consultar Venda"))
-        self.btnReceberPendencia.setText(_translate("PainelFinanceiro", "Receber Pendência"))
-        self.btnRegistrarReembolso.setText(_translate("PainelFinanceiro", "Novo Reembolso"))
-        self.btnAbrirCaixa.setText(_translate("PainelFinanceiro", "Abrir Caixa"))
-        self.btnFecharCaixa.setText(_translate("PainelFinanceiro", "Fechar Caixa"))
-        self.btnRegistrarMovimento.setText(_translate("PainelFinanceiro", "Registrar Movimentação"))
+        self.btnOperacoes.setText(_translate("PainelFinanceiro", "Operacoes  ▾"))
+        self.actionAtualizar.setText(_translate("PainelFinanceiro", "Atualizar"))
+        self.actionConsultarVenda.setText(_translate("PainelFinanceiro", "Consultar Venda"))
+        self.btnCaixa.setText(_translate("PainelFinanceiro", "Caixa  ▾"))
+        self.actionAbrirCaixa.setText(_translate("PainelFinanceiro", "Abrir Caixa"))
+        self.actionFecharCaixa.setText(_translate("PainelFinanceiro", "Fechar Caixa"))
+        self.btnFinanceiro.setText(_translate("PainelFinanceiro", "Financeiro  ▾"))
+        self.actionReceberPendencia.setText(_translate("PainelFinanceiro", "Receber Pendencia"))
+        self.actionNovoReembolso.setText(_translate("PainelFinanceiro", "Novo Reembolso"))
+        self.actionRegistrarMovimento.setText(_translate("PainelFinanceiro", "Registrar Movimentacao"))
         self.lblSaldoCaixaValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblSaldoCaixaValor.setText(_translate("PainelFinanceiro", "R$ 0,00"))
         self.lblSaldoCaixaTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
-        self.lblSaldoCaixaTitulo.setText(_translate("PainelFinanceiro", "Dinheiro em Caixas Abertos"))
+        self.lblSaldoCaixaTitulo.setText(_translate("PainelFinanceiro", "\u25C6  Dinheiro em Caixas Abertos"))
         self.lblEntradasDiaValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblEntradasDiaValor.setText(_translate("PainelFinanceiro", "R$ 0,00"))
         self.lblEntradasDiaTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
-        self.lblEntradasDiaTitulo.setText(_translate("PainelFinanceiro", "Entradas no Periodo"))
+        self.lblEntradasDiaTitulo.setText(_translate("PainelFinanceiro", "\u25B2  Entradas no Periodo"))
         self.lblSaidasDiaValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblSaidasDiaValor.setText(_translate("PainelFinanceiro", "R$ 0,00"))
         self.lblSaidasDiaTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
-        self.lblSaidasDiaTitulo.setText(_translate("PainelFinanceiro", "Saidas no Periodo"))
+        self.lblSaidasDiaTitulo.setText(_translate("PainelFinanceiro", "\u25BC  Saidas no Periodo"))
         self.lblPagamentosPendentesValor.setProperty("role", _translate("PainelFinanceiro", "value"))
         self.lblPagamentosPendentesValor.setText(_translate("PainelFinanceiro", "0"))
         self.lblPagamentosPendentesTitulo.setProperty("role", _translate("PainelFinanceiro", "title"))
-        self.lblPagamentosPendentesTitulo.setText(_translate("PainelFinanceiro", "Contas em Aberto"))
+        self.lblPagamentosPendentesTitulo.setText(_translate("PainelFinanceiro", "\u25CF  Contas em Aberto"))
         self.lblCaixaMovimentacoesSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
         self.lblCaixaMovimentacoesSection.setText(_translate("PainelFinanceiro", "Movimentações de Caixa"))
         item = self.tableCaixaMovimentacoes.horizontalHeaderItem(0)
@@ -555,8 +614,7 @@ class Ui_PainelFinanceiro(object):
         item.setText(_translate("PainelFinanceiro", "Forma Pgto."))
         item = self.tableCaixaMovimentacoes.horizontalHeaderItem(5)
         item.setText(_translate("PainelFinanceiro", "Valor"))
-        self.lblRecebimentosSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
-        self.lblRecebimentosSection.setText(_translate("PainelFinanceiro", "Vendas Registradas"))
+        self.tabWidgetRight.setTabText(0, _translate("PainelFinanceiro", "Vendas"))
         item = self.tablePagamentos.horizontalHeaderItem(0)
         item.setText(_translate("PainelFinanceiro", "Venda"))
         item = self.tablePagamentos.horizontalHeaderItem(1)
@@ -567,8 +625,7 @@ class Ui_PainelFinanceiro(object):
         item.setText(_translate("PainelFinanceiro", "Status"))
         item = self.tablePagamentos.horizontalHeaderItem(4)
         item.setText(_translate("PainelFinanceiro", "Total"))
-        self.lblContasReceberSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
-        self.lblContasReceberSection.setText(_translate("PainelFinanceiro", "Contas a Receber"))
+        self.tabWidgetRight.setTabText(1, _translate("PainelFinanceiro", "Contas a Receber"))
         item = self.tableContasReceber.horizontalHeaderItem(0)
         item.setText(_translate("PainelFinanceiro", "Conta"))
         item = self.tableContasReceber.horizontalHeaderItem(1)
@@ -579,8 +636,7 @@ class Ui_PainelFinanceiro(object):
         item.setText(_translate("PainelFinanceiro", "Status"))
         item = self.tableContasReceber.horizontalHeaderItem(4)
         item.setText(_translate("PainelFinanceiro", "Em Aberto"))
-        self.lblReembolsosSection.setProperty("sectionTitle", _translate("PainelFinanceiro", "true"))
-        self.lblReembolsosSection.setText(_translate("PainelFinanceiro", "Reembolsos Registrados"))
+        self.tabWidgetRight.setTabText(2, _translate("PainelFinanceiro", "Reembolsos"))
         item = self.tableReembolsos.horizontalHeaderItem(0)
         item.setText(_translate("PainelFinanceiro", "Venda"))
         item = self.tableReembolsos.horizontalHeaderItem(1)

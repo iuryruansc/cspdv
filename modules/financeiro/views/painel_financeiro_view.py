@@ -4,12 +4,12 @@ from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Any, Optional
 
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QDate, Qt
 from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtWidgets import (
     QComboBox,
     QInputDialog,
-    QLabel,
     QLineEdit,
     QMainWindow,
     QPushButton,
@@ -55,10 +55,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.tablePagamentos: QTableWidget
         self.tableContasReceber: QTableWidget
         self.tableReembolsos: QTableWidget
-        self.lblRecebimentosSection: QLabel
-        self.lblContasReceberSection: QLabel
-        self.lblReembolsosSection: QLabel
-        self.btnReceberPendencia: QPushButton
+        self.tabWidgetRight: QtWidgets.QTabWidget
 
         self._configurar_tamanho_responsivo()
         self._configurar_operador()
@@ -88,13 +85,13 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._carregar_status_conta()
 
     def _conectar_eventos(self) -> None:
-        self.btnAtualizar.clicked.connect(self._carregar_painel)
-        self.btnConsultarVenda.clicked.connect(self._consultar_venda)
-        self.btnReceberPendencia.clicked.connect(self._receber_pendencia)
-        self.btnRegistrarReembolso.clicked.connect(self._novo_reembolso)
-        self.btnAbrirCaixa.clicked.connect(self._abrir_caixa_financeiro)
-        self.btnFecharCaixa.clicked.connect(self._fechar_caixa_financeiro)
-        self.btnRegistrarMovimento.clicked.connect(self._registrar_movimentacao_financeiro)
+        self.actionAtualizar.triggered.connect(self._carregar_painel)
+        self.actionConsultarVenda.triggered.connect(self._consultar_venda)
+        self.actionAbrirCaixa.triggered.connect(self._abrir_caixa_financeiro)
+        self.actionFecharCaixa.triggered.connect(self._fechar_caixa_financeiro)
+        self.actionReceberPendencia.triggered.connect(self._receber_pendencia)
+        self.actionNovoReembolso.triggered.connect(self._novo_reembolso)
+        self.actionRegistrarMovimento.triggered.connect(self._registrar_movimentacao_financeiro)
         self.lineEditBuscaConta.returnPressed.connect(self._carregar_painel)
         self.cmbStatusContaFiltro.currentIndexChanged.connect(lambda _=0: self._carregar_painel())
 
@@ -453,6 +450,22 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
 
         registros.sort(key=lambda r: r.get("data_hora") or 0, reverse=True)
 
+        if not registros:
+            self.tableCaixaMovimentacoes.setRowCount(1)
+            self.tableCaixaMovimentacoes.setColumnCount(1)
+            item = QTableWidgetItem("Nenhuma movimentacao no periodo")
+            item.setTextAlignment(Qt.AlignCenter)
+            fonte = QFont(item.font())
+            fonte.setItalic(True)
+            fonte.setPointSize(11)
+            item.setFont(fonte)
+            item.setForeground(QBrush(QColor("#98a8b8")))
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            self.tableCaixaMovimentacoes.setItem(0, 0, item)
+            self.tableCaixaMovimentacoes.horizontalHeader().setStretchLastSection(True)
+            return
+
+        self.tableCaixaMovimentacoes.setColumnCount(6)
         self.tableCaixaMovimentacoes.setRowCount(len(registros))
         for row, registro in enumerate(registros):
             set_table_item(self.tableCaixaMovimentacoes, row, 0, formatar_data_hora(registro.get("data_hora")))
@@ -621,6 +634,15 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_venda(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
+        icones = {
+            STATUS_VENDA_CONCLUIDA: "\u2713",
+            STATUS_VENDA_CONCLUIDA_COM_PENDENCIA: "\u25CB",
+            STATUS_VENDA_PARCIALMENTE_REEMBOLSADA: "\u25D1",
+            STATUS_VENDA_REEMBOLSADA: "\u2717",
+        }
+        icone = icones.get(status_normalizado, "\u2022")
+        texto = f" {icone}  {status.strip()} "
+        item.setText(texto)
         if status_normalizado == STATUS_VENDA_CONCLUIDA:
             PainelFinanceiroView._estilizar_item_status(item, "#ecfdf3", "#027a48")
             return
@@ -691,25 +713,12 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         qtd_contas = self.tableContasReceber.rowCount()
         qtd_reembolsos = self.tableReembolsos.rowCount()
 
-        self.lblRecebimentosSection.setText(f"Vendas Registradas  ({qtd_vendas})")
-        self.lblContasReceberSection.setText(f"Contas a Receber  ({qtd_contas})")
-        self.lblReembolsosSection.setText(f"Reembolsos Registrados  ({qtd_reembolsos})")
+        self.tabWidgetRight.setTabText(0, f"Vendas ({qtd_vendas})")
+        self.tabWidgetRight.setTabText(1, f"Contas a Receber ({qtd_contas})")
+        self.tabWidgetRight.setTabText(2, f"Reembolsos ({qtd_reembolsos})")
 
     def _ajustar_alturas_secao_direita(self) -> None:
-        contas = self.tableContasReceber.rowCount()
-        reembolsos = self.tableReembolsos.rowCount()
-        vendas = self.tablePagamentos.rowCount()
-
-        altura_vendas = 170 if vendas <= 2 else 190
-        altura_contas = 320 if contas > 0 else 240
-        altura_reembolsos = 120 if reembolsos == 0 else 150
-
-        self.tablePagamentos.setMinimumHeight(altura_vendas)
-        self.tablePagamentos.setMaximumHeight(altura_vendas)
-        self.tableContasReceber.setMinimumHeight(altura_contas)
-        self.tableContasReceber.setMaximumHeight(altura_contas)
-        self.tableReembolsos.setMinimumHeight(altura_reembolsos)
-        self.tableReembolsos.setMaximumHeight(altura_reembolsos)
+        pass
 
     def _atualizar_contexto_selecao(self) -> None:
         row_conta = self.tableContasReceber.currentRow()

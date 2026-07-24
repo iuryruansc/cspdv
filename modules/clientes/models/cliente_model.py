@@ -131,7 +131,20 @@ class ClienteModel:
             conn.close()
 
     @staticmethod
+    def _sanitizar(dados: Dict[str, Any]) -> Dict[str, Any]:
+        campos_texto = (
+            "email", "cpf", "logradouro", "bairro",
+            "cep", "cidade", "estado", "observacao",
+        )
+        copia = dict(dados)
+        for campo in campos_texto:
+            if copia.get(campo) == "":
+                copia[campo] = None
+        return copia
+
+    @staticmethod
     def inserir(dados: Dict[str, Any]) -> Optional[int]:
+        dados = ClienteModel._sanitizar(dados)
         conn = get_connection()
         cursor = conn.cursor()
         try:
@@ -157,6 +170,7 @@ class ClienteModel:
 
     @staticmethod
     def atualizar(cliente_id: int, dados: Dict[str, Any]) -> bool:
+        dados = ClienteModel._sanitizar(dados)
         conn = get_connection()
         cursor = conn.cursor()
         try:
