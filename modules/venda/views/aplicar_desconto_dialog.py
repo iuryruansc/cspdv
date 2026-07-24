@@ -22,7 +22,7 @@ class AplicarDescontoDialog(QDialog, Ui_AplicarDescontoDialog):
         self.comboTipo.addItem("Percentual (%)", "percentual")
         self.spinValor.setDecimals(2)
         self.spinValor.setRange(0.01, 999999.99)
-        self.spinValor.setValue(1.0)
+        self.spinValor.setValue(1.00)
         self.btnCancelar.clicked.connect(self.reject)
         self.btnAplicar.clicked.connect(self._confirmar)
         self.comboAcao.currentIndexChanged.connect(self._atualizar_estado_formulario)
