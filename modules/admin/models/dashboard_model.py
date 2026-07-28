@@ -83,7 +83,14 @@ class DashboardAdminModel:
                 v.id AS numero_venda,
                 DATE_FORMAT(v.data_hora, '%d/%m/%Y %H:%i') AS data_hora,
                 COALESCE(u.nome, '-') AS operador,
-                '-' AS forma_pagamento,
+                CASE
+                    WHEN v.status = 'CONCLUIDA_COM_PENDENCIA' THEN 'Consig'
+                    ELSE COALESCE(
+                        (SELECT GROUP_CONCAT(DISTINCT pp.forma_pagamento ORDER BY pp.forma_pagamento SEPARATOR ' / ')
+                         FROM pagamento_parcial pp WHERE pp.venda_id = v.id),
+                        '-'
+                    )
+                END AS forma_pagamento,
                 COALESCE(v.valor_total, 0) AS total
             FROM vendas v
             LEFT JOIN usuarios u ON u.id = v.usuario_id

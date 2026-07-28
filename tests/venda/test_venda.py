@@ -172,3 +172,89 @@ def test_total_geral_nunca_fica_negativo():
     item = criar_item_cupom(_produto_base(preco_venda=5.0, preco_venda_base=5.0), 1)
 
     assert total_geral([item], 9.0) == 0.0
+
+
+def test_calcular_desconto_leve_x_pague_y_mais_barato():
+    from modules.venda.services.cupom_service import calcular_desconto_leve_x_pague_y
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 3)
+    promocao = {"leve_x": 3, "pague_y": 2, "aplicacao_desconto_xpy": "MAIS_BARATO"}
+    desconto = calcular_desconto_leve_x_pague_y([item], promocao, {10})
+    assert desconto == 10.0
+
+
+def test_calcular_desconto_leve_x_pague_y_proporcional():
+    from modules.venda.services.cupom_service import calcular_desconto_leve_x_pague_y
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 3)
+    promocao = {"leve_x": 3, "pague_y": 2, "aplicacao_desconto_xpy": "PROPORCIONAL"}
+    desconto = calcular_desconto_leve_x_pague_y([item], promocao, {10})
+    assert desconto == 10.0
+
+
+def test_calcular_desconto_leve_x_pague_y_insuficiente():
+    from modules.venda.services.cupom_service import calcular_desconto_leve_x_pague_y
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 2)
+    promocao = {"leve_x": 3, "pague_y": 2, "aplicacao_desconto_xpy": "MAIS_BARATO"}
+    desconto = calcular_desconto_leve_x_pague_y([item], promocao, {10})
+    assert desconto == 0.0
+
+
+def test_calcular_desconto_progressivo():
+    from modules.venda.services.cupom_service import calcular_desconto_progressivo
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 5)
+    promocao = {"regras_progressivas": '[{"qtd_min": 3, "desconto": 10}, {"qtd_min": 5, "desconto": 20}]'}
+    desconto = calcular_desconto_progressivo([item], promocao, {10})
+    assert desconto == 10.0
+
+
+def test_calcular_desconto_progressivo_sem_regras():
+    from modules.venda.services.cupom_service import calcular_desconto_progressivo
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 5)
+    promocao = {"regras_progressivas": None}
+    desconto = calcular_desconto_progressivo([item], promocao, {10})
+    assert desconto == 0.0
+
+
+def test_calcular_desconto_combo():
+    from modules.venda.services.cupom_service import calcular_desconto_combo
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 3)
+    promocao = {"combo_qtd": 3, "combo_preco": 25.0, "preco_original": 10.0}
+    desconto = calcular_desconto_combo([item], promocao, {10})
+    assert desconto == 5.0
+
+
+def test_calcular_desconto_combo_insuficiente():
+    from modules.venda.services.cupom_service import calcular_desconto_combo
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 2)
+    promocao = {"combo_qtd": 3, "combo_preco": 25.0, "preco_original": 10.0}
+    desconto = calcular_desconto_combo([item], promocao, {10})
+    assert desconto == 0.0
+
+
+def test_calcular_desconto_promocao_avancada_leve_x_pague_y():
+    from modules.venda.services.cupom_service import calcular_desconto_promocao_avancada
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 3)
+    promocao = {
+        "tipo_desconto": "LEVE_X_PAGUE_Y",
+        "leve_x": 3,
+        "pague_y": 2,
+        "aplicacao_desconto_xpy": "MAIS_BARATO",
+    }
+    desconto = calcular_desconto_promocao_avancada([item], promocao, {10})
+    assert desconto == 10.0
+
+
+def test_calcular_desconto_promocao_avancada_tipo_nao_suportado():
+    from modules.venda.services.cupom_service import calcular_desconto_promocao_avancada
+
+    item = criar_item_cupom(_produto_base(preco_venda=10.0, preco_venda_base=10.0), 3)
+    promocao = {"tipo_desconto": "PERCENTUAL"}
+    desconto = calcular_desconto_promocao_avancada([item], promocao, {10})
+    assert desconto == 0.0

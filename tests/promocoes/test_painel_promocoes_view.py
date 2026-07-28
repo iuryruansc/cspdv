@@ -17,7 +17,7 @@ def _promocao(**overrides):
         "tipo_desconto": "PERCENTUAL",
         "status": "ATIVA",
         "vigencia": "14/05/2026 a 20/05/2026",
-        "alcance": "3 produtos",
+        "regra_texto": "Marca: Nike",
         "qtd_produtos": 3,
     }
     promocao.update(overrides)

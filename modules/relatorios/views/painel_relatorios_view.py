@@ -238,6 +238,10 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
         self.tableProdutos.setColumnCount(3)
         self.tableProdutos.setHorizontalHeaderLabels(["Produto", "Qtd.", "Receita"])
         self.tableProdutos.setRowCount(len(produtos))
+        headers = self.tableProdutos.horizontalHeader()
+        headers.setSectionResizeMode(0, headers.Stretch)
+        headers.setSectionResizeMode(1, headers.ResizeToContents)
+        headers.setSectionResizeMode(2, headers.ResizeToContents)
         for row, item in enumerate(produtos):
             set_table_item(self.tableProdutos, row, 0, str(item.get("produto") or "-"))
             set_table_item(self.tableProdutos, row, 1, str(int(item.get("quantidade") or 0)), alignment=Qt.AlignCenter)
@@ -350,7 +354,7 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
         resumo = dados.get("resumo") or {}
         self._set_chip(self.chipVendas, "Vendas", str(int(resumo.get("total_vendas") or 0)))
         self._set_chip(self.chipFaturamento, "Entradas", formatar_moeda(resumo.get("entradas")))
-        self._set_chip(self.chipTicketMedio, "Ticket Medio", "-")
+        self._set_chip(self.chipTicketMedio, "Ticket Medio", formatar_moeda(resumo.get("ticket_medio")))
         self._set_chip(self.chipClientes, "Dias", str(len(dados.get("resumo_periodo") or [])))
 
         periodo = dados.get("resumo_periodo") or []

@@ -22,6 +22,7 @@ from modules.clientes.services.cliente_service import ClienteService
 from modules.produtos.services.produto_service import ProdutoService
 from modules.venda.services.cupom_service import (
     aplicar_desconto_item,
+    calcular_desconto_promocao_avancada,
     criar_item_cupom,
     definir_quantidade_item,
     desconto_itens_total,
@@ -817,6 +818,51 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
                 priorizar_desconto_manual_item(item)
             else:
                 restaurar_preco_promocional_item(item)
+
+        self._aplicar_descontos_promocoes_avancadas()
+
+    def _aplicar_descontos_promocoes_avancadas(self) -> None:
+        from modules.promocoes.models.promocao_model import PromocaoModel
+
+        promocoes_por_id: Dict[int, Any] = {}
+        itens_por_promocao: Dict[int, List[Any]] = {}
+
+        for item in self._itens_venda:
+            pid = int(item.get("promocao_id") or 0)
+            if pid <= 0:
+                continue
+            if pid not in promocoes_por_id:
+                promocoes_por_id[pid] = PromocaoModel.buscar_por_id(pid)
+            if pid not in itens_por_promocao:
+                itens_por_promocao[pid] = []
+            itens_por_promocao[pid].append(item)
+
+        for pid, itens in itens_por_promocao.items():
+            promocao = promocoes_por_id.get(pid)
+            if not promocao:
+                continue
+            tipo = str(promocao.get("tipo_desconto") or "").upper()
+            if tipo not in ("LEVE_X_PAGUE_Y", "DESCONTO_PROGRESSIVO", "COMBO"):
+                continue
+
+            produto_ids = {int(item.get("id") or 0) for item in itens}
+            desconto = calcular_desconto_promocao_avancada(itens, promocao, produto_ids)
+            if desconto <= 0:
+                continue
+
+            total_subtotal = sum(
+                float(item["preco_venda"]) * int(item["quantidade"])
+                for item in itens
+            )
+            if total_subtotal <= 0:
+                continue
+
+            for item in itens:
+                item_subtotal = float(item["preco_venda"]) * int(item["quantidade"])
+                proporcao = item_subtotal / total_subtotal
+                desconto_item = desconto * proporcao
+                recalcular = float(item.get("desconto_item") or 0.0) + desconto_item
+                aplicar_desconto_item(item, recalcular)
 
     def _garantir_cliente_conforme_regra(self) -> bool:
         if self._cliente_padrao_venda() != "SELECIONAR_NO_MOMENTO":

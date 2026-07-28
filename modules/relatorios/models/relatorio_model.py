@@ -316,6 +316,7 @@ class RelatorioModel:
                 FROM vendas v
                 WHERE v.data_hora >= %s AND v.data_hora < %s
                   AND v.status IN ('{STATUS_VENDA_SQL}')
+                  AND v.cliente_id IS NOT NULL
                 """,
                 (inicio, fim),
             )
@@ -361,15 +362,15 @@ class RelatorioModel:
             cursor.execute(
                 f"""
                 SELECT
-                    COALESCE(c.nome, 'Consumidor Final') AS cliente,
+                    c.nome AS cliente,
                     COUNT(DISTINCT v.id) AS compras,
                     SUM(v.valor_total) AS total_gasto,
                     SUM(v.valor_total) / COUNT(DISTINCT v.id) AS ticket_medio
                 FROM vendas v
-                LEFT JOIN clientes c ON c.id = v.cliente_id
+                INNER JOIN clientes c ON c.id = v.cliente_id
                 WHERE v.data_hora >= %s AND v.data_hora < %s
                   AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY c.nome
+                GROUP BY c.id, c.nome
                 ORDER BY total_gasto DESC
                 LIMIT 15
                 """,
@@ -420,7 +421,11 @@ class RelatorioModel:
             resumo = cast(Dict[str, Any], cursor.fetchone() or {})
 
             reemb_total = _buscar_reembolsos_periodo(cursor, inicio, fim)
-            resumo["faturamento"] = float(Decimal(str(resumo.get("faturamento") or 0)) - reemb_total)
+            faturamento_liquido = float(Decimal(str(resumo.get("faturamento") or 0)) - reemb_total)
+            resumo["faturamento"] = faturamento_liquido
+            resumo["entradas"] = faturamento_liquido
+            total_vendas = int(resumo.get("total_vendas") or 0)
+            resumo["ticket_medio"] = faturamento_liquido / total_vendas if total_vendas > 0 else 0
 
             group_expr = {
                 "semana": "YEARWEEK(v.data_hora, 1)",

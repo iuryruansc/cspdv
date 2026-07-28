@@ -1427,10 +1427,10 @@ QPushButton:hover { background: #2a74b8; }
                 item = QTableWidgetItem(value)
                 self.tableUltimasVendas.setItem(row_index, column_index, item)
 
-        headers.resizeSection(0, 86)
+        headers.resizeSection(0, 50)
         headers.resizeSection(1, 120)
-        headers.resizeSection(2, 140)
-        headers.resizeSection(3, 120)
+        headers.resizeSection(2, 100)
+        headers.resizeSection(3, 180)
         headers.setStretchLastSection(True)
 
     def _open_frente_caixa(self) -> None:

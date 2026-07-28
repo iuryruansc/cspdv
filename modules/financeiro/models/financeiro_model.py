@@ -323,10 +323,6 @@ class FinanceiroModel:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("v.caixa_id", pdv_id, alias_caixa="cx")
             params: List[Any] = [inicio, fim]
             params.extend(pdv_params)
-            forma_clause = ""
-            if forma_pagamento:
-                forma_clause = " AND pp.forma_pagamento = %s"
-                params.append(forma_pagamento)
             busca_clause = ""
             if busca:
                 busca_clause = """
@@ -344,21 +340,23 @@ class FinanceiroModel:
                 SELECT
                     v.id AS venda_id,
                     COALESCE(c.nome, 'Consumidor Final') AS cliente,
-                    COALESCE(GROUP_CONCAT(DISTINCT pp.forma_pagamento ORDER BY pp.id SEPARATOR ' + '), '-') AS forma_pagamento,
+                    COALESCE(
+                        (SELECT GROUP_CONCAT(DISTINCT pp2.forma_pagamento ORDER BY pp2.id SEPARATOR ' + ')
+                         FROM pagamento_parcial pp2 WHERE pp2.venda_id = v.id),
+                        '-'
+                    ) AS forma_pagamento,
                     v.status,
-                    v.valor_total
+                    v.valor_total,
+                    DATE_FORMAT(v.data_hora, '%d/%m/%Y %H:%i') AS data_hora
                 FROM vendas v
                 LEFT JOIN clientes c ON c.id = v.cliente_id
-                LEFT JOIN pagamento_parcial pp ON pp.venda_id = v.id
                 LEFT JOIN caixas cx ON cx.id = v.caixa_id
-                  WHERE pp.data_pagamento >= %s
-                    AND pp.data_pagamento < %s
+                  WHERE v.data_hora >= %s
+                    AND v.data_hora < %s
                     AND v.status IN ('{STATUS_VENDA_SQL}')
                     {pdv_clause}
-                    {forma_clause}
                     {busca_clause}
-                  GROUP BY v.id, c.nome, v.status, v.valor_total
-                ORDER BY MAX(pp.data_pagamento) DESC, v.id DESC
+                ORDER BY v.data_hora DESC, v.id DESC
                 LIMIT %s
                 """,
                 tuple(params),

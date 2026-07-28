@@ -500,19 +500,20 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignCenter,
             )
             item_venda.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
-            set_table_item(self.tablePagamentos, row, 1, str(registro.get("cliente") or "-"))
-            set_table_item(self.tablePagamentos, row, 2, str(registro.get("forma_pagamento") or "-"))
+            set_table_item(self.tablePagamentos, row, 1, str(registro.get("data_hora") or "-"))
+            set_table_item(self.tablePagamentos, row, 2, str(registro.get("cliente") or "-"))
+            set_table_item(self.tablePagamentos, row, 3, str(registro.get("forma_pagamento") or "-"))
             status_item = set_table_item(
                 self.tablePagamentos,
                 row,
-                3,
+                4,
                 str(registro.get("status") or "-"),
                 alignment=Qt.AlignCenter,
             )
             total_item = set_table_item(
                 self.tablePagamentos,
                 row,
-                4,
+                5,
                 formatar_moeda(registro.get("valor_total")),
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
@@ -741,13 +742,14 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         row_venda = self.tablePagamentos.currentRow()
         if row_venda >= 0:
             venda = self._texto_item(self.tablePagamentos, row_venda, 0)
-            cliente = self._texto_item(self.tablePagamentos, row_venda, 1)
-            forma = self._texto_item(self.tablePagamentos, row_venda, 2)
-            status = self._texto_item(self.tablePagamentos, row_venda, 3)
-            total = self._texto_item(self.tablePagamentos, row_venda, 4)
+            data = self._texto_item(self.tablePagamentos, row_venda, 1)
+            cliente = self._texto_item(self.tablePagamentos, row_venda, 2)
+            forma = self._texto_item(self.tablePagamentos, row_venda, 3)
+            status = self._texto_item(self.tablePagamentos, row_venda, 4)
+            total = self._texto_item(self.tablePagamentos, row_venda, 5)
             self.lblStatusBar.setText(
                 "CSPdv - Modulo Financeiro | "
-                f"Venda #{venda} | {cliente} | {forma} | {status} | Total {total}"
+                f"Venda #{venda} | {data} | {cliente} | {forma} | {status} | Total {total}"
             )
             return
 
@@ -775,6 +777,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     def _aplicar_tooltip_venda(self, row: int, registro: dict[str, Any]) -> None:
         tooltip = (
             f"Venda #{registro.get('venda_id') or '-'}\n"
+            f"Data: {registro.get('data_hora') or '-'}\n"
             f"Cliente: {registro.get('cliente') or '-'}\n"
             f"Forma: {registro.get('forma_pagamento') or '-'}\n"
             f"Status: {registro.get('status') or '-'}\n"

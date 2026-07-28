@@ -286,7 +286,7 @@ class Ui_PainelRelatorios(object):
         layFC.addWidget(lbl)
         self.chartProdutosWidget = QtWidgets.QWidget(frameChart)
         layFC.addWidget(self.chartProdutosWidget, 1)
-        layProd.addWidget(frameChart, 1)
+        layProd.addWidget(frameChart, 2)
         frameTab = QtWidgets.QFrame(self.pageProdutos)
         frameTab.setObjectName("frame")
         frameTab.setStyleSheet(_TABELA_STYLE)

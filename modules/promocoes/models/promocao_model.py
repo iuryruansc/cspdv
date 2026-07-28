@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any, Dict, List, cast
 
 from database.connection import get_connection
@@ -33,11 +34,17 @@ class PromocaoModel:
                 """
                 INSERT INTO promocoes
                     (codigo, nome, classificacao, tipo_desconto, status, descricao, observacao,
-                     desconto_percentual, desconto_valor, preco_fixo, data_inicio, data_fim,
+                     desconto_percentual, desconto_valor, preco_fixo,
+                     leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
+                     combo_qtd, combo_preco,
+                     data_inicio, data_fim,
                      cumulativa, aplica_em_todos_pdvs, ativo, usuario_id, createdAt, updatedAt)
                 VALUES
                     (%(codigo)s, %(nome)s, %(classificacao)s, %(tipo_desconto)s, %(status)s, %(descricao)s, %(observacao)s,
-                     %(desconto_percentual)s, %(desconto_valor)s, %(preco_fixo)s, %(data_inicio)s, %(data_fim)s,
+                     %(desconto_percentual)s, %(desconto_valor)s, %(preco_fixo)s,
+                     %(leve_x)s, %(pague_y)s, %(aplicacao_desconto_xpy)s, %(regras_progressivas)s,
+                     %(combo_qtd)s, %(combo_preco)s,
+                     %(data_inicio)s, %(data_fim)s,
                      %(cumulativa)s, 'S', %(ativo)s, %(usuario_id)s, NOW(), NOW())
                 """,
                 dados,
@@ -75,6 +82,12 @@ class PromocaoModel:
                     desconto_percentual = %(desconto_percentual)s,
                     desconto_valor = %(desconto_valor)s,
                     preco_fixo = %(preco_fixo)s,
+                    leve_x = %(leve_x)s,
+                    pague_y = %(pague_y)s,
+                    aplicacao_desconto_xpy = %(aplicacao_desconto_xpy)s,
+                    regras_progressivas = %(regras_progressivas)s,
+                    combo_qtd = %(combo_qtd)s,
+                    combo_preco = %(combo_preco)s,
                     data_inicio = %(data_inicio)s,
                     data_fim = %(data_fim)s,
                     cumulativa = %(cumulativa)s,
@@ -110,6 +123,8 @@ class PromocaoModel:
                     desconto_percentual,
                     desconto_valor,
                     preco_fixo,
+                    leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
+                    combo_qtd, combo_preco,
                     data_inicio,
                     data_fim,
                     cumulativa,
@@ -132,11 +147,17 @@ class PromocaoModel:
                 """
                 INSERT INTO promocoes
                     (codigo, nome, classificacao, tipo_desconto, status, descricao, observacao,
-                     desconto_percentual, desconto_valor, preco_fixo, data_inicio, data_fim,
+                     desconto_percentual, desconto_valor, preco_fixo,
+                     leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
+                     combo_qtd, combo_preco,
+                     data_inicio, data_fim,
                      cumulativa, aplica_em_todos_pdvs, ativo, usuario_id, createdAt, updatedAt)
                 VALUES
                     (%s, %s, %s, %s, %s, %s, %s,
-                     %s, %s, %s, %s, %s,
+                     %s, %s, %s,
+                     %s, %s, %s, %s,
+                     %s, %s,
+                     %s, %s,
                      %s, %s, %s, %s, NOW(), NOW())
                 """,
                 (
@@ -150,6 +171,12 @@ class PromocaoModel:
                     float(promocao.get("desconto_percentual") or 0),
                     float(promocao.get("desconto_valor") or 0),
                     float(promocao.get("preco_fixo") or 0),
+                    promocao.get("leve_x"),
+                    promocao.get("pague_y"),
+                    str(promocao.get("aplicacao_desconto_xpy") or "MAIS_BARATO"),
+                    promocao.get("regras_progressivas"),
+                    promocao.get("combo_qtd"),
+                    float(promocao.get("combo_preco") or 0),
                     data_inicio,
                     data_fim,
                     str(promocao.get("cumulativa") or "N"),
@@ -248,6 +275,9 @@ class PromocaoModel:
                     "DESCONTO POR PERCENTUAL": "PERCENTUAL",
                     "DESCONTO POR VALOR": "VALOR",
                     "PRECO PROMOCIONAL": "PRECO_FIXO",
+                    "LEVE X PAGUE Y": "LEVE_X_PAGUE_Y",
+                    "DESCONTO PROGRESSIVO": "DESCONTO_PROGRESSIVO",
+                    "COMBO": "COMBO",
                 }
                 filtros.append("p.tipo_desconto = %s")
                 params.append(mapa_tipo.get(tipo.upper(), tipo.upper()))
@@ -275,7 +305,17 @@ class PromocaoModel:
                     END AS alcance,
                     p.desconto_percentual,
                     p.desconto_valor,
-                    p.preco_fixo
+                    p.preco_fixo,
+                    prr.tipo_regra,
+                    CASE
+                        WHEN prr.tipo_regra = 'ITEM' THEN prr.alvo_texto
+                        WHEN prr.tipo_regra = 'MARCA' THEN (SELECT m.nome_marca FROM marcas m WHERE m.id = prr.alvo_id)
+                        WHEN prr.tipo_regra = 'CATEGORIA' THEN (SELECT c.nome FROM categorias c WHERE c.id = prr.alvo_id)
+                        WHEN prr.tipo_regra = 'FORNECEDOR' THEN (SELECT f.nome_fantasia FROM fornecedores f WHERE f.id_fornecedor = prr.alvo_id)
+                        WHEN prr.tipo_regra = 'FAIXA_PRECO' THEN CONCAT('R$ ', FORMAT(prr.faixa_min, 2, 'pt_BR'), ' a R$ ', FORMAT(prr.faixa_max, 2, 'pt_BR'))
+                        WHEN prr.tipo_regra = 'LISTA_ITENS' THEN CONCAT('Lista de itens')
+                        ELSE NULL
+                    END AS regra_texto
                 FROM promocoes p
                 LEFT JOIN promocao_produtos pp2 ON pp2.promocao_id = p.id AND pp2.ativo = %s
                 LEFT JOIN (
@@ -287,10 +327,12 @@ class PromocaoModel:
                     WHERE pp.ativo = %s
                     GROUP BY pp.promocao_id
                 ) pp ON pp.promocao_id = p.id
+                LEFT JOIN promocao_regras prr ON prr.promocao_id = p.id AND prr.ativo = 'S'
                 WHERE {" AND ".join(filtros)}
                 GROUP BY
                     p.id, p.codigo, p.nome, p.classificacao, p.tipo_desconto, p.status,
-                    p.data_inicio, p.data_fim, p.desconto_percentual, p.desconto_valor, p.preco_fixo
+                    p.data_inicio, p.data_fim, p.desconto_percentual, p.desconto_valor, p.preco_fixo,
+                    prr.tipo_regra, prr.alvo_id, prr.alvo_texto, prr.faixa_min, prr.faixa_max
                 ORDER BY p.data_inicio DESC, p.id DESC
                 """,
                 [FLAG_SIM, FLAG_SIM, *params],
@@ -345,6 +387,12 @@ class PromocaoModel:
                     desconto_percentual,
                     desconto_valor,
                     preco_fixo,
+                    leve_x,
+                    pague_y,
+                    aplicacao_desconto_xpy,
+                    regras_progressivas,
+                    combo_qtd,
+                    combo_preco,
                     data_inicio,
                     data_fim,
                     cumulativa,
@@ -555,6 +603,301 @@ class PromocaoModel:
         except Exception:
             conn.rollback()
             raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def salvar_regra(promocao_id: int, dados: dict[str, Any]) -> int | None:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                INSERT INTO promocao_regras
+                    (promocao_id, tipo_regra, alvo_id, alvo_ids, alvo_texto,
+                     faixa_min, faixa_max, ativo, createdAt, updatedAt)
+                VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                """,
+                (
+                    int(promocao_id),
+                    str(dados.get("tipo_regra") or ""),
+                    dados.get("alvo_id"),
+                    dados.get("alvo_ids"),
+                    dados.get("alvo_texto"),
+                    dados.get("faixa_min"),
+                    dados.get("faixa_max"),
+                    FLAG_SIM,
+                ),
+            )
+            conn.commit()
+            return int(cursor.lastrowid or 0)
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def listar_regras(promocao_id: int) -> list[dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT id, tipo_regra, alvo_id, alvo_ids, alvo_texto,
+                       faixa_min, faixa_max, ativo
+                FROM promocao_regras
+                WHERE promocao_id = %s AND ativo = %s
+                ORDER BY id
+                """,
+                (int(promocao_id), FLAG_SIM),
+            )
+            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def excluir_regra(regra_id: int) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "UPDATE promocao_regras SET ativo = 'N', updatedAt = NOW() WHERE id = %s",
+                (int(regra_id),),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def buscar_produtos_por_regra(regra: dict[str, Any]) -> list[dict[str, Any]]:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            tipo = str(regra.get("tipo_regra") or "")
+
+            if tipo == "ITEM":
+                termo = str(regra.get("alvo_texto") or "").strip()
+                if not termo:
+                    return []
+                cursor.execute(
+                    """
+                    SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
+                           p.quantidade_estoque, p.categoria_id, p.marca_id
+                    FROM produtos p
+                    WHERE p.ativo = 'S'
+                      AND (p.codigo_barras = %s OR p.codigo = %s OR p.nome LIKE %s)
+                    ORDER BY p.nome
+                    LIMIT 50
+                    """,
+                    (termo, termo, f"%{termo}%"),
+                )
+
+            elif tipo == "MARCA":
+                marca_id = regra.get("alvo_id")
+                if not marca_id:
+                    return []
+                cursor.execute(
+                    """
+                    SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
+                           p.quantidade_estoque, p.categoria_id, p.marca_id
+                    FROM produtos p
+                    WHERE p.ativo = 'S' AND p.marca_id = %s
+                    ORDER BY p.nome
+                    """,
+                    (int(marca_id),),
+                )
+
+            elif tipo == "CATEGORIA":
+                cat_id = regra.get("alvo_id")
+                if not cat_id:
+                    return []
+                cursor.execute(
+                    """
+                    SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
+                           p.quantidade_estoque, p.categoria_id, p.marca_id
+                    FROM produtos p
+                    WHERE p.ativo = 'S' AND p.categoria_id = %s
+                    ORDER BY p.nome
+                    """,
+                    (int(cat_id),),
+                )
+
+            elif tipo == "FORNECEDOR":
+                forn_id = regra.get("alvo_id")
+                if not forn_id:
+                    return []
+                cursor.execute(
+                    """
+                    SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
+                           p.quantidade_estoque, p.categoria_id, p.marca_id
+                    FROM produtos p
+                    WHERE p.ativo = 'S' AND p.fornecedor_id = %s
+                    ORDER BY p.nome
+                    """,
+                    (int(forn_id),),
+                )
+
+            elif tipo == "FAIXA_PRECO":
+                faixa_min = regra.get("faixa_min") or 0
+                faixa_max = regra.get("faixa_max") or 999999
+                cursor.execute(
+                    """
+                    SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
+                           p.quantidade_estoque, p.categoria_id, p.marca_id
+                    FROM produtos p
+                    WHERE p.ativo = 'S'
+                      AND p.preco_venda >= %s AND p.preco_venda <= %s
+                    ORDER BY p.nome
+                    """,
+                    (float(faixa_min), float(faixa_max)),
+                )
+
+            elif tipo == "LISTA_ITENS":
+                alvo_ids_raw = regra.get("alvo_ids") or ""
+                if isinstance(alvo_ids_raw, str):
+                    try:
+                        ids = json.loads(alvo_ids_raw)
+                    except (json.JSONDecodeError, TypeError):
+                        ids = []
+                else:
+                    ids = alvo_ids_raw
+                if not ids:
+                    return []
+                placeholders = ", ".join(["%s"] * len(ids))
+                cursor.execute(
+                    f"""
+                    SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
+                           p.quantidade_estoque, p.categoria_id, p.marca_id
+                    FROM produtos p
+                    WHERE p.ativo = 'S' AND p.id IN ({placeholders})
+                    ORDER BY p.nome
+                    """,
+                    [int(i) for i in ids],
+                )
+            else:
+                return []
+
+            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def limpar_vinculos_automaticos(promocao_id: int) -> None:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE promocao_produtos
+                SET ativo = 'N', updatedAt = NOW()
+                WHERE promocao_id = %s AND ativo = %s
+                """,
+                (int(promocao_id), FLAG_SIM),
+            )
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def vincular_produtos_automaticamente(
+        promocao_id: int,
+        produtos: list[dict[str, Any]],
+        calcular_preco_fn,
+    ) -> int:
+        conn = get_connection()
+        cursor = conn.cursor()
+        try:
+            vinculados = 0
+            for produto in produtos:
+                produto_id = int(produto.get("id") or 0)
+                preco_original = float(produto.get("preco_venda") or 0)
+                preco_promocional, desconto = calcular_preco_fn(preco_original)
+
+                cursor.execute(
+                    """
+                    SELECT id FROM promocao_produtos
+                    WHERE promocao_id = %s AND produto_id = %s
+                    LIMIT 1
+                    """,
+                    (int(promocao_id), produto_id),
+                )
+                existente = cursor.fetchone()
+
+                if existente:
+                    cursor.execute(
+                        """
+                        UPDATE promocao_produtos
+                        SET preco_original = %s, preco_promocional = %s,
+                            desconto_aplicado = %s, ativo = 'S', updatedAt = NOW()
+                        WHERE id = %s
+                        """,
+                        (preco_original, preco_promocional, desconto, int(existente[0])),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        INSERT INTO promocao_produtos
+                            (promocao_id, produto_id, preco_original, preco_promocional,
+                             desconto_aplicado, observacao, ativo, createdAt, updatedAt)
+                        VALUES (%s, %s, %s, %s, %s, NULL, 'S', NOW(), NOW())
+                        """,
+                        (int(promocao_id), produto_id, preco_original, preco_promocional, desconto),
+                    )
+                vinculados += 1
+
+            conn.commit()
+            return vinculados
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def contar_vinculos_ativos(promocao_id: int) -> int:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                "SELECT COUNT(*) AS total FROM promocao_produtos WHERE promocao_id = %s AND ativo = 'S'",
+                (int(promocao_id),),
+            )
+            row = cast(Dict[str, Any], cursor.fetchone() or {})
+            return int(row.get("total") or 0)
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def buscar_regra_da_promocao(promocao_id: int) -> dict[str, Any] | None:
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute(
+                """
+                SELECT tipo_regra, alvo_id, alvo_ids, alvo_texto, faixa_min, faixa_max
+                FROM promocao_regras
+                WHERE promocao_id = %s AND ativo = %s
+                LIMIT 1
+                """,
+                (int(promocao_id), FLAG_SIM),
+            )
+            return cast(Dict[str, Any] | None, cursor.fetchone())
         finally:
             cursor.close()
             conn.close()

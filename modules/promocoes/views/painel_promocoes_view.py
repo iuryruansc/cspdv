@@ -65,6 +65,7 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
         header_promocoes.setSectionResizeMode(3, QHeaderView.ResizeToContents)
         header_promocoes.setSectionResizeMode(4, QHeaderView.ResizeToContents)
         header_promocoes.setSectionResizeMode(5, QHeaderView.Stretch)
+        header_promocoes.setSectionResizeMode(6, QHeaderView.ResizeToContents)
         header_promocoes.setStretchLastSection(False)
         self.tablePromocoes.setTextElideMode(Qt.ElideNone)
         self.tablePromocoes.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
@@ -120,7 +121,7 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
                     str(promocao.get("nome", "")),
                     str(promocao.get("tipo_desconto", "")),
                     str(promocao.get("status", "")),
-                    str(promocao.get("alcance", "")),
+                    str(promocao.get("regra_texto", "")),
                 ]
             ).lower()
             if busca and busca not in texto_base:
@@ -140,7 +141,8 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
                 self._label_tipo(str(promocao.get("tipo_desconto") or "-")),
                 str(promocao.get("vigencia") or "-"),
                 self._label_status(str(promocao.get("status") or "-")),
-                str(promocao.get("alcance") or "-"),
+                str(promocao.get("regra_texto") or "-"),
+                str(promocao.get("qtd_produtos") or "0"),
             ]
             tooltip = (
                 f"Código: {promocao.get('codigo') or '-'}\n"
@@ -148,7 +150,8 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
                 f"Tipo: {self._label_tipo(str(promocao.get('tipo_desconto') or '-'))}\n"
                 f"Status: {self._label_status(str(promocao.get('status') or '-'))}\n"
                 f"Vigência: {promocao.get('vigencia') or '-'}\n"
-                f"Alcance: {promocao.get('alcance') or '-'}"
+                f"Regra: {promocao.get('regra_texto') or '-'}\n"
+                f"Produtos: {promocao.get('qtd_produtos') or '0'}"
             )
             for column, value in enumerate(valores):
                 item = set_table_item(self.tablePromocoes, row, column, value)
@@ -364,6 +367,9 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
             "DESCONTO POR VALOR": "VALOR",
             "PREÇO PROMOCIONAL": "PRECO_FIXO",
             "PRECO PROMOCIONAL": "PRECO_FIXO",
+            "LEVE X PAGUE Y": "LEVE_X_PAGUE_Y",
+            "DESCONTO PROGRESSIVO": "DESCONTO_PROGRESSIVO",
+            "COMBO": "COMBO",
         }
         return mapa.get(texto.strip().upper(), "")
 
@@ -373,6 +379,9 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
             "PERCENTUAL": "Desconto por percentual",
             "VALOR": "Desconto por valor",
             "PRECO_FIXO": "Preço promocional",
+            "LEVE_X_PAGUE_Y": "Leve X Pague Y",
+            "DESCONTO_PROGRESSIVO": "Desconto progressivo",
+            "COMBO": "Combo",
         }
         return mapa.get(tipo.strip().upper(), tipo)
 
@@ -418,6 +427,9 @@ class PainelPromocoesView(QMainWindow, Ui_PainelPromocoes, PainelOperacionalMixi
             "PERCENTUAL": "#7c3aed",
             "VALOR": "#0f766e",
             "PRECO_FIXO": "#b45309",
+            "LEVE_X_PAGUE_Y": "#0369a1",
+            "DESCONTO_PROGRESSIVO": "#be185d",
+            "COMBO": "#4338ca",
         }
         fonte = QFont(item.font())
         fonte.setBold(True)
