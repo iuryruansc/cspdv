@@ -1,14 +1,14 @@
-from typing import Any, Dict, List, Optional, cast
+from __future__ import annotations
 
-from database.connection import get_connection
+from typing import Any, cast
+
+from database.connection import db_cursor, db_transaction
 
 class ClienteModel:
     @staticmethod
-    def buscar_consumidor_final() -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_consumidor_final() -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -25,20 +25,14 @@ class ClienteModel:
                 LIMIT 1
                 """
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def buscar_para_venda(termo: str, limite: int = 20) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
+    def buscar_para_venda(termo: str, limite: int = 20) -> list[dict[str, Any]]:
         termo_limpo = str(termo or "").strip()
         termo_nome = f"%{termo_limpo.upper()}%"
         termo_cpf = f"{termo_limpo}%"
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -67,17 +61,12 @@ class ClienteModel:
                 """,
                 (termo_nome, termo_cpf, termo_limpo, termo_limpo, limite),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
+            return cast(list[dict[str, Any]], cur.fetchall())
 
     @staticmethod
-    def listar_resumo() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_resumo() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -92,17 +81,11 @@ class ClienteModel:
                 ORDER BY nome
                 """
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def buscar_por_id(cliente_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_id(cliente_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -125,13 +108,9 @@ class ClienteModel:
                 """,
                 (cliente_id,),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def _sanitizar(dados: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitizar(dados: dict[str, Any]) -> dict[str, Any]:
         campos_texto = (
             "email", "cpf", "logradouro", "bairro",
             "cep", "cidade", "estado", "observacao",
@@ -143,12 +122,10 @@ class ClienteModel:
         return copia
 
     @staticmethod
-    def inserir(dados: Dict[str, Any]) -> Optional[int]:
+    def inserir(dados: dict[str, Any]) -> int | None:
         dados = ClienteModel._sanitizar(dados)
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO clientes
                     (nome, email, telefone, cpf, logradouro, numero,
@@ -159,22 +136,12 @@ class ClienteModel:
                 """,
                 dados,
             )
-            conn.commit()
-            return cursor.lastrowid
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.lastrowid
     @staticmethod
-    def atualizar(cliente_id: int, dados: Dict[str, Any]) -> bool:
+    def atualizar(cliente_id: int, dados: dict[str, Any]) -> bool:
         dados = ClienteModel._sanitizar(dados)
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE clientes
                 SET nome = %(nome)s,
@@ -193,29 +160,12 @@ class ClienteModel:
                 """,
                 {**dados, "id": cliente_id},
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def atualizar_status(cliente_id: int, ativo: str) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 "UPDATE clientes SET ativo = %s WHERE id = %s",
                 (ativo, cliente_id),
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
+            return cur.rowcount > 0

@@ -1,5 +1,6 @@
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
@@ -8,11 +9,12 @@ from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.auth.models.usuario_model import UsuarioModel
 from modules.venda.models.caixa_model import CaixaModel
 from utils.app_logger import log_warning
-from utils.format_utils import formatar_moeda
+from utils.format_utils import formatar_data_hora, formatar_moeda
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 
 class CaixaService:
     @staticmethod
-    def _parametros_caixa_padrao() -> Dict[str, Any]:
+    def _parametros_caixa_padrao() -> dict[str, Any]:
         return {
             "fundo_inicial_sugerido": 0.0,
             "exigir_admin_sangria": True,
@@ -21,7 +23,7 @@ class CaixaService:
         }
 
     @staticmethod
-    def _carregar_parametros_caixa() -> Dict[str, Any]:
+    def _carregar_parametros_caixa() -> dict[str, Any]:
         try:
             return ConfiguracoesService.carregar_parametros_caixa()
         except Exception as exc:
@@ -29,30 +31,17 @@ class CaixaService:
             return CaixaService._parametros_caixa_padrao()
 
     @staticmethod
-    def _formatar_data_hora(valor: Any) -> str:
-        if isinstance(valor, datetime):
-            return valor.strftime("%d/%m/%Y %H:%M")
-        if isinstance(valor, str):
-            for formato in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S.%f", "%d/%m/%Y %H:%M"):
-                try:
-                    return datetime.strptime(valor, formato).strftime("%d/%m/%Y %H:%M")
-                except ValueError:
-                    continue
-            return valor
-        return "-"
-
-    @staticmethod
-    def listar_pdvs_ativos() -> List[Dict[str, Any]]:
+    def listar_pdvs_ativos() -> list[dict[str, Any]]:
         return CaixaModel.listar_pdvs_ativos()
 
     @staticmethod
-    def listar_ultimas_aberturas(limit: int = 10) -> List[Dict[str, Any]]:
+    def listar_ultimas_aberturas(limit: int = 10) -> list[dict[str, Any]]:
         return CaixaModel.listar_ultimas_aberturas(limit)
 
     @staticmethod
-    def listar_caixas_admin(limit: int = 120) -> List[Dict[str, Any]]:
+    def listar_caixas_admin(limit: int = 120) -> list[dict[str, Any]]:
         caixas = CaixaModel.listar_caixas_admin(limit)
-        rows: List[Dict[str, Any]] = []
+        rows: list[dict[str, Any]] = []
 
         for caixa in caixas:
             identificacao = str(caixa.get("identificacao") or "PDV")
@@ -67,22 +56,22 @@ class CaixaService:
                     "id": int(caixa.get("id") or 0),
                     "pdv": pdv_label,
                     "operador": str(caixa.get("operador_abertura") or "-"),
-                    "abertura": CaixaService._formatar_data_hora(caixa.get("data_abertura")),
-                    "fechamento": CaixaService._formatar_data_hora(data_fechamento) if data_fechamento else "-",
+                    "abertura": formatar_data_hora(caixa.get("data_abertura")),
+                    "fechamento": formatar_data_hora(data_fechamento) if data_fechamento else "-",
                     "fundo": formatar_moeda(float(caixa.get("valor_abertura") or 0.0)),
                     "valor_fechamento": formatar_moeda(float(valor_fechamento or 0.0))
                     if valor_fechamento not in (None, "")
                     else "-",
                     "diferenca": formatar_moeda(float(diferenca or 0.0)) if diferenca not in (None, "") else "-",
                     "status": str(caixa.get("status") or "-").capitalize(),
-                    "ativo": "Sim" if str(caixa.get("ativo") or "N").upper() == "S" else "Nao",
+                    "ativo": "Sim" if str(caixa.get("ativo") or FLAG_NAO).upper() == FLAG_SIM else "Nao",
                 }
             )
 
         return rows
 
     @staticmethod
-    def restaurar_caixa_aberto(usuario_id: Optional[int]) -> Optional[Dict[str, Any]]:
+    def restaurar_caixa_aberto(usuario_id: int | None) -> dict[str, Any] | None:
         if not usuario_id:
             return None
 
@@ -106,14 +95,14 @@ class CaixaService:
 
     @staticmethod
     def abrir_caixa(
-        pdv_id: Optional[int],
+        pdv_id: int | None,
         pdv_label: str,
-        usuario_id: Optional[int],
+        usuario_id: int | None,
         usuario_nome: str,
         valor_abertura: float,
         observacoes: str,
-        breakdown: Dict[str, int],
-    ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+        breakdown: dict[str, int],
+    ) -> tuple[bool, str, dict[str, Any] | None]:
         if not usuario_id:
             return False, "Não foi possível identificar o operador logado.", None
 
@@ -165,7 +154,7 @@ class CaixaService:
         return True, "Caixa aberto com sucesso.", caixa_data
 
     @staticmethod
-    def obter_resumo_fechamento() -> Dict[str, Any]:
+    def obter_resumo_fechamento() -> dict[str, Any]:
         caixa = CaixaSession.current() or {}
         fundo_inicial = float(caixa.get("valor_abertura") or 0.0)
         total_sangrias = 0.0
@@ -174,7 +163,7 @@ class CaixaService:
         faturamento_dinheiro = 0.0
         vendas_dia = 0
         faturamento_total = 0.0
-        totais_forma_pagamento: List[Dict[str, Any]] = []
+        totais_forma_pagamento: list[dict[str, Any]] = []
 
         caixa_id = caixa.get("id")
         if caixa_id:
@@ -213,7 +202,7 @@ class CaixaService:
         }
 
     @staticmethod
-    def obter_resumo_caixa_atual() -> Optional[Dict[str, Any]]:
+    def obter_resumo_caixa_atual() -> dict[str, Any] | None:
         caixa = CaixaSession.current() or {}
         caixa_id = caixa.get("id")
         if not caixa_id:
@@ -225,8 +214,8 @@ class CaixaService:
     def obter_resumo_por_caixa_id(
         caixa_id: int,
         *,
-        caixa_sessao: Optional[Dict[str, Any]] = None,
-    ) -> Optional[Dict[str, Any]]:
+        caixa_sessao: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         detalhes = CaixaModel.buscar_caixa_por_id(int(caixa_id))
         if not detalhes:
             return None
@@ -239,7 +228,7 @@ class CaixaService:
         faturamento_dinheiro = 0.0
         vendas_dia = 0
         faturamento_total = 0.0
-        totais_forma_pagamento: List[Dict[str, Any]] = []
+        totais_forma_pagamento: list[dict[str, Any]] = []
 
         try:
             resumo_operacional = CaixaModel.obter_resumo_operacional(int(caixa_id))
@@ -279,7 +268,7 @@ class CaixaService:
             "caixa_id": int(detalhes["id"]),
             "pdv_label": f"{detalhes['identificacao']} - {detalhes['descricao']}",
             "operador": str(detalhes.get("usuario_nome") or (caixa_sessao or {}).get("usuario_nome") or "Operador"),
-            "data_abertura": CaixaService._formatar_data_hora(detalhes.get("data_abertura")),
+            "data_abertura": formatar_data_hora(detalhes.get("data_abertura")),
             "status": str(detalhes.get("status") or "aberto").capitalize(),
             "fundo_inicial": fundo_inicial,
             "vendas_dia": vendas_dia,
@@ -294,7 +283,7 @@ class CaixaService:
         }
 
     @staticmethod
-    def listar_movimentacoes(tipo: str = "todas") -> List[Dict[str, Any]]:
+    def listar_movimentacoes(tipo: str = "todas") -> list[dict[str, Any]]:
         caixa = CaixaSession.current() or {}
         caixa_id = caixa.get("id")
         if not caixa_id:
@@ -302,13 +291,13 @@ class CaixaService:
         return CaixaModel.listar_movimentacoes(int(caixa_id), tipo)
 
     @staticmethod
-    def obter_resumo_movimentacoes() -> Dict[str, Any]:
+    def obter_resumo_movimentacoes() -> dict[str, Any]:
         caixa = CaixaSession.current() or {}
         caixa_id = caixa.get("id")
         fundo_inicial = float(caixa.get("valor_abertura") or 0.0)
         faturamento_dinheiro = 0.0
         total_reembolsos = 0.0
-        resumo: Dict[str, Any] = {}
+        resumo: dict[str, Any] = {}
 
         if caixa_id:
             try:
@@ -348,7 +337,7 @@ class CaixaService:
         valor: float,
         observacao: str,
         admin_password: str,
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         caixa = CaixaSession.current() or {}
         usuario = SessionManager.current_user() or {}
         caixa_id = int(caixa.get("id") or 0)
@@ -422,7 +411,7 @@ class CaixaService:
         observacoes: str,
         *,
         admin_password: str = "",
-    ) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    ) -> tuple[bool, str, dict[str, Any] | None]:
         usuario = CaixaSession.current()
         operador = (
             UsuarioModel.buscar_sessao_por_id(int(usuario["usuario_id"]))

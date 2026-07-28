@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtWidgets import QApplication, QDialog
 
 from core.session_manager import SessionManager

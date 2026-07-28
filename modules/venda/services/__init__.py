@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .caixa_service import CaixaService
 from .cupom_service import (
     aplicar_desconto_item,

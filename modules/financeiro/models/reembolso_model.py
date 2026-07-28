@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, List, Sequence, cast
+from typing import Any, Sequence, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import (
     FLAG_SIM,
+    STATUS_CONTA_CANCELADA,
     STATUS_REEMBOLSO_CONCLUIDO,
     STATUS_VENDA_PARCIALMENTE_REEMBOLSADA,
     STATUS_VENDA_REEMBOLSADA,
@@ -23,18 +24,16 @@ class ReembolsoModel:
         motivo: str,
         observacao: str,
         usuario_id: int,
-        itens: Sequence[Dict[str, Any]],
-        pagamentos: Sequence[Dict[str, Any]],
+        itens: Sequence[dict[str, Any]],
+        pagamentos: Sequence[dict[str, Any]],
     ) -> int:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_transaction() as cur:
             total_reembolso = sum(
                 (Decimal(str(item.get("valor_total") or 0)).quantize(CENT, rounding=ROUND_HALF_UP) for item in itens),
                 Decimal("0.00"),
             )
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO venda_reembolsos
                     (venda_id, tipo, status, valor_total, motivo, observacao, usuario_id, data_hora, ativo, createdAt, updatedAt)
@@ -52,12 +51,12 @@ class ReembolsoModel:
                     FLAG_SIM,
                 ),
             )
-            reembolso_id = int(cursor.lastrowid or 0)
+            reembolso_id = int(cur.lastrowid or 0)
             if reembolso_id <= 0:
                 raise RuntimeError("Não foi possível obter o ID do reembolso.")
 
             data_hora = datetime.now()
-            total_produtos: Dict[int, int] = {}
+            total_produtos: dict[int, int] = {}
 
             for item in itens:
                 item_venda_id = int(item["item_venda_id"])
@@ -67,7 +66,7 @@ class ReembolsoModel:
                 valor_unitario = Decimal(str(item["valor_unitario"])).quantize(CENT, rounding=ROUND_HALF_UP)
                 valor_total = (valor_unitario * Decimal(quantidade)).quantize(CENT, rounding=ROUND_HALF_UP)
 
-                cursor.execute(
+                cur.execute(
                     """
                     INSERT INTO venda_reembolso_itens
                         (reembolso_id, item_venda_id, produto_id, lote_id, quantidade, valor_unitario, valor_total, createdAt, updatedAt)
@@ -85,7 +84,7 @@ class ReembolsoModel:
                     ),
                 )
 
-                cursor.execute(
+                cur.execute(
                     """
                     UPDATE lotes
                     SET quantidade = COALESCE(quantidade, 0) + %s,
@@ -97,7 +96,7 @@ class ReembolsoModel:
 
                 total_produtos[produto_id] = total_produtos.get(produto_id, 0) + quantidade
 
-                cursor.execute(
+                cur.execute(
                     """
                     INSERT INTO movimentacao_estoque
                         (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
@@ -117,7 +116,7 @@ class ReembolsoModel:
                 )
 
             for produto_id, quantidade in total_produtos.items():
-                cursor.execute(
+                cur.execute(
                     """
                     UPDATE produtos
                     SET quantidade_estoque = COALESCE(quantidade_estoque, 0) + %s,
@@ -131,7 +130,7 @@ class ReembolsoModel:
                 valor = Decimal(str(pagamento.get("valor") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
                 if valor <= Decimal("0.00"):
                     continue
-                cursor.execute(
+                cur.execute(
                     """
                     INSERT INTO venda_reembolso_pagamentos
                         (reembolso_id, forma_pagamento, valor, observacao, createdAt, updatedAt)
@@ -146,16 +145,8 @@ class ReembolsoModel:
                     ),
                 )
 
-            ReembolsoModel._atualizar_status_venda(cursor, int(venda_id))
-            conn.commit()
+            ReembolsoModel._atualizar_status_venda(cur, int(venda_id))
             return reembolso_id
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def _atualizar_status_venda(cursor: Any, venda_id: int) -> None:
         cursor.execute(
@@ -167,7 +158,7 @@ class ReembolsoModel:
             """,
             (int(venda_id),),
         )
-        venda = cast(Dict[str, Any], cursor.fetchone() or {})
+        venda = cast(dict[str, Any], cursor.fetchone() or {})
         valor_total_venda = Decimal(str(venda.get("valor_total") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
 
         cursor.execute(
@@ -180,7 +171,7 @@ class ReembolsoModel:
             """,
             (int(venda_id), FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
-        totais = cast(Dict[str, Any], cursor.fetchone() or {})
+        totais = cast(dict[str, Any], cursor.fetchone() or {})
         total_reembolsado = Decimal(str(totais.get("total_reembolsado") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
 
         novo_status = (
@@ -196,3 +187,17 @@ class ReembolsoModel:
             """,
             (novo_status, int(venda_id)),
         )
+
+        if novo_status == STATUS_VENDA_REEMBOLSADA:
+            cursor.execute(
+                """
+                UPDATE contas_receber
+                SET status = %s,
+                    valor_aberto = 0,
+                    updatedAt = NOW()
+                WHERE venda_id = %s
+                  AND ativo = %s
+                  AND status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+                """,
+                (STATUS_CONTA_CANCELADA, int(venda_id), FLAG_SIM),
+            )

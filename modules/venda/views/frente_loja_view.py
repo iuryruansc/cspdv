@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 
 from PyQt5.QtCore import QDate, QTime, QTimer, Qt

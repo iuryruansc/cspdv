@@ -1,18 +1,16 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor
 
 class EstoqueModel:
     ESTOQUE_CRITICO_PADRAO = 5
 
     @staticmethod
-    def listar_categorias() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_categorias() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, nome
                 FROM categorias
@@ -20,17 +18,11 @@ class EstoqueModel:
                 ORDER BY nome
                 """
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def listar_fornecedores() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_fornecedores() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id_fornecedor, nome_fantasia
                 FROM fornecedores
@@ -38,26 +30,20 @@ class EstoqueModel:
                 ORDER BY nome_fantasia
                 """
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def obter_metricas() -> Dict[str, int]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def obter_metricas() -> dict[str, int]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT COUNT(*) AS total
                 FROM produtos
                 WHERE ativo = 'S'
                 """
             )
-            produtos = cast(Dict[str, Any], cursor.fetchone() or {})
+            produtos = cast(dict[str, Any], cur.fetchone() or {})
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT COUNT(*) AS total
                 FROM lotes
@@ -65,9 +51,9 @@ class EstoqueModel:
                   AND quantidade > 0
                 """
             )
-            lotes = cast(Dict[str, Any], cursor.fetchone() or {})
+            lotes = cast(dict[str, Any], cur.fetchone() or {})
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT COUNT(*) AS total
                 FROM produtos
@@ -76,9 +62,9 @@ class EstoqueModel:
                 """,
                 (EstoqueModel.ESTOQUE_CRITICO_PADRAO,),
             )
-            critico = cast(Dict[str, Any], cursor.fetchone() or {})
+            critico = cast(dict[str, Any], cur.fetchone() or {})
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT COUNT(*) AS total
                 FROM movimentacao_estoque
@@ -86,7 +72,7 @@ class EstoqueModel:
                   AND DATE(data_hora) = CURDATE()
                 """
             )
-            movimentacoes = cast(Dict[str, Any], cursor.fetchone() or {})
+            movimentacoes = cast(dict[str, Any], cur.fetchone() or {})
 
             return {
                 "produtos_ativos": int(produtos.get("total") or 0),
@@ -94,22 +80,16 @@ class EstoqueModel:
                 "estoque_critico": int(critico.get("total") or 0),
                 "movimentacoes_dia": int(movimentacoes.get("total") or 0),
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def listar_produtos_lotes(
         *,
         busca: str = "",
-        categoria_id: Optional[int] = None,
-        fornecedor_id: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            where: List[str] = ["p.ativo = 'S'"]
-            params: List[Any] = []
+        categoria_id: int | None = None,
+        fornecedor_id: int | None = None,
+    ) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            where: list[str] = ["p.ativo = 'S'"]
+            params: list[Any] = []
 
             busca_limpa = str(busca or "").strip()
             if busca_limpa:
@@ -134,7 +114,7 @@ class EstoqueModel:
                 where.append("p.fornecedor_id = %s")
                 params.append(int(fornecedor_id))
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     p.id,
@@ -157,17 +137,11 @@ class EstoqueModel:
                 """,
                 tuple(params),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def listar_movimentacoes_recentes(limite: int = 20) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_movimentacoes_recentes(limite: int = 20) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     me.data_hora,
@@ -185,7 +159,4 @@ class EstoqueModel:
                 """,
                 (int(limite),),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
+            return cast(list[dict[str, Any]], cur.fetchall())

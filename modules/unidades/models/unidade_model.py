@@ -1,15 +1,14 @@
-from typing import Any, Dict, List, Optional, Sequence, cast
+from __future__ import annotations
 
-from database.connection import get_connection
+from typing import Any, Sequence, cast
 
+from database.connection import db_cursor, db_transaction
 
 class UnidadeModel:
     @staticmethod
-    def listar() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -22,17 +21,11 @@ class UnidadeModel:
                 ORDER BY sigla
                 """
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def buscar_por_id(unidade_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_id(unidade_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -47,17 +40,11 @@ class UnidadeModel:
                 """,
                 (int(unidade_id),),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def buscar_por_sigla(sigla: str) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_sigla(sigla: str) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, sigla, descricao, codigo_sefaz, COALESCE(`fracionável`, 0) AS fracionavel, ativo
                 FROM unidades_medida
@@ -66,17 +53,11 @@ class UnidadeModel:
                 """,
                 (sigla,),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def inserir(dados: Dict[str, Any]) -> Optional[int]:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def inserir(dados: dict[str, Any]) -> int | None:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO unidades_medida
                     (sigla, descricao, codigo_sefaz, `fracionável`, ativo, createdAt, updatedAt)
@@ -85,21 +66,11 @@ class UnidadeModel:
                 """,
                 dados,
             )
-            conn.commit()
-            return cursor.lastrowid
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.lastrowid
     @staticmethod
-    def atualizar(unidade_id: int, dados: Dict[str, Any]) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def atualizar(unidade_id: int, dados: dict[str, Any]) -> bool:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE unidades_medida
                 SET
@@ -113,39 +84,19 @@ class UnidadeModel:
                 """,
                 {**dados, "id": int(unidade_id)},
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def atualizar_status(unidade_id: int, ativo: str) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 "UPDATE unidades_medida SET ativo = %s WHERE id = %s",
                 (ativo, int(unidade_id)),
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def contar_produtos_vinculados(unidade_id: int) -> int:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_cursor(dictionary=False) as cur:
+            cur.execute(
                 """
                 SELECT COUNT(*)
                 FROM produtos
@@ -153,10 +104,7 @@ class UnidadeModel:
                 """,
                 (int(unidade_id), int(unidade_id)),
             )
-            row = cast(Sequence[Any] | None, cursor.fetchone())
+            row = cast(Sequence[Any] | None, cur.fetchone())
             if not row:
                 return 0
             return int(row[0] or 0)
-        finally:
-            cursor.close()
-            conn.close()

@@ -98,10 +98,6 @@ class ConfirmarFechamentoCaixaDialog(QDialog, Ui_ConfirmarFechamentoCaixaDialog)
         self.admin_password = self.lineSenhaAdmin.text().strip()
         self.accept()
 
-    @staticmethod
-    def _formatar_moeda(valor: float) -> str:
-        return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
 class FechamentoRealizadoDialog(QDialog, Ui_FechamentoRealizadoDialog):
     def __init__(self, mensagem: str, parent=None):
         super().__init__(parent)

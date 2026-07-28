@@ -1,4 +1,5 @@
-from typing import Any, Dict, Iterable, List
+from __future__ import annotations
+from typing import Any, Iterable
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFrame, QHeaderView, QWidget
@@ -9,9 +10,9 @@ from utils.table_widget_utils import set_table_item
 class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self._rows: List[Dict[str, Any]] = []
-        self._columns: List[tuple[str, str]] = []
-        self._displayed_rows: List[Dict[str, Any]] = []
+        self._rows: list[dict[str, Any]] = []
+        self._columns: list[tuple[str, str]] = []
+        self._displayed_rows: list[dict[str, Any]] = []
         self._details_allowed = False
         self._edit_allowed = False
         self._toggle_allowed = False
@@ -21,7 +22,7 @@ class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
         self.lineEditBusca.textChanged.connect(self._apply_filter)
         self.tableResultados.itemSelectionChanged.connect(self._update_action_states)
 
-    def configure(self, title: str, hint: str, columns: Iterable[tuple[str, str]], rows: List[Dict[str, Any]]) -> None:
+    def configure(self, title: str, hint: str, columns: Iterable[tuple[str, str]], rows: list[dict[str, Any]]) -> None:
         self.lblTitle.setText(title)
         self.lblHint.setText(hint)
         self._columns = list(columns)
@@ -49,7 +50,7 @@ class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
         self.btnToggleAtivo.setVisible(enabled)
         self._update_action_states()
 
-    def selected_row(self) -> Dict[str, Any] | None:
+    def selected_row(self) -> dict[str, Any] | None:
         current_row = self.tableResultados.currentRow()
         if current_row < 0 or current_row >= len(self._displayed_rows):
             return None
@@ -66,7 +67,7 @@ class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
         ]
         self._populate_table(filtered_rows)
 
-    def _populate_table(self, rows: List[Dict[str, Any]]) -> None:
+    def _populate_table(self, rows: list[dict[str, Any]]) -> None:
         self._displayed_rows = list(rows)
         self.tableResultados.setColumnCount(len(self._columns))
         self.tableResultados.setHorizontalHeaderLabels([label for _, label in self._columns])

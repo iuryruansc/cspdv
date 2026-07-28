@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from PyQt5.QtWidgets import QDialog, QPlainTextEdit, QPushButton
 
@@ -16,7 +16,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
     btnSair: QPushButton
     btnFechar: QPushButton
 
-    def __init__(self, *, venda_data: Dict[str, Any], parent=None) -> None:
+    def __init__(self, *, venda_data: dict[str, Any], parent=None) -> None:
         super().__init__(parent)
         self.setupUi(self)
         self.resultado = "sair"
@@ -47,8 +47,8 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
         self.textCupom.setPlainText(self._montar_texto_cupom())
 
     def _montar_texto_cupom(self) -> str:
-        itens: List[Dict[str, Any]] = list(self._venda_data.get("itens") or [])
-        pagamentos: List[Dict[str, Any]] = list(self._venda_data.get("pagamentos") or [])
+        itens: list[dict[str, Any]] = list(self._venda_data.get("itens") or [])
+        pagamentos: list[dict[str, Any]] = list(self._venda_data.get("pagamentos") or [])
         linhas = [
             "********* DOCUMENTO NÃO FISCAL *********",
             "                CSPdv",

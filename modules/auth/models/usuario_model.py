@@ -1,22 +1,23 @@
+from __future__ import annotations
+
 import hashlib
 import bcrypt
-from typing import List, Optional, Dict, Any, cast
-from database.connection import get_connection
+from typing import Any, cast
+from database.connection import db_cursor
+from modules.shared.constants import FLAG_SIM
 
 class UsuarioModel:
     @staticmethod
-    def _carregar_usuario_com_permissoes(usuario: Dict[str, Any]) -> Dict[str, Any]:
+    def _carregar_usuario_com_permissoes(usuario: dict[str, Any]) -> dict[str, Any]:
         perfil_id = usuario.get("perfil_acesso_id")
         usuario["permissoes"] = UsuarioModel.buscar_permissoes(int(perfil_id)) if perfil_id is not None else []
         usuario.pop("senha", None)
         return usuario
 
     @staticmethod
-    def buscar_por_login(login: str) -> Optional[Dict[str, Any]]:
-        conn = get_connection() # Erro que crasha a aplicação
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_login(login: str) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, funcionario_id, nome, email, senha, cargo, ativo, perfil_acesso_id
                 FROM   usuarios
@@ -25,10 +26,7 @@ class UsuarioModel:
                 """,
                 (login, login),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
+            return cast(dict[str, Any] | None, cur.fetchone())
 
     @staticmethod
     def verificar_senha(senha_digitada: str, senha_banco: str) -> bool:
@@ -56,7 +54,7 @@ class UsuarioModel:
         return senha_digitada == senha_banco
 
     @staticmethod
-    def autenticar(login: str, senha: str) -> Optional[Dict[str, Any]]:
+    def autenticar(login: str, senha: str) -> dict[str, Any] | None:
         usuario = UsuarioModel.buscar_por_login(login)
 
         if usuario is None:
@@ -68,17 +66,15 @@ class UsuarioModel:
         if not UsuarioModel.verificar_senha(senha, usuario['senha']):
             return None
 
-        if usuario['ativo'] != 'S':
+        if usuario['ativo'] != FLAG_SIM:
             raise ValueError('Conta inativa. Contate o administrador.')
 
         return UsuarioModel._carregar_usuario_com_permissoes(usuario)
 
     @staticmethod
-    def buscar_sessao_por_id(usuario_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_sessao_por_id(usuario_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, funcionario_id, nome, email, cargo, ativo, perfil_acesso_id
                 FROM usuarios
@@ -87,20 +83,14 @@ class UsuarioModel:
                 """,
                 (usuario_id,),
             )
-            usuario = cast(Optional[Dict[str, Any]], cursor.fetchone())
-            if usuario is None or usuario.get("ativo") != "S":
+            usuario = cast(dict[str, Any] | None, cur.fetchone())
+            if usuario is None or usuario.get("ativo") != FLAG_SIM:
                 return None
             return UsuarioModel._carregar_usuario_com_permissoes(usuario)
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def autenticar_admin_por_senha(senha: str) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def autenticar_admin_por_senha(senha: str) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT DISTINCT
                     u.id,
@@ -118,30 +108,21 @@ class UsuarioModel:
                   AND p.chave = 'sistema.master'
                 """
             )
-            usuarios = cast(List[Dict[str, Any]], cursor.fetchall())
+            usuarios = cast(list[dict[str, Any]], cur.fetchall())
             for usuario in usuarios:
                 senha_banco = str(usuario.get("senha") or "")
                 if senha_banco and UsuarioModel.verificar_senha(senha, senha_banco):
                     return UsuarioModel._carregar_usuario_com_permissoes(usuario)
             return None
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def buscar_permissoes(perfil_id: int) -> list:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             sql = """
                 SELECT p.chave
                 FROM permissoes p
                 INNER JOIN perfil_permissoes pp ON pp.permissao_id = p.id
                 WHERE pp.perfil_id = %s
             """
-            cursor.execute(sql, (perfil_id,))
-            resultados = cast(List[Dict[str, Any]], cursor.fetchall())
+            cur.execute(sql, (perfil_id,))
+            resultados = cast(list[dict[str, Any]], cur.fetchall())
             return [row['chave'] for row in resultados]
-        finally:
-            cursor.close()
-            conn.close()

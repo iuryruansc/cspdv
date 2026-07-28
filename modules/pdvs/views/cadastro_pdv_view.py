@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -15,7 +16,7 @@ from modules.pdvs.services.pdv_service import PdvService
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
-
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, TEXTO_AUTO_GERADO
 
 class CadastroPdvView(QDialog, ValidacaoFormMixin):
     def __init__(self, parent=None, pdv_id=None):
@@ -80,7 +81,7 @@ class CadastroPdvView(QDialog, ValidacaoFormMixin):
 
     def _configurar_modo(self) -> None:
         if self._pdv_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.setText(TEXTO_AUTO_GERADO)
             return
 
         pdv = PdvModel.buscar_por_id(self._pdv_id)
@@ -93,7 +94,7 @@ class CadastroPdvView(QDialog, ValidacaoFormMixin):
         self.lineEditCodigo.setText(str(pdv.get("id") or ""))
         self.lineEditIdentificacao.setText(str(pdv.get("identificacao") or ""))
         self.lineEditDescricao.setText(str(pdv.get("descricao") or ""))
-        self.checkBoxAtivo.setChecked(str(pdv.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(pdv.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
         self.btnSalvar.setText("Atualizar")
 
     def _salvar_pdv(self) -> None:
@@ -104,7 +105,7 @@ class CadastroPdvView(QDialog, ValidacaoFormMixin):
         dados = {
             "identificacao": identificacao,
             "descricao": descricao,
-            "ativo": "S" if self.checkBoxAtivo.isChecked() else "N",
+            "ativo": FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO,
         }
 
         erros = []

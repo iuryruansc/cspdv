@@ -46,9 +46,23 @@ class Ui_ConsultaVendaDialog(object):
 
         self.itensCard = self._create_card(ConsultaVendaDialog, "Itens da Venda")
         self.tableItens = QtWidgets.QTableWidget(self.itensCard)
-        self._setup_table(self.tableItens, ["Código", "Descrição", "Qtd.", "Vl. Unit.", "Total"], no_selection=True)
+        self._setup_table(self.tableItens, ["Código", "Descrição", "Qtd.", "Vl. Original", "Vl. Unit.", "Desconto", "Total"], no_selection=True)
         self.itensCard.layout().addWidget(self.tableItens)
         self.verticalLayout.addWidget(self.itensCard, 1)
+
+        self.descontoGlobalCard = QtWidgets.QWidget(ConsultaVendaDialog)
+        self.descontoGlobalCard.setProperty("card", "true")
+        self.descontoGlobalLayout = QtWidgets.QHBoxLayout(self.descontoGlobalCard)
+        self.descontoGlobalLayout.setContentsMargins(16, 10, 16, 10)
+        self.lblDescontoGlobalTitulo = QtWidgets.QLabel("Desconto Global:", self.descontoGlobalCard)
+        self.lblDescontoGlobalTitulo.setProperty("caption", "true")
+        self.descontoGlobalLayout.addWidget(self.lblDescontoGlobalTitulo)
+        self.lblDescontoGlobalValor = QtWidgets.QLabel("-", self.descontoGlobalCard)
+        self.lblDescontoGlobalValor.setProperty("value", "true")
+        self.lblDescontoGlobalValor.setStyleSheet("color: #c0392b; font-size: 16px;")
+        self.descontoGlobalLayout.addWidget(self.lblDescontoGlobalValor)
+        self.descontoGlobalLayout.addStretch()
+        self.verticalLayout.addWidget(self.descontoGlobalCard)
 
         self.tablesRow = QtWidgets.QHBoxLayout()
         self.tablesRow.setSpacing(14)
@@ -66,6 +80,10 @@ class Ui_ConsultaVendaDialog(object):
 
         self.footerLayout = QtWidgets.QHBoxLayout()
         self.footerLayout.addItem(QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum))
+        self.btnReceberPendencia = QtWidgets.QPushButton(ConsultaVendaDialog)
+        self.btnReceberPendencia.setStyleSheet("background: #27ae60;")
+        self.btnReceberPendencia.setVisible(False)
+        self.footerLayout.addWidget(self.btnReceberPendencia)
         self.btnFechar = QtWidgets.QPushButton(ConsultaVendaDialog)
         self.footerLayout.addWidget(self.btnFechar)
         self.verticalLayout.addLayout(self.footerLayout)
@@ -110,4 +128,5 @@ class Ui_ConsultaVendaDialog(object):
     def retranslateUi(self, ConsultaVendaDialog):
         _translate = QtCore.QCoreApplication.translate
         self.lblHeaderTitulo.setText(_translate("ConsultaVendaDialog", "Venda #-"))
+        self.btnReceberPendencia.setText(_translate("ConsultaVendaDialog", "Receber Pendência"))
         self.btnFechar.setText(_translate("ConsultaVendaDialog", "Fechar"))

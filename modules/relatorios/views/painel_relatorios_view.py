@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv
 from datetime import date
-from typing import Any, Dict, List
+from typing import Any
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt
@@ -26,7 +26,6 @@ _BRANCO = QColor("#ffffff")
 
 COR = {"azul": "#3585c8", "verde": "#5cb85c", "roxo": "#9b59b6", "laranja": "#e67e22"}
 
-
 class GraficoCanvas(FigureCanvas):
     def __init__(self, parent=None, dpi=100):
         self.fig = Figure(dpi=dpi, facecolor="white")
@@ -39,7 +38,6 @@ class GraficoCanvas(FigureCanvas):
         self.ax.clear()
         self.fig.subplots_adjust(left=0.18, right=0.96, top=0.94, bottom=0.12)
         self.draw()
-
 
 class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMixin):
     def __init__(self, parent=None):
@@ -135,7 +133,7 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
 
         self._montar_matriz(dados)
 
-    def _montar_matriz(self, dados: Dict[str, Any]) -> None:
+    def _montar_matriz(self, dados: dict[str, Any]) -> None:
         matriz = dados.get("matriz_vendas") or {}
         totais_mensais = dados.get("totais_mensais") or {}
 
@@ -247,7 +245,7 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
             set_table_item(self.tableProdutos, row, 1, str(int(item.get("quantidade") or 0)), alignment=Qt.AlignCenter)
             set_table_item(self.tableProdutos, row, 2, formatar_moeda(item.get("receita")), alignment=Qt.AlignRight | Qt.AlignVCenter)
 
-    def _desenhar_grafico_barras(self, produtos: List[Dict]) -> None:
+    def _desenhar_grafico_barras(self, produtos: list[dict]) -> None:
         canvas = self.graficoProdutos
         canvas.limpar()
         ax = canvas.ax
@@ -308,7 +306,7 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
             card = self._criar_card_cliente(cli, cor, idx + 1)
             grid.addWidget(card, row, col)
 
-    def _criar_card_cliente(self, cli: Dict, cor: str, rank: int) -> QFrame:
+    def _criar_card_cliente(self, cli: dict, cor: str, rank: int) -> QFrame:
         card = QFrame()
         card.setStyleSheet(
             f"QFrame {{ background-color: white; border: 1px solid #d7e4ef; "
@@ -369,7 +367,7 @@ class PainelRelatoriosView(QMainWindow, Ui_PainelRelatorios, PainelOperacionalMi
             set_table_item(self.tableCaixa, row, 2, formatar_moeda(item.get("faturamento")), alignment=Qt.AlignRight | Qt.AlignVCenter)
             set_table_item(self.tableCaixa, row, 3, formatar_moeda(item.get("ticket_medio")), alignment=Qt.AlignRight | Qt.AlignVCenter)
 
-    def _desenhar_grafico_linha(self, periodo: List[Dict]) -> None:
+    def _desenhar_grafico_linha(self, periodo: list[dict]) -> None:
         canvas = self.graficoCaixa
         canvas.limpar()
         ax = canvas.ax

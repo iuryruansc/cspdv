@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from __future__ import annotations
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
@@ -9,7 +10,7 @@ from ui.produtos.ajuste_quantidade_dialog import Ui_AjusteQuantidadeDialog
 from utils.ui_messages import mostrar_aviso, mostrar_info
 
 class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
-    def __init__(self, produto: Dict[str, Any], parent=None):
+    def __init__(self, produto: dict[str, Any], parent=None):
         super().__init__(parent)
         self.setupUi(self)
         self.produto = produto

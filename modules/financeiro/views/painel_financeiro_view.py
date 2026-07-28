@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Optional
+from typing import Any
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QDate, Qt
@@ -246,6 +246,8 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
 
         dialog = ConsultaVendaDialog(detalhes, self)
         dialog.exec_()
+        if dialog.payment_registered:
+            self._carregar_painel()
 
     def _receber_pendencia(self) -> None:
         if not CaixaSession.has_open_caixa():
@@ -260,7 +262,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._executar_recebimento_conta(conta_id)
         return
 
-    def _executar_recebimento_conta(self, conta_id: Optional[int]) -> None:
+    def _executar_recebimento_conta(self, conta_id: int | None) -> None:
         if not CaixaSession.has_open_caixa():
             mostrar_aviso(
                 self,
@@ -398,7 +400,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             f"{mensagem}\n\nReembolso #{resultado['reembolso_id']} | Venda #{resultado['venda_id']} | Valor {formatar_moeda(resultado['valor_total'])}",
         )
 
-    def _obter_venda_id_selecionada(self) -> Optional[int]:
+    def _obter_venda_id_selecionada(self) -> int | None:
         for table in (self.tablePagamentos, self.tableContasReceber, self.tableReembolsos):
             row = table.currentRow()
             if row < 0:
@@ -415,7 +417,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 return venda_id
         return None
 
-    def _obter_conta_id_selecionada(self) -> Optional[int]:
+    def _obter_conta_id_selecionada(self) -> int | None:
         row = self.tableContasReceber.currentRow()
         if row < 0:
             return None
@@ -616,7 +618,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             self._destacar_total(valor_item)
             self._aplicar_tooltip_reembolso(row, registro)
 
-    def _forma_pagamento_filtro(self) -> Optional[str]:
+    def _forma_pagamento_filtro(self) -> str | None:
         if self.cmbFormaPagamentoFiltro.currentData() is None:
             return None
         return self.cmbFormaPagamentoFiltro.currentText().strip() or None

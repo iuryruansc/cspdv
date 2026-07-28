@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from typing import Any
+
 from modules.categorias.models.categoria_model import CategoriaModel
+from modules.shared.constants import ResultadoOperacao
 from modules.shared.services.simple_named_status_service import (
     alternar_status_entidade_simples,
     atualizar_entidade_simples,
@@ -8,7 +13,7 @@ from modules.shared.services.simple_named_status_service import (
 
 class CategoriaService:
     @staticmethod
-    def _validar_dados(dados):
+    def _validar_dados(dados: dict[str, Any]) -> ResultadoOperacao:
         return validar_entidade_simples(
             dados,
             nome_campo="nome",
@@ -16,7 +21,7 @@ class CategoriaService:
         )
 
     @staticmethod
-    def cadastrar_categoria(dados):
+    def cadastrar_categoria(dados: dict[str, Any]) -> ResultadoOperacao:
         return cadastrar_entidade_simples(
             dados,
             nome_campo="nome",
@@ -25,7 +30,7 @@ class CategoriaService:
         )
 
     @staticmethod
-    def atualizar_categoria(categoria_id, dados):
+    def atualizar_categoria(categoria_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         return atualizar_entidade_simples(
             int(categoria_id),
             dados,
@@ -35,7 +40,7 @@ class CategoriaService:
         )
 
     @staticmethod
-    def alternar_status(categoria_id):
+    def alternar_status(categoria_id: int) -> ResultadoOperacao:
         return alternar_status_entidade_simples(
             int(categoria_id),
             entidade="categoria",

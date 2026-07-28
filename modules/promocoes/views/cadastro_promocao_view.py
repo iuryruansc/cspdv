@@ -14,6 +14,23 @@ from ui.promocoes.cadastro_promocao import Ui_CadastroPromocao
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
 
+CONFIG_TITLES = {
+    "PERCENTUAL": "Desconto Percentual",
+    "VALOR": "Desconto em Valor",
+    "PRECO_FIXO": "Preco Fixo Promocional",
+    "LEVE_X_PAGUE_Y": "Regra Leve X Pague Y",
+    "DESCONTO_PROGRESSIVO": "Desconto Progressivo",
+    "COMBO": "Regra de Combo",
+}
+CONFIG_HINTS = {
+    "PERCENTUAL": "Informe o percentual de desconto aplicado sobre o preco de tabela.",
+    "VALOR": "Informe o valor fixo de desconto subtraido do preco de tabela.",
+    "PRECO_FIXO": "Informe o preco final promocional do produto.",
+    "LEVE_X_PAGUE_Y": "Configure a quantidade minima para o desconto e a forma de aplicacao.",
+    "DESCONTO_PROGRESSIVO": "Quanto mais unidades, maior o desconto. Adicione faixas com qtd minima e percentual.",
+    "COMBO": "Compre X unidades por um preco fixo. Configure a quantidade e o preco do combo.",
+}
+
 class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
     def __init__(self, parent=None, promocao_id: int | None = None):
         super().__init__(parent)
@@ -36,9 +53,8 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.lblFormTitle: QLabel
         self.lblFormHint: QLabel
         self.frameLeveXPagueY: QFrame
-        self.frameDescontoProgressivo: QFrame
+        self.frameProgressivo: QFrame
         self.frameCombo: QFrame
-        self.frameRegraVinculacao: QFrame
         self.frameFaixaPreco: QFrame
         self.lineEditLeveX: QLineEdit
         self.lineEditPagueY: QLineEdit
@@ -58,17 +74,14 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.setWindowModality(Qt.WindowModal)
         self.promocao_id = int(promocao_id or 0)
         self._dados_carregados: dict[str, object] | None = None
+        self._tipo_atual: str = ""
 
         self._configurar_campos()
         self.registrar_estilos(
             [
                 self.lineEditNomePromocao,
                 self.comboClassificacao,
-                self.comboTipoDesconto,
                 self.comboStatus,
-                self.lineEditDescontoPercentual,
-                self.lineEditDescontoValor,
-                self.lineEditPrecoFixo,
             ]
         )
         self.conectar_limpeza_em_tempo_real()
@@ -85,16 +98,15 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         agora = QDateTime.currentDateTime()
         self.dateTimeInicio.setDisplayFormat("dd/MM/yyyy HH:mm")
         self.dateTimeFim.setDisplayFormat("dd/MM/yyyy HH:mm")
-        self.comboTipoDesconto.currentTextChanged.connect(self._ajustar_campos_por_tipo)
-        self.tableFaixas.setColumnWidth(0, 200)
-        self.tableFaixas.setColumnWidth(1, 200)
+        self.tableFaixas.setColumnWidth(0, 160)
+        self.tableFaixas.setColumnWidth(1, 160)
         if self.promocao_id > 0:
             self._carregar_promocao()
         else:
             self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
             self.dateTimeInicio.setDateTime(agora)
             self.dateTimeFim.setDateTime(agora.addDays(7))
-            self._ajustar_campos_por_tipo()
+            self._selecionar_tipo("PERCENTUAL")
             self._ajustar_campos_regra()
 
     @staticmethod
@@ -107,23 +119,65 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             return QDateTime(datetime.combine(valor, datetime.min.time()))
         return QDateTime.currentDateTime()
 
+    # ------------------------------------------------------------------ tipo
+    def _selecionar_tipo(self, tipo: str) -> None:
+        tipo = tipo.strip().upper()
+        if tipo == self._tipo_atual:
+            return
+        self._tipo_atual = tipo
+        self.comboTipoDesconto.setCurrentText(tipo)
+
+        for tid, card in self._tipo_cards.items():
+            card.setProperty("selecionado", tid == tipo)
+            card.style().unpolish(card)
+            card.style().polish(card)
+
+        nome = CONFIG_TITLES.get(tipo, tipo)
+        self._tipo_selecionado_label.setText(f"Tipo selecionado: {nome}")
+
+        self._configTitle.setText(CONFIG_TITLES.get(tipo, "Configuracao"))
+        self._configHint.setText(CONFIG_HINTS.get(tipo, ""))
+
+        for tid, frame in self._config_frames.items():
+            frame.setVisible(tid == tipo)
+        self.frameConfigVazio.setVisible(False)
+
+    def _selecionar_tipo_silencioso(self, tipo: str) -> None:
+        tipo = tipo.strip().upper()
+        self._tipo_atual = tipo
+        self.comboTipoDesconto.setCurrentText(tipo)
+
+        for tid, card in self._tipo_cards.items():
+            card.setProperty("selecionado", tid == tipo)
+            card.style().unpolish(card)
+            card.style().polish(card)
+
+        nome = CONFIG_TITLES.get(tipo, tipo)
+        self._tipo_selecionado_label.setText(f"Tipo selecionado: {nome}")
+        self._configTitle.setText(CONFIG_TITLES.get(tipo, "Configuracao"))
+        self._configHint.setText(CONFIG_HINTS.get(tipo, ""))
+
+        for tid, frame in self._config_frames.items():
+            frame.setVisible(tid == tipo)
+        self.frameConfigVazio.setVisible(False)
+
+    # ------------------------------------------------------------------ load
     def _carregar_promocao(self) -> None:
         promocao = PromocaoService.buscar_promocao(self.promocao_id)
         if not promocao:
-            mostrar_aviso(self, "Promoções", "Não foi possível carregar a promoção selecionada para edição.")
+            mostrar_aviso(self, "Promoções", "Nao foi possivel carregar a promocao selecionada.")
             self.reject()
             return
 
         self._dados_carregados = dict(promocao)
-        self.setWindowTitle("CSPdv - Editar Promoção")
-        self.lblFormTitle.setText("Editar Promoção")
-        self.lblFormHint.setText("Atualize os dados da promoção antes de revisar vínculos e regras aplicadas.")
+        self.setWindowTitle("CSPdv - Editar Promocao")
+        self.lblFormTitle.setText("Editar Promocao")
+        self.lblFormHint.setText("Atualize os dados e configure o desconto da promocao.")
         self.btnSalvar.setText("Atualizar")
 
         self.lineEditCodigo.setText(str(promocao.get("codigo") or ""))
         self.lineEditNomePromocao.setText(str(promocao.get("nome") or ""))
         self.comboClassificacao.setCurrentText(str(promocao.get("classificacao") or "PROMOCAO"))
-        self.comboTipoDesconto.setCurrentText(str(promocao.get("tipo_desconto") or "PERCENTUAL"))
         self.comboStatus.setCurrentText(str(promocao.get("status") or "RASCUNHO"))
         self.dateTimeInicio.setDateTime(self._para_qdatetime(promocao.get("data_inicio")))
         self.dateTimeFim.setDateTime(self._para_qdatetime(promocao.get("data_fim")))
@@ -132,7 +186,6 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         self.lineEditPrecoFixo.setText(str(promocao.get("preco_fixo") or 0))
         self.textEditDescricao.setPlainText(str(promocao.get("descricao") or ""))
         self.textEditObservacao.setPlainText(str(promocao.get("observacao") or ""))
-
         self.lineEditLeveX.setText(str(promocao.get("leve_x") or ""))
         self.lineEditPagueY.setText(str(promocao.get("pague_y") or ""))
         self.comboAplicacaoDesconto.setCurrentText(str(promocao.get("aplicacao_desconto_xpy") or "MAIS_BARATO"))
@@ -150,6 +203,9 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             except (json.JSONDecodeError, TypeError):
                 pass
 
+        tipo = str(promocao.get("tipo_desconto") or "PERCENTUAL").upper()
+        self._selecionar_tipo_silencioso(tipo)
+
         regra = PromocaoService.buscar_regra_da_promocao(self.promocao_id)
         if regra:
             self.comboTipoRegra.setCurrentText(str(regra.get("tipo_regra") or "ITEM"))
@@ -165,84 +221,60 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
                 self.lineEditFaixaPrecoMax.setText(str(faixa_max))
             self._ajustar_campos_regra()
 
-        self._ajustar_campos_por_tipo()
-
-    def _ajustar_campos_por_tipo(self) -> None:
-        tipo = self.comboTipoDesconto.currentText().strip().upper()
-        self.lineEditDescontoPercentual.setEnabled(tipo == "PERCENTUAL")
-        self.lineEditDescontoValor.setEnabled(tipo == "VALOR")
-        self.lineEditPrecoFixo.setEnabled(tipo == "PRECO_FIXO")
-
-        self.frameRegra.setVisible(tipo in ("PERCENTUAL", "VALOR", "PRECO_FIXO"))
-        self.frameLeveXPagueY.setVisible(tipo == "LEVE_X_PAGUE_Y")
-        self.frameDescontoProgressivo.setVisible(tipo == "DESCONTO_PROGRESSIVO")
-        self.frameCombo.setVisible(tipo == "COMBO")
-        self.frameRegraVinculacao.setVisible(True)
-
-        if tipo != "PERCENTUAL":
-            self.lineEditDescontoPercentual.setText("0")
-        if tipo != "VALOR":
-            self.lineEditDescontoValor.setText("0")
-        if tipo != "PRECO_FIXO":
-            self.lineEditPrecoFixo.setText("0")
-
+    # ------------------------------------------------------------------ regra vinculacao
     def _ajustar_campos_regra(self) -> None:
         tipo = self.comboTipoRegra.currentText().strip().upper()
         self.lineEditValorRegra.setVisible(tipo != "FAIXA_PRECO")
-        self.lblValorRegra.setVisible(tipo != "FAIXA_PRECO")
         self.frameFaixaPreco.setVisible(tipo == "FAIXA_PRECO")
 
-        if tipo == "ITEM":
-            self.lblValorRegra.setText("ID do Produto *")
-            self.lineEditValorRegra.setPlaceholderText("Ex: 123")
-        elif tipo == "MARCA":
-            self.lblValorRegra.setText("Nome da Marca *")
-            self.lineEditValorRegra.setPlaceholderText("Ex: Nike")
-        elif tipo == "CATEGORIA":
-            self.lblValorRegra.setText("Nome da Categoria *")
-            self.lineEditValorRegra.setPlaceholderText("Ex: Tenis")
-        elif tipo == "FORNECEDOR":
-            self.lblValorRegra.setText("Nome do Fornecedor *")
-            self.lineEditValorRegra.setPlaceholderText("Ex: Distribuidora ABC")
-        elif tipo == "LISTA_ITENS":
-            self.lblValorRegra.setText("IDs dos Produtos (separados por virgula) *")
-            self.lineEditValorRegra.setPlaceholderText("Ex: 1,2,3")
+        placeholders = {
+            "ITEM": ("ID do Produto *", "Ex: 123"),
+            "MARCA": ("Nome da Marca *", "Ex: Nike"),
+            "CATEGORIA": ("Nome da Categoria *", "Ex: Tenis"),
+            "FORNECEDOR": ("Nome do Fornecedor *", "Ex: Distribuidora ABC"),
+            "LISTA_ITENS": ("IDs (separados por virgula) *", "Ex: 1,2,3"),
+        }
+        if tipo in placeholders:
+            lbl_text, ph = placeholders[tipo]
+            self.lineEditValorRegra.setPlaceholderText(ph)
+            for child in self._vincBody.findChildren(QLabel):
+                if child != self._lblVincTitle and child != self.lblResultadoRegra:
+                    if "Valor" in child.text() or "ID" in child.text():
+                        child.setText(lbl_text)
+                        break
 
+    # ------------------------------------------------------------------ faixas
     def _adicionar_faixa(self) -> None:
         self._adicionar_faixa_dados("", "")
 
     def _adicionar_faixa_dados(self, qtd: str, desconto: str) -> None:
         row = self.tableFaixas.rowCount()
         self.tableFaixas.insertRow(row)
-        item_qtd = QTableWidgetItem(qtd)
-        item_desc = QTableWidgetItem(desconto)
-        self.tableFaixas.setItem(row, 0, item_qtd)
-        self.tableFaixas.setItem(row, 1, item_desc)
+        self.tableFaixas.setItem(row, 0, QTableWidgetItem(qtd))
+        self.tableFaixas.setItem(row, 1, QTableWidgetItem(desconto))
 
     def _remover_faixa(self) -> None:
         row = self.tableFaixas.currentRow()
         if row >= 0:
             self.tableFaixas.removeRow(row)
 
+    # ------------------------------------------------------------------ aplicar regra
     def _aplicar_regra(self) -> None:
         if self.promocao_id <= 0:
-            mostrar_aviso(self, "Regra", "Salve a promoção antes de aplicar regras de vinculação.")
+            mostrar_aviso(self, "Regra", "Salve a promocao antes de aplicar regras de vinculacao.")
             return
-
         regra_dados = self._montar_dados_regra()
         if not regra_dados:
             return
-
         sucesso, mensagem, vinculados = PromocaoService.salvar_regra_e_vincular(
             self.promocao_id, regra_dados
         )
+        cor = "#2e7d32" if sucesso else "#c62828"
+        self.lblResultadoRegra.setText(mensagem)
+        self.lblResultadoRegra.setStyleSheet(f"color: {cor}; font-size: 12px; font-weight: 600;")
         if sucesso:
-            self.lblResultadoRegra.setText(mensagem)
-            self.lblResultadoRegra.setStyleSheet("color: #2e7d32; font-size: 12px; font-weight: 600;")
             mostrar_info(self, "Regra", mensagem)
         else:
-            self.lblResultadoRegra.setText(mensagem)
-            self.lblResultadoRegra.setStyleSheet("color: #c62828; font-size: 12px; font-weight: 600;")
             mostrar_aviso(self, "Regra", mensagem)
 
     def _montar_dados_regra(self) -> dict | None:
@@ -271,6 +303,7 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
 
         return {"tipo": tipo, "alvo_ids": valor, "faixa_min": None, "faixa_max": None}
 
+    # ------------------------------------------------------------------ salvar
     def _salvar_promocao(self) -> None:
         self.limpar_erros()
         nome = self.lineEditNomePromocao.text().strip()
@@ -278,7 +311,7 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             self.marcar_invalido(self.lineEditNomePromocao)
             mostrar_campos_invalidos(
                 self,
-                ["Nome da Promoção: preencha o nome principal da campanha ou promoção."],
+                ["Nome da Promocao: preencha o nome da campanha ou promocao."],
                 cabecalho="Corrija os seguintes pontos:",
             )
             return
@@ -329,18 +362,21 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             return
 
         self._marcar_campos_por_mensagem(mensagem)
-        mostrar_aviso(self, "Atenção", mensagem)
+        mostrar_aviso(self, "Atencao", mensagem)
 
     def _marcar_campos_por_mensagem(self, mensagem: str) -> None:
         texto = mensagem.lower()
-        if "nome da promoção" in texto or "nome da promocao" in texto:
+        if "nome" in texto:
             self.marcar_invalido(self.lineEditNomePromocao)
         elif "percentual" in texto:
             self.marcar_invalido(self.lineEditDescontoPercentual)
-        elif "valor" in texto and "desconto" in texto:
+        elif "valor" in texto:
             self.marcar_invalido(self.lineEditDescontoValor)
-        elif "preço" in texto or "preco" in texto:
-            self.marcar_invalido(self.lineEditPrecoFixo)
+        elif "preco" in texto:
+            if self._tipo_atual == "COMBO":
+                self.marcar_invalido(self.lineEditComboPreco)
+            elif self._tipo_atual == "PRECO_FIXO":
+                self.marcar_invalido(self.lineEditPrecoFixo)
         elif "leve" in texto or "pague" in texto:
             if "leve" in texto:
                 self.marcar_invalido(self.lineEditLeveX)
@@ -351,9 +387,8 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
         elif "combo" in texto:
             if "quantidade" in texto:
                 self.marcar_invalido(self.lineEditComboQtd)
-            elif "preco" in texto:
-                self.marcar_invalido(self.lineEditComboPreco)
 
+    # ------------------------------------------------------------------ limpar
     def _limpar_campos(self) -> None:
         self.limpar_erros()
         if self.promocao_id > 0:
@@ -362,17 +397,16 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             self.lineEditCodigo.setText(PromocaoService.gerar_proximo_codigo())
             self.lineEditNomePromocao.clear()
             self.comboClassificacao.setCurrentIndex(0)
-            self.comboTipoDesconto.setCurrentIndex(0)
             self.comboStatus.setCurrentIndex(0)
-            self.lineEditDescontoPercentual.setText("0")
-            self.lineEditDescontoValor.setText("0")
-            self.lineEditPrecoFixo.setText("0")
+            self.lineEditDescontoPercentual.clear()
+            self.lineEditDescontoValor.clear()
+            self.lineEditPrecoFixo.clear()
             self.lineEditLeveX.clear()
             self.lineEditPagueY.clear()
             self.comboAplicacaoDesconto.setCurrentIndex(0)
             self.tableFaixas.setRowCount(0)
             self.lineEditComboQtd.clear()
-            self.lineEditComboPreco.setText("0")
+            self.lineEditComboPreco.clear()
             self.comboTipoRegra.setCurrentIndex(0)
             self.lineEditValorRegra.clear()
             self.lineEditFaixaPrecoMin.clear()
@@ -380,9 +414,13 @@ class CadastroPromocaoView(QDialog, Ui_CadastroPromocao, ValidacaoFormMixin):
             self.textEditDescricao.clear()
             self.textEditObservacao.clear()
             self.lblResultadoRegra.clear()
+            self.frameVinculacao.hide()
+            self._btnToggleVinc.setChecked(False)
+            self.frameTextos.hide()
+            self._btnToggleTxt.setChecked(False)
             agora = QDateTime.currentDateTime()
             self.dateTimeInicio.setDateTime(agora)
             self.dateTimeFim.setDateTime(agora.addDays(7))
-            self._ajustar_campos_por_tipo()
+            self._selecionar_tipo("PERCENTUAL")
             self._ajustar_campos_regra()
         self.lineEditNomePromocao.setFocus()

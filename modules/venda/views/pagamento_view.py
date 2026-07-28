@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
 from PyQt5.QtWidgets import (
@@ -21,6 +21,7 @@ from ui.venda.tela_pagamento import Ui_TelaPagamento
 from utils.format_utils import formatar_moeda, numero_decimal
 from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_info
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 
 class PagamentoView(QWidget, Ui_TelaPagamento):
     voltar_venda = pyqtSignal()
@@ -64,10 +65,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setupUi(self)
-        self._venda_data: Optional[Dict[str, Any]] = None
-        self._pagamentos: List[Dict[str, Any]] = []
+        self._venda_data: dict[str, Any] | None = None
+        self._pagamentos: list[dict[str, Any]] = []
         self._forma_selecionada = ""
-        self._formas_pagamento_dados: Dict[str, Dict[str, Any]] = {}
+        self._formas_pagamento_dados: dict[str, dict[str, Any]] = {}
         self._botoes_forma_ordenados = [
             self.btnDinheiro,
             self.btnPix,
@@ -77,10 +78,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             self.btnCheque,
         ]
         self._atalhos_forma = ["F1", "F2", "F3", "F4", "F5", "F6"]
-        self._botoes_forma: Dict[str, QPushButton] = {}
-        self._frame_parcelas: Optional[QFrame] = None
-        self._spin_parcelas: Optional[QSpinBox] = None
-        self._lbl_parcela_info: Optional[QLabel] = None
+        self._botoes_forma: dict[str, QPushButton] = {}
+        self._frame_parcelas: QFrame | None = None
+        self._spin_parcelas: QSpinBox | None = None
+        self._lbl_parcela_info: QLabel | None = None
         self._cents = 0
         self._timer = QTimer(self)
         self._timer.setInterval(1000)
@@ -93,7 +94,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._atualizar_data_hora()
         self._atualizar_resumo()
 
-    def carregar_venda(self, venda_data: Dict[str, Any]) -> None:
+    def carregar_venda(self, venda_data: dict[str, Any]) -> None:
         self._venda_data = dict(venda_data)
         self._pagamentos = []
         numero_venda = venda_data.get("numero_venda")
@@ -159,7 +160,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             return
 
         dados = self._formas_pagamento_dados.get(self._forma_selecionada, {})
-        permite = str(dados.get("permite_parcelamento") or "N").upper() == "S"
+        permite = str(dados.get("permite_parcelamento") or FLAG_NAO).upper() == FLAG_SIM
         taxa = float(dados.get("taxa_administrativa") or 0.0)
 
         if not permite:
@@ -244,7 +245,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             atalho = self._atalhos_forma[indice]
 
             self._formas_pagamento_dados[nome] = {
-                "permite_parcelamento": forma.get("permite_parcelamento", "N"),
+                "permite_parcelamento": forma.get("permite_parcelamento", FLAG_NAO),
                 "taxa_administrativa": forma.get("taxa_administrativa", 0.0),
             }
 
@@ -293,7 +294,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             botao.setChecked(nome == forma)
 
         dados = self._formas_pagamento_dados.get(forma, {})
-        permite = str(dados.get("permite_parcelamento") or "N").upper() == "S"
+        permite = str(dados.get("permite_parcelamento") or FLAG_NAO).upper() == FLAG_SIM
 
         if permite and self._frame_parcelas:
             self._frame_parcelas.show()
@@ -336,10 +337,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             mostrar_info(self, "Valor inválido", "Informe um valor maior que zero para lançar o pagamento.")
             return
 
-        pagamento: Dict[str, Any] = {"forma": self._forma_selecionada, "valor": valor}
+        pagamento: dict[str, Any] = {"forma": self._forma_selecionada, "valor": valor}
 
         dados = self._formas_pagamento_dados.get(self._forma_selecionada, {})
-        permite = str(dados.get("permite_parcelamento") or "N").upper() == "S"
+        permite = str(dados.get("permite_parcelamento") or FLAG_NAO).upper() == FLAG_SIM
 
         if permite and self._spin_parcelas and self._spin_parcelas.value() > 1:
             parcelas = self._spin_parcelas.value()

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from modules.estoque.models.estoque_model import EstoqueModel
 from utils.app_logger import log_error
 
 class EstoqueService:
     @staticmethod
-    def listar_categorias() -> List[Dict[str, Any]]:
+    def listar_categorias() -> list[dict[str, Any]]:
         try:
             return EstoqueModel.listar_categorias()
         except Exception as exc:
@@ -15,7 +15,7 @@ class EstoqueService:
             return []
 
     @staticmethod
-    def listar_fornecedores() -> List[Dict[str, Any]]:
+    def listar_fornecedores() -> list[dict[str, Any]]:
         try:
             return EstoqueModel.listar_fornecedores()
         except Exception as exc:
@@ -23,7 +23,7 @@ class EstoqueService:
             return []
 
     @staticmethod
-    def obter_metricas() -> Dict[str, int]:
+    def obter_metricas() -> dict[str, int]:
         try:
             return EstoqueModel.obter_metricas()
         except Exception as exc:
@@ -39,9 +39,9 @@ class EstoqueService:
     def listar_produtos_lotes(
         *,
         busca: str = "",
-        categoria_id: Optional[int] = None,
-        fornecedor_id: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        categoria_id: int | None = None,
+        fornecedor_id: int | None = None,
+    ) -> list[dict[str, Any]]:
         try:
             return EstoqueModel.listar_produtos_lotes(
                 busca=busca,
@@ -53,7 +53,7 @@ class EstoqueService:
             return []
 
     @staticmethod
-    def listar_movimentacoes_recentes() -> List[Dict[str, Any]]:
+    def listar_movimentacoes_recentes() -> list[dict[str, Any]]:
         try:
             return EstoqueModel.listar_movimentacoes_recentes()
         except Exception as exc:

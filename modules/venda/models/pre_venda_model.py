@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import FLAG_SIM
-
 
 class PreVendaModel:
 
@@ -15,22 +14,20 @@ class PreVendaModel:
         *,
         usuario_id: int,
         caixa_id: int,
-        cliente_id: Optional[int],
-        itens: List[Dict[str, Any]],
+        cliente_id: int | None,
+        itens: list[dict[str, Any]],
         desconto_global: float = 0.0,
         desconto_itens: float = 0.0,
         desconto_total: float = 0.0,
         valor_total: float,
-        data_hora: Optional[datetime] = None,
-        observacao: Optional[str] = None,
+        data_hora: datetime | None = None,
+        observacao: str | None = None,
     ) -> int:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
+        with db_transaction(dictionary=False) as cur:
             data_registro = data_hora or datetime.now()
             itens_json = json.dumps(itens, ensure_ascii=False, default=str)
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO pre_vendas
                     (cliente_id, usuario_id, caixa_id, data_hora, valor_total,
@@ -52,33 +49,23 @@ class PreVendaModel:
                     observacao,
                 ),
             )
-            pre_venda_id = int(cursor.lastrowid or 0)
+            pre_venda_id = int(cur.lastrowid or 0)
 
-            cursor.execute(
+            cur.execute(
                 "UPDATE pre_vendas SET numero_venda = %s WHERE id = %s",
                 (pre_venda_id, pre_venda_id),
             )
 
-            conn.commit()
             return pre_venda_id
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def listar_pre_vendas_pendentes(
         *,
-        usuario_id: Optional[int] = None,
-        caixa_id: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        usuario_id: int | None = None,
+        caixa_id: int | None = None,
+    ) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
             filtros = ["pv.status = 'PENDENTE'"]
-            params: List[Any] = []
+            params: list[Any] = []
 
             if usuario_id is not None:
                 filtros.append("pv.usuario_id = %s")
@@ -89,7 +76,7 @@ class PreVendaModel:
 
             where = " AND ".join(filtros) if filtros else "1=1"
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     pv.id,
@@ -110,17 +97,11 @@ class PreVendaModel:
                 """,
                 tuple(params),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def carregar_pre_venda(pre_venda_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def carregar_pre_venda(pre_venda_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     pv.*,
@@ -133,22 +114,16 @@ class PreVendaModel:
                 """,
                 (pre_venda_id,),
             )
-            resultado = cast(Optional[Dict[str, Any]], cursor.fetchone())
+            resultado = cast(dict[str, Any] | None, cur.fetchone())
             if resultado is not None:
                 itens_json = resultado.get("itens_json")
                 if isinstance(itens_json, str):
                     resultado["itens"] = json.loads(itens_json)
             return resultado
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def marcar_importada(pre_venda_id: int, nova_venda_id: int) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE pre_vendas
                 SET status = 'IMPORTADA',
@@ -158,17 +133,10 @@ class PreVendaModel:
                 """,
                 (nova_venda_id, pre_venda_id),
             )
-            conn.commit()
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def cancelar_pre_venda(pre_venda_id: int) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE pre_vendas
                 SET status = 'CANCELADA',
@@ -177,7 +145,3 @@ class PreVendaModel:
                 """,
                 (pre_venda_id,),
             )
-            conn.commit()
-        finally:
-            cursor.close()
-            conn.close()

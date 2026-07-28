@@ -10,6 +10,7 @@ from ui.promocoes.vincular_produtos_promocao import Ui_VincularProdutosPromocao
 from utils.format_utils import formatar_data, formatar_moeda
 from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso, mostrar_info
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 
 class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
     def __init__(self, promocao_id: int, parent=None):
@@ -83,7 +84,7 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
                 str(produto.get("nome") or "-"),
                 formatar_moeda(produto.get("preco_venda")),
                 str(int(float(produto.get("quantidade_estoque") or 0))),
-                "Já vinculado" if str(produto.get("vinculado") or "N").upper() == "S" else "Disponível",
+                "Já vinculado" if str(produto.get("vinculado") or FLAG_NAO).upper() == FLAG_SIM else "Disponível",
             ]
             for column, valor in enumerate(valores):
                 set_table_item(self.tableProdutos, row, column, valor)

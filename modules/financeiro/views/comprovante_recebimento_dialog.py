@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
@@ -14,8 +14,8 @@ class ComprovanteRecebimentoDialog(QDialog):
     def __init__(
         self,
         *,
-        conta: Dict[str, Any],
-        recebimento: Dict[str, Any],
+        conta: dict[str, Any],
+        recebimento: dict[str, Any],
         operador_nome: str,
         caixa_label: str,
         parent=None,

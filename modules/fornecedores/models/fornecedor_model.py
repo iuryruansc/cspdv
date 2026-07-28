@@ -1,41 +1,36 @@
-from typing import Optional, Dict, Any, List, cast
-from database.connection import get_connection
+from __future__ import annotations
+
+from typing import Any, cast
+from database.connection import db_cursor, db_transaction
 from utils.app_logger import log_error
 
 class FornecedorModel:
     @staticmethod
-    def listar_resumo() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
-                """
-                SELECT
-                    id_fornecedor,
-                    nome_fantasia,
-                    cnpj_cpf,
-                    telefone,
-                    cidade,
-                    estado,
-                    ativo
-                FROM fornecedores
-                ORDER BY nome_fantasia
-                """
-            )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        except Exception as e:
-            log_error("Erro ao listar fornecedores.", e)
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+    def listar_resumo() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            try:
+                cur.execute(
+                    """
+                    SELECT
+                        id_fornecedor,
+                        nome_fantasia,
+                        cnpj_cpf,
+                        telefone,
+                        cidade,
+                        estado,
+                        ativo
+                    FROM fornecedores
+                    ORDER BY nome_fantasia
+                    """
+                )
+                return cast(list[dict[str, Any]], cur.fetchall())
+            except Exception as e:
+                log_error("Erro ao listar fornecedores.", e)
+                raise
     @staticmethod
-    def inserir(dados: Dict[str, Any]) -> Optional[int]:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def inserir(dados: dict[str, Any]) -> int | None:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO fornecedores
                     (nome_fantasia, razao_social, cnpj_cpf, ie,
@@ -48,22 +43,11 @@ class FornecedorModel:
                 """,
                 dados,
             )
-            conn.commit()
-            return cursor.lastrowid
-        except Exception as e:
-            conn.rollback()
-            log_error("Erro ao inserir fornecedor.", e)
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.lastrowid
     @staticmethod
-    def buscar_por_id(fornecedor_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_id(fornecedor_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id_fornecedor,
@@ -87,17 +71,11 @@ class FornecedorModel:
                 """,
                 (fornecedor_id,),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def atualizar(fornecedor_id: int, dados: Dict[str, Any]) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def atualizar(fornecedor_id: int, dados: dict[str, Any]) -> bool:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE fornecedores
                 SET nome_fantasia = %(nome_fantasia)s,
@@ -118,31 +96,12 @@ class FornecedorModel:
                 """,
                 {**dados, "id_fornecedor": fornecedor_id},
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception as e:
-            conn.rollback()
-            log_error("Erro ao atualizar fornecedor.", e)
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def atualizar_status(fornecedor_id: int, ativo: str) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 "UPDATE fornecedores SET ativo = %s WHERE id_fornecedor = %s",
                 (ativo, fornecedor_id),
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception as e:
-            conn.rollback()
-            log_error("Erro ao atualizar status do fornecedor.", e)
-            raise
-        finally:
-            cursor.close()
-            conn.close()
+            return cur.rowcount > 0

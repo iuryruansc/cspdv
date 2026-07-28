@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, Optional
-
 from PyQt5.QtCore import QDateTime, Qt
 from PyQt5.QtWidgets import (
     QComboBox,
@@ -25,11 +23,10 @@ from modules.auth.models.usuario_model import UsuarioModel
 from utils.app_logger import log_info
 from utils.ui_messages import mostrar_aviso
 
-
 class TrocaOperadorDialog(QDialog):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self._novo_operador: Optional[Dict[str, object]] = None
+        self._novo_operador: dict[str, object] | None = None
         self._caixa_atual = CaixaSession.current() or {}
 
         self.setWindowTitle("Troca de Operador")
@@ -41,7 +38,7 @@ class TrocaOperadorDialog(QDialog):
         self._preencher_contexto()
 
     @property
-    def novo_operador(self) -> Optional[Dict[str, object]]:
+    def novo_operador(self) -> dict[str, object] | None:
         return self._novo_operador
 
     def _construir_ui(self) -> None:

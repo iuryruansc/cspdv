@@ -1,15 +1,14 @@
-from typing import Any, Dict, List, Optional, cast
+from __future__ import annotations
 
-from database.connection import get_connection
+from typing import Any, cast
 
+from database.connection import db_cursor, db_transaction
 
 class PdvModel:
     @staticmethod
-    def listar() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -21,17 +20,11 @@ class PdvModel:
                 ORDER BY identificacao
                 """
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def buscar_por_id(pdv_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_id(pdv_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -45,17 +38,11 @@ class PdvModel:
                 """,
                 (int(pdv_id),),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def buscar_por_identificacao(identificacao: str) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_identificacao(identificacao: str) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, identificacao, descricao, status, ativo
                 FROM pdvs
@@ -64,17 +51,11 @@ class PdvModel:
                 """,
                 (identificacao,),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def inserir(dados: Dict[str, Any]) -> Optional[int]:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def inserir(dados: dict[str, Any]) -> int | None:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO pdvs
                     (identificacao, descricao, status, ativo, createdAt, updatedAt)
@@ -83,21 +64,11 @@ class PdvModel:
                 """,
                 dados,
             )
-            conn.commit()
-            return cursor.lastrowid
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.lastrowid
     @staticmethod
-    def atualizar(pdv_id: int, dados: Dict[str, Any]) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def atualizar(pdv_id: int, dados: dict[str, Any]) -> bool:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE pdvs
                 SET
@@ -110,29 +81,12 @@ class PdvModel:
                 """,
                 {**dados, "id": int(pdv_id)},
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def atualizar_status(pdv_id: int, ativo: str, status: str) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 "UPDATE pdvs SET ativo = %s, status = %s WHERE id = %s",
                 (ativo, status, int(pdv_id)),
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
+            return cur.rowcount > 0

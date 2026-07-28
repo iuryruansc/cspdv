@@ -194,7 +194,7 @@ class PainelEstoqueView(QMainWindow, Ui_PainelEstoque, PainelOperacionalMixin):
         if dialog.exec_():
             self._carregar_painel()
 
-    def _obter_produto_selecionado(self) -> Optional[dict]:
+    def _obter_produto_selecionado(self) -> dict | None:
         row = self.tableProdutosEstoque.currentRow()
         if row < 0 or row >= len(self._registros_produtos):
             return None

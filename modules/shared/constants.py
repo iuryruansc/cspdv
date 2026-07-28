@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+ResultadoOperacao = tuple[bool, str]
+
 FLAG_SIM = "S"
 FLAG_NAO = "N"
 
@@ -41,6 +43,7 @@ STATUS_CONTA_PENDENTE = "PENDENTE"
 STATUS_CONTA_PARCIALMENTE_RECEBIDA = "PARCIALMENTE_RECEBIDA"
 STATUS_CONTA_QUITADA = "QUITADA"
 STATUS_CONTA_VENCIDA = "VENCIDA"
+STATUS_CONTA_CANCELADA = "CANCELADA"
 STATUS_CONTA_ABERTAS = (
     STATUS_CONTA_PENDENTE,
     STATUS_CONTA_PARCIALMENTE_RECEBIDA,
@@ -62,18 +65,20 @@ STATUS_PROMOCAO_EDITAVEL = (
     STATUS_PROMOCAO_ATIVA,
 )
 
+STATUS_VENDA_SQL = "', '".join(STATUS_VENDA_OPERACIONAL)
+STATUS_CONTA_ABERTAS_SQL = "', '".join(STATUS_CONTA_ABERTAS)
+
 STATUS_PRE_VENDA_PENDENTE = "PENDENTE"
 STATUS_PRE_VENDA_IMPORTADA = "IMPORTADA"
 STATUS_PRE_VENDA_CANCELADA = "CANCELADA"
 
+TEXTO_AUTO_GERADO = "Auto-gerado"
 
 def flag_ativa(valor: object, *, default: str = FLAG_NAO) -> bool:
     return str(valor or default).strip().upper() == FLAG_SIM
 
-
 def bool_para_flag(valor: bool) -> str:
     return FLAG_SIM if bool(valor) else FLAG_NAO
-
 
 def alternar_flag(valor: object, *, default: str = FLAG_NAO) -> str:
     return FLAG_NAO if flag_ativa(valor, default=default) else FLAG_SIM

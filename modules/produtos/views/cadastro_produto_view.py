@@ -1,3 +1,4 @@
+from __future__ import annotations
 import shutil
 import uuid
 from pathlib import Path
@@ -8,16 +9,17 @@ from PyQt5.QtWidgets import QFileDialog, QWidget, QLineEdit, QComboBox
 
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.shared.models.combo_models import (
-    CategoriaModel,
-    FornecedorModel,
-    MarcaModel,
-    UnidadeModel,
+    listar_categorias_ativas,
+    listar_fornecedores_ativos,
+    listar_marcas_ativas,
+    listar_unidades_ativas,
 )
 from modules.produtos.models.produto_model import ProdutoModel
 from modules.produtos.services.produto_service import ProdutoService
 from ui.admin.cadastros.cadastro_produto import Ui_CadastroProduto
 from utils.combo_loader import popular_combo, combo_id
 from utils.admin_return_mixin import RetornoPainelAdminMixin
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 from utils.format_utils import formatar_decimal, numero_decimal
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.image_utils import atualizar_preview_label, resolver_caminho_arquivo
@@ -98,13 +100,13 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
 
     def _popular_combos(self):
         try:
-            popular_combo(self.comboCategoria, CategoriaModel.listar_ativas())
-            popular_combo(self.comboMarca, MarcaModel.listar_ativas())
-            popular_combo(self.comboBox, FornecedorModel.listar_ativos())
-            popular_combo(self.comboUnidade, UnidadeModel.listar_ativas())
+            popular_combo(self.comboCategoria, listar_categorias_ativas())
+            popular_combo(self.comboMarca, listar_marcas_ativas())
+            popular_combo(self.comboBox, listar_fornecedores_ativos())
+            popular_combo(self.comboUnidade, listar_unidades_ativas())
             popular_combo(
                 self.comboUnidadeTributavel,
-                UnidadeModel.listar_ativas(),
+                listar_unidades_ativas(),
                 placeholder="Igual a comercial",
             )
         except Exception as e:
@@ -140,7 +142,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
         self.lineEditPrecoCusto.setText(formatar_decimal(produto.get("preco_compra")))
         self.lineEditPrecoVenda.setText(formatar_decimal(produto.get("preco_venda")))
         self.lineEditQuantidadeEstoque.setText(str(int(numero_decimal(produto.get("quantidade_estoque")))))
-        self.checkBoxAtivo.setChecked(str(produto.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(produto.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
 
         self._selecionar_combo_por_id(self.comboCategoria, produto.get("categoria_id"))
         self._selecionar_combo_por_id(self.comboMarca, produto.get("marca_id"))
@@ -342,7 +344,7 @@ class CadastroProdutoView(QWidget, Ui_CadastroProduto, ValidacaoFormMixin, Retor
                 "fornecedor_id": id_fornecedor,
                 "unidade_id": id_unidade,
                 "unidade_tributavel_id": id_unidade_tributavel,
-                "ativo": "S" if self.checkBoxAtivo.isChecked() else "N",
+                "ativo": FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO,
                 "imagem_path": imagem_path,
             }
         except FileNotFoundError as e:

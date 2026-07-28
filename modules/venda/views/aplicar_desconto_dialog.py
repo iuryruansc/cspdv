@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from PyQt5.QtWidgets import QDialog
 from ui.venda.aplicar_desconto_dialog import Ui_AplicarDescontoDialog
 from utils.ui_messages import mostrar_aviso
@@ -11,7 +9,7 @@ class AplicarDescontoDialog(QDialog, Ui_AplicarDescontoDialog):
         super().__init__(parent)
         self.setupUi(self)
         self.setModal(True)
-        self.resultado: Optional[dict] = None
+        self.resultado: dict | None = None
         self.comboModo.addItem("Venda inteira", "venda")
         self.comboModo.addItem("Item selecionado", "item")
         if item_disponivel:

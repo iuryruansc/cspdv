@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QComboBox, QDateEdit, QDialog, QLabel, QLineEdit, QPlainTextEdit, QPushButton
@@ -25,10 +25,10 @@ class ReceberPendenciaDialog(QDialog, Ui_ReceberPendenciaDialog):
     btnCancelar: QPushButton
     btnConfirmar: QPushButton
 
-    def __init__(self, conta_detalhada: Dict[str, Any], parent=None) -> None:
+    def __init__(self, conta_detalhada: dict[str, Any], parent=None) -> None:
         super().__init__(parent)
         self.setupUi(self)
-        self.resultado: Optional[Dict[str, Any]] = None
+        self.resultado: dict[str, Any] | None = None
         self._conta = dict(conta_detalhada.get("conta") or {})
         self._carregar_formas()
         self._preencher()

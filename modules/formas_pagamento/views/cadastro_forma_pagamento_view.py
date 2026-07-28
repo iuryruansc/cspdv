@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -16,7 +17,7 @@ from modules.formas_pagamento.services.forma_pagamento_service import FormaPagam
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
-
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, TEXTO_AUTO_GERADO
 
 class CadastroFormaPagamentoView(QDialog, ValidacaoFormMixin):
     def __init__(self, parent=None, forma_pagamento_id=None):
@@ -61,8 +62,8 @@ class CadastroFormaPagamentoView(QDialog, ValidacaoFormMixin):
         form.addRow("Tipo SEFAZ *", self.lineEditTipoSefaz)
 
         self.comboParcelamento = QComboBox()
-        self.comboParcelamento.addItem("Não permite", "N")
-        self.comboParcelamento.addItem("Permite", "S")
+        self.comboParcelamento.addItem("Não permite", FLAG_NAO)
+        self.comboParcelamento.addItem("Permite", FLAG_SIM)
         form.addRow("Parcelamento", self.comboParcelamento)
 
         self.lineEditTaxa = QLineEdit()
@@ -91,7 +92,7 @@ class CadastroFormaPagamentoView(QDialog, ValidacaoFormMixin):
 
     def _configurar_modo(self) -> None:
         if self._forma_pagamento_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.setText(TEXTO_AUTO_GERADO)
             return
 
         forma = FormaPagamentoModel.buscar_por_id(self._forma_pagamento_id)
@@ -108,10 +109,10 @@ class CadastroFormaPagamentoView(QDialog, ValidacaoFormMixin):
         self.lineEditCodigo.setText(str(forma.get("id") or ""))
         self.lineEditNome.setText(str(forma.get("nome") or ""))
         self.lineEditTipoSefaz.setText(str(forma.get("tipo_sefaz") or ""))
-        self.comboParcelamento.setCurrentIndex(1 if str(forma.get("permite_parcelamento") or "N").upper() == "S" else 0)
+        self.comboParcelamento.setCurrentIndex(1 if str(forma.get("permite_parcelamento") or FLAG_NAO).upper() == FLAG_SIM else 0)
         taxa = str(forma.get("taxa_administrativa") or "0").replace(".", ",")
         self.lineEditTaxa.setText(taxa)
-        self.checkBoxAtivo.setChecked(str(forma.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(forma.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
         self.btnSalvar.setText("Atualizar")
 
     def _salvar_forma_pagamento(self) -> None:
@@ -128,9 +129,9 @@ class CadastroFormaPagamentoView(QDialog, ValidacaoFormMixin):
         dados = {
             "nome": nome,
             "tipo_sefaz": tipo_sefaz,
-            "permite_parcelamento": str(self.comboParcelamento.currentData() or "N"),
+            "permite_parcelamento": str(self.comboParcelamento.currentData() or FLAG_NAO),
             "taxa_administrativa": taxa,
-            "ativo": "S" if self.checkBoxAtivo.isChecked() else "N",
+            "ativo": FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO,
         }
 
         if not nome:

@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
 from modules.auditoria.models.auditoria_model import AuditoriaModel
 from utils.app_logger import log_warning
 
-
 class AuditoriaService:
     @staticmethod
-    def listar_eventos(limit: int = 300) -> List[Dict[str, Any]]:
+    def listar_eventos(limit: int = 300) -> list[dict[str, Any]]:
         rows = AuditoriaModel.listar(limit=limit)
         for row in rows:
             row["usuario"] = str(row.get("usuario_nome") or "-")
@@ -23,7 +22,7 @@ class AuditoriaService:
         return rows
 
     @staticmethod
-    def obter_evento_detalhado(evento_id: int) -> Optional[Dict[str, Any]]:
+    def obter_evento_detalhado(evento_id: int) -> dict[str, Any] | None:
         evento = AuditoriaModel.buscar_por_id(int(evento_id))
         if not evento:
             return None
@@ -47,11 +46,11 @@ class AuditoriaService:
         *,
         evento: str,
         categoria: str,
-        entidade: Optional[str] = None,
-        entidade_id: Optional[int] = None,
-        usuario_id: Optional[int] = None,
-        caixa_id: Optional[int] = None,
-        detalhes: Optional[Dict[str, Any]] = None,
+        entidade: str | None = None,
+        entidade_id: int | None = None,
+        usuario_id: int | None = None,
+        caixa_id: int | None = None,
+        detalhes: dict[str, Any] | None = None,
     ) -> bool:
         usuario_final = int(usuario_id) if usuario_id is not None else AuditoriaService._usuario_sessao()
         caixa_final = int(caixa_id) if caixa_id is not None else AuditoriaService._caixa_sessao()
@@ -72,19 +71,19 @@ class AuditoriaService:
             return False
 
     @staticmethod
-    def _serializar_detalhes(detalhes: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _serializar_detalhes(detalhes: dict[str, Any] | None) -> str | None:
         if not detalhes:
             return None
         return json.dumps(detalhes, ensure_ascii=False, sort_keys=True, default=str)
 
     @staticmethod
-    def _usuario_sessao() -> Optional[int]:
+    def _usuario_sessao() -> int | None:
         usuario = SessionManager.current_user() or {}
         usuario_id = int(usuario.get("id") or 0)
         return usuario_id if usuario_id > 0 else None
 
     @staticmethod
-    def _caixa_sessao() -> Optional[int]:
+    def _caixa_sessao() -> int | None:
         caixa = CaixaSession.current() or {}
         caixa_id = int(caixa.get("id") or 0)
         return caixa_id if caixa_id > 0 else None

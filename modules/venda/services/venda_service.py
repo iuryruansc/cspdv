@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core.caixa_session import CaixaSession
 from core.session_manager import SessionManager
@@ -13,8 +13,8 @@ from modules.venda.models.venda_model import VendaModel
 
 class VendaService:
     @staticmethod
-    def _normalizar_itens(itens: List[Dict[str, Any]]) -> Tuple[bool, str, List[Dict[str, Any]]]:
-        itens_validos: List[Dict[str, Any]] = []
+    def _normalizar_itens(itens: list[dict[str, Any]]) -> tuple[bool, str, list[dict[str, Any]]]:
+        itens_validos: list[dict[str, Any]] = []
         for item in itens:
             produto_id = int(item.get("produto_id") or item.get("id") or 0)
             quantidade = int(item.get("quantidade") or 0)
@@ -31,8 +31,8 @@ class VendaService:
         return True, "", itens_validos
 
     @staticmethod
-    def _normalizar_pagamentos(pagamentos: List[Dict[str, Any]]) -> Tuple[bool, str, List[Dict[str, Any]]]:
-        pagamentos_validos: List[Dict[str, Any]] = []
+    def _normalizar_pagamentos(pagamentos: list[dict[str, Any]]) -> tuple[bool, str, list[dict[str, Any]]]:
+        pagamentos_validos: list[dict[str, Any]] = []
         for pagamento in pagamentos:
             valor = float(pagamento.get("valor") or 0.0)
             forma = str(pagamento.get("forma") or pagamento.get("forma_pagamento") or "").strip()
@@ -44,7 +44,7 @@ class VendaService:
         return True, "", pagamentos_validos
 
     @staticmethod
-    def finalizar_venda(venda_data: Dict[str, Any]) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    def finalizar_venda(venda_data: dict[str, Any]) -> tuple[bool, str, dict[str, Any] | None]:
         usuario = SessionManager.current_user() or {}
         caixa = CaixaSession.current() or {}
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PyQt5.QtCore import QDateTime, Qt
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QTableWidget
@@ -38,9 +38,9 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
     def __init__(
         self,
         *,
-        numero_venda: Optional[int],
+        numero_venda: int | None,
         cliente_nome: str,
-        itens_venda: List[Dict[str, Any]],
+        itens_venda: list[dict[str, Any]],
         subtotal: float,
         desconto_total: float,
         total: float,
@@ -185,7 +185,7 @@ class ConfirmarVendaDialog(QDialog, Ui_ModalConfirmacaoVenda):
                 str(item.get("nome") or ""),
                 formatar_inteiro(item.get("quantidade") or 0),
                 formatar_decimal(item.get("preco_venda") or 0.0),
-                formatar_decimal(item.get("desconto") or 0.0),
+                formatar_decimal(item.get("desconto_item") or 0.0),
                 formatar_decimal(item.get("total") or 0.0),
             )
             for col, valor in enumerate(valores):

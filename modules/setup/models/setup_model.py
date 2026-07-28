@@ -1,7 +1,9 @@
-import bcrypt
-from typing import Any, Dict
+from __future__ import annotations
 
-from database.connection import get_connection
+import bcrypt
+from typing import Any
+
+from database.connection import db_cursor, db_transaction
 
 class SetupModel:
     @staticmethod
@@ -29,11 +31,9 @@ class SetupModel:
 
     @staticmethod
     def is_first_run() -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT COUNT(*) FROM config_empresa")
-            result = cursor.fetchone()
+        with db_cursor(dictionary=False) as cur:
+            cur.execute("SELECT COUNT(*) FROM config_empresa")
+            result = cur.fetchone()
             if not result:
                 return True
 
@@ -42,16 +42,10 @@ class SetupModel:
             else:
                 count = result[0]
             return count == 0
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def salvar_tudo(empresa: Dict[str, Any], pdv: Dict[str, Any], admin: Dict[str, Any]) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def salvar_tudo(empresa: dict[str, Any], pdv: dict[str, Any], admin: dict[str, Any]) -> None:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO config_empresa
                     (razao_social, nome_fantasia, cnpj, inscricao_estadual,
@@ -65,7 +59,7 @@ class SetupModel:
                 empresa,
             )
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO pdvs (identificacao, descricao, status, createdAt, updatedAt, ativo)
                 VALUES (%(identificacao)s, %(descricao)s, 'ativo', NOW(), NOW(), 'S')
@@ -73,10 +67,10 @@ class SetupModel:
                 pdv,
             )
 
-            cargo_id = SetupModel._buscar_id_por_nome(cursor, "cargos", "nome_cargo", "Administrador")
-            perfil_id = SetupModel._buscar_id_por_nome(cursor, "perfis", "nome", "Admin Master")
+            cargo_id = SetupModel._buscar_id_por_nome(cur, "cargos", "nome_cargo", "Administrador")
+            perfil_id = SetupModel._buscar_id_por_nome(cur, "perfis", "nome", "Admin Master")
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO funcionarios
                     (nome, cpf, cargo_id, createdAt, updatedAt, ativo, data_admissao)
@@ -85,10 +79,10 @@ class SetupModel:
                 """,
                 {**admin, "cargo_id": cargo_id},
             )
-            funcionario_id = cursor.lastrowid
+            funcionario_id = cur.lastrowid
 
             senha_hash = bcrypt.hashpw(admin["senha"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO usuarios
                     (funcionario_id, nome, email, senha, cargo, createdAt, updatedAt, ativo, perfil_acesso_id)
@@ -104,11 +98,3 @@ class SetupModel:
                     "perfil_id": perfil_id,
                 },
             )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()

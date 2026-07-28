@@ -1,5 +1,6 @@
+from __future__ import annotations
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PyQt5.QtCore import QDateTime, QEvent, QTimer, Qt, pyqtSignal
 from PyQt5.QtGui import QIntValidator, QKeyEvent
@@ -90,13 +91,13 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self._numero_venda: Optional[int] = None
-        self._produto_atual: Optional[Dict[str, Any]] = None
-        self._itens_venda: List[Dict[str, Any]] = []
-        self._cliente_atual: Optional[Dict[str, Any]] = None
-        self._linha_cupom_selecionada: Optional[int] = None
+        self._numero_venda: int | None = None
+        self._produto_atual: dict[str, Any] | None = None
+        self._itens_venda: list[dict[str, Any]] = []
+        self._cliente_atual: dict[str, Any] | None = None
+        self._linha_cupom_selecionada: int | None = None
         self._desconto_global_valor = 0.0
-        self._resultados_busca_produto: List[Dict[str, Any]] = []
+        self._resultados_busca_produto: list[dict[str, Any]] = []
         self._bloquear_busca_descricao = False
         self._parametros_venda = ConfiguracoesService.carregar_parametros_venda()
         self._parametros_promocoes = ConfiguracoesService.carregar_parametros_promocoes()
@@ -175,7 +176,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
 
         from typing import Callable
 
-        mapa: Dict[Qt.Key, Callable[[], None]] = {
+        mapa: dict[Qt.Key, Callable[[], None]] = {
             Qt.Key_F3: self._ajustar_quantidade_item,
             Qt.Key_F4: self._abrir_confirmacao_venda,
             Qt.Key_F5: self._cancelar_item_selecionado,
@@ -316,7 +317,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def _atualizar_data_hora(self) -> None:
         self.lblDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss"))
 
-    def _extrair_quantidade_descricao(self, termo: str) -> tuple[Optional[int], str]:
+    def _extrair_quantidade_descricao(self, termo: str) -> tuple[int | None, str]:
         correspondencia = re.match(r"^\s*(\d+)\s*\*\s*(.+?)\s*$", termo)
         if not correspondencia:
             return None, termo.strip()
@@ -366,7 +367,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._preencher_sugestoes_produto(produtos)
         self._preencher_preview_produto(self._produto_atual)
 
-    def _preencher_sugestoes_produto(self, produtos: List[Dict[str, Any]]) -> None:
+    def _preencher_sugestoes_produto(self, produtos: list[dict[str, Any]]) -> None:
         self.listaSugestoesProdutos.clear()
         for produto in produtos[:8]:
             nome = str(produto.get("nome") or "Produto")
@@ -465,7 +466,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._limpar_preview_produto()
         self.lineEditDescricaoProduto.setFocus()
 
-    def _preencher_preview_produto(self, produto: Dict[str, Any]) -> None:
+    def _preencher_preview_produto(self, produto: dict[str, Any]) -> None:
         codigo = str(produto.get("codigo_barras") or "")
         preco = float(produto.get("preco_venda") or 0)
 
@@ -477,7 +478,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._atualizar_subtotal()
         self._atualizar_imagem_produto(produto.get("imagem_path"))
 
-    def _preencher_preview_item_venda(self, item: Dict[str, Any]) -> None:
+    def _preencher_preview_item_venda(self, item: dict[str, Any]) -> None:
         self.lineEditCodigo.setText(str(item.get("codigo_barras") or ""))
         self.lineEditQuantidade.setText(str(int(item.get("quantidade") or 1)))
         self.lineEditPrecoUnitario.setText(formatar_decimal(item.get("preco_venda")))
@@ -538,7 +539,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         titulo: str = "Selecionar item",
         mensagem: str = "Selecione um item no cupom antes de continuar.",
         mostrar_mensagem: bool = True,
-    ) -> Optional[int]:
+    ) -> int | None:
         row = self.tableCupom.currentRow()
         if 0 <= row < len(self._itens_venda):
             return row
@@ -824,8 +825,8 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     def _aplicar_descontos_promocoes_avancadas(self) -> None:
         from modules.promocoes.models.promocao_model import PromocaoModel
 
-        promocoes_por_id: Dict[int, Any] = {}
-        itens_por_promocao: Dict[int, List[Any]] = {}
+        promocoes_por_id: dict[int, Any] = {}
+        itens_por_promocao: dict[int, list[Any]] = {}
 
         for item in self._itens_venda:
             pid = int(item.get("promocao_id") or 0)

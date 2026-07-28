@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core.session_manager import SessionManager
 from modules.auditoria.services.auditoria_service import AuditoriaService
@@ -12,7 +12,7 @@ CENT = Decimal("0.01")
 
 class ReembolsoService:
     @staticmethod
-    def preparar_pagamentos_reembolso(venda_id: int, valor_reembolso: Decimal) -> List[Dict[str, Any]]:
+    def preparar_pagamentos_reembolso(venda_id: int, valor_reembolso: Decimal) -> list[dict[str, Any]]:
         detalhes = FinanceiroService.obter_venda_detalhada(venda_id) or {}
         pagamentos = list(detalhes.get("pagamentos") or [])
         if not pagamentos:
@@ -26,7 +26,7 @@ class ReembolsoService:
         if total_pago <= Decimal("0.00"):
             return []
 
-        distribuicao: List[Dict[str, Any]] = []
+        distribuicao: list[dict[str, Any]] = []
         acumulado = Decimal("0.00")
         for index, pagamento in enumerate(pagamentos):
             if index == len(pagamentos) - 1:
@@ -46,8 +46,8 @@ class ReembolsoService:
         return distribuicao
 
     @staticmethod
-    def _normalizar_itens_payload(itens: List[Dict[str, Any]]) -> Dict[int, int]:
-        agregados: Dict[int, int] = {}
+    def _normalizar_itens_payload(itens: list[dict[str, Any]]) -> dict[int, int]:
+        agregados: dict[int, int] = {}
         for item in itens:
             item_venda_id = int(item.get("item_venda_id") or 0)
             quantidade = int(item.get("quantidade") or 0)
@@ -66,7 +66,7 @@ class ReembolsoService:
         return tipo_normalizado
 
     @staticmethod
-    def registrar_reembolso(payload: Dict[str, Any]) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    def registrar_reembolso(payload: dict[str, Any]) -> tuple[bool, str, dict[str, Any] | None]:
         usuario = SessionManager.current_user() or {}
         usuario_id = int(usuario.get("id") or 0)
         if usuario_id <= 0:
@@ -94,7 +94,7 @@ class ReembolsoService:
             return False, str(exc), None
 
         mapa_itens = {int(item["item_venda_id"]): item for item in (detalhes.get("itens") or [])}
-        itens_validos: List[Dict[str, Any]] = []
+        itens_validos: list[dict[str, Any]] = []
         valor_total = Decimal("0.00")
 
         for item_venda_id, quantidade in itens_solicitados.items():

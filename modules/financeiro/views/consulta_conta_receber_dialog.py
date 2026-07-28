@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any, Dict, List
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
@@ -15,7 +15,7 @@ from utils.format_utils import formatar_data, formatar_data_hora, formatar_moeda
 from utils.table_widget_utils import set_table_item
 
 class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
-    def __init__(self, detalhes: Dict[str, Any], parent=None):
+    def __init__(self, detalhes: dict[str, Any], parent=None):
         super().__init__(parent)
         self._detalhes = detalhes
         self._conta = detalhes.get("conta") or {}
@@ -50,7 +50,7 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         self._fill_itens(self._detalhes.get("itens_venda") or [])
         self._fill_recebimentos(self._detalhes.get("recebimentos") or [])
 
-    def _fill_itens(self, itens: List[Dict[str, Any]]) -> None:
+    def _fill_itens(self, itens: list[dict[str, Any]]) -> None:
         self.tableItens.setRowCount(len(itens))
         for row, item in enumerate(itens):
             set_table_item(self.tableItens, row, 0, str(item.get("codigo_barras") or "-"), alignment=Qt.AlignCenter)
@@ -58,7 +58,7 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
             set_table_item(self.tableItens, row, 2, str(int(item.get("quantidade") or 0)), alignment=Qt.AlignCenter)
             set_table_item(self.tableItens, row, 3, formatar_moeda(item.get("total_item")), alignment=Qt.AlignRight | Qt.AlignVCenter)
 
-    def _fill_recebimentos(self, recebimentos: List[Dict[str, Any]]) -> None:
+    def _fill_recebimentos(self, recebimentos: list[dict[str, Any]]) -> None:
         self.tableRecebimentos.setRowCount(len(recebimentos))
         for row, item in enumerate(recebimentos):
             set_table_item(self.tableRecebimentos, row, 0, formatar_data_hora(item.get("data_recebimento")), alignment=Qt.AlignCenter)

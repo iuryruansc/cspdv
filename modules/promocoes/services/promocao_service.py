@@ -8,6 +8,8 @@ from core.session_manager import SessionManager
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from modules.produtos.models.produto_model import ProdutoModel
 from modules.promocoes.models.promocao_model import PromocaoModel
+from modules.shared.constants import ResultadoOperacao
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 
 class PromocaoService:
     @staticmethod
@@ -31,7 +33,7 @@ class PromocaoService:
         return PromocaoModel.buscar_produtos_disponiveis(int(promocao_id), busca)
 
     @staticmethod
-    def cadastrar_promocao(dados: dict[str, Any]) -> tuple[bool, str]:
+    def cadastrar_promocao(dados: dict[str, Any]) -> ResultadoOperacao:
         payload, erro = PromocaoService._montar_payload_promocao(dados)
         if erro:
             return False, erro
@@ -48,7 +50,7 @@ class PromocaoService:
         return True, "Promoção cadastrada com sucesso."
 
     @staticmethod
-    def atualizar_promocao(promocao_id: int, dados: dict[str, Any]) -> tuple[bool, str]:
+    def atualizar_promocao(promocao_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         if int(promocao_id) <= 0:
             return False, "Selecione uma promoção válida para editar."
 
@@ -83,7 +85,7 @@ class PromocaoService:
         return True, "Promoção duplicada com sucesso em status Rascunho.", int(novo_id)
 
     @staticmethod
-    def encerrar_promocao(promocao_id: int) -> tuple[bool, str]:
+    def encerrar_promocao(promocao_id: int) -> ResultadoOperacao:
         promocao = PromocaoModel.buscar_por_id(int(promocao_id))
         if not promocao:
             return False, "Promoção não localizada para encerramento."
@@ -103,7 +105,7 @@ class PromocaoService:
         return True, "Promoção encerrada com sucesso."
 
     @staticmethod
-    def cancelar_promocao(promocao_id: int) -> tuple[bool, str]:
+    def cancelar_promocao(promocao_id: int) -> ResultadoOperacao:
         promocao = PromocaoModel.buscar_por_id(int(promocao_id))
         if not promocao:
             return False, "Promoção não localizada para cancelamento."
@@ -123,19 +125,19 @@ class PromocaoService:
         return True, "Promoção cancelada com sucesso."
 
     @staticmethod
-    def vincular_produto(promocao_id: int, produto_id: int, observacao: str = "") -> tuple[bool, str]:
+    def vincular_produto(promocao_id: int, produto_id: int, observacao: str = "") -> ResultadoOperacao:
         promocao = PromocaoModel.buscar_por_id(int(promocao_id))
         if not promocao:
             return False, "Promoção não localizada para vincular produtos."
 
-        if str(promocao.get("ativo") or "N").strip().upper() != "S":
+        if str(promocao.get("ativo") or FLAG_NAO).strip().upper() != FLAG_SIM:
             return False, "A promoção selecionada está inativa."
 
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
             return False, "Produto não localizado."
 
-        if str(produto.get("ativo") or "N").strip().upper() != "S":
+        if str(produto.get("ativo") or FLAG_NAO).strip().upper() != FLAG_SIM:
             return False, "O produto selecionado está inativo."
 
         parametros_promocoes = ConfiguracoesService.carregar_parametros_promocoes()
@@ -199,7 +201,7 @@ class PromocaoService:
         return True, "Produto vinculado à promoção com sucesso."
 
     @staticmethod
-    def remover_vinculo_produto(promocao_id: int, produto_id: int) -> tuple[bool, str]:
+    def remover_vinculo_produto(promocao_id: int, produto_id: int) -> ResultadoOperacao:
         try:
             PromocaoModel.desativar_vinculo_produto(int(promocao_id), int(produto_id))
         except Exception as exc:
@@ -278,8 +280,8 @@ class PromocaoService:
             "combo_preco": float(combo_preco),
             "data_inicio": data_inicio,
             "data_fim": data_fim,
-            "cumulativa": "S" if bool(dados.get("cumulativa")) else "N",
-            "ativo": "S" if bool(dados.get("ativo", True)) else "N",
+            "cumulativa": FLAG_SIM if bool(dados.get("cumulativa")) else FLAG_NAO,
+            "ativo": FLAG_SIM if bool(dados.get("ativo", True)) else FLAG_NAO,
             "usuario_id": usuario_id,
         }
         return payload, ""
@@ -380,7 +382,7 @@ class PromocaoService:
         return float(preco_dec), 0.0
 
     @staticmethod
-    def excluir_regra(regra_id: int) -> tuple[bool, str]:
+    def excluir_regra(regra_id: int) -> ResultadoOperacao:
         try:
             PromocaoModel.excluir_regra(int(regra_id))
         except Exception as exc:

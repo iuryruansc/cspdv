@@ -2,19 +2,15 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
-from database.connection import get_connection
-from modules.shared.constants import FLAG_SIM, STATUS_VENDA_OPERACIONAL
-
-STATUS_VENDA_SQL = "', '".join(STATUS_VENDA_OPERACIONAL)
-
+from database.connection import db_cursor
+from modules.shared.constants import FLAG_SIM, STATUS_VENDA_SQL
 
 def _periodo(data_inicial: date, data_final: date):
     inicio = data_inicial
     fim = data_final + timedelta(days=1)
     return inicio, fim
-
 
 def _buscar_reembolsos_periodo(cursor: Any, inicio, fim) -> Decimal:
     cursor.execute(
@@ -27,11 +23,10 @@ def _buscar_reembolsos_periodo(cursor: Any, inicio, fim) -> Decimal:
         """,
         (inicio, fim),
     )
-    row = cast(Dict[str, Any], cursor.fetchone() or {})
+    row = cast(dict[str, Any], cursor.fetchone() or {})
     return Decimal(str(row.get("total") or 0))
 
-
-def _buscar_reembolsos_por_periodo(cursor: Any, inicio, fim, group_expr: str) -> Dict[str, Decimal]:
+def _buscar_reembolsos_por_periodo(cursor: Any, inicio, fim, group_expr: str) -> dict[str, Decimal]:
     cursor.execute(
         f"""
         SELECT
@@ -48,8 +43,7 @@ def _buscar_reembolsos_por_periodo(cursor: Any, inicio, fim, group_expr: str) ->
     )
     return {r["periodo"]: Decimal(str(r.get("reembolsos") or 0)) for r in cursor.fetchall()}
 
-
-def _buscar_reembolsos_por_cliente(cursor: Any, inicio, fim) -> Dict[str, Decimal]:
+def _buscar_reembolsos_por_cliente(cursor: Any, inicio, fim) -> dict[str, Decimal]:
     cursor.execute(
         f"""
         SELECT
@@ -67,6 +61,69 @@ def _buscar_reembolsos_por_cliente(cursor: Any, inicio, fim) -> Dict[str, Decima
     )
     return {r["cliente"]: Decimal(str(r.get("reembolsos") or 0)) for r in cursor.fetchall()}
 
+def _group_expr(agrupamento: str) -> str:
+    return {
+        "semana": "YEARWEEK(v.data_hora, 1)",
+        "mes": "DATE_FORMAT(v.data_hora, '%%Y-%%m')",
+    }.get(agrupamento, "DATE(v.data_hora)")
+
+_SQL_PRODUTOS_TOP = f"""
+SELECT
+    COALESCE(pr.nome, '-') AS produto,
+    SUM(iv.quantidade) - COALESCE(reemb.qtd_reembolso, 0) AS quantidade,
+    SUM(iv.quantidade * iv.preco_unitario) - COALESCE(reemb.receita_reembolso, 0) AS receita
+FROM itens_venda iv
+INNER JOIN vendas v ON v.id = iv.venda_id
+LEFT JOIN produtos pr ON pr.id = iv.produto_id
+LEFT JOIN (
+    SELECT
+        vri.produto_id,
+        SUM(vri.quantidade) AS qtd_reembolso,
+        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
+    FROM venda_reembolso_itens vri
+    INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
+    WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
+      AND vr.data_hora >= %s AND vr.data_hora < %s
+    GROUP BY vri.produto_id
+) reemb ON reemb.produto_id = iv.produto_id
+WHERE v.data_hora >= %s AND v.data_hora < %s
+  AND v.status IN ('{STATUS_VENDA_SQL}')
+GROUP BY iv.produto_id, pr.nome
+HAVING quantidade > 0
+ORDER BY quantidade DESC
+LIMIT 10
+"""
+
+_SQL_CLIENTES_TOP = f"""
+SELECT
+    COALESCE(c.nome, 'Consumidor Final') AS cliente,
+    COUNT(DISTINCT v.id) AS compras,
+    SUM(v.valor_total) AS total_gasto
+FROM vendas v
+LEFT JOIN clientes c ON c.id = v.cliente_id
+WHERE v.data_hora >= %s AND v.data_hora < %s
+  AND v.status IN ('{STATUS_VENDA_SQL}')
+GROUP BY c.nome
+ORDER BY total_gasto DESC
+LIMIT 10
+"""
+
+def _buscar_produtos_top(cursor: Any, inicio, fim) -> list:
+    cursor.execute(_SQL_PRODUTOS_TOP, (inicio, fim, inicio, fim))
+    return list(cursor.fetchall())
+
+def _buscar_clientes_top(cursor: Any, inicio, fim) -> list:
+    cursor.execute(_SQL_CLIENTES_TOP, (inicio, fim))
+    return list(cursor.fetchall())
+
+def _aplicar_reembolsos_periodo(resumo_periodo: list, reemb_periodo: dict[str, Decimal]) -> None:
+    for row in resumo_periodo:
+        periodo = row.get("periodo")
+        reemb = reemb_periodo.get(periodo, Decimal("0"))
+        faturamento = Decimal(str(row.get("faturamento") or 0)) - reemb
+        row["faturamento"] = float(faturamento)
+        vendas = int(row.get("vendas") or 0)
+        row["ticket_medio"] = float(faturamento) / vendas if vendas > 0 else 0
 
 class RelatorioModel:
     @staticmethod
@@ -75,12 +132,10 @@ class RelatorioModel:
         data_inicial: date,
         data_final: date,
         agrupamento: str = "dia",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         inicio, fim = _periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT
                     COUNT(DISTINCT v.id) AS total_vendas,
@@ -92,23 +147,20 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo = cast(Dict[str, Any], cursor.fetchone() or {})
+            resumo = cast(dict[str, Any], cur.fetchone() or {})
 
-            reemb_total = _buscar_reembolsos_periodo(cursor, inicio, fim)
+            reemb_total = _buscar_reembolsos_periodo(cur, inicio, fim)
             resumo["faturamento"] = float(Decimal(str(resumo.get("faturamento") or 0)) - reemb_total)
             resumo["ticket_medio"] = (
                 float(resumo.get("faturamento") or 0) / int(resumo.get("total_vendas") or 1)
             )
 
-            group_expr = {
-                "semana": "YEARWEEK(v.data_hora, 1)",
-                "mes": "DATE_FORMAT(v.data_hora, '%%Y-%%m')",
-            }.get(agrupamento, "DATE(v.data_hora)")
+            gexpr = _group_expr(agrupamento)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
-                    {group_expr} AS periodo,
+                    {gexpr} AS periodo,
                     COUNT(DISTINCT v.id) AS vendas,
                     COALESCE(SUM(v.valor_total), 0) AS faturamento,
                     COUNT(DISTINCT v.cliente_id) AS clientes
@@ -120,68 +172,17 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo_periodo = list(cursor.fetchall())
+            resumo_periodo = list(cur.fetchall())
 
-            reemb_periodo = _buscar_reembolsos_por_periodo(cursor, inicio, fim, group_expr)
+            reemb_periodo = _buscar_reembolsos_por_periodo(cur, inicio, fim, gexpr)
 
-            for row in resumo_periodo:
-                periodo = row.get("periodo")
-                reemb = reemb_periodo.get(periodo, Decimal("0"))
-                faturamento = Decimal(str(row.get("faturamento") or 0)) - reemb
-                row["faturamento"] = float(faturamento)
-                vendas = int(row.get("vendas") or 0)
-                row["ticket_medio"] = float(faturamento) / vendas if vendas > 0 else 0
+            _aplicar_reembolsos_periodo(resumo_periodo, reemb_periodo)
 
-            cursor.execute(
-                f"""
-                SELECT
-                    COALESCE(pr.nome, '-') AS produto,
-                    SUM(iv.quantidade) - COALESCE(reemb.qtd_reembolso, 0) AS quantidade,
-                    SUM(iv.quantidade * iv.preco_unitario) - COALESCE(reemb.receita_reembolso, 0) AS receita
-                FROM itens_venda iv
-                INNER JOIN vendas v ON v.id = iv.venda_id
-                LEFT JOIN produtos pr ON pr.id = iv.produto_id
-                LEFT JOIN (
-                    SELECT
-                        vri.produto_id,
-                        SUM(vri.quantidade) AS qtd_reembolso,
-                        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
-                    FROM venda_reembolso_itens vri
-                    INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
-                    WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
-                      AND vr.data_hora >= %s AND vr.data_hora < %s
-                    GROUP BY vri.produto_id
-                ) reemb ON reemb.produto_id = iv.produto_id
-                WHERE v.data_hora >= %s AND v.data_hora < %s
-                  AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY iv.produto_id, pr.nome
-                HAVING quantidade > 0
-                ORDER BY quantidade DESC
-                LIMIT 10
-                """,
-                (inicio, fim, inicio, fim),
-            )
-            produtos = list(cursor.fetchall())
+            produtos = _buscar_produtos_top(cur, inicio, fim)
 
-            cursor.execute(
-                f"""
-                SELECT
-                    COALESCE(c.nome, 'Consumidor Final') AS cliente,
-                    COUNT(DISTINCT v.id) AS compras,
-                    SUM(v.valor_total) AS total_gasto
-                FROM vendas v
-                LEFT JOIN clientes c ON c.id = v.cliente_id
-                WHERE v.data_hora >= %s AND v.data_hora < %s
-                  AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY c.nome
-                ORDER BY total_gasto DESC
-                LIMIT 10
-                """,
-                (inicio, fim),
-            )
-            clientes = list(cursor.fetchall())
+            clientes = _buscar_clientes_top(cur, inicio, fim)
 
-            reemb_cliente = _buscar_reembolsos_por_cliente(cursor, inicio, fim)
+            reemb_cliente = _buscar_reembolsos_por_cliente(cur, inicio, fim)
             for cli in clientes:
                 nome = cli.get("cliente")
                 cli["total_gasto"] = float(Decimal(str(cli.get("total_gasto") or 0)) - reemb_cliente.get(nome, Decimal("0")))
@@ -192,22 +193,16 @@ class RelatorioModel:
                 "produtos": produtos,
                 "clientes": clientes,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def produtos_mais_vendidos(
         *,
         data_inicial: date,
         data_final: date,
         agrupamento: str = "dia",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         inicio, fim = _periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT
                     COUNT(DISTINCT v.id) AS total_vendas,
@@ -220,20 +215,17 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo = cast(Dict[str, Any], cursor.fetchone() or {})
+            resumo = cast(dict[str, Any], cur.fetchone() or {})
 
-            reemb_total = _buscar_reembolsos_periodo(cursor, inicio, fim)
+            reemb_total = _buscar_reembolsos_periodo(cur, inicio, fim)
             resumo["faturamento"] = float(Decimal(str(resumo.get("faturamento") or 0)) - reemb_total)
 
-            group_expr = {
-                "semana": "YEARWEEK(v.data_hora, 1)",
-                "mes": "DATE_FORMAT(v.data_hora, '%%Y-%%m')",
-            }.get(agrupamento, "DATE(v.data_hora)")
+            gexpr = _group_expr(agrupamento)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
-                    {group_expr} AS periodo,
+                    {gexpr} AS periodo,
                     COUNT(DISTINCT v.id) AS vendas,
                     COALESCE(SUM(v.valor_total), 0) AS faturamento
                 FROM vendas v
@@ -244,70 +236,29 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo_periodo = list(cursor.fetchall())
+            resumo_periodo = list(cur.fetchall())
 
-            reemb_periodo = _buscar_reembolsos_por_periodo(cursor, inicio, fim, group_expr)
+            reemb_periodo = _buscar_reembolsos_por_periodo(cur, inicio, fim, gexpr)
 
-            for row in resumo_periodo:
-                periodo = row.get("periodo")
-                reemb = reemb_periodo.get(periodo, Decimal("0"))
-                faturamento = Decimal(str(row.get("faturamento") or 0)) - reemb
-                row["faturamento"] = float(faturamento)
-                vendas = int(row.get("vendas") or 0)
-                row["ticket_medio"] = float(faturamento) / vendas if vendas > 0 else 0
+            _aplicar_reembolsos_periodo(resumo_periodo, reemb_periodo)
 
-            cursor.execute(
-                f"""
-                SELECT
-                    COALESCE(pr.nome, '-') AS produto,
-                    SUM(iv.quantidade) - COALESCE(reemb.qtd_reembolso, 0) AS quantidade,
-                    SUM(iv.quantidade * iv.preco_unitario) - COALESCE(reemb.receita_reembolso, 0) AS receita
-                FROM itens_venda iv
-                INNER JOIN vendas v ON v.id = iv.venda_id
-                LEFT JOIN produtos pr ON pr.id = iv.produto_id
-                LEFT JOIN (
-                    SELECT
-                        vri.produto_id,
-                        SUM(vri.quantidade) AS qtd_reembolso,
-                        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
-                    FROM venda_reembolso_itens vri
-                    INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
-                    WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
-                      AND vr.data_hora >= %s AND vr.data_hora < %s
-                    GROUP BY vri.produto_id
-                ) reemb ON reemb.produto_id = iv.produto_id
-                WHERE v.data_hora >= %s AND v.data_hora < %s
-                  AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY iv.produto_id, pr.nome
-                HAVING quantidade > 0
-                ORDER BY quantidade DESC
-                LIMIT 10
-                """,
-                (inicio, fim, inicio, fim),
-            )
-            produtos = list(cursor.fetchall())
+            produtos = _buscar_produtos_top(cur, inicio, fim)
 
             return {
                 "resumo": resumo,
                 "resumo_periodo": resumo_periodo,
                 "produtos": produtos,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def clientes_ticket_medio(
         *,
         data_inicial: date,
         data_final: date,
         agrupamento: str = "dia",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         inicio, fim = _periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT
                     COUNT(DISTINCT v.id) AS total_vendas,
@@ -320,22 +271,19 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo = cast(Dict[str, Any], cursor.fetchone() or {})
+            resumo = cast(dict[str, Any], cur.fetchone() or {})
 
-            reemb_total = _buscar_reembolsos_periodo(cursor, inicio, fim)
+            reemb_total = _buscar_reembolsos_periodo(cur, inicio, fim)
             resumo["faturamento"] = float(Decimal(str(resumo.get("faturamento") or 0)) - reemb_total)
             total_vendas = int(resumo.get("total_vendas") or 0)
             resumo["ticket_medio"] = float(resumo.get("faturamento") or 0) / total_vendas if total_vendas > 0 else 0
 
-            group_expr = {
-                "semana": "YEARWEEK(v.data_hora, 1)",
-                "mes": "DATE_FORMAT(v.data_hora, '%%Y-%%m')",
-            }.get(agrupamento, "DATE(v.data_hora)")
+            gexpr = _group_expr(agrupamento)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
-                    {group_expr} AS periodo,
+                    {gexpr} AS periodo,
                     COUNT(DISTINCT v.id) AS vendas,
                     COUNT(DISTINCT v.cliente_id) AS clientes,
                     COALESCE(SUM(v.valor_total), 0) AS faturamento
@@ -347,19 +295,13 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo_periodo = list(cursor.fetchall())
+            resumo_periodo = list(cur.fetchall())
 
-            reemb_periodo = _buscar_reembolsos_por_periodo(cursor, inicio, fim, group_expr)
+            reemb_periodo = _buscar_reembolsos_por_periodo(cur, inicio, fim, gexpr)
 
-            for row in resumo_periodo:
-                periodo = row.get("periodo")
-                reemb = reemb_periodo.get(periodo, Decimal("0"))
-                faturamento = Decimal(str(row.get("faturamento") or 0)) - reemb
-                row["faturamento"] = float(faturamento)
-                vendas = int(row.get("vendas") or 0)
-                row["ticket_medio"] = float(faturamento) / vendas if vendas > 0 else 0
+            _aplicar_reembolsos_periodo(resumo_periodo, reemb_periodo)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     c.nome AS cliente,
@@ -376,9 +318,9 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            clientes = list(cursor.fetchall())
+            clientes = list(cur.fetchall())
 
-            reemb_cliente = _buscar_reembolsos_por_cliente(cursor, inicio, fim)
+            reemb_cliente = _buscar_reembolsos_por_cliente(cur, inicio, fim)
             for cli in clientes:
                 nome = cli.get("cliente")
                 total = Decimal(str(cli.get("total_gasto") or 0)) - reemb_cliente.get(nome, Decimal("0"))
@@ -391,22 +333,16 @@ class RelatorioModel:
                 "resumo_periodo": resumo_periodo,
                 "clientes": clientes,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def caixa_por_periodo(
         *,
         data_inicial: date,
         data_final: date,
         agrupamento: str = "dia",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         inicio, fim = _periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT
                     COUNT(DISTINCT v.id) AS total_vendas,
@@ -418,24 +354,21 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo = cast(Dict[str, Any], cursor.fetchone() or {})
+            resumo = cast(dict[str, Any], cur.fetchone() or {})
 
-            reemb_total = _buscar_reembolsos_periodo(cursor, inicio, fim)
+            reemb_total = _buscar_reembolsos_periodo(cur, inicio, fim)
             faturamento_liquido = float(Decimal(str(resumo.get("faturamento") or 0)) - reemb_total)
             resumo["faturamento"] = faturamento_liquido
             resumo["entradas"] = faturamento_liquido
             total_vendas = int(resumo.get("total_vendas") or 0)
             resumo["ticket_medio"] = faturamento_liquido / total_vendas if total_vendas > 0 else 0
 
-            group_expr = {
-                "semana": "YEARWEEK(v.data_hora, 1)",
-                "mes": "DATE_FORMAT(v.data_hora, '%%Y-%%m')",
-            }.get(agrupamento, "DATE(v.data_hora)")
+            gexpr = _group_expr(agrupamento)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
-                    {group_expr} AS periodo,
+                    {gexpr} AS periodo,
                     COUNT(DISTINCT v.id) AS vendas,
                     COALESCE(SUM(v.valor_total), 0) AS faturamento
                 FROM vendas v
@@ -446,68 +379,17 @@ class RelatorioModel:
                 """,
                 (inicio, fim),
             )
-            resumo_periodo = list(cursor.fetchall())
+            resumo_periodo = list(cur.fetchall())
 
-            reemb_periodo = _buscar_reembolsos_por_periodo(cursor, inicio, fim, group_expr)
+            reemb_periodo = _buscar_reembolsos_por_periodo(cur, inicio, fim, gexpr)
 
-            for row in resumo_periodo:
-                periodo = row.get("periodo")
-                reemb = reemb_periodo.get(periodo, Decimal("0"))
-                faturamento = Decimal(str(row.get("faturamento") or 0)) - reemb
-                row["faturamento"] = float(faturamento)
-                vendas = int(row.get("vendas") or 0)
-                row["ticket_medio"] = float(faturamento) / vendas if vendas > 0 else 0
+            _aplicar_reembolsos_periodo(resumo_periodo, reemb_periodo)
 
-            cursor.execute(
-                f"""
-                SELECT
-                    COALESCE(pr.nome, '-') AS produto,
-                    SUM(iv.quantidade) - COALESCE(reemb.qtd_reembolso, 0) AS quantidade,
-                    SUM(iv.quantidade * iv.preco_unitario) - COALESCE(reemb.receita_reembolso, 0) AS receita
-                FROM itens_venda iv
-                INNER JOIN vendas v ON v.id = iv.venda_id
-                LEFT JOIN produtos pr ON pr.id = iv.produto_id
-                LEFT JOIN (
-                    SELECT
-                        vri.produto_id,
-                        SUM(vri.quantidade) AS qtd_reembolso,
-                        SUM(vri.quantidade * vri.valor_unitario) AS receita_reembolso
-                    FROM venda_reembolso_itens vri
-                    INNER JOIN venda_reembolsos vr ON vr.id = vri.reembolso_id
-                    WHERE vr.ativo = 'S' AND vr.status = 'CONCLUIDO'
-                      AND vr.data_hora >= %s AND vr.data_hora < %s
-                    GROUP BY vri.produto_id
-                ) reemb ON reemb.produto_id = iv.produto_id
-                WHERE v.data_hora >= %s AND v.data_hora < %s
-                  AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY iv.produto_id, pr.nome
-                HAVING quantidade > 0
-                ORDER BY quantidade DESC
-                LIMIT 10
-                """,
-                (inicio, fim, inicio, fim),
-            )
-            produtos = list(cursor.fetchall())
+            produtos = _buscar_produtos_top(cur, inicio, fim)
 
-            cursor.execute(
-                f"""
-                SELECT
-                    COALESCE(c.nome, 'Consumidor Final') AS cliente,
-                    COUNT(DISTINCT v.id) AS compras,
-                    SUM(v.valor_total) AS total_gasto
-                FROM vendas v
-                LEFT JOIN clientes c ON c.id = v.cliente_id
-                WHERE v.data_hora >= %s AND v.data_hora < %s
-                  AND v.status IN ('{STATUS_VENDA_SQL}')
-                GROUP BY c.nome
-                ORDER BY total_gasto DESC
-                LIMIT 10
-                """,
-                (inicio, fim),
-            )
-            clientes = list(cursor.fetchall())
+            clientes = _buscar_clientes_top(cur, inicio, fim)
 
-            reemb_cliente = _buscar_reembolsos_por_cliente(cursor, inicio, fim)
+            reemb_cliente = _buscar_reembolsos_por_cliente(cur, inicio, fim)
             for cli in clientes:
                 nome = cli.get("cliente")
                 cli["total_gasto"] = float(Decimal(str(cli.get("total_gasto") or 0)) - reemb_cliente.get(nome, Decimal("0")))
@@ -518,16 +400,10 @@ class RelatorioModel:
                 "produtos": produtos,
                 "clientes": clientes,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def matriz_vendas_anual(ano: int) -> Dict[str, Any]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def matriz_vendas_anual(ano: int) -> dict[str, Any]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     COALESCE(SUM(quantidade_estoque * preco_venda), 0) AS estoque_bruto,
@@ -536,19 +412,19 @@ class RelatorioModel:
                 WHERE ativo = 'S'
                 """
             )
-            est = cursor.fetchone() or {}
+            est = cur.fetchone() or {}
             estoque_bruto = float(est.get("estoque_bruto") or 0.0)
             estoque_liquido = float(est.get("estoque_liquido") or 0.0)
 
-            cursor.execute("SELECT DISTINCT YEAR(data_hora) AS ano FROM vendas ORDER BY ano DESC")
-            anos_rows = cursor.fetchall()
+            cur.execute("SELECT DISTINCT YEAR(data_hora) AS ano FROM vendas ORDER BY ano DESC")
+            anos_rows = cur.fetchall()
             anos_disponiveis = [r["ano"] for r in anos_rows if r.get("ano")]
             ano_atual = date.today().year
             if ano_atual not in anos_disponiveis:
                 anos_disponiveis.append(ano_atual)
             anos_disponiveis = sorted(list(set(anos_disponiveis)), reverse=True)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     MONTH(data_hora) AS mes,
@@ -562,9 +438,9 @@ class RelatorioModel:
                 """,
                 (ano,),
             )
-            vendas_rows = cursor.fetchall()
+            vendas_rows = cur.fetchall()
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT
                     MONTH(vr.data_hora) AS mes,
@@ -580,15 +456,15 @@ class RelatorioModel:
                 """,
                 (ano,),
             )
-            reemb_rows = cursor.fetchall()
-            reemb_map: Dict[tuple, float] = {}
+            reemb_rows = cur.fetchall()
+            reemb_map: dict[tuple, float] = {}
             for r in reemb_rows:
                 m = int(r["mes"])
                 d = int(r["dia"])
                 reemb_map[(m, d)] = float(r.get("total_reembolso") or 0.0)
 
-            matriz: Dict[tuple[int, int], float] = {}
-            totais_mensais: Dict[int, float] = {m: 0.0 for m in range(1, 13)}
+            matriz: dict[tuple[int, int], float] = {}
+            totais_mensais: dict[int, float] = {m: 0.0 for m in range(1, 13)}
             total_ano_bruto = 0.0
 
             for r in vendas_rows:
@@ -609,6 +485,3 @@ class RelatorioModel:
                 "anos_disponiveis": anos_disponiveis,
                 "ano_selecionado": ano,
             }
-        finally:
-            cursor.close()
-            conn.close()

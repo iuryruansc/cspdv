@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
@@ -42,14 +42,14 @@ class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
         self.contentLayout.addWidget(self.pagamento_view)
         self.contentLayout.setCurrentWidget(self.frente_venda_view)
 
-    def _abrir_pagamento(self, venda_data: Dict[str, Any]) -> None:
+    def _abrir_pagamento(self, venda_data: dict[str, Any]) -> None:
         self.pagamento_view.carregar_venda(venda_data)
         self.contentLayout.setCurrentWidget(self.pagamento_view)
 
     def _voltar_para_venda(self) -> None:
         self.contentLayout.setCurrentWidget(self.frente_venda_view)
 
-    def _finalizar_venda(self, venda_data: Dict[str, Any]) -> None:
+    def _finalizar_venda(self, venda_data: dict[str, Any]) -> None:
         sucesso, mensagem, venda_registrada = VendaService.finalizar_venda(venda_data)
         if not sucesso or venda_registrada is None:
             mostrar_aviso(self, "Venda não registrada", mensagem)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
 from PyQt5.QtWidgets import (

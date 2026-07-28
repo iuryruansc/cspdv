@@ -1,18 +1,17 @@
-from typing import Any, Dict, Tuple
+from __future__ import annotations
+from typing import Any
 
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, ResultadoOperacao, alternar_flag, bool_para_flag
 from modules.unidades.models.unidade_model import UnidadeModel
-
-ResultadoOperacao = Tuple[bool, str]
-
 
 class UnidadeService:
     @staticmethod
-    def _normalizar_dados(dados: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalizar_dados(dados: dict[str, Any]) -> dict[str, Any]:
         sigla = str(dados.get("sigla") or "").strip().upper()
         descricao = str(dados.get("descricao") or "").strip()
         codigo_sefaz = str(dados.get("codigo_sefaz") or "").strip().upper()
         fracionavel = 1 if bool(dados.get("fracionavel")) else 0
-        ativo = "S" if str(dados.get("ativo") or "N").strip().upper() == "S" else "N"
+        ativo = bool_para_flag(dados.get("ativo"))
         return {
             "sigla": sigla,
             "descricao": descricao,
@@ -22,7 +21,7 @@ class UnidadeService:
         }
 
     @staticmethod
-    def _validar_dados(dados: Dict[str, Any], *, unidade_id: int | None = None) -> ResultadoOperacao:
+    def _validar_dados(dados: dict[str, Any], *, unidade_id: int | None = None) -> ResultadoOperacao:
         normalizados = UnidadeService._normalizar_dados(dados)
         if len(normalizados["sigla"]) < 2:
             return False, "A sigla da unidade deve ter pelo menos 2 caracteres."
@@ -40,7 +39,7 @@ class UnidadeService:
         return True, ""
 
     @staticmethod
-    def cadastrar_unidade(dados: Dict[str, Any]) -> ResultadoOperacao:
+    def cadastrar_unidade(dados: dict[str, Any]) -> ResultadoOperacao:
         normalizados = UnidadeService._normalizar_dados(dados)
         valido, mensagem = UnidadeService._validar_dados(normalizados)
         if not valido:
@@ -56,7 +55,7 @@ class UnidadeService:
         return True, "Unidade cadastrada com sucesso!"
 
     @staticmethod
-    def atualizar_unidade(unidade_id: int, dados: Dict[str, Any]) -> ResultadoOperacao:
+    def atualizar_unidade(unidade_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         normalizados = UnidadeService._normalizar_dados(dados)
         valido, mensagem = UnidadeService._validar_dados(normalizados, unidade_id=int(unidade_id))
         if not valido:
@@ -77,10 +76,10 @@ class UnidadeService:
         if not registro:
             return False, "Unidade não encontrada."
 
-        ativo_atual = str(registro.get("ativo") or "N").strip().upper()
-        novo_status = "N" if ativo_atual == "S" else "S"
+        ativo_atual = str(registro.get("ativo") or FLAG_NAO).strip().upper()
+        novo_status = alternar_flag(ativo_atual)
 
-        if novo_status == "N":
+        if novo_status == FLAG_NAO:
             vinculados = UnidadeModel.contar_produtos_vinculados(int(unidade_id))
             if vinculados > 0:
                 return False, "Não é possível desativar uma unidade vinculada a produtos."
@@ -92,5 +91,5 @@ class UnidadeService:
 
         if not atualizado:
             return False, "Não foi possível atualizar o status da unidade."
-        acao = "ativada" if novo_status == "S" else "desativada"
+        acao = "ativada" if novo_status == FLAG_SIM else "desativada"
         return True, f"Unidade {acao} com sucesso!"

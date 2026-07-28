@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -21,7 +21,7 @@ from utils.ui_messages import mostrar_info
 class ConsultaPrecoDialog(QDialog):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self._produto_encontrado: Optional[Dict[str, Any]] = None
+        self._produto_encontrado: dict[str, Any] | None = None
         self._montar_interface()
 
     def _montar_interface(self) -> None:
@@ -228,7 +228,7 @@ class ConsultaPrecoDialog(QDialog):
         self._produto_encontrado = produto
         self._preencher_resultado(termo, produto)
 
-    def _buscar_produto_exato(self, termo: str) -> Optional[Dict[str, Any]]:
+    def _buscar_produto_exato(self, termo: str) -> dict[str, Any] | None:
         produto_codigo_barras = ProdutoModel.buscar_por_codigo_barras(termo)
         if produto_codigo_barras:
             return produto_codigo_barras
@@ -241,7 +241,7 @@ class ConsultaPrecoDialog(QDialog):
             return ProdutoModel.buscar_por_id(int(termo))
         return None
 
-    def _preencher_resultado(self, termo: str, produto: Dict[str, Any]) -> None:
+    def _preencher_resultado(self, termo: str, produto: dict[str, Any]) -> None:
         self.lblCodigoValor.setText(termo)
         self.lblDescricaoValor.setText(str(produto.get("nome") or "—"))
         self.lblEstoqueValor.setText(str(int(float(produto.get("quantidade_estoque") or 0))))

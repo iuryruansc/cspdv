@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PyQt5.QtWidgets import QDialog, QListWidgetItem
 
@@ -12,7 +12,7 @@ class SelecionarClienteDialog(QDialog, Ui_SelecionarClienteDialog):
         super().__init__(parent)
         self.setupUi(self)
         self.setModal(True)
-        self._cliente_selecionado: Optional[Dict[str, Any]] = None
+        self._cliente_selecionado: dict[str, Any] | None = None
         self._cliente_consumidor_final = ClienteService.obter_consumidor_final()
 
         self.lineBusca.textChanged.connect(self._buscar_clientes)
@@ -25,7 +25,7 @@ class SelecionarClienteDialog(QDialog, Ui_SelecionarClienteDialog):
         self.lineBusca.setFocus()
 
     @property
-    def cliente_selecionado(self) -> Optional[Dict[str, Any]]:
+    def cliente_selecionado(self) -> dict[str, Any] | None:
         return self._cliente_selecionado
 
     def _buscar_clientes(self) -> None:

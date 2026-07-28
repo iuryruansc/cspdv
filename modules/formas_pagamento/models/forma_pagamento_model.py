@@ -1,15 +1,14 @@
-from typing import Any, Dict, List, Optional, cast
+from __future__ import annotations
 
-from database.connection import get_connection
+from typing import Any, cast
 
+from database.connection import db_cursor, db_transaction
 
 class FormaPagamentoModel:
     @staticmethod
-    def listar() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -22,17 +21,11 @@ class FormaPagamentoModel:
                 ORDER BY nome
                 """
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def buscar_por_id(forma_pagamento_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_id(forma_pagamento_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -47,17 +40,11 @@ class FormaPagamentoModel:
                 """,
                 (int(forma_pagamento_id),),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def buscar_por_nome(nome: str) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_nome(nome: str) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo
                 FROM formas_pagamento
@@ -66,17 +53,11 @@ class FormaPagamentoModel:
                 """,
                 (nome,),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def inserir(dados: Dict[str, Any]) -> Optional[int]:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def inserir(dados: dict[str, Any]) -> int | None:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO formas_pagamento
                     (nome, tipo_sefaz, permite_parcelamento, taxa_administrativa, ativo, createdAt, updatedAt)
@@ -85,21 +66,11 @@ class FormaPagamentoModel:
                 """,
                 dados,
             )
-            conn.commit()
-            return cursor.lastrowid
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.lastrowid
     @staticmethod
-    def atualizar(forma_pagamento_id: int, dados: Dict[str, Any]) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+    def atualizar(forma_pagamento_id: int, dados: dict[str, Any]) -> bool:
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE formas_pagamento
                 SET
@@ -113,29 +84,12 @@ class FormaPagamentoModel:
                 """,
                 {**dados, "id": int(forma_pagamento_id)},
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def atualizar_status(forma_pagamento_id: int, ativo: str) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 "UPDATE formas_pagamento SET ativo = %s WHERE id = %s",
                 (ativo, int(forma_pagamento_id)),
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
+            return cur.rowcount > 0

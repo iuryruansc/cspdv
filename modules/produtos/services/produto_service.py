@@ -1,9 +1,14 @@
+from __future__ import annotations
+
+from typing import Any
+
 from modules.produtos.models.produto_model import ProdutoModel
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, ResultadoOperacao, alternar_flag
 from utils.app_logger import log_error
 
 class ProdutoService:
     @staticmethod
-    def buscar_para_venda(termo):
+    def buscar_para_venda(termo: str) -> list[dict[str, Any]]:
         termo_limpo = str(termo or "").strip()
         if len(termo_limpo) < 2:
             return []
@@ -14,7 +19,7 @@ class ProdutoService:
             return []
 
     @staticmethod
-    def _validar_dados_produto(dados, produto_id=None):
+    def _validar_dados_produto(dados: dict[str, Any], produto_id: int | None = None) -> ResultadoOperacao:
         nome = str(dados.get("nome", "")).strip()
         cod_produto = str(dados.get("cod_produto", "")).strip()
         codigo_barras = str(dados.get("codigo_barras", "")).strip()
@@ -38,7 +43,7 @@ class ProdutoService:
         if fornecedor_id is None:
             return False, "O fornecedor do produto é obrigatório."
 
-        if ativo not in {"S", "N"}:
+        if ativo not in {FLAG_SIM, FLAG_NAO}:
             return False, "O status ativo do produto é obrigatório."
 
         if float(dados.get("preco_venda", 0)) <= 0:
@@ -58,7 +63,7 @@ class ProdutoService:
         return True, ""
 
     @staticmethod
-    def validar_e_buscar_por_codigo(codigo_bruto):
+    def validar_e_buscar_por_codigo(codigo_bruto: str) -> tuple[dict[str, Any] | None, str, bool]:
         codigo = str(codigo_bruto).strip()
 
         if not codigo:
@@ -79,7 +84,7 @@ class ProdutoService:
             return None, "Erro técnico ao consultar o banco de dados.", False
 
     @staticmethod
-    def cadastrar_produto(dados):
+    def cadastrar_produto(dados: dict[str, Any]) -> ResultadoOperacao:
         valido, mensagem = ProdutoService._validar_dados_produto(dados)
         if not valido:
             return False, mensagem
@@ -88,10 +93,10 @@ class ProdutoService:
             ProdutoModel.inserir(dados)
             return True, "Produto cadastrado com sucesso!"
         except Exception as e:
-            return False, f"Erro ao salvar no banco: {str(e)}"
+            return False, f"Erro ao salvar produto:\n{e}"
 
     @staticmethod
-    def atualizar_produto(produto_id, dados):
+    def atualizar_produto(produto_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
             return False, "Produto não localizado para edição."
@@ -104,10 +109,16 @@ class ProdutoService:
             ProdutoModel.atualizar(int(produto_id), dados)
             return True, "Produto atualizado com sucesso!"
         except Exception as e:
-            return False, f"Erro ao atualizar no banco: {str(e)}"
+            return False, f"Erro ao atualizar produto:\n{e}"
 
     @staticmethod
-    def ajustar_quantidade(produto_id, modo, quantidade, observacao, usuario_id):
+    def ajustar_quantidade(
+        produto_id: int,
+        modo: str,
+        quantidade: float,
+        observacao: str,
+        usuario_id: int,
+    ) -> ResultadoOperacao:
         if not usuario_id:
             return False, "Não foi possível identificar o usuário logado para registrar o ajuste."
 
@@ -154,20 +165,20 @@ class ProdutoService:
             )
             return True, "Quantidade ajustada com sucesso."
         except Exception as e:
-            return False, f"Erro ao registrar ajuste de estoque: {str(e)}"
+            return False, f"Erro ao registrar ajuste de estoque:\n{e}"
 
     @staticmethod
-    def alternar_status(produto_id):
+    def alternar_status(produto_id: int) -> ResultadoOperacao:
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
             return False, "Produto não localizado."
 
-        ativo_atual = str(produto.get("ativo") or "N").strip().upper()
-        novo_status = "N" if ativo_atual == "S" else "S"
+        ativo_atual = str(produto.get("ativo") or FLAG_NAO).strip().upper()
+        novo_status = alternar_flag(ativo_atual)
 
         try:
             ProdutoModel.atualizar_status(int(produto_id), novo_status)
-            acao = "ativado" if novo_status == "S" else "desativado"
+            acao = "ativado" if novo_status == FLAG_SIM else "desativado"
             return True, f"Produto {acao} com sucesso."
         except Exception as e:
-            return False, f"Erro ao atualizar status do produto: {str(e)}"
+            return False, f"Erro ao atualizar status do produto:\n{e}"

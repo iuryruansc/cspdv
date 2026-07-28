@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog
 
@@ -7,6 +8,7 @@ from ui.admin.cadastros.cadastro_marca import Ui_CadastroMarca
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, TEXTO_AUTO_GERADO
 
 class CadastroMarcaView(QDialog, Ui_CadastroMarca, ValidacaoFormMixin):
     def __init__(self, parent=None, marca_id=None):
@@ -26,7 +28,7 @@ class CadastroMarcaView(QDialog, Ui_CadastroMarca, ValidacaoFormMixin):
 
     def _configurar_modo(self):
         if self._marca_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.setText(TEXTO_AUTO_GERADO)
             return
 
         marca = MarcaModel.buscar_por_id(self._marca_id)
@@ -40,14 +42,14 @@ class CadastroMarcaView(QDialog, Ui_CadastroMarca, ValidacaoFormMixin):
         self.lblTabCadMarca.setText("Edicao de Marca")
         self.lineEditCodigo.setText(str(marca.get("id") or ""))
         self.lineEditNomeMarca.setText(str(marca.get("nome_marca") or ""))
-        self.checkBoxAtivo.setChecked(str(marca.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(marca.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
         self.btnSalvar.setText("Atualizar")
 
     def _salvar_marca(self):
         self.limpar_erros()
 
         nome_marca = texto_maiusculo(texto_limpo(self.lineEditNomeMarca.text()))
-        ativo = "S" if self.checkBoxAtivo.isChecked() else "N"
+        ativo = FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO
 
         if not nome_marca:
             self.marcar_invalido(self.lineEditNomeMarca)

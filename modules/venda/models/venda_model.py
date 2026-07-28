@@ -3,19 +3,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, cast
+from typing import Any, Iterable, Sequence, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import (
     FLAG_NAO,
     FLAG_SIM,
     STATUS_CONTA_PENDENTE,
     STATUS_VENDA_CONCLUIDA,
     STATUS_VENDA_OPERACIONAL,
+    STATUS_VENDA_SQL,
 )
 
 CENT = Decimal("0.01")
-STATUS_VENDA_SQL = "', '".join(STATUS_VENDA_OPERACIONAL)
 
 @dataclass(frozen=True)
 class LoteAlocacao:
@@ -27,10 +27,8 @@ class VendaModel:
 
     @staticmethod
     def proximo_numero_venda() -> int | None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT AUTO_INCREMENT AS proximo_numero
                 FROM information_schema.TABLES
@@ -38,26 +36,20 @@ class VendaModel:
                   AND TABLE_NAME = 'vendas'
                 """
             )
-            row = cursor.fetchone() or {}
+            row = cur.fetchone() or {}
             proximo_numero = row.get("proximo_numero") if isinstance(row, dict) else None
             if proximo_numero in (None, "", 0):
-                cursor.execute("SELECT COALESCE(MAX(id), 0) + 1 AS proximo_numero FROM vendas")
-                row = cursor.fetchone() or {}
+                cur.execute("SELECT COALESCE(MAX(id), 0) + 1 AS proximo_numero FROM vendas")
+                row = cur.fetchone() or {}
                 proximo_numero = row.get("proximo_numero") if isinstance(row, dict) else None
             return int(proximo_numero) if proximo_numero not in (None, "", 0) else None
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def proximo_numero_sessao_caixa(caixa_id: int | None) -> int | None:
         if not caixa_id:
             return None
 
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT COUNT(*) AS total_vendas
                 FROM vendas
@@ -66,15 +58,11 @@ class VendaModel:
                 """,
                 (int(caixa_id),),
             )
-            row = cursor.fetchone() or {}
+            row = cur.fetchone() or {}
             total_vendas = row.get("total_vendas") if isinstance(row, dict) else None
             if total_vendas in (None, "", 0):
                 return 1
             return int(total_vendas) + 1
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def registrar_venda(
         *,
@@ -82,19 +70,17 @@ class VendaModel:
         usuario_id: int,
         funcionario_id: int,
         caixa_id: int,
-        itens: Sequence[Dict[str, Any]],
-        pagamentos: Sequence[Dict[str, Any]],
+        itens: Sequence[dict[str, Any]],
+        pagamentos: Sequence[dict[str, Any]],
         desconto_global: float,
         valor_total: float,
         data_hora: datetime,
         status_venda: str = STATUS_VENDA_CONCLUIDA,
-        conta_receber: Optional[Dict[str, Any]] = None,
+        conta_receber: dict[str, Any] | None = None,
     ) -> int:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_transaction() as cur:
             venda_id = VendaModel._inserir_venda(
-                cursor=cursor,
+                cursor=cur,
                 cliente_id=cliente_id,
                 usuario_id=usuario_id,
                 caixa_id=caixa_id,
@@ -116,7 +102,7 @@ class VendaModel:
                     raise ValueError("Existe item inválido na venda.")
 
                 alocacoes = VendaModel._alocar_lotes_saida(
-                    cursor=cursor,
+                    cursor=cur,
                     produto_id=produto_id,
                     quantidade=quantidade,
                 )
@@ -133,7 +119,7 @@ class VendaModel:
                     total_saida_produto += alocacao.quantidade
 
                     for preco_unitario, quantidade_grupo in VendaModel._agrupar_precos(fatia_precos):
-                        cursor.execute(
+                        cur.execute(
                             """
                             INSERT INTO itens_venda
                                 (venda_id, lote_id, produto_id, quantidade, preco_unitario)
@@ -149,7 +135,7 @@ class VendaModel:
                             ),
                         )
 
-                    cursor.execute(
+                    cur.execute(
                         """
                         UPDATE lotes
                         SET quantidade = quantidade - %s,
@@ -159,7 +145,7 @@ class VendaModel:
                         (alocacao.quantidade, alocacao.lote_id),
                     )
 
-                    cursor.execute(
+                    cur.execute(
                         """
                         INSERT INTO movimentacao_estoque
                             (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
@@ -178,7 +164,7 @@ class VendaModel:
                         ),
                     )
 
-                cursor.execute(
+                cur.execute(
                     """
                     UPDATE produtos
                     SET quantidade_estoque = quantidade_estoque - %s,
@@ -197,7 +183,7 @@ class VendaModel:
                 parcelas = pagamento.get("parcelas")
                 taxa_administrativa = pagamento.get("taxa_administrativa", 0.0)
 
-                cursor.execute(
+                cur.execute(
                     """
                     INSERT INTO pagamento_parcial
                         (venda_id, data_pagamento, valor_pago, forma_pagamento, observacao,
@@ -212,7 +198,7 @@ class VendaModel:
 
             if conta_receber:
                 VendaModel._inserir_conta_receber(
-                    cursor=cursor,
+                    cursor=cur,
                     venda_id=venda_id,
                     cliente_id=int(conta_receber.get("cliente_id") or 0),
                     usuario_id=usuario_id,
@@ -221,21 +207,11 @@ class VendaModel:
                     dados=conta_receber,
                 )
 
-            conn.commit()
             return venda_id
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def obter_resumo_por_caixa(caixa_id: int) -> Dict[str, Any]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def obter_resumo_por_caixa(caixa_id: int) -> dict[str, Any]:
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT
                     COUNT(*) AS vendas_dia,
@@ -246,9 +222,9 @@ class VendaModel:
                 """,
                 (caixa_id,),
             )
-            vendas = cursor.fetchone() or {}
+            vendas = cur.fetchone() or {}
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     pp.forma_pagamento,
@@ -263,9 +239,9 @@ class VendaModel:
                 """,
                 (caixa_id,),
             )
-            totais_forma_pagamento = list(cursor.fetchall())
+            totais_forma_pagamento = list(cur.fetchall())
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT COALESCE(SUM(pp.valor_pago), 0) AS faturamento_dinheiro
                 FROM pagamento_parcial pp
@@ -276,8 +252,8 @@ class VendaModel:
                 """,
                 (caixa_id,),
             )
-            vendas_dict = cast(Dict[str, Any], vendas)
-            dinheiro = cast(Dict[str, Any], cursor.fetchone() or {})
+            vendas_dict = cast(dict[str, Any], vendas)
+            dinheiro = cast(dict[str, Any], cur.fetchone() or {})
 
             return {
                 "vendas_dia": int(vendas_dict.get("vendas_dia") or 0),
@@ -285,10 +261,6 @@ class VendaModel:
                 "faturamento_dinheiro": float(dinheiro.get("faturamento_dinheiro") or 0.0),
                 "totais_forma_pagamento": totais_forma_pagamento,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def _inserir_venda(
         *,
@@ -323,7 +295,7 @@ class VendaModel:
         usuario_id: int,
         caixa_id: int,
         data_hora: datetime,
-        dados: Dict[str, Any],
+        dados: dict[str, Any],
     ) -> None:
         if cliente_id <= 0:
             raise ValueError("Cliente inválido para gerar conta a receber.")
@@ -364,7 +336,7 @@ class VendaModel:
         )
 
     @staticmethod
-    def _alocar_lotes_saida(*, cursor, produto_id: int, quantidade: int) -> List[LoteAlocacao]:
+    def _alocar_lotes_saida(*, cursor, produto_id: int, quantidade: int) -> list[LoteAlocacao]:
         produto = VendaModel._obter_produto_para_saida(cursor=cursor, produto_id=produto_id)
         estoque_atual = int(produto.get("quantidade_estoque") or 0)
         if quantidade > estoque_atual:
@@ -388,7 +360,7 @@ class VendaModel:
             lotes[0]["quantidade"] = estoque_atual
 
         restante = quantidade
-        alocacoes: List[LoteAlocacao] = []
+        alocacoes: list[LoteAlocacao] = []
         for lote in lotes:
             disponivel = int(lote.get("quantidade") or 0)
             if disponivel <= 0:
@@ -407,7 +379,7 @@ class VendaModel:
         return alocacoes
 
     @staticmethod
-    def _obter_produto_para_saida(*, cursor, produto_id: int) -> Dict[str, Any]:
+    def _obter_produto_para_saida(*, cursor, produto_id: int) -> dict[str, Any]:
         cursor.execute(
             """
             SELECT id, nome, preco_compra, preco_venda, quantidade_estoque, ativo
@@ -425,7 +397,7 @@ class VendaModel:
         return produto
 
     @staticmethod
-    def _listar_lotes_ativos_produto(*, cursor, produto_id: int) -> List[Dict[str, Any]]:
+    def _listar_lotes_ativos_produto(*, cursor, produto_id: int) -> list[dict[str, Any]]:
         cursor.execute(
             """
             SELECT id, numero_lote, quantidade, data_validade
@@ -439,7 +411,7 @@ class VendaModel:
         return list(cursor.fetchall())
 
     @staticmethod
-    def _criar_lote_padrao(*, cursor, produto: Dict[str, Any], quantidade_inicial: int) -> None:
+    def _criar_lote_padrao(*, cursor, produto: dict[str, Any], quantidade_inicial: int) -> None:
         produto_id = int(produto["id"])
         cursor.execute(
             """
@@ -463,10 +435,10 @@ class VendaModel:
     @staticmethod
     def _ratear_total_final_itens(
         *,
-        itens: Sequence[Dict[str, Any]],
+        itens: Sequence[dict[str, Any]],
         desconto_global: float,
         valor_total: float,
-    ) -> List[Decimal]:
+    ) -> list[Decimal]:
         totais_item = [
             Decimal(str(item.get("total") or 0)).quantize(CENT, rounding=ROUND_HALF_UP)
             for item in itens
@@ -478,7 +450,7 @@ class VendaModel:
         if desconto_global_dec <= Decimal("0.00") or total_itens <= Decimal("0.00"):
             return totais_item
 
-        shares: List[Decimal] = []
+        shares: list[Decimal] = []
         acumulado = Decimal("0.00")
         for index, total_item in enumerate(totais_item):
             if index == len(totais_item) - 1:
@@ -498,7 +470,7 @@ class VendaModel:
         return totais_finais
 
     @staticmethod
-    def _ratear_preco_unitario(*, quantidade: int, total_item: Decimal) -> List[Decimal]:
+    def _ratear_preco_unitario(*, quantidade: int, total_item: Decimal) -> list[Decimal]:
         if quantidade <= 0:
             return []
         total_centavos = int((total_item * 100).to_integral_value(rounding=ROUND_HALF_UP))
@@ -510,8 +482,8 @@ class VendaModel:
         return valores
 
     @staticmethod
-    def _agrupar_precos(precos_unitarios: Iterable[Decimal]) -> List[Tuple[Decimal, int]]:
-        grupos: Dict[Decimal, int] = {}
+    def _agrupar_precos(precos_unitarios: Iterable[Decimal]) -> list[tuple[Decimal, int]]:
+        grupos: dict[Decimal, int] = {}
         for preco in precos_unitarios:
             preco_limpo = Decimal(preco).quantize(CENT, rounding=ROUND_HALF_UP)
             grupos[preco_limpo] = grupos.get(preco_limpo, 0) + 1

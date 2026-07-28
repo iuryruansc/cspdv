@@ -1,20 +1,18 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Any, Dict, List
+from typing import Any
 
 from modules.admin.models.dashboard_model import DashboardAdminModel
 from utils.backup_runtime import BackupService
+from utils.format_utils import formatar_moeda
 
 class DashboardAdminService:
     @staticmethod
-    def carregar_dashboard() -> Dict[str, Any]:
+    def carregar_dashboard() -> dict[str, Any]:
         resumo = DashboardAdminModel.obter_resumo()
         return {
             "vendas_hoje": int(resumo.get("vendas_hoje") or 0),
-            "faturamento_dia": DashboardAdminService._formatar_moeda(
-                Decimal(str(resumo.get("faturamento_dia") or 0))
-            ),
+            "faturamento_dia": formatar_moeda(resumo.get("faturamento_dia") or 0),
             "produtos_ativos": int(resumo.get("produtos_ativos") or 0),
             "clientes_ativos": int(resumo.get("clientes_ativos") or 0),
             "usuarios_ativos": int(resumo.get("usuarios_ativos") or 0),
@@ -24,12 +22,8 @@ class DashboardAdminService:
             "caixas_abertos": int(resumo.get("caixas_abertos") or 0),
             "contas_vencidas": int(resumo.get("contas_vencidas") or 0),
             "promocoes_vencidas_ativas": int(resumo.get("promocoes_vencidas_ativas") or 0),
-            "recebimentos_dia": DashboardAdminService._formatar_moeda(
-                Decimal(str(resumo.get("recebimentos_dia") or 0))
-            ),
-            "reembolsos_dia": DashboardAdminService._formatar_moeda(
-                Decimal(str(resumo.get("reembolsos_dia") or 0))
-            ),
+            "recebimentos_dia": formatar_moeda(resumo.get("recebimentos_dia") or 0),
+            "reembolsos_dia": formatar_moeda(resumo.get("reembolsos_dia") or 0),
             "ultimo_backup_resumo": BackupService.resumo_ultimo_backup(),
             "alertas_dashboard": DashboardAdminService._montar_alertas(resumo),
             "ultimas_vendas": DashboardAdminService._formatar_ultimas_vendas(
@@ -38,8 +32,8 @@ class DashboardAdminService:
         }
 
     @staticmethod
-    def _montar_alertas(resumo: Dict[str, Any]) -> List[Dict[str, str]]:
-        alertas: List[Dict[str, str]] = []
+    def _montar_alertas(resumo: dict[str, Any]) -> list[dict[str, str]]:
+        alertas: list[dict[str, str]] = []
 
         contas_vencidas = int(resumo.get("contas_vencidas") or 0)
         if contas_vencidas > 0:
@@ -92,8 +86,8 @@ class DashboardAdminService:
         return alertas[:4]
 
     @staticmethod
-    def _formatar_ultimas_vendas(rows: List[Dict[str, Any]]) -> List[Dict[str, str]]:
-        formatadas: List[Dict[str, str]] = []
+    def _formatar_ultimas_vendas(rows: list[dict[str, Any]]) -> list[dict[str, str]]:
+        formatadas: list[dict[str, str]] = []
         for row in rows:
             formatadas.append(
                 {
@@ -101,12 +95,7 @@ class DashboardAdminService:
                     "data_hora": str(row.get("data_hora") or "-"),
                     "operador": str(row.get("operador") or "-"),
                     "forma_pagamento": str(row.get("forma_pagamento") or "-"),
-                    "total": DashboardAdminService._formatar_moeda(Decimal(str(row.get("total") or 0))),
+                    "total": formatar_moeda(row.get("total") or 0),
                 }
             )
         return formatadas
-
-    @staticmethod
-    def _formatar_moeda(valor: Decimal) -> str:
-        texto = f"{valor:,.2f}"
-        return f"R$ {texto.replace(',', 'X').replace('.', ',').replace('X', '.')}"

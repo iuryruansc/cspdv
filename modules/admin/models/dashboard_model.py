@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor
 from modules.shared.constants import (
     FLAG_SIM,
     STATUS_CAIXA_ABERTO,
@@ -14,31 +14,28 @@ from modules.shared.constants import (
 
 STATUS_CONTA_ABERTAS_SQL = "', '".join(STATUS_CONTA_ABERTAS)
 
-
 class DashboardAdminModel:
     @staticmethod
-    def obter_resumo() -> Dict[str, Any]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+    def obter_resumo() -> dict[str, Any]:
+        with db_cursor() as cur:
             produtos_ativos = DashboardAdminModel._contar(
-                cursor,
+                cur,
                 f"SELECT COUNT(*) AS total FROM produtos WHERE ativo = '{FLAG_SIM}'",
             )
             clientes_ativos = DashboardAdminModel._contar(
-                cursor,
+                cur,
                 f"SELECT COUNT(*) AS total FROM clientes WHERE ativo = '{FLAG_SIM}'",
             )
-            usuarios_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "usuarios")
-            perfis_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "perfis")
-            pdvs_ativos = DashboardAdminModel._contar_ativos_ou_total(cursor, "pdvs")
-            formas_pagamento_ativas = DashboardAdminModel._contar_ativos_ou_total(cursor, "formas_pagamento")
-            caixas_abertos = DashboardAdminModel._contar_caixas_abertos(cursor)
-            contas_vencidas = DashboardAdminModel._contar_contas_vencidas(cursor)
-            promocoes_vencidas_ativas = DashboardAdminModel._contar_promocoes_vencidas_ativas(cursor)
-            recebimentos_dia = DashboardAdminModel._somar_recebimentos_dia(cursor)
-            reembolsos_dia = DashboardAdminModel._somar_reembolsos_dia(cursor)
-            cursor.execute(
+            usuarios_ativos = DashboardAdminModel._contar_ativos_ou_total(cur, "usuarios")
+            perfis_ativos = DashboardAdminModel._contar_ativos_ou_total(cur, "perfis")
+            pdvs_ativos = DashboardAdminModel._contar_ativos_ou_total(cur, "pdvs")
+            formas_pagamento_ativas = DashboardAdminModel._contar_ativos_ou_total(cur, "formas_pagamento")
+            caixas_abertos = DashboardAdminModel._contar_caixas_abertos(cur)
+            contas_vencidas = DashboardAdminModel._contar_contas_vencidas(cur)
+            promocoes_vencidas_ativas = DashboardAdminModel._contar_promocoes_vencidas_ativas(cur)
+            recebimentos_dia = DashboardAdminModel._somar_recebimentos_dia(cur)
+            reembolsos_dia = DashboardAdminModel._somar_reembolsos_dia(cur)
+            cur.execute(
                 """
                 SELECT
                     COUNT(*) AS vendas_hoje,
@@ -48,10 +45,10 @@ class DashboardAdminModel:
                   AND LOWER(COALESCE(v.status, '')) NOT IN ('cancelada', 'cancelado', 'c')
                 """
             )
-            resumo = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+            resumo = cast(dict[str, Any] | None, cur.fetchone()) or {}
             vendas_hoje = int(resumo.get("vendas_hoje") or 0)
             faturamento_dia = Decimal(str(resumo.get("faturamento_dia") or 0)) - Decimal(str(reembolsos_dia or 0))
-            ultimas_vendas = DashboardAdminModel._buscar_ultimas_vendas(cursor)
+            ultimas_vendas = DashboardAdminModel._buscar_ultimas_vendas(cur)
 
             return {
                 "vendas_hoje": vendas_hoje,
@@ -69,14 +66,10 @@ class DashboardAdminModel:
                 "reembolsos_dia": reembolsos_dia,
                 "ultimas_vendas": ultimas_vendas,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def _buscar_ultimas_vendas(
         cursor: Any,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         cursor.execute(
             """
             SELECT
@@ -98,12 +91,12 @@ class DashboardAdminModel:
             LIMIT 10
             """,
         )
-        return cast(List[Dict[str, Any]], cursor.fetchall())
+        return cast(list[dict[str, Any]], cursor.fetchall())
 
     @staticmethod
     def _contar(cursor: Any, sql: str) -> int:
         cursor.execute(sql)
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 
     @staticmethod
@@ -112,7 +105,7 @@ class DashboardAdminModel:
             cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela} WHERE ativo = '{FLAG_SIM}'")
         else:
             cursor.execute(f"SELECT COUNT(*) AS total FROM {tabela}")
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 
     @staticmethod
@@ -126,7 +119,7 @@ class DashboardAdminModel:
             """,
             (STATUS_CAIXA_ABERTO, FLAG_SIM),
         )
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 
     @staticmethod
@@ -141,7 +134,7 @@ class DashboardAdminModel:
             """,
             (FLAG_SIM,),
         )
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 
     @staticmethod
@@ -156,7 +149,7 @@ class DashboardAdminModel:
             """,
             (STATUS_PROMOCAO_ATIVA, FLAG_SIM),
         )
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return int(resultado.get("total") or 0)
 
     @staticmethod
@@ -170,7 +163,7 @@ class DashboardAdminModel:
             """,
             (FLAG_SIM,),
         )
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return Decimal(str(resultado.get("total") or 0))
 
     @staticmethod
@@ -185,5 +178,5 @@ class DashboardAdminModel:
             """,
             (FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
-        resultado = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+        resultado = cast(dict[str, Any] | None, cursor.fetchone()) or {}
         return Decimal(str(resultado.get("total") or 0))

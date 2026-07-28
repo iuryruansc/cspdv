@@ -1,6 +1,7 @@
-from typing import Any, Dict, List
+from __future__ import annotations
+from typing import Any
 
-from PyQt5.QtCore import QDateTime, QTimer
+from PyQt5.QtCore import QDateTime, Qt, QTimer
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QButtonGroup,
@@ -23,6 +24,7 @@ from ui.admin.painel_admin import Ui_PainelAdmin
 from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
@@ -31,7 +33,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         aplicar_tamanho_proporcional_tela(self)
         self.btnNavAuditoria.setText("Auditoria")
 
-        self._management_configs: Dict[str, Dict[str, Any]] = {}
+        self._management_configs: dict[str, dict[str, Any]] = {}
         self._setup_user_context()
         self._setup_dashboard_actions()
         self._setup_dashboard_layout()
@@ -78,6 +80,7 @@ QPushButton:hover {
         )
         self.sectionTitleHLayout.addWidget(self.btnFecharCaixaDashboard)
         self.btnFecharCaixaDashboard.hide()
+        self.tableUltimasVendas.doubleClicked.connect(self._abrir_detalhe_venda_dashboard)
 
     def _setup_dashboard_layout(self) -> None:
         self.lblAcoesTitle.setText("Ações Essenciais")
@@ -750,37 +753,37 @@ QPushButton:hover { background: #2a74b8; }
             if current_key == "caixas":
                 self._atualizar_acao_caixa_management_page()
 
-    def _load_produtos(self) -> List[Dict[str, Any]]:
+    def _load_produtos(self) -> list[dict[str, Any]]:
         from modules.produtos.models.produto_model import ProdutoModel
 
         return ProdutoModel.listar_resumo()
 
-    def _load_marcas(self) -> List[Dict[str, Any]]:
+    def _load_marcas(self) -> list[dict[str, Any]]:
         from modules.marcas.models.marca_model import MarcaModel
 
         return MarcaModel.listar()
 
-    def _load_fornecedores(self) -> List[Dict[str, Any]]:
+    def _load_fornecedores(self) -> list[dict[str, Any]]:
         from modules.fornecedores.models.fornecedor_model import FornecedorModel
 
         return FornecedorModel.listar_resumo()
 
-    def _load_categorias(self) -> List[Dict[str, Any]]:
+    def _load_categorias(self) -> list[dict[str, Any]]:
         from modules.categorias.models.categoria_model import CategoriaModel
 
         return CategoriaModel.listar()
 
-    def _load_clientes(self) -> List[Dict[str, Any]]:
+    def _load_clientes(self) -> list[dict[str, Any]]:
         from modules.clientes.models.cliente_model import ClienteModel
 
         return ClienteModel.listar_resumo()
 
-    def _load_formas_pagamento(self) -> List[Dict[str, Any]]:
+    def _load_formas_pagamento(self) -> list[dict[str, Any]]:
         from modules.formas_pagamento.models.forma_pagamento_model import FormaPagamentoModel
 
         rows = FormaPagamentoModel.listar()
         for row in rows:
-            row["permite_parcelamento"] = "Sim" if str(row.get("permite_parcelamento") or "N").upper() == "S" else "Não"
+            row["permite_parcelamento"] = "Sim" if str(row.get("permite_parcelamento") or FLAG_NAO).upper() == FLAG_SIM else "Não"
             taxa = row.get("taxa_administrativa")
             try:
                 row["taxa_administrativa"] = f"{float(taxa or 0):.2f}".replace(".", ",")
@@ -788,22 +791,22 @@ QPushButton:hover { background: #2a74b8; }
                 row["taxa_administrativa"] = "0,00"
         return rows
 
-    def _load_caixas(self) -> List[Dict[str, Any]]:
+    def _load_caixas(self) -> list[dict[str, Any]]:
         from modules.venda.services.caixa_service import CaixaService
 
         return CaixaService.listar_caixas_admin()
 
-    def _load_pdvs(self) -> List[Dict[str, Any]]:
+    def _load_pdvs(self) -> list[dict[str, Any]]:
         from modules.pdvs.models.pdv_model import PdvModel
 
         return PdvModel.listar()
 
-    def _load_auditoria(self) -> List[Dict[str, Any]]:
+    def _load_auditoria(self) -> list[dict[str, Any]]:
         from modules.auditoria.services.auditoria_service import AuditoriaService
 
         return AuditoriaService.listar_eventos(limit=300)
 
-    def _load_unidades(self) -> List[Dict[str, Any]]:
+    def _load_unidades(self) -> list[dict[str, Any]]:
         from modules.unidades.models.unidade_model import UnidadeModel
 
         rows = UnidadeModel.listar()
@@ -867,14 +870,14 @@ QPushButton:hover { background: #2a74b8; }
         setattr(self, attr_name, view)
         view.show()
 
-    def _obter_registro_selecionado(self, titulo: str, mensagem: str) -> Dict[str, Any] | None:
+    def _obter_registro_selecionado(self, titulo: str, mensagem: str) -> dict[str, Any] | None:
         row = self.managementPage.selected_row()
         if row:
             return row
         mostrar_info(self, titulo, mensagem)
         return None
 
-    def _obter_contexto_status(self, current_key: str, row: Dict[str, Any]) -> Dict[str, Any] | None:
+    def _obter_contexto_status(self, current_key: str, row: dict[str, Any]) -> dict[str, Any] | None:
         if current_key == "produtos":
             from modules.produtos.services.produto_service import ProdutoService
 
@@ -1064,7 +1067,7 @@ QPushButton:hover { background: #2a74b8; }
         )
         if not row:
             return
-        if current_key == "clientes" and str(row.get("cliente_sistema") or "N").strip().upper() == "S":
+        if current_key == "clientes" and str(row.get("cliente_sistema") or FLAG_NAO).strip().upper() == FLAG_SIM:
             mostrar_aviso(
                 self,
                 "Registro protegido",
@@ -1085,8 +1088,8 @@ QPushButton:hover { background: #2a74b8; }
             mostrar_aviso(self, str(contexto["invalid_title"]), "Não foi possível identificar o registro selecionado.")
             return
 
-        ativo_atual = str(row.get("ativo") or "N").strip().upper()
-        acao = "desativar" if ativo_atual == "S" else "ativar"
+        ativo_atual = str(row.get("ativo") or FLAG_NAO).strip().upper()
+        acao = "desativar" if ativo_atual == FLAG_SIM else "ativar"
         confirmacao = confirmar_acao(
             self,
             "Confirmar alteração",
@@ -1114,7 +1117,7 @@ QPushButton:hover { background: #2a74b8; }
         )
         if not row:
             return
-        if current_key == "clientes" and str(row.get("cliente_sistema") or "N").strip().upper() == "S":
+        if current_key == "clientes" and str(row.get("cliente_sistema") or FLAG_NAO).strip().upper() == FLAG_SIM:
             mostrar_aviso(
                 self,
                 "Registro protegido",
@@ -1246,7 +1249,7 @@ QPushButton:hover { background: #2a74b8; }
         self._populate_dashboard_sales(resumo["ultimas_vendas"])
         self._atualizar_acao_caixa_dashboard()
 
-    def _atualizar_resumo_estrutura(self, resumo: Dict[str, Any]) -> None:
+    def _atualizar_resumo_estrutura(self, resumo: dict[str, Any]) -> None:
         self.lblResumoUsuarios.setText(
             f"Acesso: usuarios ativos {int(resumo.get('usuarios_ativos') or 0)} | "
             f"perfis ativos {int(resumo.get('perfis_ativos') or 0)}"
@@ -1267,7 +1270,7 @@ QPushButton:hover { background: #2a74b8; }
         )
         self._atualizar_alertas_dashboard(resumo.get("alertas_dashboard") or [])
 
-    def _atualizar_alertas_dashboard(self, alertas: List[Dict[str, Any]]) -> None:
+    def _atualizar_alertas_dashboard(self, alertas: list[dict[str, Any]]) -> None:
         botoes = [
             self.btnResumoAlerta1,
             self.btnResumoAlerta2,
@@ -1410,12 +1413,13 @@ QPushButton:hover { background: #2a74b8; }
         )
         self.managementPage.btnNovo.clicked.connect(self._open_frente_caixa)
 
-    def _populate_dashboard_sales(self, rows: List[Dict[str, Any]]) -> None:
+    def _populate_dashboard_sales(self, rows: list[dict[str, Any]]) -> None:
         self.tableUltimasVendas.setRowCount(len(rows))
         headers = self.tableUltimasVendas.horizontalHeader()
         headers.setStretchLastSection(False)
 
         for row_index, row in enumerate(rows):
+            venda_id = int(row.get("numero_venda") or 0)
             values = (
                 str(row.get("numero_venda") or "-"),
                 str(row.get("data_hora") or "-"),
@@ -1425,6 +1429,8 @@ QPushButton:hover { background: #2a74b8; }
             )
             for column_index, value in enumerate(values):
                 item = QTableWidgetItem(value)
+                if column_index == 0:
+                    item.setData(Qt.UserRole, venda_id)
                 self.tableUltimasVendas.setItem(row_index, column_index, item)
 
         headers.resizeSection(0, 50)
@@ -1432,6 +1438,25 @@ QPushButton:hover { background: #2a74b8; }
         headers.resizeSection(2, 100)
         headers.resizeSection(3, 180)
         headers.setStretchLastSection(True)
+
+    def _abrir_detalhe_venda_dashboard(self, index) -> None:
+        item = self.tableUltimasVendas.item(index.row(), 0)
+        if item is None:
+            return
+        venda_id = int(item.data(Qt.UserRole) or 0)
+        if venda_id <= 0:
+            return
+
+        from modules.financeiro.services.financeiro_service import FinanceiroService
+        from modules.financeiro.views.consulta_venda_dialog import ConsultaVendaDialog
+
+        detalhes = FinanceiroService.obter_venda_detalhada(venda_id)
+        if not detalhes:
+            mostrar_aviso(self, "Venda não encontrada", "Não foi possível localizar os detalhes desta venda.")
+            return
+        dialog = ConsultaVendaDialog(detalhes, self)
+        dialog.exec_()
+        self.tableUltimasVendas.clearSelection()
 
     def _open_frente_caixa(self) -> None:
         if not SessionManager.has_permission("vendas.pdv"):

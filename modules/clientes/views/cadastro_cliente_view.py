@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QIntValidator, QRegularExpressionValidator
 from PyQt5.QtWidgets import QCheckBox, QLineEdit, QPlainTextEdit, QWidget
@@ -10,6 +11,7 @@ from utils.admin_return_mixin import RetornoPainelAdminMixin
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, TEXTO_AUTO_GERADO
 
 class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, RetornoPainelAdminMixin):
     def __init__(self, parent=None, cliente_id=None, admin_view=None):
@@ -43,7 +45,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
             lambda: self.lineEditCep.setText(formatar_cep(self.lineEditCep.text()))
         )
 
-        self.btnSalvar.clicked.connect(self._save_cliente)
+        self.btnSalvar.clicked.connect(self._salvar_cliente)
         self.btnVoltar.clicked.connect(self._cancelar)
         self.btnLimpar.clicked.connect(self._limpar_campos)
 
@@ -81,7 +83,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
 
     def _configurar_modo(self):
         if self._cliente_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.setText(TEXTO_AUTO_GERADO)
             return
 
         cliente = ClienteModel.buscar_por_id(self._cliente_id)
@@ -104,9 +106,9 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
         self.lineEditCidade.setText(str(cliente.get("cidade") or ""))
         self.lineEditEstado.setText(str(cliente.get("estado") or ""))
         self.plainTextObservacao.setPlainText(str(cliente.get("observacao") or ""))
-        self.checkBoxAtivo.setChecked(str(cliente.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(cliente.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
         self.btnSalvar.setText("Atualizar")
-        self._cliente_sistema = str(cliente.get("cliente_sistema") or "N").strip().upper() == "S"
+        self._cliente_sistema = str(cliente.get("cliente_sistema") or FLAG_NAO).strip().upper() == FLAG_SIM
         if self._cliente_sistema:
             self._configurar_modo_somente_leitura()
 
@@ -138,7 +140,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
         cidade = texto_maiusculo(self.lineEditCidade.text())
         estado = texto_maiusculo(self.lineEditEstado.text())
         observacao = self.plainTextObservacao.toPlainText().strip()
-        ativo = "S" if self.checkBoxAtivo.isChecked() else "N"
+        ativo = FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO
 
         erros = []
         if not nome:
@@ -183,7 +185,7 @@ class CadastroClienteView(QWidget, Ui_CadastroCliente, ValidacaoFormMixin, Retor
             "ativo": ativo,
         }
 
-    def _save_cliente(self):
+    def _salvar_cliente(self):
         if self._cliente_sistema:
             mostrar_aviso(
                 self,

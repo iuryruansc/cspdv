@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
@@ -17,7 +17,6 @@ from modules.venda.services.pre_venda_service import PreVendaService
 from core.caixa_session import CaixaSession
 from utils.format_utils import formatar_moeda
 
-
 class ImportarPreVendaDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,13 +27,13 @@ class ImportarPreVendaDialog(QDialog):
             "QDialog{background-color:#102233;}"
             "QLabel{background-color:transparent;color:#e0e8f0;}"
         )
-        self._pre_vendas: List[Dict[str, Any]] = []
-        self._pre_venda_selecionada: Optional[Dict[str, Any]] = None
+        self._pre_vendas: list[dict[str, Any]] = []
+        self._pre_venda_selecionada: dict[str, Any] | None = None
         self._configurar_interface()
         self._carregar_pre_vendas()
 
     @property
-    def resultado(self) -> Optional[Dict[str, Any]]:
+    def resultado(self) -> dict[str, Any] | None:
         return self._pre_venda_selecionada
 
     def _configurar_interface(self) -> None:
@@ -105,7 +104,7 @@ class ImportarPreVendaDialog(QDialog):
         for pv in self._pre_vendas:
             self._criar_item_lista(pv)
 
-    def _criar_item_lista(self, pv: Dict[str, Any]) -> None:
+    def _criar_item_lista(self, pv: dict[str, Any]) -> None:
         item_widget = QWidget()
         item_widget.setStyleSheet(
             "QWidget{background-color:#0d1f2d;border:1px solid #1a3a5a;border-radius:6px;}"
@@ -160,7 +159,7 @@ class ImportarPreVendaDialog(QDialog):
 
         self._lista_layout.addWidget(item_widget)
 
-    def _selecionar_e_fechar(self, pv: Dict[str, Any]) -> None:
+    def _selecionar_e_fechar(self, pv: dict[str, Any]) -> None:
         pre_venda_id = pv.get("id")
         if pre_venda_id:
             sucesso, _, pre_venda_completa = PreVendaService.carregar_pre_venda(pre_venda_id)

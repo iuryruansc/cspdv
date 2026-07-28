@@ -1,5 +1,4 @@
-import os
-
+from __future__ import annotations
 from PyQt5.QtCore import QRegularExpression
 from PyQt5.QtGui import QIntValidator, QRegularExpressionValidator
 from PyQt5.QtWidgets import QLineEdit, QWidget
@@ -12,8 +11,7 @@ from utils.format_utils import formatar_cpf_cnpj, formatar_cep, formatar_telefon
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import email_valido, somente_digitos, texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_erro, mostrar_info
-
-UI_DIR = os.path.join(os.path.dirname(__file__), "..", "ui")
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, TEXTO_AUTO_GERADO
 
 class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin, RetornoPainelAdminMixin):
     def __init__(self, parent=None, fornecedor_id=None, admin_view=None):
@@ -49,14 +47,14 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin,
             lambda: self.lineEditCep.setText(formatar_cep(self.lineEditCep.text()))
         )
 
-        self.btnSalvar.clicked.connect(self._save_fornecedor)
+        self.btnSalvar.clicked.connect(self._salvar_fornecedor)
         self.btnVoltar.clicked.connect(self._cancelar)
         self.btnLimpar.clicked.connect(self._limpar_campos)
         self._configurar_modo()
 
     def _configurar_modo(self):
         if self._fornecedor_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.setText(TEXTO_AUTO_GERADO)
             return
 
         fornecedor = FornecedorModel.buscar_por_id(self._fornecedor_id)
@@ -81,7 +79,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin,
         self.lineEditCidade.setText(str(fornecedor.get("cidade") or ""))
         self.lineEditEstado.setText(str(fornecedor.get("estado") or ""))
         self.lineEditBairro.setText(str(fornecedor.get("bairro") or ""))
-        self.checkBoxAtivo.setChecked(str(fornecedor.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(fornecedor.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
         self.plainTextObservacao.setPlainText(str(fornecedor.get("observacao") or ""))
         self.btnSalvar.setText("Atualizar")
 
@@ -120,7 +118,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin,
         self.lineEditEstado.setMaxLength(2)
         self.lineEditTelefone.setInputMask("(00) 00000-0000;_")
 
-    def _save_fornecedor(self):
+    def _salvar_fornecedor(self):
         self.limpar_erros()
 
         nome = texto_maiusculo(self.lineEditNomeFantasia.text())
@@ -135,7 +133,7 @@ class CadastroFornecedorView(QWidget, Ui_CadastroFornecedor, ValidacaoFormMixin,
         cidade = texto_maiusculo(self.lineEditCidade.text())
         estado = texto_maiusculo(self.lineEditEstado.text())
         bairro = texto_maiusculo(self.lineEditBairro.text())
-        ativo = "S" if self.checkBoxAtivo.isChecked() else "N"
+        ativo = FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO
         observacao = self.plainTextObservacao.toPlainText().strip()
 
         erros = []

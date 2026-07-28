@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Dict, List
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QButtonGroup, QDialog, QSpinBox
@@ -12,12 +11,12 @@ from utils.table_widget_utils import set_table_item
 from utils.ui_messages import mostrar_aviso
 
 class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
-    def __init__(self, detalhes_venda: Dict[str, Any], parent=None):
+    def __init__(self, detalhes_venda: dict[str, Any], parent=None):
         super().__init__(parent)
         self._detalhes = detalhes_venda
         self._venda = detalhes_venda.get("venda") or {}
         self._itens = detalhes_venda.get("itens") or []
-        self.resultado: Dict[str, Any] | None = None
+        self.resultado: dict[str, Any] | None = None
 
         self.setupUi(self)
         self.setWindowTitle(f"Novo Reembolso - Venda #{self._venda.get('id') or '-'}")
@@ -88,8 +87,8 @@ class NovoReembolsoDialog(QDialog, Ui_NovoReembolsoDialog):
             total += Decimal(quantidade) * preco
         self.lblTotalReembolso.setText(formatar_moeda(total))
 
-    def _itens_selecionados(self) -> List[Dict[str, Any]]:
-        itens: List[Dict[str, Any]] = []
+    def _itens_selecionados(self) -> list[dict[str, Any]]:
+        itens: list[dict[str, Any]] = []
         for row, item in enumerate(self._itens):
             spin = self.tableItens.cellWidget(row, 3)
             if not isinstance(spin, QSpinBox):

@@ -1,15 +1,19 @@
-from modules.clientes.models.cliente_model import ClienteModel
-from modules.shared.constants import alternar_flag, flag_ativa
-from utils.app_logger import log_error
+from __future__ import annotations
 
+from typing import Any
+
+from modules.clientes.models.cliente_model import ClienteModel
+from modules.shared.constants import ResultadoOperacao, alternar_flag, flag_ativa
+from modules.shared.validators import validar_cep, validar_cpf, validar_email, validar_estado, validar_telefone
+from utils.app_logger import log_error
 
 class ClienteService:
     @staticmethod
-    def _cliente_eh_sistema(cliente):
+    def _cliente_eh_sistema(cliente: dict[str, Any]) -> bool:
         return flag_ativa((cliente or {}).get("cliente_sistema"))
 
     @staticmethod
-    def obter_consumidor_final():
+    def obter_consumidor_final() -> dict[str, Any] | None:
         try:
             return ClienteModel.buscar_consumidor_final()
         except Exception as exc:
@@ -17,7 +21,7 @@ class ClienteService:
             return None
 
     @staticmethod
-    def buscar_para_venda(termo):
+    def buscar_para_venda(termo: str) -> list[dict[str, Any]]:
         termo_limpo = str(termo or "").strip()
         if len(termo_limpo) < 2:
             return []
@@ -28,36 +32,27 @@ class ClienteService:
             return []
 
     @staticmethod
-    def _validar_dados(dados):
+    def _validar_dados(dados: dict[str, Any]) -> ResultadoOperacao:
         nome = str(dados.get("nome", "")).strip()
-        email = str(dados.get("email", "")).strip()
-        cpf = str(dados.get("cpf", "")).strip()
-        telefone = str(dados.get("telefone", "")).strip()
-        estado = str(dados.get("estado", "")).strip()
-        cep = str(dados.get("cep", "")).strip()
 
         if not nome:
             return False, "Nome: preencha o nome principal do cliente."
 
-        if email and "@" not in email:
-            return False, "E-mail: informe um endereco valido."
-
-        if cpf and len(cpf) != 11:
-            return False, "CPF: informe os 11 digitos."
-
-        if telefone and len(telefone) not in (10, 11):
-            return False, "Telefone: informe DDD e numero completos."
-
-        if estado and len(estado) != 2:
-            return False, "Estado: use a sigla da UF com 2 letras."
-
-        if cep and len(cep) != 8:
-            return False, "CEP: informe os 8 digitos do CEP."
+        for validator in (
+            lambda: validar_email(dados.get("email", "")),
+            lambda: validar_cpf(dados.get("cpf", "")),
+            lambda: validar_telefone(dados.get("telefone", "")),
+            lambda: validar_estado(dados.get("estado", "")),
+            lambda: validar_cep(dados.get("cep", "")),
+        ):
+            ok, msg = validator()
+            if not ok:
+                return False, msg
 
         return True, ""
 
     @staticmethod
-    def cadastrar_cliente(dados):
+    def cadastrar_cliente(dados: dict[str, Any]) -> ResultadoOperacao:
         valido, mensagem = ClienteService._validar_dados(dados)
         if not valido:
             return False, mensagem
@@ -73,7 +68,7 @@ class ClienteService:
         return True, "Cliente cadastrado com sucesso!"
 
     @staticmethod
-    def atualizar_cliente(cliente_id, dados):
+    def atualizar_cliente(cliente_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         valido, mensagem = ClienteService._validar_dados(dados)
         if not valido:
             return False, mensagem
@@ -95,7 +90,7 @@ class ClienteService:
         return True, "Cliente atualizado com sucesso!"
 
     @staticmethod
-    def alternar_status(cliente_id):
+    def alternar_status(cliente_id: int) -> ResultadoOperacao:
         cliente = ClienteModel.buscar_por_id(int(cliente_id))
         if not cliente:
             return False, "Cliente nao encontrado."

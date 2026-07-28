@@ -1,9 +1,10 @@
-from typing import Any, Callable, Dict, Optional, Tuple
+from __future__ import annotations
+from typing import Any, Callable
 
-ResultadoOperacao = Tuple[bool, str]
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, ResultadoOperacao
 
 def validar_entidade_simples(
-    dados: Dict[str, Any],
+    dados: dict[str, Any],
     *,
     nome_campo: str,
     entidade: str,
@@ -14,17 +15,17 @@ def validar_entidade_simples(
     if len(nome) < 2:
         return False, f"O nome da {entidade} deve ter pelo menos 2 caracteres."
 
-    if ativo not in {"S", "N"}:
+    if ativo not in {FLAG_SIM, FLAG_NAO}:
         return False, f"O status da {entidade} é obrigatório."
 
     return True, ""
 
 def cadastrar_entidade_simples(
-    dados: Dict[str, Any],
+    dados: dict[str, Any],
     *,
     nome_campo: str,
     entidade: str,
-    inserir_fn: Callable[[Dict[str, Any]], Optional[int]],
+    inserir_fn: Callable[[dict[str, Any]], int | None],
 ) -> ResultadoOperacao:
     valido, mensagem = validar_entidade_simples(
         dados,
@@ -46,11 +47,11 @@ def cadastrar_entidade_simples(
 
 def atualizar_entidade_simples(
     record_id: int,
-    dados: Dict[str, Any],
+    dados: dict[str, Any],
     *,
     nome_campo: str,
     entidade: str,
-    atualizar_fn: Callable[[int, Dict[str, Any]], bool],
+    atualizar_fn: Callable[[int, dict[str, Any]], bool],
 ) -> ResultadoOperacao:
     valido, mensagem = validar_entidade_simples(
         dados,
@@ -74,15 +75,15 @@ def alternar_status_entidade_simples(
     record_id: int,
     *,
     entidade: str,
-    buscar_fn: Callable[[int], Optional[Dict[str, Any]]],
+    buscar_fn: Callable[[int], dict[str, Any] | None],
     atualizar_status_fn: Callable[[int, str], bool],
 ) -> ResultadoOperacao:
     registro = buscar_fn(int(record_id))
     if not registro:
         return False, f"{entidade.capitalize()} não encontrada."
 
-    ativo_atual = str(registro.get("ativo") or "N").strip().upper()
-    novo_status = "N" if ativo_atual == "S" else "S"
+    ativo_atual = str(registro.get("ativo") or FLAG_NAO).strip().upper()
+    novo_status = FLAG_NAO if ativo_atual == FLAG_SIM else FLAG_SIM
 
     try:
         atualizado = atualizar_status_fn(int(record_id), novo_status)
@@ -92,5 +93,5 @@ def alternar_status_entidade_simples(
     if not atualizado:
         return False, f"Não foi possível atualizar o status da {entidade}."
 
-    acao = "ativada" if novo_status == "S" else "desativada"
+    acao = "ativada" if novo_status == FLAG_SIM else "desativada"
     return True, f"{entidade.capitalize()} {acao} com sucesso!"

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -15,7 +16,7 @@ from modules.unidades.services.unidade_service import UnidadeService
 from utils.form_validation_mixin import ValidacaoFormMixin
 from utils.string_utils import texto_limpo, texto_maiusculo
 from utils.ui_messages import mostrar_aviso, mostrar_campos_invalidos, mostrar_info
-
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, TEXTO_AUTO_GERADO
 
 class CadastroUnidadeView(QDialog, ValidacaoFormMixin):
     def __init__(self, parent=None, unidade_id=None):
@@ -89,7 +90,7 @@ class CadastroUnidadeView(QDialog, ValidacaoFormMixin):
 
     def _configurar_modo(self) -> None:
         if self._unidade_id is None:
-            self.lineEditCodigo.setText("Auto-gerado")
+            self.lineEditCodigo.setText(TEXTO_AUTO_GERADO)
             return
 
         unidade = UnidadeModel.buscar_por_id(self._unidade_id)
@@ -104,7 +105,7 @@ class CadastroUnidadeView(QDialog, ValidacaoFormMixin):
         self.lineEditDescricao.setText(str(unidade.get("descricao") or ""))
         self.lineEditCodigoSefaz.setText(str(unidade.get("codigo_sefaz") or ""))
         self.checkBoxFracionavel.setChecked(bool(unidade.get("fracionavel")))
-        self.checkBoxAtivo.setChecked(str(unidade.get("ativo") or "N").upper() == "S")
+        self.checkBoxAtivo.setChecked(str(unidade.get("ativo") or FLAG_NAO).upper() == FLAG_SIM)
         self.btnSalvar.setText("Atualizar")
 
     def _salvar_unidade(self) -> None:
@@ -118,7 +119,7 @@ class CadastroUnidadeView(QDialog, ValidacaoFormMixin):
             "descricao": descricao,
             "codigo_sefaz": codigo_sefaz,
             "fracionavel": self.checkBoxFracionavel.isChecked(),
-            "ativo": "S" if self.checkBoxAtivo.isChecked() else "N",
+            "ativo": FLAG_SIM if self.checkBoxAtivo.isChecked() else FLAG_NAO,
         }
 
         erros = []

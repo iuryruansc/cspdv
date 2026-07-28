@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -13,7 +14,6 @@ from PyQt5.QtWidgets import (
 
 from modules.admin.services.configuracoes_service import ConfiguracoesService
 from utils.ui_messages import mostrar_aviso, mostrar_info
-
 
 class ParametrosFiscaisView(QFrame):
     def __init__(self, parent: QWidget | None = None):

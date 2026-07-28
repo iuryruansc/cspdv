@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import (
+    FLAG_NAO,
     FLAG_SIM,
     STATUS_PROMOCAO_AGENDADA,
     STATUS_PROMOCAO_ATIVA,
@@ -14,23 +15,15 @@ from modules.shared.constants import (
 class PromocaoModel:
     @staticmethod
     def gerar_proximo_codigo() -> str:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute("SELECT COALESCE(MAX(id), 0) AS ultimo_id FROM promocoes")
-            row = cast(Dict[str, Any], cursor.fetchone() or {})
+        with db_cursor() as cur:
+            cur.execute("SELECT COALESCE(MAX(id), 0) AS ultimo_id FROM promocoes")
+            row = cast(dict[str, Any], cur.fetchone() or {})
             proximo = int(row.get("ultimo_id") or 0) + 1
             return f"PR-{proximo:03d}"
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def inserir(dados: dict[str, Any]) -> int | None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO promocoes
                     (codigo, nome, classificacao, tipo_desconto, status, descricao, observacao,
@@ -49,27 +42,17 @@ class PromocaoModel:
                 """,
                 dados,
             )
-            conn.commit()
-            return int(cursor.lastrowid or 0)
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return int(cur.lastrowid or 0)
     @staticmethod
     def atualizar(promocao_id: int, dados: dict[str, Any]) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT 1 FROM promocoes WHERE id = %s LIMIT 1", (int(promocao_id),))
-            if not cursor.fetchone():
+        with db_transaction(dictionary=False) as cur:
+            cur.execute("SELECT 1 FROM promocoes WHERE id = %s LIMIT 1", (int(promocao_id),))
+            if not cur.fetchone():
                 return False
 
             payload = dict(dados)
             payload["id"] = int(promocao_id)
-            cursor.execute(
+            cur.execute(
                 """
                 UPDATE promocoes
                 SET codigo = %(codigo)s,
@@ -97,134 +80,119 @@ class PromocaoModel:
                 """,
                 payload,
             )
-            conn.commit()
             return True
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def duplicar(promocao_id: int, novo_codigo: str) -> int | None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
-                """
-                SELECT
-                    codigo,
-                    nome,
-                    classificacao,
-                    tipo_desconto,
-                    descricao,
-                    observacao,
-                    desconto_percentual,
-                    desconto_valor,
-                    preco_fixo,
-                    leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
-                    combo_qtd, combo_preco,
-                    data_inicio,
-                    data_fim,
-                    cumulativa,
-                    ativo,
-                    usuario_id
-                FROM promocoes
-                WHERE id = %s
-                LIMIT 1
-                """,
-                (int(promocao_id),),
-            )
-            promocao = cast(Dict[str, Any], cursor.fetchone() or {})
-            if not promocao:
-                return None
+        with db_cursor() as cur:
+            try:
+                cur.execute(
+                    """
+                    SELECT
+                        codigo,
+                        nome,
+                        classificacao,
+                        tipo_desconto,
+                        descricao,
+                        observacao,
+                        desconto_percentual,
+                        desconto_valor,
+                        preco_fixo,
+                        leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
+                        combo_qtd, combo_preco,
+                        data_inicio,
+                        data_fim,
+                        cumulativa,
+                        ativo,
+                        usuario_id
+                    FROM promocoes
+                    WHERE id = %s
+                    LIMIT 1
+                    """,
+                    (int(promocao_id),),
+                )
+                promocao = cast(dict[str, Any], cur.fetchone() or {})
+                if not promocao:
+                    return None
 
-            data_inicio = promocao.get("data_inicio")
-            data_fim = promocao.get("data_fim")
+                data_inicio = promocao.get("data_inicio")
+                data_fim = promocao.get("data_fim")
 
-            cursor.execute(
-                """
-                INSERT INTO promocoes
-                    (codigo, nome, classificacao, tipo_desconto, status, descricao, observacao,
-                     desconto_percentual, desconto_valor, preco_fixo,
-                     leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
-                     combo_qtd, combo_preco,
-                     data_inicio, data_fim,
-                     cumulativa, aplica_em_todos_pdvs, ativo, usuario_id, createdAt, updatedAt)
-                VALUES
-                    (%s, %s, %s, %s, %s, %s, %s,
-                     %s, %s, %s,
-                     %s, %s, %s, %s,
-                     %s, %s,
-                     %s, %s,
-                     %s, %s, %s, %s, NOW(), NOW())
-                """,
-                (
-                    str(novo_codigo).strip().upper(),
-                    str(promocao.get("nome") or ""),
-                    str(promocao.get("classificacao") or "PROMOCAO"),
-                    str(promocao.get("tipo_desconto") or "PERCENTUAL"),
-                    STATUS_PROMOCAO_RASCUNHO,
-                    str(promocao.get("descricao") or ""),
-                    str(promocao.get("observacao") or ""),
-                    float(promocao.get("desconto_percentual") or 0),
-                    float(promocao.get("desconto_valor") or 0),
-                    float(promocao.get("preco_fixo") or 0),
-                    promocao.get("leve_x"),
-                    promocao.get("pague_y"),
-                    str(promocao.get("aplicacao_desconto_xpy") or "MAIS_BARATO"),
-                    promocao.get("regras_progressivas"),
-                    promocao.get("combo_qtd"),
-                    float(promocao.get("combo_preco") or 0),
-                    data_inicio,
-                    data_fim,
-                    str(promocao.get("cumulativa") or "N"),
-                    FLAG_SIM,
-                    str(promocao.get("ativo") or FLAG_SIM),
-                    int(promocao.get("usuario_id") or 0),
-                ),
-            )
-            novo_id = int(cursor.lastrowid or 0)
-            if novo_id <= 0:
-                conn.rollback()
-                return None
+                cur.execute(
+                    """
+                    INSERT INTO promocoes
+                        (codigo, nome, classificacao, tipo_desconto, status, descricao, observacao,
+                         desconto_percentual, desconto_valor, preco_fixo,
+                         leve_x, pague_y, aplicacao_desconto_xpy, regras_progressivas,
+                         combo_qtd, combo_preco,
+                         data_inicio, data_fim,
+                         cumulativa, aplica_em_todos_pdvs, ativo, usuario_id, createdAt, updatedAt)
+                    VALUES
+                        (%s, %s, %s, %s, %s, %s, %s,
+                         %s, %s, %s,
+                         %s, %s, %s, %s,
+                         %s, %s,
+                         %s, %s,
+                         %s, %s, %s, %s, NOW(), NOW())
+                    """,
+                    (
+                        str(novo_codigo).strip().upper(),
+                        str(promocao.get("nome") or ""),
+                        str(promocao.get("classificacao") or "PROMOCAO"),
+                        str(promocao.get("tipo_desconto") or "PERCENTUAL"),
+                        STATUS_PROMOCAO_RASCUNHO,
+                        str(promocao.get("descricao") or ""),
+                        str(promocao.get("observacao") or ""),
+                        float(promocao.get("desconto_percentual") or 0),
+                        float(promocao.get("desconto_valor") or 0),
+                        float(promocao.get("preco_fixo") or 0),
+                        promocao.get("leve_x"),
+                        promocao.get("pague_y"),
+                        str(promocao.get("aplicacao_desconto_xpy") or "MAIS_BARATO"),
+                        promocao.get("regras_progressivas"),
+                        promocao.get("combo_qtd"),
+                        float(promocao.get("combo_preco") or 0),
+                        data_inicio,
+                        data_fim,
+                        str(promocao.get("cumulativa") or FLAG_NAO),
+                        FLAG_SIM,
+                        str(promocao.get("ativo") or FLAG_SIM),
+                        int(promocao.get("usuario_id") or 0),
+                    ),
+                )
+                novo_id = int(cur.lastrowid or 0)
+                if novo_id <= 0:
+                    cur.connection.rollback()
+                    return None
 
-            cursor.execute(
-                """
-                INSERT INTO promocao_produtos
-                    (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
-                SELECT
-                    %s,
-                    produto_id,
-                    preco_original,
-                    preco_promocional,
-                    desconto_aplicado,
-                    observacao,
-                    ativo,
-                    NOW(),
-                    NOW()
-                FROM promocao_produtos
-                WHERE promocao_id = %s
-                  AND ativo = %s
-                """,
-                (novo_id, int(promocao_id), FLAG_SIM),
-            )
-            conn.commit()
-            return novo_id
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+                cur.execute(
+                    """
+                    INSERT INTO promocao_produtos
+                        (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
+                    SELECT
+                        %s,
+                        produto_id,
+                        preco_original,
+                        preco_promocional,
+                        desconto_aplicado,
+                        observacao,
+                        ativo,
+                        NOW(),
+                        NOW()
+                    FROM promocao_produtos
+                    WHERE promocao_id = %s
+                      AND ativo = %s
+                    """,
+                    (novo_id, int(promocao_id), FLAG_SIM),
+                )
+                cur.connection.commit()
+                return novo_id
+            except Exception:
+                cur.connection.rollback()
+                raise
     @staticmethod
     def atualizar_status(promocao_id: int, status: str) -> bool:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE promocoes
                 SET status = %s,
@@ -233,20 +201,10 @@ class PromocaoModel:
                 """,
                 (str(status).strip().upper(), int(promocao_id)),
             )
-            conn.commit()
-            return cursor.rowcount > 0
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cur.rowcount > 0
     @staticmethod
     def listar(*, busca: str = "", status: str = "", tipo: str = "") -> list[dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             filtros = ["1=1"]
             params: list[Any] = []
 
@@ -282,7 +240,7 @@ class PromocaoModel:
                 filtros.append("p.tipo_desconto = %s")
                 params.append(mapa_tipo.get(tipo.upper(), tipo.upper()))
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     p.id,
@@ -337,17 +295,11 @@ class PromocaoModel:
                 """,
                 [FLAG_SIM, FLAG_SIM, *params],
             )
-            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], list(cur.fetchall() or []))
     @staticmethod
     def listar_itens_promocao(promocao_id: int) -> list[dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     pp.produto_id,
@@ -363,17 +315,11 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), FLAG_SIM),
             )
-            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], list(cur.fetchall() or []))
     @staticmethod
     def buscar_por_id(promocao_id: int) -> dict[str, Any] | None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -403,16 +349,10 @@ class PromocaoModel:
                 """,
                 (int(promocao_id),),
             )
-            return cast(Dict[str, Any] | None, cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
     def buscar_produtos_disponiveis(promocao_id: int, busca: str = "") -> list[dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             filtros = ["p.ativo = %s"]
             params: list[Any] = [int(promocao_id)]
 
@@ -431,7 +371,7 @@ class PromocaoModel:
                 )
                 params.extend([termo_like, termo_like, termo_like, termo_like])
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     p.id,
@@ -460,17 +400,11 @@ class PromocaoModel:
                 """,
                 [int(promocao_id), FLAG_SIM, *params, FLAG_SIM],
             )
-            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], list(cur.fetchall() or []))
     @staticmethod
     def buscar_conflito_produto_ativo(promocao_id: int, produto_id: int) -> dict[str, Any] | None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     p.id,
@@ -508,11 +442,7 @@ class PromocaoModel:
                     STATUS_PROMOCAO_ATIVA,
                 ),
             )
-            return cast(Dict[str, Any] | None, cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
     def salvar_vinculo_produto(
         promocao_id: int,
@@ -522,10 +452,8 @@ class PromocaoModel:
         desconto_aplicado: float,
         observacao: str,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_transaction() as cur:
+            cur.execute(
                 """
                 SELECT id
                 FROM promocao_produtos
@@ -534,10 +462,10 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), int(produto_id)),
             )
-            existente = cast(Dict[str, Any], cursor.fetchone() or {})
+            existente = cast(dict[str, Any], cur.fetchone() or {})
 
             if existente:
-                cursor.execute(
+                cur.execute(
                     """
                     UPDATE promocao_produtos
                     SET preco_original = %s,
@@ -558,7 +486,7 @@ class PromocaoModel:
                     ),
                 )
             else:
-                cursor.execute(
+                cur.execute(
                     """
                     INSERT INTO promocao_produtos
                         (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
@@ -575,20 +503,10 @@ class PromocaoModel:
                         FLAG_SIM,
                     ),
                 )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def desativar_vinculo_produto(promocao_id: int, produto_id: int) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE promocao_produtos
                 SET ativo = 'N',
@@ -599,20 +517,10 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), int(produto_id), FLAG_SIM),
             )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_regra(promocao_id: int, dados: dict[str, Any]) -> int | None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_transaction() as cur:
+            cur.execute(
                 """
                 INSERT INTO promocao_regras
                     (promocao_id, tipo_regra, alvo_id, alvo_ids, alvo_texto,
@@ -631,21 +539,11 @@ class PromocaoModel:
                     FLAG_SIM,
                 ),
             )
-            conn.commit()
-            return int(cursor.lastrowid or 0)
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
+            return int(cur.lastrowid or 0)
     @staticmethod
     def listar_regras(promocao_id: int) -> list[dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, tipo_regra, alvo_id, alvo_ids, alvo_texto,
                        faixa_min, faixa_max, ativo
@@ -655,40 +553,24 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), FLAG_SIM),
             )
-            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], list(cur.fetchall() or []))
     @staticmethod
     def excluir_regra(regra_id: int) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 "UPDATE promocao_regras SET ativo = 'N', updatedAt = NOW() WHERE id = %s",
                 (int(regra_id),),
             )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def buscar_produtos_por_regra(regra: dict[str, Any]) -> list[dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             tipo = str(regra.get("tipo_regra") or "")
 
             if tipo == "ITEM":
                 termo = str(regra.get("alvo_texto") or "").strip()
                 if not termo:
                     return []
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
                            p.quantidade_estoque, p.categoria_id, p.marca_id
@@ -705,7 +587,7 @@ class PromocaoModel:
                 marca_id = regra.get("alvo_id")
                 if not marca_id:
                     return []
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
                            p.quantidade_estoque, p.categoria_id, p.marca_id
@@ -720,7 +602,7 @@ class PromocaoModel:
                 cat_id = regra.get("alvo_id")
                 if not cat_id:
                     return []
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
                            p.quantidade_estoque, p.categoria_id, p.marca_id
@@ -735,7 +617,7 @@ class PromocaoModel:
                 forn_id = regra.get("alvo_id")
                 if not forn_id:
                     return []
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
                            p.quantidade_estoque, p.categoria_id, p.marca_id
@@ -749,7 +631,7 @@ class PromocaoModel:
             elif tipo == "FAIXA_PRECO":
                 faixa_min = regra.get("faixa_min") or 0
                 faixa_max = regra.get("faixa_max") or 999999
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
                            p.quantidade_estoque, p.categoria_id, p.marca_id
@@ -773,7 +655,7 @@ class PromocaoModel:
                 if not ids:
                     return []
                 placeholders = ", ".join(["%s"] * len(ids))
-                cursor.execute(
+                cur.execute(
                     f"""
                     SELECT p.id, p.nome, p.preco_venda, p.codigo_barras,
                            p.quantidade_estoque, p.categoria_id, p.marca_id
@@ -786,17 +668,11 @@ class PromocaoModel:
             else:
                 return []
 
-            return cast(List[Dict[str, Any]], list(cursor.fetchall() or []))
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], list(cur.fetchall() or []))
     @staticmethod
     def limpar_vinculos_automaticos(promocao_id: int) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE promocao_produtos
                 SET ativo = 'N', updatedAt = NOW()
@@ -804,30 +680,20 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), FLAG_SIM),
             )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def vincular_produtos_automaticamente(
         promocao_id: int,
         produtos: list[dict[str, Any]],
         calcular_preco_fn,
     ) -> int:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
+        with db_transaction(dictionary=False) as cur:
             vinculados = 0
             for produto in produtos:
                 produto_id = int(produto.get("id") or 0)
                 preco_original = float(produto.get("preco_venda") or 0)
                 preco_promocional, desconto = calcular_preco_fn(preco_original)
 
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT id FROM promocao_produtos
                     WHERE promocao_id = %s AND produto_id = %s
@@ -835,10 +701,10 @@ class PromocaoModel:
                     """,
                     (int(promocao_id), produto_id),
                 )
-                existente = cursor.fetchone()
+                existente = cur.fetchone()
 
                 if existente:
-                    cursor.execute(
+                    cur.execute(
                         """
                         UPDATE promocao_produtos
                         SET preco_original = %s, preco_promocional = %s,
@@ -848,7 +714,7 @@ class PromocaoModel:
                         (preco_original, preco_promocional, desconto, int(existente[0])),
                     )
                 else:
-                    cursor.execute(
+                    cur.execute(
                         """
                         INSERT INTO promocao_produtos
                             (promocao_id, produto_id, preco_original, preco_promocional,
@@ -859,36 +725,20 @@ class PromocaoModel:
                     )
                 vinculados += 1
 
-            conn.commit()
             return vinculados
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def contar_vinculos_ativos(promocao_id: int) -> int:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 "SELECT COUNT(*) AS total FROM promocao_produtos WHERE promocao_id = %s AND ativo = 'S'",
                 (int(promocao_id),),
             )
-            row = cast(Dict[str, Any], cursor.fetchone() or {})
+            row = cast(dict[str, Any], cur.fetchone() or {})
             return int(row.get("total") or 0)
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def buscar_regra_da_promocao(promocao_id: int) -> dict[str, Any] | None:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT tipo_regra, alvo_id, alvo_ids, alvo_texto, faixa_min, faixa_max
                 FROM promocao_regras
@@ -897,7 +747,4 @@ class PromocaoModel:
                 """,
                 (int(promocao_id), FLAG_SIM),
             )
-            return cast(Dict[str, Any] | None, cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
+            return cast(dict[str, Any] | None, cur.fetchone())

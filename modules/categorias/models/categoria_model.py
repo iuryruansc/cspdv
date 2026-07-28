@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 from modules.shared.models.simple_named_status_model import (
     atualizar_registro,
@@ -10,7 +12,7 @@ from modules.shared.models.simple_named_status_model import (
 
 class CategoriaModel:
     @staticmethod
-    def listar() -> List[Dict[str, Any]]:
+    def listar() -> list[dict[str, Any]]:
         return listar_registros(
             table="categorias",
             id_column="id",
@@ -18,7 +20,7 @@ class CategoriaModel:
         )
 
     @staticmethod
-    def inserir(dados: Dict[str, Any]) -> Optional[int]:
+    def inserir(dados: dict[str, Any]) -> int | None:
         return inserir_registro(
             table="categorias",
             columns=("nome", "ativo"),
@@ -26,7 +28,7 @@ class CategoriaModel:
         )
 
     @staticmethod
-    def buscar_por_id(categoria_id: int) -> Optional[Dict[str, Any]]:
+    def buscar_por_id(categoria_id: int) -> dict[str, Any] | None:
         return buscar_registro_por_id(
             table="categorias",
             id_column="id",
@@ -35,7 +37,7 @@ class CategoriaModel:
         )
 
     @staticmethod
-    def atualizar(categoria_id: int, dados: Dict[str, Any]) -> bool:
+    def atualizar(categoria_id: int, dados: dict[str, Any]) -> bool:
         return atualizar_registro(
             table="categorias",
             id_column="id",

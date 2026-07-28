@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .combo_models import CategoriaModel, FornecedorModel, MarcaModel, UnidadeModel
 from .simple_named_status_model import (
     atualizar_registro,

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import QDialog, QLabel, QDateEdit, QPlainTextEdit, QPushButton
 
@@ -19,10 +17,10 @@ class FinalizarPendenciaDialog(QDialog, Ui_FinalizarPendenciaDialog):
     btnCancelar: QPushButton
     btnConfirmar: QPushButton
 
-    def __init__(self, *, venda_data: Dict[str, object], valor_pago: float, parent=None) -> None:
+    def __init__(self, *, venda_data: dict[str, object], valor_pago: float, parent=None) -> None:
         super().__init__(parent)
         self.setupUi(self)
-        self.resultado: Dict[str, object] | None = None
+        self.resultado: dict[str, object] | None = None
         self._venda_data = venda_data
         self._valor_pago = numero_decimal(valor_pago)
         self._valor_total = numero_decimal(venda_data.get("total"))

@@ -1,6 +1,8 @@
-from typing import Any, Dict, List, Optional, cast
+from __future__ import annotations
 
-from database.connection import get_connection
+from typing import Any, cast
+
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import (
     FLAG_SIM,
     STATUS_CAIXA_ABERTO,
@@ -17,11 +19,9 @@ class CaixaModel:
     }
 
     @staticmethod
-    def listar_pdvs_ativos() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_pdvs_ativos() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, identificacao, descricao
                 FROM pdvs
@@ -30,17 +30,11 @@ class CaixaModel:
                 """,
                 (FLAG_SIM, STATUS_PDV_ATIVO),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def buscar_caixa_aberto_por_pdv(pdv_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_caixa_aberto_por_pdv(pdv_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, pdv_id, usuario_abertura_id, data_abertura, valor_abertura, status
                 FROM caixas
@@ -50,17 +44,11 @@ class CaixaModel:
                 """,
                 (pdv_id, STATUS_CAIXA_ABERTO, FLAG_SIM),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def buscar_caixa_aberto_por_usuario(usuario_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_caixa_aberto_por_usuario(usuario_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     c.id,
@@ -83,17 +71,11 @@ class CaixaModel:
                 """,
                 (usuario_id, STATUS_CAIXA_ABERTO, FLAG_SIM),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
-    def buscar_caixa_por_id(caixa_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_caixa_por_id(caixa_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     c.id,
@@ -113,21 +95,15 @@ class CaixaModel:
                 """,
                 (caixa_id,),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(dict[str, Any] | None, cur.fetchone())
     @staticmethod
     def abrir_caixa(
         pdv_id: int,
         usuario_id: int,
         valor_abertura: float,
     ) -> int:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO caixas
                     (pdv_id, usuario_abertura_id, data_abertura, valor_abertura,
@@ -137,24 +113,14 @@ class CaixaModel:
                 """,
                 (pdv_id, usuario_id, valor_abertura, STATUS_CAIXA_ABERTO, usuario_id, FLAG_SIM),
             )
-            conn.commit()
-            lastrowid = cursor.lastrowid
+            lastrowid = cur.lastrowid
             if lastrowid is None:
                 raise RuntimeError("Não foi possível obter o ID da abertura de caixa criada.")
             return int(lastrowid)
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def listar_ultimas_aberturas(limit: int = 10) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_ultimas_aberturas(limit: int = 10) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     DATE_FORMAT(c.data_abertura, '%d/%m %H:%i') AS data_abertura_fmt,
@@ -167,17 +133,11 @@ class CaixaModel:
                 """,
                 (limit,),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def listar_caixas_admin(limit: int = 120) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_caixas_admin(limit: int = 120) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     c.id,
@@ -200,11 +160,7 @@ class CaixaModel:
                 """,
                 (FLAG_SIM, limit),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
     def fechar_caixa(
         caixa_id: int,
@@ -213,10 +169,8 @@ class CaixaModel:
         diferenca: float,
         observacoes: str,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 UPDATE caixas
                 SET
@@ -238,16 +192,8 @@ class CaixaModel:
                     caixa_id,
                 ),
             )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def obter_resumo_operacional(caixa_id: int) -> Dict[str, Any]:
+    def obter_resumo_operacional(caixa_id: int) -> dict[str, Any]:
         from modules.venda.models.venda_model import VendaModel
 
         return VendaModel.obter_resumo_por_caixa(caixa_id)
@@ -261,13 +207,11 @@ class CaixaModel:
         valor: float,
         observacao: str,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            forma_pagamento_id = CaixaModel._garantir_forma_pagamento_dinheiro(cursor)
-            caixa_motivo_id = CaixaModel._garantir_caixa_motivo(cursor, tipo)
+        with db_transaction(dictionary=False) as cur:
+            forma_pagamento_id = CaixaModel._garantir_forma_pagamento_dinheiro(cur)
+            caixa_motivo_id = CaixaModel._garantir_caixa_motivo(cur, tipo)
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO caixa_movimentacoes
                     (caixa_id, usuario_id, caixa_motivo_id, valor, data_hora, forma_pagamento_id, observacao, estornado, createdAt, updatedAt, ativo)
@@ -283,26 +227,16 @@ class CaixaModel:
                     observacao or None,
                 ),
             )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def listar_movimentacoes(caixa_id: int, tipo: Optional[str] = None) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            parametros: List[Any] = [caixa_id]
+    def listar_movimentacoes(caixa_id: int, tipo: str | None = None) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            parametros: list[Any] = [caixa_id]
             filtro_tipo = ""
             if tipo and tipo.lower() != "todas":
                 filtro_tipo = "AND LOWER(cm_tipo.tipo_padrao) = %s"
                 parametros.append(tipo.lower())
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     DATE_FORMAT(cm.data_hora, '%H:%i') AS hora_fmt,
@@ -322,17 +256,11 @@ class CaixaModel:
                 """,
                 (caixa_id, FLAG_SIM, FLAG_SIM, *tuple(parametros[1:])),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def obter_resumo_movimentacoes(caixa_id: int) -> Dict[str, float]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def obter_resumo_movimentacoes(caixa_id: int) -> dict[str, float]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     LOWER(COALESCE(cm_tipo.tipo_padrao, '')) AS tipo_padrao,
@@ -346,7 +274,7 @@ class CaixaModel:
                 """,
                 (caixa_id, FLAG_SIM, FLAG_SIM),
             )
-            totais_rows = cast(List[Dict[str, Any]], cursor.fetchall())
+            totais_rows = cast(list[dict[str, Any]], cur.fetchall())
             totais = {
                 str(row.get("tipo_padrao") or ""): float(row.get("total") or 0.0)
                 for row in totais_rows
@@ -360,16 +288,10 @@ class CaixaModel:
                 "total_troco": total_troco,
                 "total_entradas_manuais": total_suprimentos + total_troco,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def obter_total_reembolsos(caixa_id: int) -> float:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT COALESCE(SUM(vr.valor_total), 0) AS total
                 FROM venda_reembolsos vr
@@ -380,12 +302,8 @@ class CaixaModel:
                 """,
                 (caixa_id, FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
             )
-            row = cast(Dict[str, Any], cursor.fetchone() or {})
+            row = cast(dict[str, Any], cur.fetchone() or {})
             return float(row.get("total") or 0.0)
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def _garantir_forma_pagamento_dinheiro(cursor) -> int:
         cursor.execute(

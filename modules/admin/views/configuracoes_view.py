@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 
 from PyQt5.QtWidgets import QApplication, QWidget

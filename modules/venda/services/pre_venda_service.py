@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from modules.venda.models.pre_venda_model import PreVendaModel
-
 
 class PreVendaService:
 
@@ -12,13 +11,13 @@ class PreVendaService:
         *,
         usuario_id: int,
         caixa_id: int,
-        cliente_id: Optional[int],
-        itens: List[Dict[str, Any]],
+        cliente_id: int | None,
+        itens: list[dict[str, Any]],
         desconto_global: float = 0.0,
         desconto_itens: float = 0.0,
         desconto_total: float = 0.0,
         valor_total: float,
-    ) -> Tuple[bool, str, Optional[int]]:
+    ) -> tuple[bool, str, int | None]:
         if usuario_id <= 0:
             return False, "Não foi possível identificar o operador.", None
         if caixa_id <= 0:
@@ -46,16 +45,16 @@ class PreVendaService:
     @staticmethod
     def listar_pre_vendas_pendentes(
         *,
-        usuario_id: Optional[int] = None,
-        caixa_id: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        usuario_id: int | None = None,
+        caixa_id: int | None = None,
+    ) -> list[dict[str, Any]]:
         return PreVendaModel.listar_pre_vendas_pendentes(
             usuario_id=usuario_id,
             caixa_id=caixa_id,
         )
 
     @staticmethod
-    def carregar_pre_venda(pre_venda_id: int) -> Tuple[bool, str, Optional[Dict[str, Any]]]:
+    def carregar_pre_venda(pre_venda_id: int) -> tuple[bool, str, dict[str, Any] | None]:
         if pre_venda_id <= 0:
             return False, "Pré-venda inválida.", None
 
@@ -68,7 +67,7 @@ class PreVendaService:
         return True, "", pre_venda
 
     @staticmethod
-    def cancelar_pre_venda(pre_venda_id: int) -> Tuple[bool, str]:
+    def cancelar_pre_venda(pre_venda_id: int) -> tuple[bool, str]:
         if pre_venda_id <= 0:
             return False, "Pré-venda inválida."
 
@@ -85,7 +84,7 @@ class PreVendaService:
             return False, f"Erro ao cancelar pré-venda: {exc}"
 
     @staticmethod
-    def marcar_importada(pre_venda_id: int, nova_venda_id: int) -> Tuple[bool, str]:
+    def marcar_importada(pre_venda_id: int, nova_venda_id: int) -> tuple[bool, str]:
         if pre_venda_id <= 0:
             return False, "Pré-venda inválida."
 

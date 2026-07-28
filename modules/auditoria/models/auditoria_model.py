@@ -1,7 +1,8 @@
-from typing import Any, Dict, List, Optional, cast
+from __future__ import annotations
 
-from database.connection import get_connection
+from typing import Any, cast
 
+from database.connection import db_cursor, db_transaction
 
 class AuditoriaModel:
     @staticmethod
@@ -9,16 +10,14 @@ class AuditoriaModel:
         *,
         evento: str,
         categoria: str,
-        entidade: Optional[str],
-        entidade_id: Optional[int],
-        usuario_id: Optional[int],
-        caixa_id: Optional[int],
-        detalhes_json: Optional[str],
+        entidade: str | None,
+        entidade_id: int | None,
+        usuario_id: int | None,
+        caixa_id: int | None,
+        detalhes_json: str | None,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
+        with db_transaction(dictionary=False) as cur:
+            cur.execute(
                 """
                 INSERT INTO auditoria_eventos
                     (evento, categoria, entidade, entidade_id, usuario_id, caixa_id, detalhes_json, createdAt)
@@ -35,20 +34,10 @@ class AuditoriaModel:
                     detalhes_json,
                 ),
             )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def listar(limit: int = 300) -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar(limit: int = 300) -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     ae.id,
@@ -67,17 +56,11 @@ class AuditoriaModel:
                 """,
                 (int(limit),),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def buscar_por_id(evento_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def buscar_por_id(evento_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     ae.id,
@@ -100,7 +83,4 @@ class AuditoriaModel:
                 """,
                 (int(evento_id),),
             )
-            return cast(Optional[Dict[str, Any]], cursor.fetchone())
-        finally:
-            cursor.close()
-            conn.close()
+            return cast(dict[str, Any] | None, cur.fetchone())

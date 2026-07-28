@@ -1,17 +1,16 @@
-from typing import Any, Dict, Tuple
+from __future__ import annotations
+from typing import Any
 
 from modules.formas_pagamento.models.forma_pagamento_model import FormaPagamentoModel
-
-ResultadoOperacao = Tuple[bool, str]
-
+from modules.shared.constants import FLAG_NAO, FLAG_SIM, ResultadoOperacao, alternar_flag, bool_para_flag
 
 class FormaPagamentoService:
     @staticmethod
-    def _normalizar_dados(dados: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalizar_dados(dados: dict[str, Any]) -> dict[str, Any]:
         nome = str(dados.get("nome") or "").strip()
         tipo_sefaz = str(dados.get("tipo_sefaz") or "").strip()
-        permite_parcelamento = "S" if str(dados.get("permite_parcelamento") or "N").strip().upper() == "S" else "N"
-        ativo = "S" if str(dados.get("ativo") or "N").strip().upper() == "S" else "N"
+        permite_parcelamento = bool_para_flag(dados.get("permite_parcelamento"))
+        ativo = bool_para_flag(dados.get("ativo"))
         try:
             taxa = float(dados.get("taxa_administrativa") or 0.0)
         except (TypeError, ValueError):
@@ -26,7 +25,7 @@ class FormaPagamentoService:
         }
 
     @staticmethod
-    def _validar_dados(dados: Dict[str, Any], *, forma_pagamento_id: int | None = None) -> ResultadoOperacao:
+    def _validar_dados(dados: dict[str, Any], *, forma_pagamento_id: int | None = None) -> ResultadoOperacao:
         normalizados = FormaPagamentoService._normalizar_dados(dados)
 
         if len(normalizados["nome"]) < 2:
@@ -35,7 +34,7 @@ class FormaPagamentoService:
             return False, "O tipo SEFAZ da forma de pagamento é obrigatório."
         if len(normalizados["tipo_sefaz"]) > 2:
             return False, "O tipo SEFAZ deve ter no máximo 2 caracteres."
-        if normalizados["ativo"] not in {"S", "N"}:
+        if normalizados["ativo"] not in {FLAG_SIM, FLAG_NAO}:
             return False, "O status da forma de pagamento é obrigatório."
         if normalizados["taxa_administrativa"] < 0:
             return False, "A taxa administrativa da forma de pagamento deve ser maior ou igual a zero."
@@ -47,7 +46,7 @@ class FormaPagamentoService:
         return True, ""
 
     @staticmethod
-    def cadastrar_forma_pagamento(dados: Dict[str, Any]) -> ResultadoOperacao:
+    def cadastrar_forma_pagamento(dados: dict[str, Any]) -> ResultadoOperacao:
         normalizados = FormaPagamentoService._normalizar_dados(dados)
         valido, mensagem = FormaPagamentoService._validar_dados(normalizados)
         if not valido:
@@ -63,7 +62,7 @@ class FormaPagamentoService:
         return True, "Forma de pagamento cadastrada com sucesso!"
 
     @staticmethod
-    def atualizar_forma_pagamento(forma_pagamento_id: int, dados: Dict[str, Any]) -> ResultadoOperacao:
+    def atualizar_forma_pagamento(forma_pagamento_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         normalizados = FormaPagamentoService._normalizar_dados(dados)
         valido, mensagem = FormaPagamentoService._validar_dados(normalizados, forma_pagamento_id=int(forma_pagamento_id))
         if not valido:
@@ -84,8 +83,8 @@ class FormaPagamentoService:
         if not registro:
             return False, "Forma de pagamento não encontrada."
 
-        ativo_atual = str(registro.get("ativo") or "N").strip().upper()
-        novo_status = "N" if ativo_atual == "S" else "S"
+        ativo_atual = str(registro.get("ativo") or FLAG_NAO).strip().upper()
+        novo_status = alternar_flag(ativo_atual)
         try:
             atualizado = FormaPagamentoModel.atualizar_status(int(forma_pagamento_id), novo_status)
         except Exception as exc:
@@ -93,5 +92,5 @@ class FormaPagamentoService:
 
         if not atualizado:
             return False, "Não foi possível atualizar o status da forma de pagamento."
-        acao = "ativada" if novo_status == "S" else "desativada"
+        acao = "ativada" if novo_status == FLAG_SIM else "desativada"
         return True, f"Forma de pagamento {acao} com sucesso!"

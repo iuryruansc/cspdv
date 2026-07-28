@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Sequence, cast
+from typing import Any, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import (
     CLIENTE_PADRAO_CONSUMIDOR_FINAL,
     FLAG_NAO,
@@ -15,28 +15,21 @@ from modules.shared.constants import (
     flag_ativa,
 )
 
-
 class ConfiguracoesModel:
     @staticmethod
-    def _registro_id(row: object) -> int | None:
-        if not isinstance(row, Sequence) or isinstance(row, (str, bytes, bytearray)) or not row:
-            return None
-
-        valor = row[0]
-        if valor is None:
-            return None
-
-        try:
-            return int(valor)
-        except (TypeError, ValueError):
-            return None
+    def _obter_empresa_id(cur) -> int | None:
+        cur.execute("SELECT id FROM config_empresa ORDER BY id LIMIT 1")
+        row = cur.fetchone()
+        return int(row[0]) if row else None
 
     @staticmethod
-    def listar_pdvs() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def _empresa_placeholder() -> tuple:
+        return ("Empresa em configuração", "Empresa em configuração")
+
+    @staticmethod
+    def listar_pdvs() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, identificacao, descricao, status, ativo
                 FROM pdvs
@@ -45,17 +38,11 @@ class ConfiguracoesModel:
                 """,
                 (FLAG_SIM, FLAG_SIM),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def carregar_empresa_pdv() -> Dict[str, Any]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def carregar_empresa_pdv() -> dict[str, Any]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     id,
@@ -92,7 +79,7 @@ class ConfiguracoesModel:
                 LIMIT 1
                 """
             )
-            registro = cast(Optional[Dict[str, Any]], cursor.fetchone()) or {}
+            registro = cast(dict[str, Any] | None, cur.fetchone()) or {}
             return {
                 "id": registro.get("id"),
                 "razao_social": str(registro.get("razao_social") or ""),
@@ -161,21 +148,13 @@ class ConfiguracoesModel:
                 "perfil_log": str(registro.get("perfil_log") or PERFIL_LOG_OPERACIONAL),
                 "versao_referencia": str(registro.get("versao_referencia") or "CSPdv v1.0.0"),
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def salvar_empresa_pdv(*, razao_social: str, pdv_padrao_id: Optional[int], moeda_padrao: str) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+    def salvar_empresa_pdv(*, razao_social: str, pdv_padrao_id: int | None, moeda_padrao: str) -> None:
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET razao_social = %s,
@@ -184,27 +163,19 @@ class ConfiguracoesModel:
                         updatedAt = NOW()
                     WHERE id = %s
                     """,
-                    (razao_social, pdv_padrao_id, moeda_padrao, registro_id),
+                    (razao_social, pdv_padrao_id, moeda_padrao, empresa_id),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (razao_social, nome_fantasia, pdv_padrao_id, moeda_padrao, createdAt, updatedAt)
                     VALUES
                         (%s, %s, %s, %s, NOW(), NOW())
                     """,
-                    (razao_social, razao_social, pdv_padrao_id, moeda_padrao),
+                    (*ph, pdv_padrao_id, moeda_padrao),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_parametros_venda(
         *,
@@ -213,15 +184,11 @@ class ConfiguracoesModel:
         habilitar_venda_rapida_admin: bool,
         permitir_venda_sem_estoque: bool,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET cliente_padrao_venda = %s,
@@ -236,11 +203,12 @@ class ConfiguracoesModel:
                         regra_desconto_venda,
                         bool_para_flag(habilitar_venda_rapida_admin),
                         bool_para_flag(permitir_venda_sem_estoque),
-                        registro_id,
+                        empresa_id,
                     ),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (
@@ -257,23 +225,13 @@ class ConfiguracoesModel:
                         (%s, %s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
-                        "Empresa em configuração",
-                        "Empresa em configuração",
+                        *ph,
                         cliente_padrao_venda,
                         regra_desconto_venda,
                         bool_para_flag(habilitar_venda_rapida_admin),
                         bool_para_flag(permitir_venda_sem_estoque),
                     ),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_parametros_caixa(
         *,
@@ -282,15 +240,11 @@ class ConfiguracoesModel:
         exigir_admin_reembolso: bool,
         exigir_admin_diferenca_fechamento: bool,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET fundo_inicial_sugerido = %s,
@@ -305,11 +259,12 @@ class ConfiguracoesModel:
                         bool_para_flag(exigir_admin_sangria),
                         bool_para_flag(exigir_admin_reembolso),
                         bool_para_flag(exigir_admin_diferenca_fechamento),
-                        registro_id,
+                        empresa_id,
                     ),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (
@@ -326,23 +281,13 @@ class ConfiguracoesModel:
                         (%s, %s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
-                        "Empresa em configuração",
-                        "Empresa em configuração",
+                        *ph,
                         fundo_inicial_sugerido,
                         bool_para_flag(exigir_admin_sangria),
                         bool_para_flag(exigir_admin_reembolso),
                         bool_para_flag(exigir_admin_diferenca_fechamento),
                     ),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_parametros_promocoes(
         *,
@@ -350,15 +295,11 @@ class ConfiguracoesModel:
         bloquear_promocoes_simultaneas: bool,
         ativar_promocoes_por_vigencia: bool,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET prioridade_promocional = %s,
@@ -371,11 +312,12 @@ class ConfiguracoesModel:
                         prioridade_promocional,
                         bool_para_flag(bloquear_promocoes_simultaneas),
                         bool_para_flag(ativar_promocoes_por_vigencia),
-                        registro_id,
+                        empresa_id,
                     ),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (
@@ -391,22 +333,12 @@ class ConfiguracoesModel:
                         (%s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
-                        "Empresa em configuração",
-                        "Empresa em configuração",
+                        *ph,
                         prioridade_promocional,
                         bool_para_flag(bloquear_promocoes_simultaneas),
                         bool_para_flag(ativar_promocoes_por_vigencia),
                     ),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_parametros_seguranca(
         *,
@@ -414,15 +346,11 @@ class ConfiguracoesModel:
         restaurar_login_automaticamente: bool,
         bloquear_fechamento_programa_caixa_aberto: bool,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET horas_sessao_persistida = %s,
@@ -435,11 +363,12 @@ class ConfiguracoesModel:
                         int(horas_sessao_persistida),
                         bool_para_flag(restaurar_login_automaticamente),
                         bool_para_flag(bloquear_fechamento_programa_caixa_aberto),
-                        registro_id,
+                        empresa_id,
                     ),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (
@@ -455,22 +384,12 @@ class ConfiguracoesModel:
                         (%s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
-                        "Empresa em configuração",
-                        "Empresa em configuração",
+                        *ph,
                         int(horas_sessao_persistida),
                         bool_para_flag(restaurar_login_automaticamente),
                         bool_para_flag(bloquear_fechamento_programa_caixa_aberto),
                     ),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_parametros_sistema(
         *,
@@ -478,15 +397,11 @@ class ConfiguracoesModel:
         perfil_log: str,
         versao_referencia: str,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET intervalo_backup_horas = %s,
@@ -499,11 +414,12 @@ class ConfiguracoesModel:
                         int(intervalo_backup_horas),
                         perfil_log,
                         versao_referencia,
-                        registro_id,
+                        empresa_id,
                     ),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (
@@ -519,22 +435,12 @@ class ConfiguracoesModel:
                         (%s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
-                        "Empresa em configuração",
-                        "Empresa em configuração",
+                        *ph,
                         int(intervalo_backup_horas),
                         perfil_log,
                         versao_referencia,
                     ),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def salvar_parametros_fiscais(
         *,
@@ -547,12 +453,8 @@ class ConfiguracoesModel:
         exigir_ncm_cest_produto: bool,
         exigir_unidade_tributavel_produto: bool,
     ) -> None:
-        conn = get_connection()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, razao_social, nome_fantasia FROM config_empresa ORDER BY id LIMIT 1")
-            row = cast(object, cursor.fetchone())
-            registro_id = ConfiguracoesModel._registro_id(row)
+        with db_transaction(dictionary=False) as cur:
+            empresa_id = ConfiguracoesModel._obter_empresa_id(cur)
 
             payload = (
                 regime_tributario_padrao,
@@ -561,12 +463,12 @@ class ConfiguracoesModel:
                 cfop_devolucao_padrao,
                 csosn_cst_padrao,
                 natureza_operacao_padrao,
-                "S" if exigir_ncm_cest_produto else "N",
-                "S" if exigir_unidade_tributavel_produto else "N",
+                FLAG_SIM if exigir_ncm_cest_produto else FLAG_NAO,
+                FLAG_SIM if exigir_unidade_tributavel_produto else FLAG_NAO,
             )
 
-            if registro_id is not None:
-                cursor.execute(
+            if empresa_id is not None:
+                cur.execute(
                     """
                     UPDATE config_empresa
                     SET regime_tributario_padrao = %s,
@@ -580,10 +482,11 @@ class ConfiguracoesModel:
                         updatedAt = NOW()
                     WHERE id = %s
                     """,
-                    (*payload, registro_id),
+                    (*payload, empresa_id),
                 )
             else:
-                cursor.execute(
+                ph = ConfiguracoesModel._empresa_placeholder()
+                cur.execute(
                     """
                     INSERT INTO config_empresa
                         (
@@ -604,17 +507,7 @@ class ConfiguracoesModel:
                         (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
-                        "Empresa em configuração",
-                        "Empresa em configuração",
+                        *ph,
                         *payload,
                     ),
                 )
-
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-

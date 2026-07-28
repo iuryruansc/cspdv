@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .simple_named_status_service import (
     alternar_status_entidade_simples,
     atualizar_entidade_simples,

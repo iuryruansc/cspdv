@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+from typing import Any
 
 from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QColor, QBrush, QKeyEvent
@@ -24,8 +25,8 @@ class ModalConsultaProdutoView(QDialog, Ui_ModalConsultaProduto):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.produto_selecionado: Optional[Dict[str, Any]] = None
-        self._resultados: List[Dict[str, Any]] = []
+        self.produto_selecionado: dict[str, Any] | None = None
+        self._resultados: list[dict[str, Any]] = []
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self._normalizar_estilos()
         self._conectar_sinais()

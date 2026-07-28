@@ -1,4 +1,5 @@
-from typing import Any, Dict, Tuple
+from __future__ import annotations
+from typing import Any
 
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
 from modules.pdvs.models.pdv_model import PdvModel
@@ -7,17 +8,15 @@ from modules.shared.constants import (
     FLAG_SIM,
     STATUS_PDV_ATIVO,
     STATUS_PDV_INATIVO,
+    ResultadoOperacao,
     alternar_flag,
     flag_ativa,
 )
 from modules.venda.models.caixa_model import CaixaModel
 
-ResultadoOperacao = Tuple[bool, str]
-
-
 class PdvService:
     @staticmethod
-    def _normalizar_dados(dados: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalizar_dados(dados: dict[str, Any]) -> dict[str, Any]:
         identificacao = str(dados.get("identificacao") or "").strip().upper()
         descricao = str(dados.get("descricao") or "").strip()
         ativo = FLAG_SIM if flag_ativa(dados.get("ativo"), default=FLAG_NAO) else FLAG_NAO
@@ -30,7 +29,7 @@ class PdvService:
         }
 
     @staticmethod
-    def _validar_dados(dados: Dict[str, Any], *, pdv_id: int | None = None) -> ResultadoOperacao:
+    def _validar_dados(dados: dict[str, Any], *, pdv_id: int | None = None) -> ResultadoOperacao:
         normalizados = PdvService._normalizar_dados(dados)
         if len(normalizados["identificacao"]) < 3:
             return False, "A identificação do PDV deve ter pelo menos 3 caracteres."
@@ -44,7 +43,7 @@ class PdvService:
         return True, ""
 
     @staticmethod
-    def cadastrar_pdv(dados: Dict[str, Any]) -> ResultadoOperacao:
+    def cadastrar_pdv(dados: dict[str, Any]) -> ResultadoOperacao:
         normalizados = PdvService._normalizar_dados(dados)
         valido, mensagem = PdvService._validar_dados(normalizados)
         if not valido:
@@ -60,7 +59,7 @@ class PdvService:
         return True, "PDV cadastrado com sucesso!"
 
     @staticmethod
-    def atualizar_pdv(pdv_id: int, dados: Dict[str, Any]) -> ResultadoOperacao:
+    def atualizar_pdv(pdv_id: int, dados: dict[str, Any]) -> ResultadoOperacao:
         normalizados = PdvService._normalizar_dados(dados)
         valido, mensagem = PdvService._validar_dados(normalizados, pdv_id=int(pdv_id))
         if not valido:

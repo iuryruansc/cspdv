@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, Sequence, Tuple, cast
+from typing import Any, Sequence, cast
 
-from database.connection import get_connection
+from database.connection import db_cursor, db_transaction
 from modules.shared.constants import (
     FLAG_SIM,
     STATUS_CAIXA_ABERTO,
     STATUS_CONTA_ABERTAS,
+    STATUS_CONTA_ABERTAS_SQL,
     STATUS_CONTA_PARCIALMENTE_RECEBIDA,
     STATUS_CONTA_PENDENTE,
     STATUS_CONTA_QUITADA,
@@ -16,19 +17,14 @@ from modules.shared.constants import (
     STATUS_REEMBOLSO_CONCLUIDO,
     STATUS_VENDA_CONCLUIDA,
     STATUS_VENDA_CONCLUIDA_COM_PENDENCIA,
-    STATUS_VENDA_OPERACIONAL,
+    STATUS_VENDA_SQL,
 )
-
-STATUS_VENDA_SQL = "', '".join(STATUS_VENDA_OPERACIONAL)
-STATUS_CONTA_ABERTAS_SQL = "', '".join(STATUS_CONTA_ABERTAS)
 
 class FinanceiroModel:
     @staticmethod
-    def listar_pdvs() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_pdvs() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, identificacao, descricao
                 FROM pdvs
@@ -38,17 +34,11 @@ class FinanceiroModel:
                 """,
                 (FLAG_SIM, STATUS_PDV_ATIVO),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def listar_formas_pagamento() -> List[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def listar_formas_pagamento() -> list[dict[str, Any]]:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT id, nome, permite_parcelamento, taxa_administrativa
                 FROM formas_pagamento
@@ -57,33 +47,27 @@ class FinanceiroModel:
                 """,
                 (FLAG_SIM,),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
     def obter_resumo_financeiro(
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int] = None,
-        forma_pagamento: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        pdv_id: int | None = None,
+        forma_pagamento: str | None = None,
+    ) -> dict[str, Any]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("v.caixa_id", pdv_id, alias_caixa="cx")
 
-            params_recebimentos: List[Any] = [inicio, fim]
+            params_recebimentos: list[Any] = [inicio, fim]
             params_recebimentos.extend(pdv_params)
             forma_clause = ""
             if forma_pagamento:
                 forma_clause = " AND pp.forma_pagamento = %s"
                 params_recebimentos.append(forma_pagamento)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT COALESCE(SUM(pp.valor_pago), 0) AS total
                 FROM pagamento_parcial pp
@@ -97,11 +81,11 @@ class FinanceiroModel:
                 """,
                 tuple(params_recebimentos),
             )
-            recebimentos = cast(Dict[str, Any], cursor.fetchone() or {})
+            recebimentos = cast(dict[str, Any], cur.fetchone() or {})
 
-            params_entradas: List[Any] = [inicio, fim]
+            params_entradas: list[Any] = [inicio, fim]
             params_entradas.extend(FinanceiroModel._caixa_filter_params(pdv_id))
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT COALESCE(SUM(cm.valor), 0) AS total
                 FROM caixa_movimentacoes cm
@@ -116,11 +100,11 @@ class FinanceiroModel:
                 """,
                 tuple([*params_entradas, FLAG_SIM]),
             )
-            entradas_manuais = cast(Dict[str, Any], cursor.fetchone() or {})
+            entradas_manuais = cast(dict[str, Any], cur.fetchone() or {})
 
-            params_saidas: List[Any] = [inicio, fim]
+            params_saidas: list[Any] = [inicio, fim]
             params_saidas.extend(FinanceiroModel._caixa_filter_params(pdv_id))
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT COALESCE(SUM(cm.valor), 0) AS total
                 FROM caixa_movimentacoes cm
@@ -135,9 +119,9 @@ class FinanceiroModel:
                 """,
                 tuple([*params_saidas, FLAG_SIM]),
             )
-            sangrias = cast(Dict[str, Any], cursor.fetchone() or {})
+            sangrias = cast(dict[str, Any], cur.fetchone() or {})
 
-            params_reembolsos: List[Any] = [inicio, fim]
+            params_reembolsos: list[Any] = [inicio, fim]
             params_reembolsos.extend(pdv_params)
             reembolso_forma_clause = ""
             if forma_pagamento:
@@ -151,7 +135,7 @@ class FinanceiroModel:
                 """
                 params_reembolsos.append(forma_pagamento)
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     COUNT(*) AS quantidade,
@@ -168,10 +152,10 @@ class FinanceiroModel:
                 """,
                 tuple([FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO, *params_reembolsos]),
             )
-            reembolsos = cast(Dict[str, Any], cursor.fetchone() or {})
+            reembolsos = cast(dict[str, Any], cur.fetchone() or {})
 
             params_saldo = FinanceiroModel._caixa_filter_params(pdv_id)
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     c.id,
@@ -182,16 +166,16 @@ class FinanceiroModel:
                 """,
                 tuple([STATUS_CAIXA_ABERTO, *params_saldo]),
             )
-            caixas_abertos = cast(List[Dict[str, Any]], cursor.fetchall() or [])
+            caixas_abertos = cast(list[dict[str, Any]], cur.fetchall() or [])
 
             saldo_atual = Decimal("0")
             for caixa in caixas_abertos:
                 caixa_id = int(caixa.get("id") or 0)
                 saldo_atual += Decimal(caixa.get("valor_abertura") or 0)
-                saldo_atual += FinanceiroModel._somar_pagamentos_dinheiro_caixa(cursor, caixa_id)
-                saldo_atual += FinanceiroModel._somar_movimentacao_caixa(cursor, caixa_id, ("suprimento", "troco"))
-                saldo_atual -= FinanceiroModel._somar_movimentacao_caixa(cursor, caixa_id, ("sangria",))
-                saldo_atual -= FinanceiroModel._somar_reembolsos_caixa(cursor, caixa_id)
+                saldo_atual += FinanceiroModel._somar_pagamentos_dinheiro_caixa(cur, caixa_id)
+                saldo_atual += FinanceiroModel._somar_movimentacao_caixa(cur, caixa_id, ("suprimento", "troco"))
+                saldo_atual -= FinanceiroModel._somar_movimentacao_caixa(cur, caixa_id, ("sangria",))
+                saldo_atual -= FinanceiroModel._somar_reembolsos_caixa(cur, caixa_id)
 
             total_entradas = Decimal(recebimentos.get("total") or 0) + Decimal(entradas_manuais.get("total") or 0) - Decimal(reembolsos.get("total") or 0)
             total_saidas = Decimal(sangrias.get("total") or 0)
@@ -202,32 +186,26 @@ class FinanceiroModel:
                 "saidas_periodo": total_saidas,
                 "reembolsos_periodo": int(reembolsos.get("quantidade") or 0),
                 "contas_abertas_periodo": FinanceiroModel._contar_contas_abertas(
-                    cursor,
+                    cur,
                     data_inicial=data_inicial,
                     data_final=data_final,
                     pdv_id=pdv_id,
                 ),
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def listar_movimentacoes_caixa(
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int] = None,
+        pdv_id: int | None = None,
         limite: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            params: List[Any] = [inicio, fim]
+        with db_cursor() as cur:
+            params: list[Any] = [inicio, fim]
             params.extend(FinanceiroModel._caixa_filter_params(pdv_id))
             params.append(int(limite))
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     cm.data_hora,
@@ -252,26 +230,20 @@ class FinanceiroModel:
                 """,
                 tuple([FLAG_SIM, *params]),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
     def listar_recebimentos(
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int] = None,
-        forma_pagamento: Optional[str] = None,
+        pdv_id: int | None = None,
+        forma_pagamento: str | None = None,
         limite: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("v.caixa_id", pdv_id, alias_caixa="cx")
-            params: List[Any] = [inicio, fim]
+            params: list[Any] = [inicio, fim]
             params.extend(pdv_params)
             forma_clause = ""
             if forma_pagamento:
@@ -279,7 +251,7 @@ class FinanceiroModel:
                 params.append(forma_pagamento)
             params.append(int(limite))
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     v.id AS venda_id,
@@ -301,27 +273,21 @@ class FinanceiroModel:
                 """,
                 tuple(params),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
     def listar_vendas_registradas(
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int] = None,
-        forma_pagamento: Optional[str] = None,
-        busca: Optional[str] = None,
+        pdv_id: int | None = None,
+        forma_pagamento: str | None = None,
+        busca: str | None = None,
         limite: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("v.caixa_id", pdv_id, alias_caixa="cx")
-            params: List[Any] = [inicio, fim]
+            params: list[Any] = [inicio, fim]
             params.extend(pdv_params)
             busca_clause = ""
             if busca:
@@ -335,7 +301,7 @@ class FinanceiroModel:
                 params.extend([termo, termo])
             params.append(int(limite))
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     v.id AS venda_id,
@@ -361,27 +327,21 @@ class FinanceiroModel:
                 """,
                 tuple(params),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
     def listar_contas_receber(
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int] = None,
-        busca: Optional[str] = None,
-        status_filtro: Optional[str] = None,
+        pdv_id: int | None = None,
+        busca: str | None = None,
+        status_filtro: str | None = None,
         limite: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("cr.caixa_id", pdv_id, alias_caixa="cx")
-            params: List[Any] = [inicio.date(), fim.date()]
+            params: list[Any] = [inicio.date(), fim.date()]
             params.extend(pdv_params)
             busca_clause = ""
             if busca:
@@ -417,7 +377,7 @@ class FinanceiroModel:
                     " AND cr.data_vencimento <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)"
                 )
             params.append(int(limite))
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     cr.id AS conta_id,
@@ -463,17 +423,11 @@ class FinanceiroModel:
                 """,
                 tuple([FLAG_SIM, FLAG_SIM, FLAG_SIM, *params]),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def obter_conta_receber_detalhada(conta_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def obter_conta_receber_detalhada(conta_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 f"""
                 SELECT
                     cr.id,
@@ -501,11 +455,11 @@ class FinanceiroModel:
                 """,
                 (int(conta_id), FLAG_SIM),
             )
-            conta = cursor.fetchone()
+            conta = cur.fetchone()
             if not conta:
                 return None
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT
                     crr.data_recebimento,
@@ -522,13 +476,13 @@ class FinanceiroModel:
                 """,
                 (int(conta_id), FLAG_SIM),
             )
-            recebimentos = list(cursor.fetchall())
+            recebimentos = list(cur.fetchall())
             ultimo_recebimento = recebimentos[0]["data_recebimento"] if recebimentos else None
 
-            itens: list[Dict[str, Any]] = []
+            itens: list[dict[str, Any]] = []
             venda_id = conta.get("venda_id")
             if venda_id:
-                cursor.execute(
+                cur.execute(
                     """
                     SELECT
                         COALESCE(pr.codigo_barras, '-') AS codigo_barras,
@@ -543,7 +497,7 @@ class FinanceiroModel:
                     """,
                     (int(venda_id),),
                 )
-                itens = list(cursor.fetchall())
+                itens = list(cur.fetchall())
 
             return {
                 "conta": conta,
@@ -557,10 +511,6 @@ class FinanceiroModel:
                     "valor_recebido": Decimal(str(conta.get("valor_recebido") or 0)),
                 },
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def registrar_recebimento_conta(
         *,
@@ -571,11 +521,9 @@ class FinanceiroModel:
         valor_recebido: Decimal,
         observacao: str,
         data_recebimento: datetime,
-    ) -> Dict[str, Any]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    ) -> dict[str, Any]:
+        with db_transaction() as cur:
+            cur.execute(
                 """
                 SELECT
                     cr.id,
@@ -591,7 +539,7 @@ class FinanceiroModel:
                 """,
                 (int(conta_id), FLAG_SIM),
             )
-            conta = cursor.fetchone()
+            conta = cur.fetchone()
             if not conta:
                 raise ValueError("Conta a receber não encontrada.")
 
@@ -601,7 +549,7 @@ class FinanceiroModel:
             if valor_recebido > aberto_atual:
                 raise ValueError("O valor informado é maior que o saldo em aberto da conta.")
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT id, nome
                 FROM formas_pagamento
@@ -610,11 +558,11 @@ class FinanceiroModel:
                 """,
                 (int(forma_pagamento_id),),
             )
-            forma = cursor.fetchone()
+            forma = cur.fetchone()
             if not forma:
                 raise ValueError("Forma de pagamento não encontrada.")
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO contas_receber_recebimentos
                     (conta_receber_id, usuario_id, caixa_id, forma_pagamento_id, valor_recebido, data_recebimento, observacao, ativo, createdAt, updatedAt)
@@ -633,7 +581,7 @@ class FinanceiroModel:
                 ),
             )
 
-            cursor.execute(
+            cur.execute(
                 """
                 INSERT INTO pagamento_parcial
                     (venda_id, data_pagamento, valor_pago, forma_pagamento, observacao, createdAt, updatedAt)
@@ -657,7 +605,7 @@ class FinanceiroModel:
                 else STATUS_CONTA_PARCIALMENTE_RECEBIDA
             )
 
-            cursor.execute(
+            cur.execute(
                 """
                 UPDATE contas_receber
                 SET valor_recebido = %s,
@@ -670,7 +618,7 @@ class FinanceiroModel:
             )
 
             if novo_status == STATUS_CONTA_QUITADA:
-                cursor.execute(
+                cur.execute(
                     """
                     UPDATE vendas
                     SET status = %s,
@@ -685,7 +633,6 @@ class FinanceiroModel:
                     ),
                 )
 
-            conn.commit()
             return {
                 "conta_id": int(conta_id),
                 "venda_id": int(conta["venda_id"]),
@@ -694,28 +641,19 @@ class FinanceiroModel:
                 "status": novo_status,
                 "forma_pagamento": str(forma.get("nome") or "Forma"),
             }
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
     def listar_reembolsos(
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int] = None,
-        forma_pagamento: Optional[str] = None,
+        pdv_id: int | None = None,
+        forma_pagamento: str | None = None,
         limite: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
+        with db_cursor() as cur:
             pdv_clause, pdv_params = FinanceiroModel._pdv_clause("v.caixa_id", pdv_id, alias_caixa="cx")
-            params: List[Any] = [inicio, fim]
+            params: list[Any] = [inicio, fim]
             params.extend(pdv_params)
             forma_clause = ""
             if forma_pagamento:
@@ -730,7 +668,7 @@ class FinanceiroModel:
                 params.append(forma_pagamento)
             params.append(int(limite))
 
-            cursor.execute(
+            cur.execute(
                 f"""
                 SELECT
                     vr.id AS reembolso_id,
@@ -753,17 +691,11 @@ class FinanceiroModel:
                 """,
                 tuple([FLAG_SIM, *params]),
             )
-            return cast(List[Dict[str, Any]], cursor.fetchall())
-        finally:
-            cursor.close()
-            conn.close()
-
+            return cast(list[dict[str, Any]], cur.fetchall())
     @staticmethod
-    def obter_venda_detalhada(venda_id: int) -> Optional[Dict[str, Any]]:
-        conn = get_connection()
-        cursor = conn.cursor(dictionary=True)
-        try:
-            cursor.execute(
+    def obter_venda_detalhada(venda_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
                 """
                 SELECT
                     v.id,
@@ -783,11 +715,11 @@ class FinanceiroModel:
                 """,
                 (int(venda_id),),
             )
-            venda = cursor.fetchone()
+            venda = cur.fetchone()
             if not venda:
                 return None
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT
                     iv.id AS item_venda_id,
@@ -797,6 +729,7 @@ class FinanceiroModel:
                     COALESCE(pr.nome, '-') AS produto,
                     iv.quantidade,
                     iv.preco_unitario,
+                    COALESCE(pr.preco_venda, iv.preco_unitario) AS preco_original,
                     (iv.quantidade * iv.preco_unitario) AS total_item,
                     COALESCE((
                         SELECT SUM(vri.quantidade)
@@ -813,13 +746,13 @@ class FinanceiroModel:
                 """,
                 (FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO, int(venda_id)),
             )
-            itens = [dict(item) for item in cursor.fetchall()]
+            itens = [dict(item) for item in cur.fetchall()]
             for item in itens:
                 quantidade = int(item.get("quantidade") or 0)
                 quantidade_reembolsada = int(item.get("quantidade_reembolsada") or 0)
                 item["quantidade_disponivel"] = max(0, quantidade - quantidade_reembolsada)
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT
                     forma_pagamento,
@@ -831,9 +764,9 @@ class FinanceiroModel:
                 """,
                 (int(venda_id),),
             )
-            pagamentos = list(cursor.fetchall())
+            pagamentos = list(cur.fetchall())
 
-            cursor.execute(
+            cur.execute(
                 """
                 SELECT
                     tipo,
@@ -848,34 +781,44 @@ class FinanceiroModel:
                 """,
                 (int(venda_id), FLAG_SIM),
             )
-            reembolsos = list(cursor.fetchall())
+            reembolsos = list(cur.fetchall())
+
+            cur.execute(
+                """
+                SELECT id
+                FROM contas_receber
+                WHERE venda_id = %s
+                  AND ativo = %s
+                LIMIT 1
+                """,
+                (int(venda_id), FLAG_SIM),
+            )
+            conta_row = cur.fetchone()
+            conta_receber_id = int(conta_row["id"]) if conta_row else None
 
             return {
                 "venda": venda,
                 "itens": itens,
                 "pagamentos": pagamentos,
                 "reembolsos": reembolsos,
+                "conta_receber_id": conta_receber_id,
             }
-        finally:
-            cursor.close()
-            conn.close()
-
     @staticmethod
-    def _periodo(data_inicial: date, data_final: date) -> Tuple[datetime, datetime]:
+    def _periodo(data_inicial: date, data_final: date) -> tuple[datetime, datetime]:
         inicio = datetime.combine(data_inicial, time.min)
         fim = datetime.combine(data_final + timedelta(days=1), time.min)
         return inicio, fim
 
     @staticmethod
-    def _caixa_filter_clause(pdv_id: Optional[int]) -> str:
+    def _caixa_filter_clause(pdv_id: int | None) -> str:
         return " AND c.pdv_id = %s" if pdv_id else ""
 
     @staticmethod
-    def _caixa_filter_params(pdv_id: Optional[int]) -> List[Any]:
+    def _caixa_filter_params(pdv_id: int | None) -> list[Any]:
         return [int(pdv_id)] if pdv_id else []
 
     @staticmethod
-    def _pdv_clause(caixa_field: str, pdv_id: Optional[int], *, alias_caixa: str) -> Tuple[str, List[Any]]:
+    def _pdv_clause(caixa_field: str, pdv_id: int | None, *, alias_caixa: str) -> tuple[str, list[Any]]:
         if not pdv_id:
             return "", []
         return f" AND {alias_caixa}.pdv_id = %s", [int(pdv_id)]
@@ -893,7 +836,7 @@ class FinanceiroModel:
             """,
             (caixa_id,),
         )
-        row = cast(Dict[str, Any], cursor.fetchone() or {})
+        row = cast(dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
 
     @staticmethod
@@ -911,7 +854,7 @@ class FinanceiroModel:
             """,
             tuple([caixa_id, FLAG_SIM, *tipos]),
         )
-        row = cast(Dict[str, Any], cursor.fetchone() or {})
+        row = cast(dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
 
     @staticmethod
@@ -929,7 +872,7 @@ class FinanceiroModel:
             """,
             (caixa_id, FLAG_SIM, STATUS_REEMBOLSO_CONCLUIDO),
         )
-        row = cast(Dict[str, Any], cursor.fetchone() or {})
+        row = cast(dict[str, Any], cursor.fetchone() or {})
         return Decimal(row.get("total") or 0)
 
     @staticmethod
@@ -938,10 +881,10 @@ class FinanceiroModel:
         *,
         data_inicial: date,
         data_final: date,
-        pdv_id: Optional[int],
+        pdv_id: int | None,
     ) -> int:
         inicio, fim = FinanceiroModel._periodo(data_inicial, data_final)
-        params: List[Any] = [inicio.date(), fim.date()]
+        params: list[Any] = [inicio.date(), fim.date()]
         if pdv_id:
             params.append(int(pdv_id))
         cursor.execute(
@@ -957,5 +900,5 @@ class FinanceiroModel:
             """,
             tuple([FLAG_SIM, *params]),
         )
-        row = cast(Dict[str, Any], cursor.fetchone() or {})
+        row = cast(dict[str, Any], cursor.fetchone() or {})
         return int(row.get("total") or 0)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from modules.auditoria.services.auditoria_service import AuditoriaService
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
@@ -52,7 +52,7 @@ class ConfiguracoesService:
     }
 
     @staticmethod
-    def _auditar_configuracao(area: str, detalhes: Dict[str, Any]) -> None:
+    def _auditar_configuracao(area: str, detalhes: dict[str, Any]) -> None:
         AuditoriaService.registrar_evento(
             evento="configuracao_atualizada",
             categoria="configuracoes",
@@ -61,7 +61,7 @@ class ConfiguracoesService:
         )
 
     @staticmethod
-    def carregar_empresa_pdv() -> Dict[str, Any]:
+    def carregar_empresa_pdv() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         pdvs = ConfiguracoesModel.listar_pdvs()
         return {
@@ -70,7 +70,7 @@ class ConfiguracoesService:
         }
 
     @staticmethod
-    def carregar_parametros_venda() -> Dict[str, Any]:
+    def carregar_parametros_venda() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "cliente_padrao_venda": str(
@@ -84,7 +84,7 @@ class ConfiguracoesService:
         }
 
     @staticmethod
-    def carregar_parametros_caixa() -> Dict[str, Any]:
+    def carregar_parametros_caixa() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "fundo_inicial_sugerido": float(empresa.get("fundo_inicial_sugerido") or 0.0),
@@ -96,7 +96,7 @@ class ConfiguracoesService:
         }
 
     @staticmethod
-    def carregar_parametros_promocoes() -> Dict[str, Any]:
+    def carregar_parametros_promocoes() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "prioridade_promocional": str(
@@ -111,7 +111,7 @@ class ConfiguracoesService:
         }
 
     @staticmethod
-    def carregar_parametros_seguranca() -> Dict[str, Any]:
+    def carregar_parametros_seguranca() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "horas_sessao_persistida": int(empresa.get("horas_sessao_persistida") or 12),
@@ -124,7 +124,7 @@ class ConfiguracoesService:
         }
 
     @staticmethod
-    def carregar_parametros_sistema() -> Dict[str, Any]:
+    def carregar_parametros_sistema() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "intervalo_backup_horas": int(empresa.get("intervalo_backup_horas") or 24),
@@ -133,7 +133,7 @@ class ConfiguracoesService:
         }
 
     @staticmethod
-    def carregar_parametros_fiscais() -> Dict[str, Any]:
+    def carregar_parametros_fiscais() -> dict[str, Any]:
         empresa = ConfiguracoesModel.carregar_empresa_pdv()
         return {
             "regime_tributario_padrao": str(
@@ -391,31 +391,31 @@ class ConfiguracoesService:
         return True, "Parâmetros Fiscais salvos com sucesso."
 
     @staticmethod
-    def opcoes_moeda() -> List[str]:
+    def opcoes_moeda() -> list[str]:
         return list(ConfiguracoesService._MAPA_MOEDA.keys())
 
     @staticmethod
-    def opcoes_cliente_padrao() -> List[str]:
+    def opcoes_cliente_padrao() -> list[str]:
         return list(ConfiguracoesService._MAPA_CLIENTE_PADRAO.keys())
 
     @staticmethod
-    def opcoes_regra_desconto() -> List[str]:
+    def opcoes_regra_desconto() -> list[str]:
         return list(ConfiguracoesService._MAPA_REGRA_DESCONTO.keys())
 
     @staticmethod
-    def opcoes_prioridade_promocional() -> List[str]:
+    def opcoes_prioridade_promocional() -> list[str]:
         return list(ConfiguracoesService._MAPA_PRIORIDADE_PROMOCIONAL.keys())
 
     @staticmethod
-    def opcoes_perfil_log() -> List[str]:
+    def opcoes_perfil_log() -> list[str]:
         return list(ConfiguracoesService._MAPA_PERFIL_LOG.keys())
 
     @staticmethod
-    def opcoes_regime_tributario() -> List[str]:
+    def opcoes_regime_tributario() -> list[str]:
         return list(ConfiguracoesService._MAPA_REGIME_TRIBUTARIO.keys())
 
     @staticmethod
-    def opcoes_origem_mercadoria() -> List[str]:
+    def opcoes_origem_mercadoria() -> list[str]:
         return list(ConfiguracoesService._MAPA_ORIGEM_MERCADORIA.keys())
 
     @staticmethod

@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from __future__ import annotations
 
 from PyQt5.QtCore import QDateTime, QTimer, pyqtSignal
 from PyQt5.QtWidgets import (
@@ -63,7 +63,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         super().__init__(parent)
         self.setupUi(self)
 
-        self._pdv_map: Dict[int, Optional[int]] = {}
+        self._pdv_map: dict[int, int | None] = {}
         self._configurar_formulario()
         self._carregar_contexto_inicial()
         self._carregar_historico()
@@ -156,7 +156,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
         )
         self.lblBreakdownTotalValor.setText(formatar_moeda(total))
 
-    def _breakdown(self) -> Dict[str, int]:
+    def _breakdown(self) -> dict[str, int]:
         return {
             "100": int(self.spinNota100.value()),
             "50": int(self.spinNota50.value()),
@@ -249,7 +249,7 @@ class AberturaCaixaView(QWidget, Ui_TelaAberturaCaixa):
             for col_index, valor in enumerate(valores):
                 set_table_item(self.tableHistoricoAberturas, row_index, col_index, valor)
 
-    def preencher_caixa_existente(self, caixa_data: Dict[str, object]) -> None:
+    def preencher_caixa_existente(self, caixa_data: dict[str, object]) -> None:
         pdv_label = str(caixa_data.get("pdv_label", ""))
         valor_abertura = self._to_float(caixa_data.get("valor_abertura"))
         if pdv_label:

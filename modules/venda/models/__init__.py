@@ -1,3 +1,4 @@
+from __future__ import annotations
 from .caixa_model import CaixaModel
 from .venda_model import VendaModel
 

@@ -92,6 +92,77 @@ def close_connection():
     global _connection_pool
     _connection_pool = None
 
+
+class _CursorContext:
+    """Context manager that yields a dictionary cursor and closes both cursor and connection on exit."""
+
+    def __init__(self, *, dictionary: bool = True):
+        self._dictionary = dictionary
+        self._conn = None
+        self._cursor = None
+
+    def __enter__(self):
+        self._conn = get_connection()
+        self._cursor = self._conn.cursor(dictionary=self._dictionary)
+        return self._cursor
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            self._cursor.close()
+        finally:
+            self._conn.close()
+        return False
+
+
+def db_cursor(*, dictionary: bool = True):
+    """Return a context manager that provides a cursor and auto-closes on exit.
+
+    Usage:
+        with db_cursor() as cur:
+            cur.execute("SELECT ...")
+            rows = cur.fetchall()
+    """
+    return _CursorContext(dictionary=dictionary)
+
+
+class _TransactionContext:
+    """Context manager that yields a cursor, commits on success, rolls back on error, and always closes."""
+
+    def __init__(self, *, dictionary: bool = True):
+        self._dictionary = dictionary
+        self._conn = None
+        self._cursor = None
+
+    def __enter__(self):
+        self._conn = get_connection()
+        self._cursor = self._conn.cursor(dictionary=self._dictionary)
+        return self._cursor
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            if exc_type is None:
+                self._conn.commit()
+            else:
+                self._conn.rollback()
+        finally:
+            try:
+                self._cursor.close()
+            finally:
+                self._conn.close()
+        return False
+
+
+def db_transaction(*, dictionary: bool = True):
+    """Context manager for write operations with auto-commit/rollback.
+
+    Usage:
+        with db_transaction() as cur:
+            cur.execute("INSERT INTO ...")
+            cur.execute("UPDATE ...")
+    # auto-commits if no exception, rolls back on exception, always closes
+    """
+    return _TransactionContext(dictionary=dictionary)
+
 if __name__ == "__main__":
     from utils.app_logger import log_error, log_info
 

@@ -1,4 +1,5 @@
-from typing import Any, Dict
+from __future__ import annotations
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QLabel, QTableWidget
@@ -8,7 +9,7 @@ from utils.format_utils import formatar_moeda
 from utils.table_widget_utils import set_table_item
 
 class ResumoCaixaAtualDialog(QDialog, Ui_ResumoCaixaAtualDialog):
-    def __init__(self, resumo: Dict[str, Any], parent=None):
+    def __init__(self, resumo: dict[str, Any], parent=None):
         super().__init__(parent)
         self._resumo = resumo
         self.setupUi(self)

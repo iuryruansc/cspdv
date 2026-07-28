@@ -1,9 +1,11 @@
+from __future__ import annotations
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QLabel
 
 from ui.produtos.detalhes_produto_dialog import Ui_DetalhesProdutoDialog
 from utils.format_utils import formatar_inteiro, formatar_moeda
 from utils.image_utils import atualizar_preview_label, resolver_caminho_arquivo
+from modules.shared.constants import FLAG_NAO, FLAG_SIM
 
 class DetalhesProdutoDialog(QDialog, Ui_DetalhesProdutoDialog):
     def __init__(self, produto, parent=None):
@@ -28,7 +30,7 @@ class DetalhesProdutoDialog(QDialog, Ui_DetalhesProdutoDialog):
             ("CEST:", produto.get("cest") or "-"),
             ("Unidade comercial:", produto.get("unidade_sigla") or "-"),
             ("Unidade tributavel:", produto.get("unidade_tributavel_sigla") or "-"),
-            ("Status:", "Ativo" if str(produto.get("ativo") or "N").upper() == "S" else "Desativado"),
+            ("Status:", "Ativo" if str(produto.get("ativo") or FLAG_NAO).upper() == FLAG_SIM else "Desativado"),
             ("Imagem:", produto.get("imagem_path") or "-"),
         ]
 

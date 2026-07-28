@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
-ItemCupom = Dict[str, Any]
-PromocaoData = Dict[str, Any]
+ItemCupom = dict[str, Any]
+PromocaoData = dict[str, Any]
 
-def criar_item_cupom(produto: Dict[str, Any], quantidade: int) -> ItemCupom:
+def criar_item_cupom(produto: dict[str, Any], quantidade: int) -> ItemCupom:
     preco = float(produto.get("preco_venda") or 0.0)
     preco_tabela = float(produto.get("preco_venda_base") or preco)
     preco_promocional = (
@@ -64,21 +64,20 @@ def priorizar_desconto_manual_item(item: ItemCupom) -> None:
     item["preco_venda"] = float(item.get("preco_tabela") or item.get("preco_venda") or 0.0)
     recalcular_item_cupom(item)
 
-def desconto_itens_total(itens: List[ItemCupom]) -> float:
+def desconto_itens_total(itens: list[ItemCupom]) -> float:
     return sum(float(item.get("desconto_item") or 0.0) for item in itens)
 
-def subtotal_itens(itens: List[ItemCupom]) -> float:
+def subtotal_itens(itens: list[ItemCupom]) -> float:
     return sum(float(item.get("total") or 0.0) for item in itens)
 
-def quantidade_total_itens(itens: List[ItemCupom]) -> int:
+def quantidade_total_itens(itens: list[ItemCupom]) -> int:
     return sum(int(item.get("quantidade") or 0) for item in itens)
 
-def total_geral(itens: List[ItemCupom], desconto_global: float) -> float:
+def total_geral(itens: list[ItemCupom], desconto_global: float) -> float:
     return max(0.0, subtotal_itens(itens) - float(desconto_global))
 
-
 def calcular_desconto_leve_x_pague_y(
-    itens: List[ItemCupom],
+    itens: list[ItemCupom],
     promocao: PromocaoData,
     produto_ids: set[int],
 ) -> float:
@@ -118,9 +117,8 @@ def calcular_desconto_leve_x_pague_y(
 
     return desconto
 
-
 def calcular_desconto_progressivo(
-    itens: List[ItemCupom],
+    itens: list[ItemCupom],
     promocao: PromocaoData,
     produto_ids: set[int],
 ) -> float:
@@ -158,9 +156,8 @@ def calcular_desconto_progressivo(
             desconto += subtotal * melhor_percentual / 100.0
     return desconto
 
-
 def calcular_desconto_combo(
-    itens: List[ItemCupom],
+    itens: list[ItemCupom],
     promocao: PromocaoData,
     produto_ids: set[int],
 ) -> float:
@@ -188,9 +185,8 @@ def calcular_desconto_combo(
     desconto = custo_normal_combos - custo_combo
     return max(0.0, desconto)
 
-
 def calcular_desconto_promocao_avancada(
-    itens: List[ItemCupom],
+    itens: list[ItemCupom],
     promocao: PromocaoData,
     produto_ids: set[int],
 ) -> float:

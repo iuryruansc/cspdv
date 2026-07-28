@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt, pyqtSignal
@@ -22,14 +22,13 @@ from core.session_manager import SessionManager
 from utils.format_utils import formatar_moeda
 from utils.ui_messages import mostrar_aviso, mostrar_info, confirmar_acao
 
-
 class PreVendasView(QWidget, Ui_TelaPreVendas):
     pre_venda_importada = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self._pre_vendas: List[Dict[str, Any]] = []
+        self._pre_vendas: list[dict[str, Any]] = []
         self._conectar_sinais()
         self._configurar_tabela()
 
@@ -136,7 +135,7 @@ class PreVendasView(QWidget, Ui_TelaPreVendas):
     def _ao_clicar_celula(self, row: int, column: int) -> None:
         pass
 
-    def _importar_pre_venda(self, pre_venda_id: Optional[int]) -> None:
+    def _importar_pre_venda(self, pre_venda_id: int | None) -> None:
         if pre_venda_id is None:
             return
 
@@ -169,7 +168,7 @@ class PreVendasView(QWidget, Ui_TelaPreVendas):
             f"Pré-venda #{pre_venda_id} importada com sucesso.",
         )
 
-    def _cancelar_pre_venda(self, pre_venda_id: Optional[int]) -> None:
+    def _cancelar_pre_venda(self, pre_venda_id: int | None) -> None:
         if pre_venda_id is None:
             return
 
