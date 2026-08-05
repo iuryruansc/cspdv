@@ -92,6 +92,10 @@ class FinanceiroService:
         )
 
     @staticmethod
+    def obter_reembolso_detalhado(reembolso_id: int) -> dict[str, Any] | None:
+        return FinanceiroModel.obter_reembolso_detalhado(reembolso_id)
+
+    @staticmethod
     def obter_venda_detalhada(venda_id: int) -> dict[str, Any] | None:
         return FinanceiroModel.obter_venda_detalhada(venda_id)
 

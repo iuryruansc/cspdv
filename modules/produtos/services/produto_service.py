@@ -84,13 +84,21 @@ class ProdutoService:
             return None, "Erro técnico ao consultar o banco de dados.", False
 
     @staticmethod
+    def _normalizar_dados(dados: dict[str, Any]) -> dict[str, Any]:
+        resultado = dict(dados)
+        cod_produto = str(resultado.get("cod_produto") or "").strip()
+        resultado["cod_produto"] = cod_produto if cod_produto else None
+        return resultado
+
+    @staticmethod
     def cadastrar_produto(dados: dict[str, Any]) -> ResultadoOperacao:
-        valido, mensagem = ProdutoService._validar_dados_produto(dados)
+        dados_norm = ProdutoService._normalizar_dados(dados)
+        valido, mensagem = ProdutoService._validar_dados_produto(dados_norm)
         if not valido:
             return False, mensagem
 
         try:
-            ProdutoModel.inserir(dados)
+            ProdutoModel.inserir(dados_norm)
             return True, "Produto cadastrado com sucesso!"
         except Exception as e:
             return False, f"Erro ao salvar produto:\n{e}"
@@ -101,12 +109,13 @@ class ProdutoService:
         if not produto:
             return False, "Produto não localizado para edição."
 
-        valido, mensagem = ProdutoService._validar_dados_produto(dados, produto_id=produto_id)
+        dados_norm = ProdutoService._normalizar_dados(dados)
+        valido, mensagem = ProdutoService._validar_dados_produto(dados_norm, produto_id=produto_id)
         if not valido:
             return False, mensagem
 
         try:
-            ProdutoModel.atualizar(int(produto_id), dados)
+            ProdutoModel.atualizar(int(produto_id), dados_norm)
             return True, "Produto atualizado com sucesso!"
         except Exception as e:
             return False, f"Erro ao atualizar produto:\n{e}"

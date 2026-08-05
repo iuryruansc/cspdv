@@ -5,8 +5,8 @@ from PyQt5 import QtCore, QtWidgets
 class Ui_AplicarDescontoDialog(object):
     def setupUi(self, AplicarDescontoDialog):
         AplicarDescontoDialog.setObjectName("AplicarDescontoDialog")
-        AplicarDescontoDialog.resize(420, 220)
-        AplicarDescontoDialog.setMinimumSize(QtCore.QSize(420, 220))
+        AplicarDescontoDialog.resize(480, 300)
+        AplicarDescontoDialog.setMinimumSize(QtCore.QSize(480, 300))
         AplicarDescontoDialog.setStyleSheet(
             """
             QDialog { background-color: #eef4fa; }

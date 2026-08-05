@@ -75,6 +75,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.tableContasReceber.cellDoubleClicked.connect(self._abrir_detalhe_conta)
         self.tablePagamentos.itemSelectionChanged.connect(self._atualizar_contexto_selecao)
         self.tableContasReceber.itemSelectionChanged.connect(self._atualizar_contexto_selecao)
+        self.tableReembolsos.cellDoubleClicked.connect(self._abrir_detalhe_reembolso)
         self.tableReembolsos.itemSelectionChanged.connect(self._atualizar_contexto_selecao)
         return None
 
@@ -347,6 +348,28 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         if dialog.exec_() == dialog.Accepted and dialog.solicitar_recebimento:
             self._executar_recebimento_conta(conta_id)
 
+    def _abrir_detalhe_reembolso(self, row: int, _column: int) -> None:
+        if row < 0:
+            return
+        reembolso_id = self._obter_reembolso_id_selecionado()
+        if not reembolso_id:
+            return
+        detalhes = FinanceiroService.obter_reembolso_detalhado(reembolso_id)
+        if not detalhes:
+            mostrar_aviso(self, "Reembolso não encontrado", "Não foi possível localizar os detalhes do reembolso selecionado.")
+            return
+        from modules.financeiro.views.consulta_reembolso_dialog import ConsultaReembolsoDialog
+
+        dialog = ConsultaReembolsoDialog(detalhes, self)
+        if dialog.exec_() == dialog.Accepted and dialog.venda_id > 0:
+            detalhes_venda = FinanceiroService.obter_venda_detalhada(dialog.venda_id)
+            if detalhes_venda:
+                from modules.financeiro.views.consulta_venda_dialog import ConsultaVendaDialog
+                venda_dialog = ConsultaVendaDialog(detalhes_venda, self)
+                venda_dialog.exec_()
+                if venda_dialog.payment_registered:
+                    self._carregar_painel()
+
     def _novo_reembolso(self) -> None:
         venda_id = self._obter_venda_id_selecionada()
         if not venda_id:
@@ -430,6 +453,20 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         except (TypeError, ValueError):
             return None
         return conta_id if conta_id > 0 else None
+
+    def _obter_reembolso_id_selecionado(self) -> int | None:
+        row = self.tableReembolsos.currentRow()
+        if row < 0:
+            return None
+        item = self.tableReembolsos.item(row, 0)
+        if not item:
+            return None
+        value = item.data(Qt.UserRole + 1)
+        try:
+            reembolso_id = int(value)
+        except (TypeError, ValueError):
+            return None
+        return reembolso_id if reembolso_id > 0 else None
 
     def _carregar_cards(self) -> None:
         resumo = FinanceiroService.obter_resumo_financeiro(
@@ -546,25 +583,32 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             item_conta.setData(Qt.UserRole + 2, registro.get("ultimo_recebimento"))
             item_conta.setData(Qt.UserRole + 3, int(registro.get("total_recebimentos") or 0))
             item_conta.setData(Qt.UserRole + 4, int(registro.get("dias_atraso") or 0))
-            set_table_item(self.tableContasReceber, row, 1, str(registro.get("cliente") or "-"))
             set_table_item(
                 self.tableContasReceber,
                 row,
-                2,
+                1,
+                str(registro.get("venda_id") or "-"),
+                alignment=Qt.AlignCenter,
+            )
+            set_table_item(self.tableContasReceber, row, 2, str(registro.get("cliente") or "-"))
+            set_table_item(
+                self.tableContasReceber,
+                row,
+                3,
                 formatar_data(registro.get("data_vencimento")),
                 alignment=Qt.AlignCenter,
             )
             status_item = set_table_item(
                 self.tableContasReceber,
                 row,
-                3,
+                4,
                 str(registro.get("status") or "-"),
                 alignment=Qt.AlignCenter,
             )
             saldo_item = set_table_item(
                 self.tableContasReceber,
                 row,
-                4,
+                5,
                 formatar_moeda(registro.get("valor_aberto")),
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
@@ -598,6 +642,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignCenter,
             )
             item_venda.setData(Qt.UserRole, int(registro.get("venda_id") or 0))
+            item_venda.setData(Qt.UserRole + 1, int(registro.get("reembolso_id") or 0))
             set_table_item(self.tableReembolsos, row, 1, str(registro.get("tipo") or "-"), alignment=Qt.AlignCenter)
             set_table_item(self.tableReembolsos, row, 2, str(registro.get("motivo") or "-"))
             status_item = set_table_item(

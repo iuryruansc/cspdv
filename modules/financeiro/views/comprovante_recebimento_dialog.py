@@ -5,10 +5,19 @@ from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QGuiApplication
-from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QPushButton, QPlainTextEdit, QVBoxLayout
+from PyQt5.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QPlainTextEdit,
+    QVBoxLayout,
+)
+from PyQt5.QtWidgets import QFileDialog
 
 from utils.format_utils import formatar_moeda
 from utils.ui_messages import mostrar_info
+
 
 class ComprovanteRecebimentoDialog(QDialog):
     def __init__(
@@ -68,6 +77,10 @@ class ComprovanteRecebimentoDialog(QDialog):
         botoes.addStretch(1)
         layout.addLayout(botoes)
 
+        self.btnSalvar = QPushButton("Salvar comprovante", self)
+        self.btnSalvar.clicked.connect(self._salvar_comprovante)
+        botoes.addWidget(self.btnSalvar)
+
         self.btnCopiar = QPushButton("Copiar comprovante", self)
         self.btnCopiar.clicked.connect(self._copiar_comprovante)
         botoes.addWidget(self.btnCopiar)
@@ -107,11 +120,37 @@ class ComprovanteRecebimentoDialog(QDialog):
             f"Recebido  : {valor_recebido}",
             f"Saldo     : {valor_aberto}",
             f"Status    : {status}",
-            f"Observação: {observacao}",
+            f"Observacao: {observacao}",
             "-" * 42,
-            "Comprovante gerado pelo módulo financeiro.",
+            "Comprovante gerado pelo modulo financeiro.",
         ]
         return "\n".join(linhas)
+
+    def _salvar_comprovante(self) -> None:
+        venda_id = int(self._recebimento.get("venda_id") or self._conta.get("venda_id") or 0)
+        nome_sugerido = f"comprovante_venda_{venda_id}.txt" if venda_id else "comprovante.txt"
+        caminho, _ = QFileDialog.getSaveFileName(
+            self,
+            "Salvar Comprovante",
+            nome_sugerido,
+            "Arquivo de Texto (*.txt);;Todos os Arquivos (*)",
+        )
+        if not caminho:
+            return
+        try:
+            with open(caminho, "w", encoding="utf-8") as f:
+                f.write(self.textComprovante.toPlainText())
+            mostrar_info(
+                self,
+                "Comprovante salvo",
+                f"O comprovante foi salvo em:\n{caminho}",
+            )
+        except Exception as exc:
+            mostrar_info(
+                self,
+                "Erro ao salvar",
+                f"Nao foi possivel salvar o comprovante:\n{exc}",
+            )
 
     def _copiar_comprovante(self) -> None:
         clipboard = QGuiApplication.clipboard()
@@ -119,5 +158,5 @@ class ComprovanteRecebimentoDialog(QDialog):
         mostrar_info(
             self,
             "Comprovante copiado",
-            "O comprovante de recebimento foi copiado para a área de transferência.",
+            "O comprovante de recebimento foi copiado para a area de transferencia.",
         )

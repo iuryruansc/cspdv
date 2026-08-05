@@ -22,6 +22,7 @@ class FormaPagamentoModel:
                 """
             )
             return cast(list[dict[str, Any]], cur.fetchall())
+        
     @staticmethod
     def buscar_por_id(forma_pagamento_id: int) -> dict[str, Any] | None:
         with db_cursor() as cur:
@@ -41,6 +42,7 @@ class FormaPagamentoModel:
                 (int(forma_pagamento_id),),
             )
             return cast(dict[str, Any] | None, cur.fetchone())
+        
     @staticmethod
     def buscar_por_nome(nome: str) -> dict[str, Any] | None:
         with db_cursor() as cur:
@@ -54,6 +56,7 @@ class FormaPagamentoModel:
                 (nome,),
             )
             return cast(dict[str, Any] | None, cur.fetchone())
+        
     @staticmethod
     def inserir(dados: dict[str, Any]) -> int | None:
         with db_transaction(dictionary=False) as cur:
@@ -67,6 +70,7 @@ class FormaPagamentoModel:
                 dados,
             )
             return cur.lastrowid
+        
     @staticmethod
     def atualizar(forma_pagamento_id: int, dados: dict[str, Any]) -> bool:
         with db_transaction(dictionary=False) as cur:
@@ -85,6 +89,7 @@ class FormaPagamentoModel:
                 {**dados, "id": int(forma_pagamento_id)},
             )
             return cur.rowcount > 0
+        
     @staticmethod
     def atualizar_status(forma_pagamento_id: int, ativo: str) -> bool:
         with db_transaction(dictionary=False) as cur:

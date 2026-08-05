@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, cast
-from database.connection import db_cursor, db_transaction
+from typing import Any, Dict, Optional, cast
+from database.connection import db_cursor, db_transaction, get_connection
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
 from modules.shared.constants import STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA
 from utils.app_logger import log_error
@@ -199,6 +199,7 @@ class ProdutoModel:
             except Exception as e:
                 log_error("Erro ao listar produtos.", e)
                 raise
+            
     @staticmethod
     def buscar_por_codigo_barras(codigo: str) -> dict[str, Any] | None:
         with db_cursor() as cur:
@@ -212,6 +213,7 @@ class ProdutoModel:
             except Exception as e:
                 log_error("Erro ao buscar produto por código de barras.", e)
                 raise
+
     @staticmethod
     def buscar_por_codigo(codigo: str) -> dict[str, Any] | None:
         with db_cursor() as cur:
@@ -225,6 +227,7 @@ class ProdutoModel:
             except Exception as e:
                 log_error("Erro ao buscar produto por código de fabricante.", e)
                 raise
+
     @staticmethod
     def buscar_por_id(produto_id: int) -> dict[str, Any] | None:
         with db_cursor() as cur:
@@ -269,6 +272,7 @@ class ProdutoModel:
             except Exception as e:
                 log_error("Erro ao buscar produto por ID.", e)
                 raise
+
     @staticmethod
     def atualizar(produto_id: int, dados: dict[str, Any]) -> bool:
         with db_transaction(dictionary=False) as cur:
@@ -309,6 +313,7 @@ class ProdutoModel:
                 (ativo, produto_id),
             )
             return cur.rowcount > 0
+        
     @staticmethod
     def ajustar_quantidade(
         produto_id: int,
@@ -358,6 +363,7 @@ class ProdutoModel:
                     quantidade_ajuste,
                 ),
             )
+
     @staticmethod
     def _sincronizar_lotes_quantidade(cursor, produto_id: int, nova_quantidade: int) -> None:
         cursor.execute(
@@ -436,6 +442,7 @@ class ProdutoModel:
                 dados,
             )
             return cur.lastrowid
+        
     @staticmethod
     def buscar_por_codigo_barras_completo(codigo: str) -> dict[str, Any] | None:
         parametros_promocoes = ConfiguracoesModel.carregar_empresa_pdv()
@@ -498,3 +505,70 @@ class ProdutoModel:
             except Exception as e:
                 log_error("Erro ao buscar produto por código de barras completo.", e)
                 raise
+
+    @staticmethod
+    def buscar_por_id_completo(produto_id: int) -> Optional[Dict[str, Any]]:
+        parametros_promocoes = ConfiguracoesModel.carregar_empresa_pdv()
+        ativar_por_vigencia = bool(parametros_promocoes.get("ativar_promocoes_por_vigencia", True))
+
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            campos_join = """
+                    p.id,
+                    p.cod_produto,
+                    p.codigo_barras,
+                    p.nome,
+                    COALESCE(ppromo.preco_promocional, p.preco_venda) AS preco_venda,
+                    p.preco_venda AS preco_venda_base,
+                    ppromo.preco_original AS preco_original_promocao,
+                    ppromo.preco_promocional,
+                    promo.id AS promocao_id,
+                    promo.nome AS promocao_nome,
+                    p.quantidade_estoque,
+                    p.ativo,
+                    p.imagem_path,
+                    COALESCE(uc.sigla, '-') AS unidade,
+                    c.nome AS categoria,
+                    m.nome_marca AS marca,
+                    f.nome_fantasia AS fornecedor
+            """
+            joins = """
+                FROM produtos p
+                LEFT JOIN promocao_produtos ppromo
+                    ON ppromo.id = (
+                        SELECT pp2.id
+                        FROM promocao_produtos pp2
+                        INNER JOIN promocoes pr2 ON pr2.id = pp2.promocao_id
+                        WHERE pp2.produto_id = p.id
+                        AND pp2.ativo = 'S'
+                        AND pr2.ativo = 'S'
+                        AND {condicao_status}
+                        ORDER BY pp2.preco_promocional ASC, pr2.data_inicio DESC, pp2.id DESC
+                        LIMIT 1
+                    )
+                LEFT JOIN promocoes promo ON promo.id = ppromo.promocao_id
+                LEFT JOIN categorias c ON c.id = p.categoria_id
+                LEFT JOIN marcas m ON m.id = p.marca_id
+                LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                LEFT JOIN unidades_medida uc ON uc.id = p.unidade_id
+                WHERE p.id = %s
+                LIMIT 1
+            """
+
+            if ativar_por_vigencia:
+                query = f"SELECT {campos_join} {joins.format(condicao_status='pr2.status IN (%s, %s) AND NOW() BETWEEN pr2.data_inicio AND pr2.data_fim')}"
+                parametros = (STATUS_PROMOCAO_ATIVA, STATUS_PROMOCAO_AGENDADA, produto_id)
+            else:
+                query = f"SELECT {campos_join} {joins.format(condicao_status='pr2.status = %s')}"
+                parametros = (STATUS_PROMOCAO_ATIVA, produto_id)
+
+            cursor.execute(query, parametros)
+            resultado = cursor.fetchone()
+            return cast(Optional[Dict[str, Any]], resultado)
+        except Exception as e:
+            log_error("Erro ao buscar produto completo por id.", e)
+            raise
+        finally:
+            cursor.close()
+            conn.close()

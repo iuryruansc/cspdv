@@ -194,10 +194,33 @@ class ReembolsoModel:
                 UPDATE contas_receber
                 SET status = %s,
                     valor_aberto = 0,
+                    valor_recebido = valor_total,
                     updatedAt = NOW()
                 WHERE venda_id = %s
                   AND ativo = %s
                   AND status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
                 """,
                 (STATUS_CONTA_CANCELADA, int(venda_id), FLAG_SIM),
+            )
+        elif novo_status == STATUS_VENDA_PARCIALMENTE_REEMBOLSADA:
+            cursor.execute(
+                """
+                UPDATE contas_receber
+                SET valor_aberto = GREATEST(valor_total - %s, 0),
+                    status = CASE
+                        WHEN GREATEST(valor_total - %s, 0) <= 0 THEN %s
+                        ELSE status
+                    END,
+                    updatedAt = NOW()
+                WHERE venda_id = %s
+                  AND ativo = %s
+                  AND status IN ('PENDENTE', 'PARCIALMENTE_RECEBIDA')
+                """,
+                (
+                    float(total_reembolsado),
+                    float(total_reembolsado),
+                    STATUS_CONTA_CANCELADA,
+                    int(venda_id),
+                    FLAG_SIM,
+                ),
             )

@@ -692,6 +692,71 @@ class FinanceiroModel:
                 tuple([FLAG_SIM, *params]),
             )
             return cast(list[dict[str, Any]], cur.fetchall())
+
+    @staticmethod
+    def obter_reembolso_detalhado(reembolso_id: int) -> dict[str, Any] | None:
+        with db_cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT
+                    vr.id,
+                    vr.venda_id,
+                    vr.tipo,
+                    vr.status,
+                    vr.valor_total,
+                    vr.motivo,
+                    COALESCE(vr.observacao, '') AS observacao,
+                    vr.data_hora,
+                    COALESCE(u.nome, '-') AS operador
+                FROM venda_reembolsos vr
+                LEFT JOIN usuarios u ON u.id = vr.usuario_id
+                WHERE vr.id = %s
+                  AND vr.ativo = %s
+                LIMIT 1
+                """,
+                (int(reembolso_id), FLAG_SIM),
+            )
+            reembolso = cur.fetchone()
+            if not reembolso:
+                return None
+
+            cur.execute(
+                """
+                SELECT
+                    COALESCE(pr.codigo_barras, '-') AS codigo_barras,
+                    COALESCE(pr.nome, '-') AS produto,
+                    vri.quantidade,
+                    vri.valor_unitario,
+                    vri.valor_total
+                FROM venda_reembolso_itens vri
+                LEFT JOIN produtos pr ON pr.id = vri.produto_id
+                WHERE vri.reembolso_id = %s
+                ORDER BY vri.id
+                """,
+                (int(reembolso_id),),
+            )
+            itens = list(cur.fetchall())
+
+            cur.execute(
+                """
+                SELECT
+                    COALESCE(vrp.forma_pagamento, '-') AS forma_pagamento,
+                    COALESCE(vrp.observacao, '') AS observacao,
+                    vrp.valor
+                FROM venda_reembolso_pagamentos vrp
+                WHERE vrp.reembolso_id = %s
+                ORDER BY vrp.id
+                """,
+                (int(reembolso_id),),
+            )
+            pagamentos = list(cur.fetchall())
+
+            return {
+                "reembolso": reembolso,
+                "itens": itens,
+                "pagamentos": pagamentos,
+            }
+
     @staticmethod
     def obter_venda_detalhada(venda_id: int) -> dict[str, Any] | None:
         with db_cursor() as cur:

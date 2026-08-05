@@ -71,7 +71,7 @@ class PreVendaModel:
                 filtros.append("pv.usuario_id = %s")
                 params.append(usuario_id)
             if caixa_id is not None:
-                filtros.append("pv.caixa_id = %s")
+                filtros.append("(pv.caixa_id = %s OR pv.caixa_id IS NULL)")
                 params.append(caixa_id)
 
             where = " AND ".join(filtros) if filtros else "1=1"
