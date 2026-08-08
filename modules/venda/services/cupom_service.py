@@ -16,8 +16,11 @@ def criar_item_cupom(produto: dict[str, Any], quantidade: int) -> ItemCupom:
     )
     return {
         "id": int(produto.get("id") or 0),
+        "kit_id": int(produto.get("kit_id") or 0),
+        "kit_nome": str(produto.get("kit_nome") or ""),
+        "tipo_item": str(produto.get("tipo_item") or "PRODUTO"),
         "codigo_barras": str(produto.get("codigo_barras") or ""),
-        "nome": str(produto.get("nome") or ""),
+        "nome": str(produto.get("kit_nome") or produto.get("nome") or ""),
         "quantidade": int(quantidade),
         "preco_venda": preco,
         "preco_tabela": preco_tabela,

@@ -63,3 +63,15 @@ def listar_fornecedores_ativos() -> list[dict[str, Any]]:
 
 def listar_unidades_ativas() -> list[dict[str, Any]]:
     return UnidadeModel.listar_ativas()
+
+def listar_produtos_ativos() -> list[dict[str, Any]]:
+    with db_cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, nome, preco_venda
+            FROM   produtos
+            WHERE  ativo = 'S'
+            ORDER  BY nome
+            """
+        )
+        return cast(list[dict[str, Any]], cur.fetchall())

@@ -25,6 +25,7 @@ from utils.system_runtime import descricao_ambiente, versao_referencia
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 from modules.shared.constants import FLAG_NAO, FLAG_SIM
+from modules.produtos.services.kit_service import KitService
 
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
@@ -346,7 +347,6 @@ QPushButton:hover { background: #2a74b8; }
                 "loader": self._load_formas_pagamento,
                 "new_action": self._open_cadastro_forma_pagamento,
                 "new_label": "Nova forma de pagamento",
-                "shortcut": "F6",
             },
             "caixas": {
                 "button": self.btnNavCaixas,
@@ -422,10 +422,41 @@ QPushButton:hover { background: #2a74b8; }
             },
         }
 
+        self.btnNavKits = QPushButton(self.frameSubNavBar)
+        self.btnNavKits.setObjectName("btnNavKits")
+        self.btnNavKits.setStyleSheet(
+            "QPushButton { background-color: #eef5fb; color: #46627d; border: 1px solid #b8cde0; "
+            "border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: 600; min-height: 30px; }"
+            "QPushButton:checked { background-color: white; color: #1a3a5c; border-bottom: 2px solid #3585c8; font-weight: 800; }"
+            "QPushButton:hover:!checked { background-color: #dce8f4; }"
+        )
+        self.btnNavKits.setText("(F6) Kits")
+        self.subNavLayout.insertWidget(5, self.btnNavKits)
+
+        self._management_configs["kits"] = {
+            "button": self.btnNavKits,
+            "title": "Kits",
+            "section_title": "Gerenciamento de Kits",
+            "hint": "Gerencie kits de produtos. Monte kits com varios itens e defina um preco proprio.",
+            "columns": [
+                ("id", "ID"),
+                ("cod_produto", "Codigo"),
+                ("nome", "Kit"),
+                ("preco_kit", "Preco Kit"),
+                ("quantidade_estoque", "Estoque"),
+                ("qtd_itens", "Itens"),
+                ("ativo", "Ativo"),
+            ],
+            "loader": self._load_kits,
+            "new_action": self._open_cadastro_kit,
+            "new_label": "Novo kit",
+            "shortcut": "F6",
+        }
+
         for config in self._management_configs.values():
             button = config["button"]
             shortcut = config.get("shortcut")
-            if shortcut:
+            if shortcut and shortcut != "F6":
                 button.setText(f"({shortcut}) {config['title']}")
         self.btnNavFiscal.setText("(F8) Parâmetros Fiscais")
 
@@ -437,6 +468,7 @@ QPushButton:hover { background: #2a74b8; }
                 self.btnNavFornecedores,
                 self.btnNavCategorias,
                 self.btnNavClientesCadastro,
+                self.btnNavKits,
             ],
             "acesso": [
                 self.btnNavPerfis,
@@ -551,7 +583,7 @@ QPushButton:hover { background: #2a74b8; }
         self.shortcutF5 = QShortcut(QKeySequence("F5"), self)
         self.shortcutF5.activated.connect(lambda: self._show_management_page("clientes"))
         self.shortcutF6 = QShortcut(QKeySequence("F6"), self)
-        self.shortcutF6.activated.connect(lambda: self._show_management_page("formas_pagamento"))
+        self.shortcutF6.activated.connect(lambda: self._show_management_page("kits"))
         self.shortcutF7 = QShortcut(QKeySequence("F7"), self)
         self.shortcutF7.activated.connect(lambda: self._show_management_page("caixas"))
         self.shortcutF8 = QShortcut(QKeySequence("F8"), self)
@@ -564,6 +596,7 @@ QPushButton:hover { background: #2a74b8; }
             "fornecedores": self.btnNavProdutos,
             "categorias": self.btnNavProdutos,
             "clientes": self.btnNavProdutos,
+            "kits": self.btnNavProdutos,
             "formas_pagamento": self.btnNavVendas,
             "caixas": self.btnNavVendas,
             "unidades": self.btnNavLotes,
@@ -591,6 +624,7 @@ QPushButton:hover { background: #2a74b8; }
             self.btnNavFornecedores,
             self.btnNavCategorias,
             self.btnNavClientesCadastro,
+            self.btnNavKits,
             self.btnNavPerfis,
             self.btnNavPermissoes,
             self.btnNavCargos,
@@ -680,12 +714,12 @@ QPushButton:hover { background: #2a74b8; }
         self.managementPage.show()
         self.managementPage.btnNovo.setText(config["new_label"])
         self.managementPage.set_details_enabled(key in {"produtos", "caixas", "auditoria"})
-        self.managementPage.set_quantity_adjustment_enabled(key == "produtos")
+        self.managementPage.set_quantity_adjustment_enabled(key in {"produtos", "kits"})
         self.managementPage.set_edit_enabled(
-            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}
+            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "kits", "formas_pagamento", "unidades", "pdvs"}
         )
         self.managementPage.set_toggle_enabled(
-            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}
+            key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "kits", "formas_pagamento", "unidades", "pdvs"}
         )
         self.managementPage.btnNovo.setVisible(key != "auditoria")
         self._desconectar_click(self.managementPage.btnNovo)
@@ -814,6 +848,9 @@ QPushButton:hover { background: #2a74b8; }
             row["fracionavel"] = "Sim" if bool(row.get("fracionavel")) else "Não"
         return rows
 
+    def _load_kits(self) -> list[dict[str, Any]]:
+        return KitService.listar_resumo()
+
     def _open_cadastro_produto(self) -> None:
         from modules.produtos.views.cadastro_produto_view import CadastroProdutoView
 
@@ -861,6 +898,13 @@ QPushButton:hover { background: #2a74b8; }
         from modules.unidades.views.cadastro_unidade_view import CadastroUnidadeView
 
         dialog = CadastroUnidadeView(self)
+        if dialog.exec_():
+            self._refresh_current_management_page()
+
+    def _open_cadastro_kit(self) -> None:
+        from modules.produtos.views.cadastro_kit_dialog import CadastroKitDialog
+
+        dialog = CadastroKitDialog(parent=self)
         if dialog.exec_():
             self._refresh_current_management_page()
 
@@ -928,6 +972,14 @@ QPushButton:hover { background: #2a74b8; }
                 "service_call": ClienteService.alternar_status,
                 "invalid_title": "Registro inválido",
             }
+        if current_key == "kits":
+            return {
+                "entity_label": "kit",
+                "nome": str(row.get("nome") or "kit"),
+                "entity_id": row.get("id"),
+                "service_call": KitService.alternar_status,
+                "invalid_title": "Registro invalido",
+            }
         if current_key == "formas_pagamento":
             from modules.formas_pagamento.services.forma_pagamento_service import FormaPagamentoService
 
@@ -941,21 +993,33 @@ QPushButton:hover { background: #2a74b8; }
         return None
 
     def _open_ajuste_quantidade(self) -> None:
-        if getattr(self, "_current_management_key", None) != "produtos":
+        current_key = getattr(self, "_current_management_key", None)
+
+        if current_key == "produtos":
+            produto = self._obter_registro_selecionado(
+                "Selecione um produto",
+                "Escolha um produto na tabela antes de ajustar a quantidade.",
+            )
+            if not produto:
+                return
+            from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
+            dialog = AjusteQuantidadeDialog(produto, self)
+            if dialog.exec_():
+                self._refresh_current_management_page()
             return
 
-        produto = self._obter_registro_selecionado(
-            "Selecione um produto",
-            "Escolha um produto na tabela antes de ajustar a quantidade.",
-        )
-        if not produto:
+        if current_key == "kits":
+            kit = self._obter_registro_selecionado(
+                "Selecione um kit",
+                "Escolha um kit na tabela antes de ajustar a quantidade.",
+            )
+            if not kit:
+                return
+            from modules.produtos.views.ajuste_estoque_kit_dialog import AjusteEstoqueKitDialog
+            dialog = AjusteEstoqueKitDialog(kit, self)
+            if dialog.exec_():
+                self._refresh_current_management_page()
             return
-
-        from modules.produtos.views.ajuste_quantidade_dialog import AjusteQuantidadeDialog
-
-        dialog = AjusteQuantidadeDialog(produto, self)
-        if dialog.exec_():
-            self._refresh_current_management_page()
 
     def _abrir_detalhes_produto(self) -> None:
         if getattr(self, "_current_management_key", None) != "produtos":
@@ -1058,7 +1122,7 @@ QPushButton:hover { background: #2a74b8; }
 
     def _toggle_registro_ativo(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
-        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}:
+        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "kits", "formas_pagamento", "unidades", "pdvs"}:
             return
 
         row = self._obter_registro_selecionado(
@@ -1108,7 +1172,7 @@ QPushButton:hover { background: #2a74b8; }
 
     def _editar_registro(self) -> None:
         current_key = getattr(self, "_current_management_key", None)
-        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "formas_pagamento", "unidades", "pdvs"}:
+        if current_key not in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "kits", "formas_pagamento", "unidades", "pdvs"}:
             return
 
         row = self._obter_registro_selecionado(
@@ -1195,23 +1259,49 @@ QPushButton:hover { background: #2a74b8; }
                 self._refresh_current_management_page()
             return
 
-        registro_id = row.get("id_fornecedor")
-        if registro_id is None:
-            mostrar_aviso(self, "Fornecedor inválido", "Não foi possível identificar o fornecedor selecionado.")
-            return
-        from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
+        if current_key == "kits":
+            registro_id = row.get("id")
+            if registro_id is None:
+                mostrar_aviso(self, "Kit invalido", "Nao foi possivel identificar o kit selecionado.")
+                return
+            from modules.produtos.views.cadastro_kit_dialog import CadastroKitDialog
 
-        self._abrir_cadastro_externo(
-            CadastroFornecedorView,
-            "cadastro_fornecedor",
-            fornecedor_id=int(registro_id),
-            admin_view=self,
-        )
+            dialog = CadastroKitDialog(kit_id=int(registro_id), parent=self)
+            if dialog.exec_():
+                self._refresh_current_management_page()
+            return
+
+        if current_key == "fornecedores":
+            registro_id = row.get("id_fornecedor")
+            if registro_id is None:
+                mostrar_aviso(self, "Fornecedor inválido", "Não foi possível identificar o fornecedor selecionado.")
+                return
+            from modules.fornecedores.views.cadastro_fornecedor_view import CadastroFornecedorView
+
+            self._abrir_cadastro_externo(
+                CadastroFornecedorView,
+                "cadastro_fornecedor",
+                fornecedor_id=int(registro_id),
+                admin_view=self,
+            )
+            return
 
     def _editar_registro_por_duplo_clique(self, _item: QTableWidgetItem) -> None:
         current_key = getattr(self, "_current_management_key", None)
         if current_key == "caixas":
             self._abrir_detalhes_registro()
+            return
+
+        if current_key == "kits":
+            row = self._obter_registro_selecionado("Kit invalido", "Selecione um kit na tabela.")
+            if not row:
+                return
+            registro_id = row.get("id")
+            if registro_id is None:
+                return
+            from modules.produtos.views.consulta_kit_dialog import ConsultaKitDialog
+            dialog = ConsultaKitDialog(kit_id=int(registro_id), parent=self)
+            dialog.exec_()
             return
 
         if current_key != "produtos":

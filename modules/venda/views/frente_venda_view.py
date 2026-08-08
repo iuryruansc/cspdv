@@ -435,7 +435,11 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             return
 
         produto_id = int(self._produto_atual.get("id") or 0)
-        estoque_disponivel = float(self._produto_atual.get("quantidade_estoque") or 0.0)
+        kit_id = int(self._produto_atual.get("kit_id") or 0)
+        if kit_id > 0:
+            estoque_disponivel = float(self._produto_atual.get("quantidade_estoque") or 0.0)
+        else:
+            estoque_disponivel = float(self._produto_atual.get("quantidade_estoque") or 0.0)
         quantidade_ja_lancada = sum(
             int(item.get("quantidade") or 0)
             for item in self._itens_venda

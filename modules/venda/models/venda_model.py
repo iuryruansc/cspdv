@@ -98,81 +98,111 @@ class VendaModel:
             for item, total_item in zip(itens, totais_finais):
                 produto_id = int(item.get("id") or 0)
                 quantidade = int(item.get("quantidade") or 0)
-                if produto_id <= 0 or quantidade <= 0:
-                    raise ValueError("Existe item inválido na venda.")
+                kit_id = int(item.get("kit_id") or 0)
+                is_kit = kit_id > 0
 
-                alocacoes = VendaModel._alocar_lotes_saida(
-                    cursor=cur,
-                    produto_id=produto_id,
-                    quantidade=quantidade,
-                )
-                precos_unitarios = VendaModel._ratear_preco_unitario(
-                    quantidade=quantidade,
-                    total_item=total_item,
-                )
-
-                indice_preco = 0
-                total_saida_produto = 0
-                for alocacao in alocacoes:
-                    fatia_precos = precos_unitarios[indice_preco : indice_preco + alocacao.quantidade]
-                    indice_preco += alocacao.quantidade
-                    total_saida_produto += alocacao.quantidade
-
-                    for preco_unitario, quantidade_grupo in VendaModel._agrupar_precos(fatia_precos):
+                if is_kit:
+                    if quantidade <= 0:
+                        raise ValueError("Existe item inválido na venda.")
+                    precos_unitarios = VendaModel._ratear_preco_unitario(
+                        quantidade=quantidade,
+                        total_item=total_item,
+                    )
+                    for preco_unitario in precos_unitarios:
                         cur.execute(
                             """
                             INSERT INTO itens_venda
-                                (venda_id, lote_id, produto_id, quantidade, preco_unitario)
+                                (venda_id, lote_id, kit_id, produto_id, quantidade, preco_unitario)
                             VALUES
-                                (%s, %s, %s, %s, %s)
+                                (%s, NULL, %s, NULL, 1, %s)
+                            """,
+                            (venda_id, kit_id, float(preco_unitario)),
+                        )
+                    cur.execute(
+                        """
+                        UPDATE kits
+                        SET quantidade_estoque = quantidade_estoque - %s,
+                            updatedAt = NOW()
+                        WHERE id = %s
+                        """,
+                        (quantidade, kit_id),
+                    )
+                else:
+                    if produto_id <= 0 or quantidade <= 0:
+                        raise ValueError("Existe item inválido na venda.")
+
+                    alocacoes = VendaModel._alocar_lotes_saida(
+                        cursor=cur,
+                        produto_id=produto_id,
+                        quantidade=quantidade,
+                    )
+                    precos_unitarios = VendaModel._ratear_preco_unitario(
+                        quantidade=quantidade,
+                        total_item=total_item,
+                    )
+
+                    indice_preco = 0
+                    total_saida_produto = 0
+                    for alocacao in alocacoes:
+                        fatia_precos = precos_unitarios[indice_preco : indice_preco + alocacao.quantidade]
+                        indice_preco += alocacao.quantidade
+                        total_saida_produto += alocacao.quantidade
+
+                        for preco_unitario, quantidade_grupo in VendaModel._agrupar_precos(fatia_precos):
+                            cur.execute(
+                                """
+                                INSERT INTO itens_venda
+                                    (venda_id, lote_id, produto_id, quantidade, preco_unitario)
+                                VALUES
+                                    (%s, %s, %s, %s, %s)
+                                """,
+                                (
+                                    venda_id,
+                                    alocacao.lote_id,
+                                    produto_id,
+                                    quantidade_grupo,
+                                    float(preco_unitario),
+                                ),
+                            )
+
+                        cur.execute(
+                            """
+                            UPDATE lotes
+                            SET quantidade = quantidade - %s,
+                                updatedAt = NOW()
+                            WHERE id = %s
+                            """,
+                            (alocacao.quantidade, alocacao.lote_id),
+                        )
+
+                        cur.execute(
+                            """
+                            INSERT INTO movimentacao_estoque
+                                (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
+                            VALUES
+                                (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
                             """,
                             (
-                                venda_id,
                                 alocacao.lote_id,
-                                produto_id,
-                                quantidade_grupo,
-                                float(preco_unitario),
+                                venda_id,
+                                data_hora,
+                                "saida_venda",
+                                alocacao.quantidade,
+                                funcionario_id,
+                                f"Saida por venda #{venda_id}",
+                                FLAG_SIM,
                             ),
                         )
 
                     cur.execute(
                         """
-                        UPDATE lotes
-                        SET quantidade = quantidade - %s,
+                        UPDATE produtos
+                        SET quantidade_estoque = quantidade_estoque - %s,
                             updatedAt = NOW()
                         WHERE id = %s
                         """,
-                        (alocacao.quantidade, alocacao.lote_id),
+                        (total_saida_produto, produto_id),
                     )
-
-                    cur.execute(
-                        """
-                        INSERT INTO movimentacao_estoque
-                            (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
-                        VALUES
-                            (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
-                        """,
-                        (
-                            alocacao.lote_id,
-                            venda_id,
-                            data_hora,
-                            "saida_venda",
-                            alocacao.quantidade,
-                            funcionario_id,
-                            f"Saida por venda #{venda_id}",
-                            FLAG_SIM,
-                        ),
-                    )
-
-                cur.execute(
-                    """
-                    UPDATE produtos
-                    SET quantidade_estoque = quantidade_estoque - %s,
-                        updatedAt = NOW()
-                    WHERE id = %s
-                    """,
-                    (total_saida_produto, produto_id),
-                )
 
             for pagamento in pagamentos:
                 forma_pagamento = str(pagamento.get("forma") or "").strip()

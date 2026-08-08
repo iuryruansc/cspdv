@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from modules.produtos.models.produto_model import ProdutoModel
+from modules.produtos.models.kit_model import KitModel
 from modules.shared.constants import FLAG_NAO, FLAG_SIM, ResultadoOperacao, alternar_flag
 from utils.app_logger import log_error
 
@@ -13,10 +14,18 @@ class ProdutoService:
         if len(termo_limpo) < 2:
             return []
         try:
-            return ProdutoModel.buscar_para_venda(termo_limpo)
+            produtos = ProdutoModel.buscar_para_venda(termo_limpo)
         except Exception as e:
             log_error("Erro ao buscar produtos para venda no serviço.", e)
-            return []
+            produtos = []
+
+        try:
+            kits = KitModel.buscar_para_venda(termo_limpo)
+        except Exception as e:
+            log_error("Erro ao buscar kits para venda no serviço.", e)
+            kits = []
+
+        return produtos + kits
 
     @staticmethod
     def _validar_dados_produto(dados: dict[str, Any], produto_id: int | None = None) -> ResultadoOperacao:
