@@ -49,6 +49,11 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
     def _montar_texto_cupom(self) -> str:
         itens: list[dict[str, Any]] = list(self._venda_data.get("itens") or [])
         pagamentos: list[dict[str, Any]] = list(self._venda_data.get("pagamentos") or [])
+        subtotal = float(self._venda_data.get("subtotal") or 0.0)
+        desconto_itens = self._venda_data.get("desconto_itens")
+        if desconto_itens is None:
+            desconto_itens = sum(float(item.get("desconto_item") or 0.0) for item in itens)
+        subtotal_sem_desconto = subtotal + float(desconto_itens or 0.0)
         linhas = [
             "********* DOCUMENTO NÃO FISCAL *********",
             "                CSPdv",
@@ -73,7 +78,7 @@ class PosPagamentoDialog(QDialog, Ui_CupomNaoFiscal):
         linhas.extend(
             [
                 "-" * 40,
-                f"Subtotal: {formatar_moeda(self._venda_data.get('subtotal') or 0.0)}",
+                f"Subtotal: {formatar_moeda(subtotal_sem_desconto)}",
                 f"Desconto: {formatar_moeda(self._venda_data.get('desconto_total') or 0.0)}",
                 f"Total:    {formatar_moeda(self._venda_data.get('total') or 0.0)}",
             ]

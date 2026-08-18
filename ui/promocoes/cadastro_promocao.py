@@ -313,6 +313,7 @@ class Ui_CadastroPromocao(object):
             ("PERCENTUAL", "%", "Percentual"),
             ("VALOR", "R$", "Desconto em R$"),
             ("PRECO_FIXO", "$!", "Preco Fixo"),
+            ("NOVO_PRECO", "N$", "Novo Preco"),
             ("LEVE_X_PAGUE_Y", "2x1", "Leve X Pague Y"),
             ("DESCONTO_PROGRESSIVO", "++", "Progressivo"),
             ("COMBO", "C", "Combo"),
@@ -401,6 +402,19 @@ class Ui_CadastroPromocao(object):
         fl.addStretch(1)
         lay.addWidget(self.framePrecoFixo)
 
+        # --- NOVO PRECO ---
+        self.frameNovoPreco = QtWidgets.QFrame(self.frameConfig)
+        fl = QtWidgets.QVBoxLayout(self.frameNovoPreco)
+        fl.setContentsMargins(0, 0, 0, 0)
+        fl.setSpacing(6)
+        lbl_info = QtWidgets.QLabel(self.frameNovoPreco)
+        lbl_info.setText("Ao vincular produtos, informe o novo preco para cada item individualmente.")
+        lbl_info.setWordWrap(True)
+        lbl_info.setStyleSheet("color: #46627d; font-size: 11px; padding: 4px 0;")
+        fl.addWidget(lbl_info)
+        fl.addStretch(1)
+        lay.addWidget(self.frameNovoPreco)
+
         # --- LEVE X PAGUE Y ---
         self.frameLeveXPagueY = QtWidgets.QFrame(self.frameConfig)
         fl = QtWidgets.QHBoxLayout(self.frameLeveXPagueY)
@@ -460,6 +474,7 @@ class Ui_CadastroPromocao(object):
             "PERCENTUAL": self.framePercentual,
             "VALOR": self.frameValor,
             "PRECO_FIXO": self.framePrecoFixo,
+            "NOVO_PRECO": self.frameNovoPreco,
             "LEVE_X_PAGUE_Y": self.frameLeveXPagueY,
             "DESCONTO_PROGRESSIVO": self.frameProgressivo,
             "COMBO": self.frameCombo,

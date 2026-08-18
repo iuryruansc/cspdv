@@ -125,7 +125,7 @@ class PromocaoService:
         return True, "Promoção cancelada com sucesso."
 
     @staticmethod
-    def vincular_produto(promocao_id: int, produto_id: int, observacao: str = "") -> ResultadoOperacao:
+    def vincular_produto(promocao_id: int, produto_id: int, observacao: str = "", preco_personalizado: float | None = None) -> ResultadoOperacao:
         promocao = PromocaoModel.buscar_por_id(int(promocao_id))
         if not promocao:
             return False, "Promoção não localizada para vincular produtos."
@@ -179,6 +179,14 @@ class PromocaoService:
             if preco_fixo >= preco_original:
                 return False, "O preço fixo promocional deve ser menor que o preço atual do produto."
             preco_promocional = preco_fixo.quantize(Decimal("0.01"))
+            desconto_aplicado = (preco_original - preco_promocional).quantize(Decimal("0.01"))
+        elif tipo == "NOVO_PRECO":
+            if preco_personalizado is None or preco_personalizado <= 0:
+                return False, "Informe o novo preço para este produto."
+            preco_novo = PromocaoService._decimal(preco_personalizado)
+            if preco_novo >= preco_original:
+                return False, "O novo preço deve ser menor que o preço atual do produto."
+            preco_promocional = preco_novo.quantize(Decimal("0.01"))
             desconto_aplicado = (preco_original - preco_promocional).quantize(Decimal("0.01"))
         else:
             return False, "Tipo de desconto da promoção inválido."

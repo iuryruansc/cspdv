@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QTableWidget
+from PyQt5.QtWidgets import QDialog, QDoubleSpinBox, QTableWidget
 
 from modules.promocoes.services.promocao_service import PromocaoService
 from ui.promocoes.vincular_produtos_promocao import Ui_VincularProdutosPromocao
@@ -40,6 +40,15 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         self.tableItensVinculados.setColumnWidth(2, 95)
         self.tableItensVinculados.setColumnWidth(3, 85)
 
+        self.spinNovoPreco = QDoubleSpinBox(self.frameBusca)
+        self.spinNovoPreco.setDecimals(2)
+        self.spinNovoPreco.setRange(0.01, 999999.99)
+        self.spinNovoPreco.setPrefix("R$ ")
+        self.spinNovoPreco.setValue(0.00)
+        self.spinNovoPreco.setFixedHeight(42)
+        self.spinNovoPreco.setVisible(False)
+        self.buscaLayout.insertWidget(3, self.spinNovoPreco)
+
     def _conectar_sinais(self) -> None:
         self.btnAtualizar.clicked.connect(self._carregar_contexto)
         self.btnFechar.clicked.connect(self.reject)
@@ -56,6 +65,8 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             return
         self._promocao = promocao
         self._popular_resumo_promocao()
+        tipo = str(promocao.get("tipo_desconto") or "").strip().upper()
+        self.spinNovoPreco.setVisible(tipo == "NOVO_PRECO")
         self._carregar_produtos()
         self._carregar_itens_vinculados()
 
@@ -116,16 +127,26 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             return
 
         produto = self._produtos_encontrados[row]
+        tipo = str(self._promocao.get("tipo_desconto") or "").strip().upper()
+        preco_personalizado = None
+        if tipo == "NOVO_PRECO":
+            preco_personalizado = self.spinNovoPreco.value()
+            if preco_personalizado <= 0:
+                mostrar_aviso(self, "Promoções", "Informe o novo preço para o produto.")
+                return
+
         sucesso, mensagem = PromocaoService.vincular_produto(
             promocao_id=self.promocao_id,
             produto_id=int(produto.get("id") or 0),
             observacao="",
+            preco_personalizado=preco_personalizado,
         )
         if not sucesso:
             mostrar_aviso(self, "Promoções", mensagem)
             return
 
         mostrar_info(self, "Promoções", mensagem)
+        self.spinNovoPreco.setValue(0.00)
         self._carregar_produtos()
         self._carregar_itens_vinculados()
 
@@ -157,6 +178,7 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             "PERCENTUAL": "Desconto por percentual",
             "VALOR": "Desconto por valor",
             "PRECO_FIXO": "Preço promocional",
+            "NOVO_PRECO": "Novo preço por produto",
         }
         return mapa.get(tipo.strip().upper(), tipo)
 
@@ -176,4 +198,6 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             return f"R$ {valor:.2f}".replace(".", ",")
         if tipo == "PRECO_FIXO":
             return f"Preço final R$ {preco_fixo:.2f}".replace(".", ",")
+        if tipo == "NOVO_PRECO":
+            return "Preço definido por produto"
         return "-"

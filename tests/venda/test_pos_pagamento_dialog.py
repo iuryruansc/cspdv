@@ -61,6 +61,22 @@ class TestPosPagamentoDialog:
         assert "Vencimento: 20/05/2026" in texto
         assert "Status: CONCLUIDA COM PENDENCIA" in texto
 
+    def test_exibe_subtotal_sem_desconto_e_total_final(self):
+        dialog = PosPagamentoDialog(
+            venda_data=_venda_base(
+                subtotal=10.98,
+                desconto_itens=1.0,
+                desconto_total=1.0,
+                total=10.98,
+            )
+        )
+
+        texto = dialog.textCupom.toPlainText()
+
+        assert "Subtotal: R$ 11,98" in texto
+        assert "Desconto: R$ 1,00" in texto
+        assert "Total:    R$ 10,98" in texto
+
     def test_converte_vencimento_iso_para_formato_brasileiro(self):
         dialog = PosPagamentoDialog(
             venda_data=_venda_base(
