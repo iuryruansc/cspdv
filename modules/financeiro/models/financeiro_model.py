@@ -22,6 +22,28 @@ from modules.shared.constants import (
 
 class FinanceiroModel:
     @staticmethod
+    def listar_contas_receber_cliente(cliente_id: int) -> list[dict[str, Any]]:
+        """Lista todas as contas ainda abertas vinculadas a um cliente."""
+        with db_cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT cr.id AS conta_id, cr.venda_id, cr.data_emissao,
+                       cr.data_vencimento, cr.status, cr.valor_total,
+                       cr.valor_recebido, cr.valor_aberto,
+                       CASE WHEN cr.data_vencimento < CURDATE() THEN 1 ELSE 0 END AS vencida,
+                       CASE WHEN cr.data_vencimento < CURDATE()
+                            THEN DATEDIFF(CURDATE(), cr.data_vencimento) ELSE 0 END AS dias_atraso
+                FROM contas_receber cr
+                WHERE cr.cliente_id = %s
+                  AND cr.ativo = %s
+                  AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}')
+                ORDER BY cr.data_vencimento ASC, cr.id DESC
+                """,
+                (int(cliente_id), FLAG_SIM),
+            )
+            return cast(list[dict[str, Any]], cur.fetchall())
+
+    @staticmethod
     def listar_pdvs() -> list[dict[str, Any]]:
         with db_cursor() as cur:
             cur.execute(

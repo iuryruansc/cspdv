@@ -735,6 +735,11 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
 
             subtotal_bruto = float(item["preco_venda"]) * float(item["quantidade"])
             desconto = self._calcular_desconto(subtotal_bruto, tipo, valor)
+            if tipo != "percentual":
+                # Desconto fixo informado no item representa o valor por unidade.
+                # O cupom armazena o desconto total da linha, portanto deve
+                # considerar todas as unidades escolhidas.
+                desconto = round(valor * int(item.get("quantidade") or 0), 2)
             if desconto >= subtotal_bruto:
                 mostrar_aviso(
                     self,

@@ -13,6 +13,10 @@ Esse fluxo prepara o executavel para:
   - imagens copiadas para `media/produtos`
   - backups
 
+No Windows instalado, os backups sao gravados por padrao em `%LOCALAPPDATA%\\CSPdv\\backups\\database`,
+porque a pasta ao lado do executavel pode estar protegida pelo `Arquivos de Programas`.
+O caminho pode ser alterado pela variavel `CSPDV_BACKUP_DIR` no `.env`.
+
 ## Estrategia de caminhos
 
 O projeto agora separa:

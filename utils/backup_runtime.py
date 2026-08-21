@@ -13,12 +13,13 @@ from PyQt5.QtCore import QObject, QTimer
 
 from database.connection import get_connection
 from utils.app_logger import log_error, log_info, log_warning
-from utils.runtime_paths import app_root
+from utils.runtime_paths import app_data_root
 from utils.system_runtime import intervalo_backup_horas
 
 UTC = timezone.utc
-APP_ROOT = app_root()
-BACKUP_ROOT = Path(os.getenv("CSPDV_BACKUP_DIR", APP_ROOT / "backups" / "database"))
+APP_DATA_ROOT = app_data_root()
+_backup_dir_configurado = str(os.getenv("CSPDV_BACKUP_DIR") or "").strip()
+BACKUP_ROOT = Path(_backup_dir_configurado).expanduser().resolve() if _backup_dir_configurado else APP_DATA_ROOT / "backups" / "database"
 STATE_FILE = BACKUP_ROOT / "backup_state.json"
 
 @dataclass
@@ -62,17 +63,23 @@ def _formatar_data_hora_local(valor: datetime | None) -> str:
     return valor.astimezone().strftime("%d/%m/%Y %H:%M")
 
 def _registrar_resultado(resultado: BackupResultado) -> None:
-    agora = _agora_utc().isoformat()
-    estado = _carregar_estado()
-    estado.update(
-        {
-            "ultimo_backup_utc": agora,
-            "ultimo_status": "SUCESSO" if resultado.sucesso else "ERRO",
-            "ultimo_arquivo": resultado.arquivo,
-            "ultima_mensagem": resultado.mensagem,
-        }
-    )
-    _salvar_estado(estado)
+    try:
+        agora = _agora_utc().isoformat()
+        estado = _carregar_estado()
+        estado.update(
+            {
+                "ultima_tentativa_utc": agora,
+                "ultimo_status": "SUCESSO" if resultado.sucesso else "ERRO",
+                "ultimo_arquivo": resultado.arquivo,
+                "ultima_mensagem": resultado.mensagem,
+            }
+        )
+        if resultado.sucesso:
+            estado["ultimo_backup_utc"] = agora
+        _salvar_estado(estado)
+    except Exception as exc:
+        # A falha ao salvar o estado nao pode interromper o backup nem a thread agendada.
+        log_warning(f"Nao foi possivel salvar o estado do backup: {exc}")
 
 def _escape_texto(valor: str) -> str:
     texto = valor
@@ -248,6 +255,9 @@ class BackupService:
 
     @staticmethod
     def backup_esta_vencido() -> bool:
+        estado = _carregar_estado()
+        if str(estado.get("ultimo_status") or "").strip().upper() == "ERRO":
+            return True
         ultima_execucao = _ultima_execucao()
         if ultima_execucao is None:
             return True

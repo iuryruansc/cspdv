@@ -5,6 +5,7 @@ from PyQt5.QtCore import QDateTime, Qt, QTimer
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QButtonGroup,
+    QAbstractItemView,
     QFrame,
     QLabel,
     QMainWindow,
@@ -81,7 +82,21 @@ QPushButton:hover {
         )
         self.sectionTitleHLayout.addWidget(self.btnFecharCaixaDashboard)
         self.btnFecharCaixaDashboard.hide()
+        self.tableUltimasVendas.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableUltimasVendas.doubleClicked.connect(self._abrir_detalhe_venda_dashboard)
+
+        self.btnVerProdutos = QPushButton("📦   Ver Produtos", self.frameAcoesBtns)
+        self.btnVerProdutos.setObjectName("btnVerProdutos")
+        self.btnVerProdutos.setProperty("actionButton", "true")
+        self.acoesBtnsVLayout.addWidget(self.btnVerProdutos)
+        self.btnVerClientes = QPushButton("👤   Ver Clientes", self.frameAcoesBtns)
+        self.btnVerClientes.setObjectName("btnVerClientes")
+        self.btnVerClientes.setProperty("actionButton", "true")
+        self.acoesBtnsVLayout.addWidget(self.btnVerClientes)
+        self.btnVerKits = QPushButton("🧩   Ver Kits", self.frameAcoesBtns)
+        self.btnVerKits.setObjectName("btnVerKits")
+        self.btnVerKits.setProperty("actionButton", "true")
+        self.acoesBtnsVLayout.addWidget(self.btnVerKits)
 
     def _setup_dashboard_layout(self) -> None:
         self.lblAcoesTitle.setText("Ações Essenciais")
@@ -561,6 +576,9 @@ QPushButton:hover { background: #2a74b8; }
         self.btnAcaoConfig.clicked.connect(self._open_cadastro_categoria)
         self.btnAcaoCadFornecedor.clicked.connect(self._open_cadastro_fornecedor)
         self.btnAcaoCadCliente.clicked.connect(self._open_cadastro_cliente)
+        self.btnVerProdutos.clicked.connect(lambda: self._show_management_page("produtos"))
+        self.btnVerClientes.clicked.connect(lambda: self._show_management_page("clientes"))
+        self.btnVerKits.clicked.connect(lambda: self._show_management_page("kits"))
         self.btnFrenteCaixa.clicked.connect(self._open_frente_caixa)
         self.btnFecharCaixaDashboard.clicked.connect(self._open_fechamento_caixa_dashboard)
         self.btnSair.clicked.connect(self._exit)
@@ -569,7 +587,7 @@ QPushButton:hover { background: #2a74b8; }
         self.managementPage.btnAjustarQuantidade.clicked.connect(self._open_ajuste_quantidade)
         self.managementPage.btnToggleAtivo.clicked.connect(self._toggle_registro_ativo)
         self.managementPage.btnEditar.clicked.connect(self._editar_registro)
-        self.managementPage.tableResultados.itemDoubleClicked.connect(self._editar_registro_por_duplo_clique)
+        self.managementPage.tableResultados.itemDoubleClicked.connect(self._tratar_duplo_clique_registro)
 
     def _setup_shortcuts(self) -> None:
         self.shortcutF1 = QShortcut(QKeySequence("F1"), self)
@@ -879,6 +897,17 @@ QPushButton:hover { background: #2a74b8; }
         from modules.clientes.views.cadastro_cliente_view import CadastroClienteView
 
         self._abrir_cadastro_externo(CadastroClienteView, "cadastro_cliente", admin_view=self)
+
+    def _tratar_duplo_clique_registro(self, *_args) -> None:
+        if getattr(self, "_current_management_key", None) == "clientes":
+            cliente = self.managementPage.selected_row()
+            if not cliente or not cliente.get("id"):
+                return
+            from modules.financeiro.views.contas_cliente_dialog import ContasClienteDialog
+
+            ContasClienteDialog(cliente, self).exec_()
+            return
+        self._editar_registro_por_duplo_clique(*_args)
 
     def _open_cadastro_forma_pagamento(self) -> None:
         from modules.formas_pagamento.views.cadastro_forma_pagamento_view import CadastroFormaPagamentoView

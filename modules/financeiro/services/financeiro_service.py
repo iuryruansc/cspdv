@@ -9,6 +9,10 @@ from modules.financeiro.models.financeiro_model import FinanceiroModel
 
 class FinanceiroService:
     @staticmethod
+    def listar_contas_receber_cliente(cliente_id: int) -> list[dict[str, Any]]:
+        return FinanceiroModel.listar_contas_receber_cliente(cliente_id)
+
+    @staticmethod
     def listar_pdvs() -> list[dict[str, Any]]:
         return FinanceiroModel.listar_pdvs()
 

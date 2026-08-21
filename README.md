@@ -19,7 +19,9 @@ O projeto cobre hoje o fluxo principal de uma operacao de pequeno e medio porte:
 - configuracoes operacionais persistidas
 - parametros fiscais persistidos
 - gestao de PDVs, unidades e formas de pagamento no painel admin
-- backup manual e acompanhamento do ultimo backup
+- gestao de clientes com consulta de contas em aberto
+- pagamento de pendencias diretamente pela consulta do cliente
+- backup automatico e manual com acompanhamento do ultimo resultado
 - migrations de banco aplicadas automaticamente no startup
 
 O sistema ja se encontra em um estagio funcional para operacao assistida, com cobertura automatizada relevante nas areas criticas.
@@ -149,7 +151,7 @@ Exemplos:
 
 - dashboard administrativo
 - alertas operacionais
-- acoes essenciais
+- acoes essenciais para cadastrar e acessar produtos, clientes e kits
 - gerenciamento central de cadastros
 - navegacao reorganizada por grupos
 - venda rapida sem sair do painel
@@ -161,6 +163,7 @@ Exemplos:
   - unidades
   - PDVs
 - status de backup
+- backup gravavel em pasta do usuario no ambiente instalado
 
 ### Venda
 
@@ -169,7 +172,8 @@ Exemplos:
 - consulta de produto
 - consulta de preco
 - selecao de cliente
-- descontos
+- descontos por item e globais
+- desconto fixo de item calculado por unidade e multiplicado pela quantidade
 - confirmacao de venda
 - pagamento
 - finalizacao com pendencia
@@ -193,6 +197,20 @@ Exemplos:
 - comprovante simples de recebimento
 - reembolsos registrados
 - consulta de venda
+- consulta de conta a receber detalhada
+
+### Clientes
+
+- cadastro, edicao e ativacao/desativacao
+- consulta de contas em aberto por cliente
+- selecao de uma conta para iniciar o pagamento
+- registro do recebimento e emissao de comprovante
+
+### Kits
+
+- cadastro e gerenciamento de kits
+- acesso direto pelo dashboard administrativo
+- ajuste de quantidade e ativacao/desativacao quando aplicavel
 
 ### Operacao e Fiscal
 
@@ -272,6 +290,27 @@ Exemplos:
 
 - leituras repetidas do mesmo produto entram como linhas separadas
 - `3*produto` adiciona a quantidade diretamente na linha lancada
+- desconto fixo informado em um item e considerado por unidade
+- o desconto total da linha e multiplicado pela quantidade
+- descontos percentuais continuam sendo calculados sobre o subtotal da linha
+
+## Backup
+
+O sistema executa backups automaticos conforme o intervalo configurado e tambem permite executar um backup manual pela tela de configuracoes.
+
+No ambiente de desenvolvimento, o caminho padrao fica dentro da raiz do projeto. No executavel instalado no Windows, o caminho padrao e:
+
+```text
+%LOCALAPPDATA%\CSPdv\backups\database
+```
+
+Para enviar os arquivos para a nuvem sem integracao direta com uma API, e possivel configurar `CSPDV_BACKUP_DIR` apontando para uma pasta sincronizada pelo Google Drive, OneDrive ou servico semelhante:
+
+```env
+CSPDV_BACKUP_DIR=C:\Users\italo\Google Drive\CSPdv_Backups
+```
+
+O sistema mantem os backups locais configurados e aplica retencao aos arquivos `cspdv_backup_*.sql`. O envio direto por e-mail ou por API de armazenamento remoto ainda nao faz parte da implementacao atual.
 
 ## Banco de dados
 
@@ -327,6 +366,9 @@ Variaveis esperadas pelo projeto:
 - `DB_POOL_SIZE`
 - `APP_NAME`
 - `APP_VERSION`
+- `CSPDV_APP_ROOT` (opcional)
+- `CSPDV_ENV_FILE` (opcional)
+- `CSPDV_BACKUP_DIR` (opcional)
 
 Exemplo:
 
@@ -344,6 +386,9 @@ DB_POOL_SIZE=10
 
 APP_NAME=CSPdv
 APP_VERSION=1.0.0
+
+# Opcional: use uma pasta sincronizada para manter uma copia externa dos backups.
+# CSPDV_BACKUP_DIR=C:\Users\user\Google Drive\CSPdv_Backups
 ```
 
 ### 3. Execute o sistema
@@ -404,11 +449,13 @@ Ainda e recomendado validar o ambiente real de loja antes de producao plena, pri
 - dispositivos e perifericos
 - rotina de backup
 - eventual integracao fiscal futura
+- sincronizacao externa dos backups, quando `CSPDV_BACKUP_DIR` apontar para uma pasta em nuvem
 
 ## Proximas frentes naturais
 
 - relatorios
 - lotes
 - permissoes
+- fornecimento controlado de produtos por cliente
 - camada fiscal real
 - refinamentos de UX e operacao

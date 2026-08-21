@@ -22,12 +22,26 @@ def app_root() -> Path:
     return SOURCE_ROOT
 
 
+def app_data_root() -> Path:
+    """Retorna a pasta gravável usada para dados criados durante a execução."""
+    custom_root = str(os.getenv("CSPDV_APP_ROOT") or "").strip()
+    if custom_root:
+        return Path(custom_root).expanduser().resolve()
+
+    if IS_FROZEN:
+        local_app_data = str(os.getenv("LOCALAPPDATA") or os.getenv("APPDATA") or "").strip()
+        if local_app_data:
+            return (Path(local_app_data) / "CSPdv").resolve()
+
+    return app_root()
+
+
 def resource_root() -> Path:
     return BUNDLED_ROOT
 
 
 def writable_path(*parts: str) -> Path:
-    return app_root().joinpath(*parts)
+    return app_data_root().joinpath(*parts)
 
 
 def resource_path(*parts: str) -> Path:
@@ -57,7 +71,7 @@ def dotenv_file_path() -> Path | None:
         return caminho.resolve() if caminho.exists() else None
 
     candidatos = [
-        writable_path(".env"),
+        app_root() / ".env",
         SOURCE_ROOT / ".env",
     ]
 
@@ -69,7 +83,7 @@ def dotenv_file_path() -> Path | None:
 
 
 def expected_dotenv_path() -> Path:
-    return writable_path(".env")
+    return app_root() / ".env"
 
 
 def load_project_dotenv() -> Path | None:
