@@ -127,6 +127,14 @@ class VendaModel:
                         """,
                         (quantidade, kit_id),
                     )
+                    VendaModel._baixar_componentes_kit(
+                        cursor=cur,
+                        kit_id=kit_id,
+                        quantidade_kit=quantidade,
+                        venda_id=venda_id,
+                        data_hora=data_hora,
+                        usuario_id=funcionario_id,
+                    )
                 else:
                     if produto_id <= 0 or quantidade <= 0:
                         raise ValueError("Existe item inválido na venda.")
@@ -407,6 +415,79 @@ class VendaModel:
             raise ValueError(f"Não foi possível alocar lotes suficientes para o produto ID {produto_id}.")
 
         return alocacoes
+
+    @staticmethod
+    def _baixar_componentes_kit(
+        *,
+        cursor,
+        kit_id: int,
+        quantidade_kit: int,
+        venda_id: int,
+        data_hora: datetime,
+        usuario_id: int,
+    ) -> None:
+        """Baixa os produtos componentes somente quando o kit e vendido."""
+        cursor.execute(
+            """
+            SELECT produto_id, SUM(quantidade) AS quantidade_por_kit
+            FROM kit_itens
+            WHERE kit_id = %s
+            GROUP BY produto_id
+            """,
+            (int(kit_id),),
+        )
+        componentes = list(cursor.fetchall())
+
+        for componente in componentes:
+            produto_id = int(componente["produto_id"])
+            quantidade = int(componente["quantidade_por_kit"] or 0) * int(quantidade_kit)
+            if quantidade <= 0:
+                continue
+
+            alocacoes = VendaModel._alocar_lotes_saida(
+                cursor=cursor,
+                produto_id=produto_id,
+                quantidade=quantidade,
+            )
+            for alocacao in alocacoes:
+                cursor.execute(
+                    """
+                    UPDATE lotes
+                    SET quantidade = quantidade - %s,
+                        updatedAt = NOW()
+                    WHERE id = %s
+                    """,
+                    (alocacao.quantidade, alocacao.lote_id),
+                )
+                cursor.execute(
+                    """
+                    INSERT INTO movimentacao_estoque
+                        (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao,
+                         tipo_movimento_id, ativo, createdAt, updatedAt)
+                    VALUES
+                        (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
+                    """,
+                    (
+                        alocacao.lote_id,
+                        venda_id,
+                        data_hora,
+                        "saida_venda_kit",
+                        alocacao.quantidade,
+                        usuario_id,
+                        f"Saida do componente do kit #{kit_id} na venda #{venda_id}",
+                        FLAG_SIM,
+                    ),
+                )
+
+            cursor.execute(
+                """
+                UPDATE produtos
+                SET quantidade_estoque = quantidade_estoque - %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (quantidade, produto_id),
+            )
 
     @staticmethod
     def _obter_produto_para_saida(*, cursor, produto_id: int) -> dict[str, Any]:

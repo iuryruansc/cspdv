@@ -13,11 +13,16 @@ from modules.venda.views.pagamento_view import PagamentoView
 from modules.venda.views.pos_pagamento_dialog import PosPagamentoDialog
 from ui.venda.venda_rapida_dialog import Ui_VendaRapidaDialog
 from utils.ui_messages import mostrar_aviso, mostrar_info
+from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 
 class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setupUi(self)
+        # O .ui historicamente exigia 1320x820, tamanho maior que a area util
+        # de muitos terminais. O tamanho passa a respeitar a tela e a barra de tarefas.
+        self.setMinimumSize(0, 0)
+        aplicar_tamanho_proporcional_tela(self, proporcao_largura=0.98, proporcao_altura=0.96, margem=12)
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.setModal(True)
 

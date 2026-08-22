@@ -107,6 +107,13 @@ class Ui_ManagementPageWidget(object):
         self.btnDetalhes.hide()
         self.toolbarLayout.addWidget(self.btnDetalhes)
 
+        self.btnContasCliente = QtWidgets.QPushButton(widget)
+        self.btnContasCliente.setProperty("toolbarButton", True)
+        self.btnContasCliente.setEnabled(False)
+        self.btnContasCliente.setText("Contas do Cliente")
+        self.btnContasCliente.hide()
+        self.toolbarLayout.addWidget(self.btnContasCliente)
+
         self.btnEditar = QtWidgets.QPushButton(widget)
         self.btnEditar.setProperty("toolbarButton", True)
         self.btnEditar.setEnabled(False)

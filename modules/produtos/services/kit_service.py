@@ -24,38 +24,21 @@ class KitService:
         return KitModel.listar_itens(kit_id)
 
     @staticmethod
-    def _verificar_estoque_componentes(itens: list[dict[str, Any]], kit_quantidade: int) -> tuple[bool, str]:
+    def _verificar_componentes(itens: list[dict[str, Any]]) -> tuple[bool, str]:
         with db_transaction() as cur:
             for item in itens:
                 produto_id = int(item["produto_id"])
                 qtd_por_kit = int(item["quantidade"])
-                total_necessario = qtd_por_kit * kit_quantidade
+                if produto_id <= 0 or qtd_por_kit <= 0:
+                    return False, "Os produtos do kit devem possuir quantidades validas."
                 cur.execute(
-                    "SELECT nome, quantidade_estoque FROM produtos WHERE id = %s LIMIT 1",
+                    "SELECT nome FROM produtos WHERE id = %s LIMIT 1",
                     (produto_id,),
                 )
                 row = cur.fetchone()
                 if not row:
                     return False, f"Produto ID {produto_id} nao encontrado."
-                estoque_atual = int(row.get("quantidade_estoque") or 0)
-                if estoque_atual < total_necessario:
-                    return False, (
-                        f"Estoque insuficiente para '{row.get('nome')}': "
-                        f"disponivel {estoque_atual}, necessario {total_necessario}."
-                    )
             return True, ""
-
-    @staticmethod
-    def _reduzir_estoque_componentes(itens: list[dict[str, Any]], kit_quantidade: int) -> None:
-        with db_transaction() as cur:
-            for item in itens:
-                produto_id = int(item["produto_id"])
-                qtd_por_kit = int(item["quantidade"])
-                total_reduzir = qtd_por_kit * kit_quantidade
-                cur.execute(
-                    "UPDATE produtos SET quantidade_estoque = quantidade_estoque - %s WHERE id = %s",
-                    (total_reduzir, produto_id),
-                )
 
     @staticmethod
     def cadastrar_kit(
@@ -78,11 +61,9 @@ class KitService:
 
         cod_produto_limpo = str(cod_produto or "").strip() or None
 
-        ok, msg = KitService._verificar_estoque_componentes(itens, kit_quantidade=int(quantidade_estoque))
+        ok, msg = KitService._verificar_componentes(itens)
         if not ok:
             return False, msg
-
-        KitService._reduzir_estoque_componentes(itens, kit_quantidade=int(quantidade_estoque))
 
         kit_id = KitModel.criar_kit(
             cod_produto=cod_produto_limpo,
@@ -92,7 +73,7 @@ class KitService:
             quantidade_estoque=int(quantidade_estoque),
             itens=itens,
         )
-        return True, f"Kit #{kit_id} cadastrado com sucesso. Estoque dos componentes reduzido."
+        return True, f"Kit #{kit_id} cadastrado com sucesso. Os componentes serao baixados somente na venda do kit."
 
     @staticmethod
     def atualizar_kit(
@@ -177,9 +158,9 @@ class KitService:
         if diferenca > 0:
             return True, (
                 f"Estoque do kit ajustado de {quantidade_atual} para {nova_quantidade}. "
-                f"Estoque dos componentes reduzido em {diferenca} unidade(s) cada."
+                "O estoque dos componentes nao foi alterado."
             )
         return True, (
             f"Estoque do kit ajustado de {quantidade_atual} para {nova_quantidade}. "
-            f"Estoque dos componentes aumentado em {abs(diferenca)} unidade(s) cada."
+            "O estoque dos componentes nao foi alterado."
         )

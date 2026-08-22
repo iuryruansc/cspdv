@@ -21,6 +21,16 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         self._conta = detalhes.get("conta") or {}
         self.solicitar_recebimento = False
         self.setupUi(self)
+        # Reserva uma area maior para que os itens vendidos fiquem visiveis
+        # sem comprimir a tabela em poucas linhas.
+        self.setMinimumSize(900, 760)
+        self.resize(1000, 850)
+        self.frameItens.setMinimumHeight(250)
+        self.tableItens.setMinimumHeight(210)
+        self.tableItens.verticalHeader().setDefaultSectionSize(28)
+        self.tableItens.setWordWrap(False)
+        self.frameTable.setMinimumHeight(140)
+        self.tableRecebimentos.setMinimumHeight(100)
         self.setModal(True)
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.btnFechar.clicked.connect(self.accept)
@@ -65,6 +75,11 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
             set_table_item(self.tableRecebimentos, row, 1, str(item.get("forma_pagamento") or "-"))
             set_table_item(self.tableRecebimentos, row, 2, formatar_moeda(item.get("valor_recebido")), alignment=Qt.AlignRight | Qt.AlignVCenter)
             set_table_item(self.tableRecebimentos, row, 3, str(item.get("observacao") or "-"))
+            if str(item.get("tipo_registro") or "").upper() == "REEMBOLSO":
+                for column in range(self.tableRecebimentos.columnCount()):
+                    table_item = self.tableRecebimentos.item(row, column)
+                    if table_item:
+                        table_item.setForeground(Qt.darkRed)
 
     def _aplicar_estilo_status(self) -> None:
         status = str(self._conta.get("status") or "").upper()

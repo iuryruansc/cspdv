@@ -220,27 +220,8 @@ class KitModel:
             if diferenca == 0:
                 return
 
-            cur.execute(
-                "SELECT produto_id, quantidade FROM kit_itens WHERE kit_id = %s",
-                (int(kit_id),),
-            )
-            itens = cur.fetchall()
-
-            for item in itens:
-                produto_id = int(item["produto_id"])
-                qtd_por_kit = int(item["quantidade"])
-                ajuste = qtd_por_kit * diferenca
-
-                if ajuste > 0:
-                    cur.execute(
-                        "UPDATE produtos SET quantidade_estoque = GREATEST(quantidade_estoque - %s, 0), updatedAt = NOW() WHERE id = %s",
-                        (ajuste, produto_id),
-                    )
-                else:
-                    cur.execute(
-                        "UPDATE produtos SET quantidade_estoque = GREATEST(quantidade_estoque + %s, 0), updatedAt = NOW() WHERE id = %s",
-                        (abs(ajuste), produto_id),
-                    )
+            # O estoque dos componentes e controlado no momento da venda do kit.
+            # Ajustar a quantidade cadastrada do kit nao movimenta os produtos.
 
     @staticmethod
     def buscar_para_venda(termo: str, limite: int = 10) -> list[dict[str, Any]]:

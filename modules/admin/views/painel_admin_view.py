@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Any
 
-from PyQt5.QtCore import QDateTime, Qt, QTimer
+from PyQt5.QtCore import QDateTime, QObject, QThread, Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QButtonGroup,
@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QPushButton,
     QShortcut,
+    QSizePolicy,
     QTableWidgetItem,
     QVBoxLayout,
     QWidget,
@@ -28,6 +29,31 @@ from utils.window_size_utils import aplicar_tamanho_proporcional_tela
 from modules.shared.constants import FLAG_NAO, FLAG_SIM
 from modules.produtos.services.kit_service import KitService
 
+
+class _ProdutoResumoWorker(QObject):
+    concluido = pyqtSignal(object, int, int, int)
+    falhou = pyqtSignal(str, int)
+
+    def __init__(self, pagina: int, busca: str, geracao: int):
+        super().__init__()
+        self._pagina = pagina
+        self._busca = busca
+        self._geracao = geracao
+
+    def executar(self) -> None:
+        try:
+            from modules.produtos.models.produto_model import ProdutoModel
+
+            rows, total = ProdutoModel.listar_resumo_paginado(
+                pagina=self._pagina,
+                limite=100,
+                busca=self._busca or None,
+            )
+            self.concluido.emit(rows, total, self._pagina, self._geracao)
+        except Exception as exc:
+            self.falhou.emit(str(exc), self._geracao)
+
+
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -36,6 +62,9 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.btnNavAuditoria.setText("Auditoria")
 
         self._management_configs: dict[str, dict[str, Any]] = {}
+        self._produto_load_generation = 0
+        self._produto_threads: set[QThread] = set()
+        self._produto_workers: set[_ProdutoResumoWorker] = set()
         self._setup_user_context()
         self._setup_dashboard_actions()
         self._setup_dashboard_layout()
@@ -102,17 +131,25 @@ QPushButton:hover {
         self.lblAcoesTitle.setText("Ações Essenciais")
         self.lblConfigEstruturalTitle.setText("Operação e Sistema")
 
+        # Mantem o cabecalho compacto e reserva o espaco vertical para os
+        # botoes de acesso rapido.
+        self.lblAcoesTitle.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        self.lblAcoesTitle.setMinimumHeight(36)
+        self.lblAcoesTitle.setMaximumHeight(42)
+
         self.btnAcaoCadFuncionario.hide()
         self.btnAcaoCadUsuario.hide()
         self.btnAcaoCadPerfil.hide()
         self.btnAcaoCadPermissao.hide()
         self.btnAcaoCadCargo.hide()
 
-        self.frameAcessoSistema.setMinimumSize(292, 0)
-        self.frameConfiguracaoEstrutural.setMinimumSize(292, 0)
+        # Reduz os minimos dos paineis laterais para que o dashboard caiba
+        # em monitores menores sem ficar escondido atras da barra de tarefas.
+        self.frameAcessoSistema.setMinimumSize(220, 0)
+        self.frameConfiguracaoEstrutural.setMinimumSize(220, 0)
 
         self.frameAlertasDashboard = QFrame(self.frameUltimasVendas)
-        self.frameAlertasDashboard.setMinimumSize(292, 0)
+        self.frameAlertasDashboard.setMinimumSize(220, 0)
         self.frameAlertasDashboard.setStyleSheet(
             """
 QFrame {
@@ -584,6 +621,7 @@ QPushButton:hover { background: #2a74b8; }
         self.btnSair.clicked.connect(self._exit)
         self.managementPage.btnAtualizar.clicked.connect(self._refresh_current_management_page)
         self.managementPage.btnDetalhes.clicked.connect(self._abrir_detalhes_registro)
+        self.managementPage.btnContasCliente.clicked.connect(self._abrir_contas_cliente)
         self.managementPage.btnAjustarQuantidade.clicked.connect(self._open_ajuste_quantidade)
         self.managementPage.btnToggleAtivo.clicked.connect(self._toggle_registro_ativo)
         self.managementPage.btnEditar.clicked.connect(self._editar_registro)
@@ -732,6 +770,7 @@ QPushButton:hover { background: #2a74b8; }
         self.managementPage.show()
         self.managementPage.btnNovo.setText(config["new_label"])
         self.managementPage.set_details_enabled(key in {"produtos", "caixas", "auditoria"})
+        self.managementPage.set_client_accounts_enabled(key == "clientes")
         self.managementPage.set_quantity_adjustment_enabled(key in {"produtos", "kits"})
         self.managementPage.set_edit_enabled(
             key in {"produtos", "marcas", "fornecedores", "categorias", "clientes", "kits", "formas_pagamento", "unidades", "pdvs"}
@@ -780,6 +819,19 @@ QPushButton:hover { background: #2a74b8; }
 
     def _populate_management_page(self, key: str) -> None:
         config = self._management_configs[key]
+        if key == "produtos":
+            self._current_management_key = key
+            self.managementPage.configure(
+                title=config["title"],
+                hint=config["hint"],
+                columns=config["columns"],
+                rows=[],
+            )
+            self.managementPage.set_remote_search_callback(self._buscar_produtos_paginado)
+            self._carregar_produtos_paginado()
+            return
+
+        self.managementPage.set_remote_search_callback(None)
         error_message = None
         try:
             rows = config["loader"]()
@@ -804,6 +856,53 @@ QPushButton:hover { background: #2a74b8; }
             self._populate_management_page(current_key)
             if current_key == "caixas":
                 self._atualizar_acao_caixa_management_page()
+
+    def _buscar_produtos_paginado(self, busca: str) -> None:
+        self._carregar_produtos_paginado(pagina=0, busca=busca)
+
+    def _carregar_produtos_paginado(self, *, pagina: int = 0, busca: str | None = None) -> None:
+        if getattr(self, "_current_management_key", None) != "produtos":
+            return
+        self._produto_load_generation += 1
+        geracao = self._produto_load_generation
+        termo = self.managementPage.search_text() if busca is None else busca.strip()
+        self.managementPage.set_loading(True)
+
+        thread = QThread(self)
+        worker = _ProdutoResumoWorker(pagina, termo, geracao)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.executar)
+        # Conexoes diretas para metodos da janela garantem entrega enfileirada
+        # na thread principal, onde os widgets podem ser atualizados com seguranca.
+        worker.concluido.connect(self._produto_carregado)
+        worker.falhou.connect(self._produto_falhou)
+        worker.concluido.connect(thread.quit)
+        worker.falhou.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(lambda finished_thread=thread: self._produto_threads.discard(finished_thread))
+        thread.finished.connect(lambda finished_worker=worker: self._produto_workers.discard(finished_worker))
+        self._produto_threads.add(thread)
+        self._produto_workers.add(worker)
+        thread.start()
+
+    @pyqtSlot(object, int, int, int)
+    def _produto_carregado(self, rows: list[dict[str, Any]], total: int, pagina: int, geracao: int) -> None:
+        if geracao != self._produto_load_generation or getattr(self, "_current_management_key", None) != "produtos":
+            return
+        self.managementPage.replace_rows(rows)
+        self.managementPage.set_pagination(
+            page=pagina,
+            total=total,
+            page_size=100,
+            callback=lambda page: self._carregar_produtos_paginado(page=page),
+        )
+
+    @pyqtSlot(str, int)
+    def _produto_falhou(self, mensagem: str, geracao: int) -> None:
+        if geracao != self._produto_load_generation or getattr(self, "_current_management_key", None) != "produtos":
+            return
+        self.managementPage.set_loading(False)
+        mostrar_aviso(self, "Falha ao carregar produtos", f"Não foi possível consultar os produtos agora.\n\nDetalhes: {mensagem}")
 
     def _load_produtos(self) -> list[dict[str, Any]]:
         from modules.produtos.models.produto_model import ProdutoModel
@@ -900,14 +999,19 @@ QPushButton:hover { background: #2a74b8; }
 
     def _tratar_duplo_clique_registro(self, *_args) -> None:
         if getattr(self, "_current_management_key", None) == "clientes":
-            cliente = self.managementPage.selected_row()
-            if not cliente or not cliente.get("id"):
-                return
-            from modules.financeiro.views.contas_cliente_dialog import ContasClienteDialog
-
-            ContasClienteDialog(cliente, self).exec_()
+            self._abrir_contas_cliente()
             return
         self._editar_registro_por_duplo_clique(*_args)
+
+    def _abrir_contas_cliente(self) -> None:
+        if getattr(self, "_current_management_key", None) != "clientes":
+            return
+        cliente = self.managementPage.selected_row()
+        if not cliente or not cliente.get("id"):
+            return
+        from modules.financeiro.views.contas_cliente_dialog import ContasClienteDialog
+
+        ContasClienteDialog(cliente, self).exec_()
 
     def _open_cadastro_forma_pagamento(self) -> None:
         from modules.formas_pagamento.views.cadastro_forma_pagamento_view import CadastroFormaPagamentoView

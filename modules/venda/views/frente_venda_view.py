@@ -195,6 +195,10 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
 
     def _configurar_interface(self) -> None:
         self.setFocusPolicy(Qt.StrongFocus)
+        # A imagem e apenas um apoio visual e nao deve impor a altura minima
+        # da venda em terminais com resolucao reduzida.
+        self.lblImagemProduto.setMinimumHeight(0)
+        self.frameImagem.setMinimumHeight(0)
         self.lineEditQuantidade.setValidator(QIntValidator(1, 999999, self))
         self.lineEditQuantidade.setText("1")
         self.btnAtalhoF7 = self._criar_botao_atalho("F7  Consulta Preço")

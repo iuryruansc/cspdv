@@ -51,12 +51,18 @@ class ContasClienteDialog(QDialog):
         self.lblResumo.setStyleSheet("font-weight:bold;color:#1a5fa0;")
         layout.addWidget(self.lblResumo)
         botoes = QDialogButtonBox(parent=self)
+        self.btnVerConta = QPushButton("Ver Conta", self)
+        self.btnVerConta.setEnabled(False)
+        botoes.addButton(self.btnVerConta, QDialogButtonBox.ActionRole)
         self.btnPagarAgora = QPushButton("Pagar Agora", self)
         self.btnPagarAgora.setStyleSheet("background:#f0a039;color:#fff;font-weight:bold;padding:7px 16px;border-radius:5px;")
         self.btnPagarAgora.setEnabled(False)
         botoes.addButton(self.btnPagarAgora, QDialogButtonBox.AcceptRole)
         botoes.addButton(QDialogButtonBox.Close)
         self.table.itemSelectionChanged.connect(lambda: self.btnPagarAgora.setEnabled(self.table.currentRow() >= 0))
+        self.table.itemSelectionChanged.connect(lambda: self.btnVerConta.setEnabled(self.table.currentRow() >= 0))
+        self.table.itemDoubleClicked.connect(lambda _item: self._ver_conta())
+        self.btnVerConta.clicked.connect(self._ver_conta)
         self.btnPagarAgora.clicked.connect(self._pagar_agora)
         botoes.rejected.connect(self.reject)
         layout.addWidget(botoes)
@@ -87,15 +93,33 @@ class ContasClienteDialog(QDialog):
             saldo.setToolTip("Saldo que ainda precisa ser pago pelo cliente.")
         self.lblResumo.setText(f"{len(contas)} conta(s) em aberto • Total: {formatar_moeda(total_aberto)}")
 
-    def _pagar_agora(self) -> None:
+    def _conta_selecionada_id(self) -> int:
         row = self.table.currentRow()
         if row < 0:
-            mostrar_aviso(self, "Selecione uma conta", "Selecione a conta que será paga.")
-            return
+            return 0
         conta_item = self.table.item(row, 0)
-        conta_id = int(str(conta_item.text()).lstrip("#")) if conta_item else 0
+        try:
+            return int(str(conta_item.text()).lstrip("#")) if conta_item else 0
+        except (TypeError, ValueError):
+            return 0
+
+    def _ver_conta(self) -> None:
+        conta_id = self._conta_selecionada_id()
         if not conta_id:
-            mostrar_aviso(self, "Conta inválida", "Não foi possível identificar a conta selecionada.")
+            mostrar_aviso(self, "Selecione uma conta", "Selecione a conta que deseja visualizar.")
+            return
+        detalhes = FinanceiroService.obter_conta_receber_detalhada(conta_id)
+        if not detalhes:
+            mostrar_aviso(self, "Conta não encontrada", "Não foi possível localizar os dados da conta selecionada.")
+            return
+        from modules.financeiro.views.consulta_conta_receber_dialog import ConsultaContaReceberDialog
+
+        ConsultaContaReceberDialog(detalhes, self).exec_()
+
+    def _pagar_agora(self) -> None:
+        conta_id = self._conta_selecionada_id()
+        if not conta_id:
+            mostrar_aviso(self, "Selecione uma conta", "Selecione a conta que será paga.")
             return
         if not CaixaSession.has_open_caixa():
             mostrar_aviso(self, "Caixa não encontrado", "Abra um caixa antes de registrar pagamentos de pendências.")

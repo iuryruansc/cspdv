@@ -107,7 +107,8 @@ class ReembolsoService:
                 return False, "A quantidade de reembolso excede o saldo disponível de um item.", None
 
             produto_id = int(original.get("produto_id") or 0)
-            if produto_id <= 0:
+            kit_id = int(original.get("kit_id") or 0)
+            if produto_id <= 0 and kit_id <= 0:
                 return False, "Um dos itens do reembolso não possui produto válido para devolução.", None
 
             valor_unitario = Decimal(str(original.get("preco_unitario") or 0)).quantize(
@@ -121,7 +122,8 @@ class ReembolsoService:
             itens_validos.append(
                 {
                     "item_venda_id": item_venda_id,
-                    "produto_id": produto_id,
+                    "produto_id": produto_id or None,
+                    "kit_id": kit_id or None,
                     "lote_id": int(original.get("lote_id") or 0),
                     "quantidade": quantidade,
                     "valor_unitario": valor_unitario,

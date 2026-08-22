@@ -28,18 +28,44 @@ class FinanceiroModel:
             cur.execute(
                 f"""
                 SELECT cr.id AS conta_id, cr.venda_id, cr.data_emissao,
-                       cr.data_vencimento, cr.status, cr.valor_total,
-                       cr.valor_recebido, cr.valor_aberto,
+                       cr.data_vencimento, cr.status,
+                       GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0) AS valor_total,
+                       COALESCE(pp.total_pago, 0) + COALESCE(crr.total_recebido, 0) AS valor_recebido,
+                       GREATEST(
+                           GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0)
+                           - COALESCE(pp.total_pago, 0)
+                           - COALESCE(crr.total_recebido, 0),
+                           0
+                       ) AS valor_aberto,
                        CASE WHEN cr.data_vencimento < CURDATE() THEN 1 ELSE 0 END AS vencida,
                        CASE WHEN cr.data_vencimento < CURDATE()
                             THEN DATEDIFF(CURDATE(), cr.data_vencimento) ELSE 0 END AS dias_atraso
                 FROM contas_receber cr
+                LEFT JOIN vendas v ON v.id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_total) AS total_reembolsado
+                    FROM venda_reembolsos
+                    WHERE ativo = '{FLAG_SIM}' AND status = '{STATUS_REEMBOLSO_CONCLUIDO}'
+                    GROUP BY venda_id
+                ) re ON re.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_pago) AS total_pago
+                    FROM pagamento_parcial
+                    WHERE observacao IS NULL OR observacao NOT LIKE 'Recebimento posterior%'
+                    GROUP BY venda_id
+                ) pp ON pp.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT conta_receber_id, SUM(valor_recebido) AS total_recebido
+                    FROM contas_receber_recebimentos
+                    WHERE ativo = %s
+                    GROUP BY conta_receber_id
+                ) crr ON crr.conta_receber_id = cr.id
                 WHERE cr.cliente_id = %s
                   AND cr.ativo = %s
                   AND cr.status IN ('{STATUS_CONTA_ABERTAS_SQL}')
                 ORDER BY cr.data_vencimento ASC, cr.id DESC
                 """,
-                (int(cliente_id), FLAG_SIM),
+                (FLAG_SIM, int(cliente_id), FLAG_SIM),
             )
             return cast(list[dict[str, Any]], cur.fetchall())
 
@@ -407,9 +433,14 @@ class FinanceiroModel:
                     COALESCE(c.nome, 'Consumidor Final') AS cliente,
                     cr.data_vencimento,
                     cr.status,
-                    cr.valor_total,
-                    cr.valor_recebido,
-                    cr.valor_aberto,
+                    GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0) AS valor_total,
+                    COALESCE(pp.total_pago, 0) + COALESCE(crr.total_recebido, 0) AS valor_recebido,
+                    GREATEST(
+                        GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0)
+                        - COALESCE(pp.total_pago, 0)
+                        - COALESCE(crr.total_recebido, 0),
+                        0
+                    ) AS valor_aberto,
                     COALESCE((
                         SELECT COUNT(*)
                         FROM contas_receber_recebimentos crr
@@ -434,6 +465,25 @@ class FinanceiroModel:
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
                 LEFT JOIN caixas cx ON cx.id = cr.caixa_id
+                LEFT JOIN vendas v ON v.id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_total) AS total_reembolsado
+                    FROM venda_reembolsos
+                    WHERE ativo = '{FLAG_SIM}' AND status = '{STATUS_REEMBOLSO_CONCLUIDO}'
+                    GROUP BY venda_id
+                ) re ON re.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_pago) AS total_pago
+                    FROM pagamento_parcial
+                    WHERE observacao IS NULL OR observacao NOT LIKE 'Recebimento posterior%'
+                    GROUP BY venda_id
+                ) pp ON pp.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT conta_receber_id, SUM(valor_recebido) AS total_recebido
+                    FROM contas_receber_recebimentos
+                    WHERE ativo = '{FLAG_SIM}'
+                    GROUP BY conta_receber_id
+                ) crr ON crr.conta_receber_id = cr.id
                 WHERE cr.ativo = %s
                   AND cr.data_vencimento >= %s
                   AND cr.data_vencimento < %s
@@ -458,9 +508,14 @@ class FinanceiroModel:
                     COALESCE(c.nome, 'Consumidor Final') AS cliente,
                     cr.descricao,
                     cr.observacao,
-                    cr.valor_total,
-                    cr.valor_recebido,
-                    cr.valor_aberto,
+                    GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0) AS valor_total,
+                    COALESCE(pp.total_pago, 0) + COALESCE(crr.total_recebido, 0) AS valor_recebido,
+                    GREATEST(
+                        GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0)
+                        - COALESCE(pp.total_pago, 0)
+                        - COALESCE(crr.total_recebido, 0),
+                        0
+                    ) AS valor_aberto,
                     cr.data_emissao,
                     cr.data_vencimento,
                     cr.status,
@@ -471,11 +526,30 @@ class FinanceiroModel:
                     END AS dias_atraso
                 FROM contas_receber cr
                 LEFT JOIN clientes c ON c.id = cr.cliente_id
+                LEFT JOIN vendas v ON v.id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_total) AS total_reembolsado
+                    FROM venda_reembolsos
+                    WHERE ativo = '{FLAG_SIM}' AND status = '{STATUS_REEMBOLSO_CONCLUIDO}'
+                    GROUP BY venda_id
+                ) re ON re.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_pago) AS total_pago
+                    FROM pagamento_parcial
+                    WHERE observacao IS NULL OR observacao NOT LIKE 'Recebimento posterior%'
+                    GROUP BY venda_id
+                ) pp ON pp.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT conta_receber_id, SUM(valor_recebido) AS total_recebido
+                    FROM contas_receber_recebimentos
+                    WHERE ativo = %s
+                    GROUP BY conta_receber_id
+                ) crr ON crr.conta_receber_id = cr.id
                 WHERE cr.id = %s
                   AND cr.ativo = %s
                 LIMIT 1
                 """,
-                (int(conta_id), FLAG_SIM),
+                (FLAG_SIM, int(conta_id), FLAG_SIM),
             )
             conta = cur.fetchone()
             if not conta:
@@ -483,6 +557,18 @@ class FinanceiroModel:
 
             cur.execute(
                 """
+                SELECT
+                    pp.data_pagamento AS data_recebimento,
+                    pp.forma_pagamento,
+                    pp.valor_pago AS valor_recebido,
+                    '-' AS operador,
+                    COALESCE(pp.observacao, 'Pagamento realizado na venda') AS observacao
+                FROM pagamento_parcial pp
+                WHERE pp.venda_id = %s
+                  AND (pp.observacao IS NULL OR pp.observacao NOT LIKE 'Recebimento posterior%')
+
+                UNION ALL
+
                 SELECT
                     crr.data_recebimento,
                     COALESCE(fp.nome, '-') AS forma_pagamento,
@@ -494,12 +580,42 @@ class FinanceiroModel:
                 LEFT JOIN usuarios u ON u.id = crr.usuario_id
                 WHERE crr.conta_receber_id = %s
                   AND crr.ativo = %s
-                ORDER BY crr.data_recebimento DESC, crr.id DESC
+                ORDER BY data_recebimento DESC
                 """,
-                (int(conta_id), FLAG_SIM),
+                (int(conta.get("venda_id") or 0), int(conta_id), FLAG_SIM),
             )
             recebimentos = list(cur.fetchall())
-            ultimo_recebimento = recebimentos[0]["data_recebimento"] if recebimentos else None
+            recebimentos_reais = list(recebimentos)
+
+            cur.execute(
+                f"""
+                SELECT
+                    data_hora AS data_recebimento,
+                    'REEMBOLSO' AS forma_pagamento,
+                    (valor_total * -1) AS valor_recebido,
+                    '-' AS operador,
+                    CONCAT(
+                        'Reembolso ', LOWER(tipo), ' da venda #', venda_id,
+                        ' — valor abatido da conta'
+                    ) AS observacao,
+                    'REEMBOLSO' AS tipo_registro
+                FROM venda_reembolsos
+                WHERE venda_id = %s
+                  AND ativo = %s
+                  AND status = '{STATUS_REEMBOLSO_CONCLUIDO}'
+                ORDER BY data_hora DESC, id DESC
+                """,
+                (int(conta.get("venda_id") or 0), FLAG_SIM),
+            )
+            reembolsos = list(cur.fetchall())
+            recebimentos.extend(reembolsos)
+            recebimentos.sort(key=lambda item: item.get("data_recebimento") or datetime.min, reverse=True)
+            ultimo_recebimento = (
+                max(
+                    (item.get("data_recebimento") for item in recebimentos_reais if item.get("data_recebimento")),
+                    default=None,
+                )
+            )
 
             itens: list[dict[str, Any]] = []
             venda_id = conta.get("venda_id")
@@ -507,13 +623,14 @@ class FinanceiroModel:
                 cur.execute(
                     """
                     SELECT
-                        COALESCE(pr.codigo_barras, '-') AS codigo_barras,
-                        COALESCE(pr.nome, '-') AS produto,
+                        COALESCE(k.cod_produto, pr.codigo_barras, '-') AS codigo_barras,
+                        COALESCE(k.nome, pr.nome, '-') AS produto,
                         iv.quantidade,
                         iv.preco_unitario,
                         (iv.quantidade * iv.preco_unitario) AS total_item
                     FROM itens_venda iv
                     LEFT JOIN produtos pr ON pr.id = iv.produto_id
+                    LEFT JOIN kits k ON k.id = iv.kit_id
                     WHERE iv.venda_id = %s
                     ORDER BY iv.id
                     """,
@@ -526,7 +643,7 @@ class FinanceiroModel:
                 "recebimentos": recebimentos,
                 "itens_venda": itens,
                 "resumo": {
-                    "quantidade_recebimentos": len(recebimentos),
+                    "quantidade_recebimentos": len(recebimentos_reais),
                     "ultimo_recebimento": ultimo_recebimento,
                     "dias_atraso": int(conta.get("dias_atraso") or 0),
                     "em_aberto": Decimal(str(conta.get("valor_aberto") or 0)),
@@ -550,16 +667,40 @@ class FinanceiroModel:
                 SELECT
                     cr.id,
                     cr.venda_id,
-                    cr.valor_total,
-                    cr.valor_recebido,
-                    cr.valor_aberto,
+                    GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0) AS valor_total,
+                    COALESCE(pp.total_pago, 0) + COALESCE(crr.total_recebido, 0) AS valor_recebido,
+                    GREATEST(
+                        GREATEST(COALESCE(v.valor_total, cr.valor_total) - COALESCE(re.total_reembolsado, 0), 0)
+                        - COALESCE(pp.total_pago, 0)
+                        - COALESCE(crr.total_recebido, 0),
+                        0
+                    ) AS valor_aberto,
                     cr.status
                 FROM contas_receber cr
+                LEFT JOIN vendas v ON v.id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_total) AS total_reembolsado
+                    FROM venda_reembolsos
+                    WHERE ativo = '{FLAG_SIM}' AND status = '{STATUS_REEMBOLSO_CONCLUIDO}'
+                    GROUP BY venda_id
+                ) re ON re.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT venda_id, SUM(valor_pago) AS total_pago
+                    FROM pagamento_parcial
+                    WHERE observacao IS NULL OR observacao NOT LIKE 'Recebimento posterior%'
+                    GROUP BY venda_id
+                ) pp ON pp.venda_id = cr.venda_id
+                LEFT JOIN (
+                    SELECT conta_receber_id, SUM(valor_recebido) AS total_recebido
+                    FROM contas_receber_recebimentos
+                    WHERE ativo = %s
+                    GROUP BY conta_receber_id
+                ) crr ON crr.conta_receber_id = cr.id
                 WHERE cr.id = %s
                   AND cr.ativo = %s
                 LIMIT 1
                 """,
-                (int(conta_id), FLAG_SIM),
+                (FLAG_SIM, int(conta_id), FLAG_SIM),
             )
             conta = cur.fetchone()
             if not conta:
@@ -600,22 +741,6 @@ class FinanceiroModel:
                     data_recebimento,
                     observacao or None,
                     FLAG_SIM,
-                ),
-            )
-
-            cur.execute(
-                """
-                INSERT INTO pagamento_parcial
-                    (venda_id, data_pagamento, valor_pago, forma_pagamento, observacao, createdAt, updatedAt)
-                VALUES
-                    (%s, %s, %s, %s, %s, NOW(), NOW())
-                """,
-                (
-                    int(conta["venda_id"]),
-                    data_recebimento,
-                    float(valor_recebido),
-                    str(forma.get("nome") or "Forma"),
-                    observacao or "Recebimento posterior de pendência",
                 ),
             )
 
@@ -812,8 +937,9 @@ class FinanceiroModel:
                     iv.id AS item_venda_id,
                     iv.lote_id,
                     iv.produto_id,
+                    iv.kit_id,
                     COALESCE(pr.codigo_barras, '-') AS codigo_barras,
-                    COALESCE(pr.nome, '-') AS produto,
+                    COALESCE(pr.nome, k.nome, '-') AS produto,
                     iv.quantidade,
                     iv.preco_unitario,
                     COALESCE(pr.preco_venda, iv.preco_unitario) AS preco_original,
@@ -828,6 +954,7 @@ class FinanceiroModel:
                     ), 0) AS quantidade_reembolsada
                 FROM itens_venda iv
                 LEFT JOIN produtos pr ON pr.id = iv.produto_id
+                LEFT JOIN kits k ON k.id = iv.kit_id
                 WHERE iv.venda_id = %s
                 ORDER BY iv.id
                 """,

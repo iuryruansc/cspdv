@@ -199,6 +199,64 @@ class ProdutoModel:
             except Exception as e:
                 log_error("Erro ao listar produtos.", e)
                 raise
+
+    @staticmethod
+    def listar_resumo_paginado(
+        *, pagina: int = 0, limite: int = 100, busca: str | None = None
+    ) -> tuple[list[dict[str, Any]], int]:
+        """Lista produtos em paginas para evitar carregar todo o catalogo na UI."""
+        pagina = max(0, int(pagina))
+        limite = min(200, max(1, int(limite)))
+        termo = str(busca or "").strip()
+        where = ""
+        params: list[Any] = []
+        if termo:
+            where = """
+                WHERE p.nome LIKE %s
+                   OR p.codigo_barras LIKE %s
+                   OR p.cod_produto LIKE %s
+                   OR c.nome LIKE %s
+                   OR m.nome_marca LIKE %s
+                   OR f.nome_fantasia LIKE %s
+            """
+            padrao = f"%{termo}%"
+            params.extend([padrao] * 6)
+
+        with db_cursor() as cur:
+            try:
+                cur.execute(
+                    f"""
+                    SELECT COUNT(*) AS total
+                    FROM produtos p
+                    LEFT JOIN categorias c ON c.id = p.categoria_id
+                    LEFT JOIN marcas m ON m.id = p.marca_id
+                    LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                    {where}
+                    """,
+                    tuple(params),
+                )
+                total = int((cur.fetchone() or {}).get("total") or 0)
+                cur.execute(
+                    f"""
+                    SELECT
+                        p.id, p.cod_produto, p.codigo_barras, p.nome,
+                        p.preco_venda, p.quantidade_estoque, p.ativo,
+                        c.nome AS categoria, m.nome_marca AS marca,
+                        f.nome_fantasia AS fornecedor
+                    FROM produtos p
+                    LEFT JOIN categorias c ON c.id = p.categoria_id
+                    LEFT JOIN marcas m ON m.id = p.marca_id
+                    LEFT JOIN fornecedores f ON f.id_fornecedor = p.fornecedor_id
+                    {where}
+                    ORDER BY p.nome, p.id
+                    LIMIT %s OFFSET %s
+                    """,
+                    tuple([*params, limite, pagina * limite]),
+                )
+                return cast(list[dict[str, Any]], cur.fetchall()), total
+            except Exception as e:
+                log_error("Erro ao listar produtos paginados.", e)
+                raise
             
     @staticmethod
     def buscar_por_codigo_barras(codigo: str) -> dict[str, Any] | None:

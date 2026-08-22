@@ -60,8 +60,9 @@ class ReembolsoModel:
 
             for item in itens:
                 item_venda_id = int(item["item_venda_id"])
-                produto_id = int(item["produto_id"])
-                lote_id = int(item["lote_id"])
+                produto_id = int(item.get("produto_id") or 0) or None
+                kit_id = int(item.get("kit_id") or 0)
+                lote_id = int(item.get("lote_id") or 0) or None
                 quantidade = int(item["quantidade"])
                 valor_unitario = Decimal(str(item["valor_unitario"])).quantize(CENT, rounding=ROUND_HALF_UP)
                 valor_total = (valor_unitario * Decimal(quantidade)).quantize(CENT, rounding=ROUND_HALF_UP)
@@ -84,36 +85,47 @@ class ReembolsoModel:
                     ),
                 )
 
-                cur.execute(
-                    """
-                    UPDATE lotes
-                    SET quantidade = COALESCE(quantidade, 0) + %s,
-                        updatedAt = NOW()
-                    WHERE id = %s
-                    """,
-                    (quantidade, lote_id),
-                )
+                if produto_id:
+                    cur.execute(
+                        """
+                        UPDATE lotes
+                        SET quantidade = COALESCE(quantidade, 0) + %s,
+                            updatedAt = NOW()
+                        WHERE id = %s
+                        """,
+                        (quantidade, lote_id),
+                    )
+                    total_produtos[produto_id] = total_produtos.get(produto_id, 0) + quantidade
 
-                total_produtos[produto_id] = total_produtos.get(produto_id, 0) + quantidade
+                    cur.execute(
+                        """
+                        INSERT INTO movimentacao_estoque
+                            (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
+                        VALUES
+                            (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
+                        """,
+                        (
+                            lote_id,
+                            venda_id,
+                            data_hora,
+                            "entrada_reembolso",
+                            quantidade,
+                            usuario_id,
+                            f"Entrada por reembolso #{reembolso_id}",
+                            FLAG_SIM,
+                        ),
+                    )
 
-                cur.execute(
-                    """
-                    INSERT INTO movimentacao_estoque
-                        (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
-                    VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
-                    """,
-                    (
-                        lote_id,
-                        venda_id,
-                        data_hora,
-                        "entrada_reembolso",
-                        quantidade,
-                        usuario_id,
-                        f"Entrada por reembolso #{reembolso_id}",
-                        FLAG_SIM,
-                    ),
-                )
+                if kit_id:
+                    ReembolsoModel._restaurar_componentes_kit(
+                        cursor=cur,
+                        kit_id=kit_id,
+                        quantidade_kit=quantidade,
+                        venda_id=venda_id,
+                        reembolso_id=reembolso_id,
+                        data_hora=data_hora,
+                        usuario_id=usuario_id,
+                    )
 
             for produto_id, quantidade in total_produtos.items():
                 cur.execute(
@@ -147,6 +159,119 @@ class ReembolsoModel:
 
             ReembolsoModel._atualizar_status_venda(cur, int(venda_id))
             return reembolso_id
+
+    @staticmethod
+    def _restaurar_componentes_kit(
+        *,
+        cursor: Any,
+        kit_id: int,
+        quantidade_kit: int,
+        venda_id: int,
+        reembolso_id: int,
+        data_hora: datetime,
+        usuario_id: int,
+    ) -> None:
+        cursor.execute(
+            """
+            SELECT produto_id, SUM(quantidade) AS quantidade_por_kit
+            FROM kit_itens
+            WHERE kit_id = %s
+            GROUP BY produto_id
+            """,
+            (int(kit_id),),
+        )
+        componentes = list(cursor.fetchall())
+
+        for componente in componentes:
+            produto_id = int(componente["produto_id"])
+            quantidade = int(componente["quantidade_por_kit"] or 0) * int(quantidade_kit)
+            if quantidade <= 0:
+                continue
+
+            cursor.execute(
+                """
+                SELECT id, preco_compra, preco_venda
+                FROM produtos
+                WHERE id = %s
+                LIMIT 1
+                """,
+                (produto_id,),
+            )
+            produto = cursor.fetchone()
+            if not produto:
+                raise ValueError(f"Componente {produto_id} do kit não foi encontrado.")
+
+            cursor.execute(
+                """
+                SELECT id
+                FROM lotes
+                WHERE produto_id = %s AND ativo = %s
+                ORDER BY data_validade, id
+                LIMIT 1
+                """,
+                (produto_id, FLAG_SIM),
+            )
+            lote = cursor.fetchone()
+            if lote:
+                lote_id = int(lote["id"])
+            else:
+                cursor.execute(
+                    """
+                    INSERT INTO lotes
+                        (produto_id, preco_compra, preco_venda, numero_lote, quantidade,
+                         data_validade, localizacao, createdAt, updatedAt, ativo)
+                    VALUES
+                        (%s, %s, %s, %s, 0, %s, %s, NOW(), NOW(), %s)
+                    """,
+                    (
+                        produto_id,
+                        float(produto.get("preco_compra") or 0),
+                        float(produto.get("preco_venda") or 0),
+                        f"AUTO-{produto_id:06d}",
+                        "2099-12-31",
+                        "AUTO",
+                        FLAG_SIM,
+                    ),
+                )
+                lote_id = int(cursor.lastrowid or 0)
+
+            cursor.execute(
+                """
+                UPDATE lotes
+                SET quantidade = COALESCE(quantidade, 0) + %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (quantidade, lote_id),
+            )
+            cursor.execute(
+                """
+                UPDATE produtos
+                SET quantidade_estoque = COALESCE(quantidade_estoque, 0) + %s,
+                    updatedAt = NOW()
+                WHERE id = %s
+                """,
+                (quantidade, produto_id),
+            )
+            cursor.execute(
+                """
+                INSERT INTO movimentacao_estoque
+                    (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id, observacao,
+                     tipo_movimento_id, ativo, createdAt, updatedAt)
+                VALUES
+                    (%s, %s, %s, %s, %s, %s, %s, NULL, %s, NOW(), NOW())
+                """,
+                (
+                    lote_id,
+                    venda_id,
+                    data_hora,
+                    "entrada_reembolso_kit",
+                    quantidade,
+                    usuario_id,
+                    f"Entrada do componente do kit #{kit_id} por reembolso #{reembolso_id}",
+                    FLAG_SIM,
+                ),
+            )
     @staticmethod
     def _atualizar_status_venda(cursor: Any, venda_id: int) -> None:
         cursor.execute(

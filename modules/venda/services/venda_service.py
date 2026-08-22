@@ -124,8 +124,8 @@ class VendaService:
                         "cliente_id": cliente_id,
                         "descricao": f"Saldo pendente da venda #{venda_data.get('numero_venda') or '---'}",
                         "observacao": str(venda_data.get("observacao_pendencia") or "").strip(),
-                        "valor_total": valor_em_aberto,
-                        "valor_recebido": 0.0,
+                        "valor_total": valor_total,
+                        "valor_recebido": valor_pago,
                         "valor_aberto": valor_em_aberto,
                         "data_vencimento": str(venda_data.get("data_vencimento") or "").strip(),
                     }
