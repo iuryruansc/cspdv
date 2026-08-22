@@ -68,6 +68,38 @@ class ManagementPageWidget(QFrame, Ui_ManagementPageWidget):
     def search_text(self) -> str:
         return self.lineEditBusca.text().strip()
 
+    def view_state(self) -> dict[str, Any]:
+        """Retorna o contexto visual para reabrir a tela no mesmo ponto."""
+        row = self.selected_row()
+        selected_id = None if row is None else row.get("id")
+        if selected_id is None and row:
+            selected_id = next(iter(row.values()), None)
+        return {
+            "busca": self.search_text(),
+            "pagina": self._pagination_page,
+            "selected_id": selected_id,
+        }
+
+    def set_search_text_silent(self, text: str) -> None:
+        self._ignore_search = True
+        self.lineEditBusca.setText(text or "")
+        self._ignore_search = False
+
+    def apply_saved_search(self) -> None:
+        """Aplica uma busca restaurada sem iniciar uma busca remota."""
+        self._apply_filter(self.search_text())
+
+    def restore_selection(self, selected_id: Any) -> None:
+        if selected_id is None:
+            return
+        for row_index, row in enumerate(self._displayed_rows):
+            row_id = row.get("id")
+            if row_id is None and row:
+                row_id = next(iter(row.values()), None)
+            if str(row_id) == str(selected_id):
+                self.tableResultados.setCurrentCell(row_index, 0)
+                return
+
     def set_loading(self, loading: bool) -> None:
         if loading:
             self.lblResumo.setText("Carregando produtos...")

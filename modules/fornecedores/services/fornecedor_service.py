@@ -33,8 +33,11 @@ class FornecedorService:
         if not valido:
             return False, mensagem
 
+        dados_normalizados = dict(dados)
+        for campo in ("nome_fantasia", "razao_social", "cnpj_cpf", "ie", "telefone", "email", "cidade", "estado"):
+            dados_normalizados[campo] = str(dados.get(campo) or "").strip()
         try:
-            fornecedor_id = FornecedorModel.inserir(dados)
+            fornecedor_id = FornecedorModel.inserir(dados_normalizados)
         except Exception as exc:
             return False, f"Erro ao salvar fornecedor:\n{exc}"
 
@@ -49,8 +52,11 @@ class FornecedorService:
         if not valido:
             return False, mensagem
 
+        dados_normalizados = dict(dados)
+        for campo in ("nome_fantasia", "razao_social", "cnpj_cpf", "ie", "telefone", "email", "cidade", "estado"):
+            dados_normalizados[campo] = str(dados.get(campo) or "").strip()
         try:
-            atualizado = FornecedorModel.atualizar(int(fornecedor_id), dados)
+            atualizado = FornecedorModel.atualizar(int(fornecedor_id), dados_normalizados)
         except Exception as exc:
             return False, f"Erro ao atualizar fornecedor:\n{exc}"
 

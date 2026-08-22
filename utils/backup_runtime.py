@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import threading
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
@@ -20,6 +21,12 @@ UTC = timezone.utc
 APP_DATA_ROOT = app_data_root()
 _backup_dir_configurado = str(os.getenv("CSPDV_BACKUP_DIR") or "").strip()
 BACKUP_ROOT = Path(_backup_dir_configurado).expanduser().resolve() if _backup_dir_configurado else APP_DATA_ROOT / "backups" / "database"
+_backup_mirror_configurado = str(os.getenv("CSPDV_BACKUP_MIRROR_DIR") or "").strip()
+BACKUP_MIRROR_ROOT = (
+    Path(_backup_mirror_configurado).expanduser().resolve()
+    if _backup_mirror_configurado
+    else None
+)
 STATE_FILE = BACKUP_ROOT / "backup_state.json"
 
 @dataclass
@@ -27,6 +34,7 @@ class BackupResultado:
     sucesso: bool
     arquivo: str | None = None
     mensagem: str = ""
+    espelho_sucesso: bool | None = None
 
 def _agora_utc() -> datetime:
     return datetime.now(UTC)
@@ -72,6 +80,11 @@ def _registrar_resultado(resultado: BackupResultado) -> None:
                 "ultimo_status": "SUCESSO" if resultado.sucesso else "ERRO",
                 "ultimo_arquivo": resultado.arquivo,
                 "ultima_mensagem": resultado.mensagem,
+                "espelhamento_status": (
+                    "SUCESSO" if resultado.espelho_sucesso is True
+                    else "ERRO" if resultado.espelho_sucesso is False
+                    else "NAO_CONFIGURADO"
+                ),
             }
         )
         if resultado.sucesso:
@@ -191,10 +204,24 @@ class BackupService:
             arquivo_path.write_text("".join(linhas_saida), encoding="utf-8")
 
             conn.rollback()
+            espelho_sucesso: bool | None = None
+            mensagem_espelho = ""
+            if BACKUP_MIRROR_ROOT is not None:
+                try:
+                    BACKUP_MIRROR_ROOT.mkdir(parents=True, exist_ok=True)
+                    destino = BACKUP_MIRROR_ROOT / arquivo_path.name
+                    shutil.copy2(arquivo_path, destino)
+                    espelho_sucesso = True
+                    mensagem_espelho = f" Cópia externa criada em {BACKUP_MIRROR_ROOT}."
+                except Exception as exc:
+                    espelho_sucesso = False
+                    mensagem_espelho = f" A cópia externa falhou: {exc}."
+                    log_warning(f"Não foi possível espelhar o backup: {exc}")
             resultado = BackupResultado(
                 True,
                 arquivo=str(arquivo_path),
-                mensagem=f"Backup gerado com sucesso em {arquivo_path.name}.",
+                mensagem=f"Backup gerado com sucesso em {arquivo_path.name}.{mensagem_espelho}",
+                espelho_sucesso=espelho_sucesso,
             )
             _registrar_resultado(resultado)
             BackupService._aplicar_retencao()
@@ -227,6 +254,8 @@ class BackupService:
         horario = _formatar_data_hora_local(ultimo)
         if status == "ERRO":
             return f"{horario} | última execução com erro"
+        if str(estado.get("espelhamento_status") or "").upper() == "ERRO":
+            return f"{horario} | cópia externa com erro"
         return horario
 
     @staticmethod
@@ -257,6 +286,8 @@ class BackupService:
     def backup_esta_vencido() -> bool:
         estado = _carregar_estado()
         if str(estado.get("ultimo_status") or "").strip().upper() == "ERRO":
+            return True
+        if BACKUP_MIRROR_ROOT is not None and str(estado.get("espelhamento_status") or "").upper() == "ERRO":
             return True
         ultima_execucao = _ultima_execucao()
         if ultima_execucao is None:

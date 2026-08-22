@@ -124,9 +124,15 @@ class VendaModel:
                         SET quantidade_estoque = quantidade_estoque - %s,
                             updatedAt = NOW()
                         WHERE id = %s
+                          AND ativo = %s
+                          AND COALESCE(quantidade_estoque, 0) >= %s
                         """,
-                        (quantidade, kit_id),
+                        (quantidade, kit_id, FLAG_SIM, quantidade),
                     )
+                    if cur.rowcount <= 0:
+                        raise ValueError(
+                            f"Estoque insuficiente para o kit ID {kit_id} ou kit inativo."
+                        )
                     VendaModel._baixar_componentes_kit(
                         cursor=cur,
                         kit_id=kit_id,

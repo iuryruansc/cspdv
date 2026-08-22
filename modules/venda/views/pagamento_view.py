@@ -75,6 +75,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._pagamentos: list[dict[str, Any]] = []
         self._ultima_linha_pagamento: int | None = None
         self._forma_selecionada = ""
+        self._finalizacao_em_andamento = False
         self._formas_pagamento_dados: dict[str, dict[str, Any]] = {}
         self._botoes_forma_ordenados = [
             self.btnDinheiro,
@@ -109,6 +110,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._venda_data = dict(venda_data)
         self._pagamentos = []
         self._ultima_linha_pagamento = None
+        self._finalizacao_em_andamento = False
         numero_venda = venda_data.get("numero_venda")
         self.lblNumVendaValor.setText(str(numero_venda) if numero_venda not in (None, "", 0) else "Nova")
         self.lblClienteValor.setText(str(venda_data.get("cliente_nome") or "Consumidor Final"))
@@ -448,6 +450,8 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         self._atualizar_display_valor()
 
     def _lancar_pagamento(self) -> None:
+        if self._finalizacao_em_andamento:
+            return
         if not self._forma_selecionada:
             mostrar_info(self, "Forma de pagamento", "Nenhuma forma de pagamento ativa está disponível para lançamento.")
             return
@@ -616,7 +620,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             )
 
     def _finalizar_pagamento(self) -> None:
-        if not self._venda_data:
+        if not self._venda_data or self._finalizacao_em_andamento:
             return
         total = numero_decimal(self._venda_data.get("total"))
         pagamentos = sum(numero_decimal(item["valor"]) for item in self._pagamentos)
@@ -630,6 +634,10 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
             "Deseja finalizar esta venda?",
         ):
             return
+        self._finalizacao_em_andamento = True
+        self.btnFecharPedido.setEnabled(False)
+        self.btnFinalizarPendencia.setEnabled(False)
+        self._atualizar_status_pagamento("Finalizando venda...", "info")
         self.venda_finalizada.emit(
             {
                 "numero_venda": self._venda_data.get("numero_venda"),
@@ -649,7 +657,7 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         )
 
     def _finalizar_com_pendencia(self) -> None:
-        if not self._venda_data:
+        if not self._venda_data or self._finalizacao_em_andamento:
             return
 
         total = numero_decimal(self._venda_data.get("total"))
@@ -689,6 +697,11 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
         if dialog.exec_() != dialog.Accepted or not dialog.resultado:
             return
 
+        self._finalizacao_em_andamento = True
+        self.btnFecharPedido.setEnabled(False)
+        self.btnFinalizarPendencia.setEnabled(False)
+        self._atualizar_status_pagamento("Registrando pendência...", "info")
+
         self.venda_finalizada.emit(
             {
                 "numero_venda": self._venda_data.get("numero_venda"),
@@ -710,6 +723,11 @@ class PagamentoView(QWidget, Ui_TelaPagamento):
                 "observacao_pendencia": dialog.resultado.get("observacao"),
             }
         )
+
+    def liberar_finalizacao(self) -> None:
+        """Permite nova tentativa quando o registro da venda falha."""
+        self._finalizacao_em_andamento = False
+        self._atualizar_resumo()
 
     def _atualizar_data_hora(self) -> None:
         self.lblStatusDataHora.setText(QDateTime.currentDateTime().toString("dd/MM/yyyy  HH:mm:ss"))

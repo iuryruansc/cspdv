@@ -17,6 +17,11 @@ No Windows instalado, os backups sao gravados por padrao em `%LOCALAPPDATA%\\CSP
 porque a pasta ao lado do executavel pode estar protegida pelo `Arquivos de Programas`.
 O caminho pode ser alterado pela variavel `CSPDV_BACKUP_DIR` no `.env`.
 
+Uma segunda copia pode ser criada automaticamente em uma pasta sincronizada,
+como a do Google Drive, usando `CSPDV_BACKUP_MIRROR_DIR`. O backup local
+continua sendo a referencia principal; se a copia externa falhar, o painel
+exibe o aviso e o agendador tenta novamente.
+
 ## Estrategia de caminhos
 
 O projeto agora separa:
@@ -108,3 +113,20 @@ Se a operacao precisar editar ou reaproveitar imagens fora do bundle, tambem e v
 - o sistema cria automaticamente o banco configurado se ele nao existir
 - depois aplica migrations e seeds no startup
 - o instalador copia `.env.example` e cria `.env` se ele ainda nao existir
+
+## Release simplificada
+
+Para gerar o executavel, o instalador e uma copia em uma pasta de distribuicao:
+
+```powershell
+.	ools\publicar_release.ps1
+```
+
+Por padrao, o instalador final fica em `releases/Setup_CSPdv.exe`. Para usar uma pasta sincronizada pelo Google Drive, configure antes:
+
+```powershell
+$env:CSPDV_RELEASE_DIR = "C:\\Users\\Public\\Google Drive\\CSPdv\\releases"
+.	ools\publicar_release.ps1
+```
+
+Isso automatiza a preparacao e a disponibilizacao do instalador. A instalacao no computador de uso real ainda deve ser autorizada pelo operador, evitando substituir o programa durante uma venda ou com o caixa aberto.

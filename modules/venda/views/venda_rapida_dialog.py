@@ -57,6 +57,7 @@ class VendaRapidaDialog(QDialog, Ui_VendaRapidaDialog):
     def _finalizar_venda(self, venda_data: dict[str, Any]) -> None:
         sucesso, mensagem, venda_registrada = VendaService.finalizar_venda(venda_data)
         if not sucesso or venda_registrada is None:
+            self.pagamento_view.liberar_finalizacao()
             mostrar_aviso(self, "Venda não registrada", mensagem)
             return
 

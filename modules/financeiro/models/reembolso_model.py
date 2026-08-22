@@ -117,6 +117,15 @@ class ReembolsoModel:
                     )
 
                 if kit_id:
+                    cur.execute(
+                        """
+                        UPDATE kits
+                        SET quantidade_estoque = COALESCE(quantidade_estoque, 0) + %s,
+                            updatedAt = NOW()
+                        WHERE id = %s
+                        """,
+                        (quantidade, kit_id),
+                    )
                     ReembolsoModel._restaurar_componentes_kit(
                         cursor=cur,
                         kit_id=kit_id,

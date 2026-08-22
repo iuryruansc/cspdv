@@ -1,4 +1,5 @@
 from __future__ import annotations
+from datetime import date
 from typing import Any
 
 from PyQt5.QtCore import QDateTime, QObject, QThread, Qt, QTimer, pyqtSignal, pyqtSlot
@@ -6,13 +7,19 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import (
     QButtonGroup,
     QAbstractItemView,
+    QDialog,
+    QDialogButtonBox,
     QFrame,
     QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QPushButton,
     QShortcut,
     QSizePolicy,
     QTableWidgetItem,
+    QHBoxLayout,
     QVBoxLayout,
     QWidget,
 )
@@ -79,6 +86,7 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self.btnNavAuditoria.setText("Auditoria")
 
         self._management_configs: dict[str, dict[str, Any]] = {}
+        self._management_states: dict[str, dict[str, Any]] = {}
         self._produto_load_generation = 0
         self._produto_threads: set[QThread] = set()
         self._produto_workers: set[_ProdutoResumoWorker] = set()
@@ -145,6 +153,32 @@ QPushButton:hover {
         self.lblUltimaAtualizacaoDashboard.setToolTip("Horário da última atualização concluída.")
         self.sectionTitleHLayout.insertWidget(2, self.lblUltimaAtualizacaoDashboard)
         self.btnAtualizarDashboard.clicked.connect(self._load_dashboard_cards)
+        self.lblBreadcrumb = QLabel("Início", self._central_widget_parent())
+        self.lblBreadcrumb.setStyleSheet(
+            "color:#5d7892; font-size:11px; padding-left:16px; padding-right:12px;"
+        )
+        self.lblBreadcrumb.setToolTip("Localização atual no painel administrativo.")
+        self.sectionTitleHLayout.insertWidget(1, self.lblBreadcrumb)
+        self.btnVoltarInicio = QPushButton("Início", self._central_widget_parent())
+        self.btnVoltarInicio.setMinimumSize(88, 34)
+        self.btnVoltarInicio.setToolTip("Volta ao dashboard administrativo.")
+        self.btnVoltarInicio.setStyleSheet(
+            "QPushButton { background:#eef6ff; color:#1a5fa0; font-size:12px; font-weight:bold; "
+            "border:1px solid #8db8df; border-radius:5px; padding:6px 12px; } "
+            "QPushButton:hover { background:#dceaf4; }"
+        )
+        self.btnVoltarInicio.clicked.connect(self._show_dashboard)
+        self.sectionTitleHLayout.insertWidget(2, self.btnVoltarInicio)
+        self.btnBuscaGlobal = QPushButton("Buscar", self._central_widget_parent())
+        self.btnBuscaGlobal.setMinimumSize(88, 34)
+        self.btnBuscaGlobal.setToolTip("Busca global por produto, cliente ou venda (Ctrl+K).")
+        self.btnBuscaGlobal.setStyleSheet(
+            "QPushButton { background:#eef6ff; color:#1a5fa0; font-size:12px; font-weight:bold; "
+            "border:1px solid #8db8df; border-radius:5px; padding:6px 12px; } "
+            "QPushButton:hover { background:#dceaf4; }"
+        )
+        self.btnBuscaGlobal.clicked.connect(self._abrir_busca_global)
+        self.sectionTitleHLayout.insertWidget(3, self.btnBuscaGlobal)
         self.tableUltimasVendas.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tableUltimasVendas.setAlternatingRowColors(True)
         self.tableUltimasVendas.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -166,6 +200,8 @@ QPushButton:hover {
         self.acoesBtnsVLayout.addWidget(self.btnVerKits)
 
     def _setup_dashboard_layout(self) -> None:
+        self.btnAcaoBackup.setText("🏷️   Cadastrar Marca")
+        self.btnAcaoConfig.setText("📁   Cadastrar Categoria")
         self.lblAcoesTitle.setText("Ações Essenciais")
         self.lblConfigEstruturalTitle.setText("Operação e Sistema")
         self.lblVendasHojeTitulo.setText("Vendas hoje")
@@ -189,8 +225,12 @@ QPushButton:hover {
 
         # Reduz os minimos dos paineis laterais para que o dashboard caiba
         # em monitores menores sem ficar escondido atras da barra de tarefas.
-        self.frameAcessoSistema.setMinimumSize(220, 0)
-        self.frameConfiguracaoEstrutural.setMinimumSize(220, 0)
+        self.frameAcessoSistema.setMinimumSize(170, 0)
+        self.frameConfiguracaoEstrutural.setMinimumSize(170, 0)
+        self.dashboardPanelsLayout.setSpacing(6)
+        self.mainContentVLayout.setSpacing(8)
+        self.mainContentVLayout.setContentsMargins(10, 8, 10, 8)
+        self.setMinimumSize(640, 480)
 
         self.frameAlertasDashboard = QFrame(self.frameUltimasVendas)
         self.frameAlertasDashboard.setMinimumSize(220, 0)
@@ -588,6 +628,13 @@ QPushButton:hover { background: #2a74b8; }
         }
 
     def _setup_navigation(self) -> None:
+        self.btnNavDashboard.setText("Início")
+        self.btnNavProdutos.setText("Cadastros")
+        self.btnNavUsuarios.setText("Acesso")
+        self.btnNavVendas.setText("Financeiro")
+        self.btnNavLotes.setText("Operação")
+        self.btnNavAuditoria.setText("Auditoria")
+        self.btnNavConfiguracoes.setText("Configurações")
         self.navGroup = QButtonGroup(self)
         self.navGroup.setExclusive(True)
         self.btnNavClientes.hide()
@@ -690,6 +737,156 @@ QPushButton:hover { background: #2a74b8; }
         self.shortcutF7.activated.connect(lambda: self._show_management_page("caixas"))
         self.shortcutF8 = QShortcut(QKeySequence("F8"), self)
         self.shortcutF8.activated.connect(self._show_parametros_fiscais)
+        self.shortcutInicio = QShortcut(QKeySequence("Alt+1"), self)
+        self.shortcutInicio.activated.connect(self._show_dashboard)
+        self.shortcutCadastros = QShortcut(QKeySequence("Alt+2"), self)
+        self.shortcutCadastros.activated.connect(lambda: self._show_management_page("produtos"))
+        self.shortcutFinanceiro = QShortcut(QKeySequence("Alt+3"), self)
+        self.shortcutFinanceiro.activated.connect(lambda: self._show_management_page("formas_pagamento"))
+        self.shortcutConfiguracoes = QShortcut(QKeySequence("Alt+4"), self)
+        self.shortcutConfiguracoes.activated.connect(self._show_configuracoes)
+        self.shortcutBusca = QShortcut(QKeySequence("Ctrl+L"), self)
+        self.shortcutBusca.activated.connect(self._focar_busca_atual)
+        self.shortcutBuscaGlobal = QShortcut(QKeySequence("Ctrl+K"), self)
+        self.shortcutBuscaGlobal.activated.connect(self._abrir_busca_global)
+        self.shortcutEscape = QShortcut(QKeySequence("Escape"), self)
+        self.shortcutEscape.activated.connect(self._voltar_dashboard_se_necessario)
+
+    def _atualizar_breadcrumb(self, secao: str, pagina: str | None = None) -> None:
+        partes = [str(secao).strip()]
+        if pagina:
+            partes.append(str(pagina).strip())
+        self.lblBreadcrumb.setText("  >  ".join(parte for parte in partes if parte))
+
+    def _focar_busca_atual(self) -> None:
+        if self.managementPage.isVisible():
+            self.managementPage.lineEditBusca.setFocus()
+            self.managementPage.lineEditBusca.selectAll()
+
+    def _voltar_dashboard_se_necessario(self) -> None:
+        if not self.cardVendasHoje.isVisible():
+            self._show_dashboard()
+
+    def _abrir_busca_global(self) -> None:
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Busca global")
+        dialog.setMinimumSize(620, 420)
+
+        layout = QVBoxLayout(dialog)
+        hint = QLabel("Pesquise por produto, cliente ou número/nome da venda.")
+        hint.setStyleSheet("color:#486a86; font-size:12px;")
+        layout.addWidget(hint)
+
+        barra = QHBoxLayout()
+        campo = QLineEdit(dialog)
+        campo.setPlaceholderText("Digite pelo menos 2 caracteres...")
+        campo.setClearButtonEnabled(True)
+        btnPesquisar = QPushButton("Pesquisar", dialog)
+        barra.addWidget(campo, 1)
+        barra.addWidget(btnPesquisar)
+        layout.addLayout(barra)
+
+        resultados = QListWidget(dialog)
+        resultados.setAlternatingRowColors(True)
+        resultados.setSelectionMode(QAbstractItemView.SingleSelection)
+        resultados.setToolTip("Selecione um resultado e confirme para abrir a tela correspondente.")
+        layout.addWidget(resultados, 1)
+
+        botoes = QDialogButtonBox(QDialogButtonBox.Close, parent=dialog)
+        btnAbrir = botoes.addButton("Abrir selecionado", QDialogButtonBox.AcceptRole)
+        btnAbrir.setEnabled(False)
+        layout.addWidget(botoes)
+
+        def pesquisar() -> None:
+            termo = campo.text().strip()
+            resultados.clear()
+            btnAbrir.setEnabled(False)
+            if len(termo) < 2:
+                resultados.addItem("Digite pelo menos 2 caracteres para pesquisar.")
+                return
+            try:
+                from modules.clientes.services.cliente_service import ClienteService
+                from modules.financeiro.services.financeiro_service import FinanceiroService
+                from modules.produtos.services.produto_service import ProdutoService
+
+                encontrados = []
+                for produto in ProdutoService.buscar_para_venda(termo)[:10]:
+                    tipo = "Kit" if str(produto.get("tipo_item") or "").upper() == "KIT" else "Produto"
+                    encontrados.append((
+                        f"{tipo}: {produto.get('nome') or '-'}  | Código: {produto.get('cod_produto') or produto.get('codigo_barras') or '-'}",
+                        "produto",
+                        produto,
+                    ))
+                for cliente in ClienteService.buscar_para_venda(termo)[:10]:
+                    identificador = cliente.get("cpf") or cliente.get("telefone") or "sem documento"
+                    encontrados.append((
+                        f"Cliente: {cliente.get('nome') or '-'}  | {identificador}",
+                        "cliente",
+                        cliente,
+                    ))
+                try:
+                    vendas = FinanceiroService.listar_vendas_registradas(
+                        data_inicial=date(2000, 1, 1),
+                        data_final=date.today(),
+                        busca=termo,
+                    )
+                except Exception:
+                    vendas = []
+                for venda in vendas[:10]:
+                    encontrados.append((
+                        f"Venda #{venda.get('venda_id') or '-'}: {venda.get('cliente') or 'Consumidor Final'}  | {venda.get('data_hora') or '-'}",
+                        "venda",
+                        venda,
+                    ))
+            except Exception as exc:
+                resultados.addItem(f"Não foi possível realizar a busca: {exc}")
+                return
+
+            if not encontrados:
+                resultados.addItem("Nenhum resultado encontrado.")
+                return
+            for texto, tipo, dados in encontrados:
+                item = QListWidgetItem(texto)
+                item.setData(Qt.UserRole, {"tipo": tipo, "dados": dados})
+                resultados.addItem(item)
+            resultados.setCurrentRow(0)
+            btnAbrir.setEnabled(True)
+
+        def abrir_selecionado() -> None:
+            item = resultados.currentItem()
+            if item is None:
+                return
+            resultado = item.data(Qt.UserRole) or {}
+            tipo = resultado.get("tipo")
+            dados = resultado.get("dados") or {}
+            dialog.accept()
+            if tipo == "produto":
+                self._show_management_page("produtos")
+                termo = str(dados.get("nome") or dados.get("cod_produto") or "").strip()
+                self.managementPage.set_search_text_silent(termo)
+                self._buscar_produtos_paginado(termo)
+            elif tipo == "cliente":
+                self._show_management_page("clientes")
+                termo = str(dados.get("nome") or dados.get("cpf") or "").strip()
+                self.managementPage.set_search_text_silent(termo)
+                self.managementPage.apply_saved_search()
+            elif tipo == "venda":
+                from modules.financeiro.services.financeiro_service import FinanceiroService
+                from modules.financeiro.views.consulta_venda_dialog import ConsultaVendaDialog
+
+                venda_id = int(dados.get("venda_id") or 0)
+                detalhes = FinanceiroService.obter_venda_detalhada(venda_id)
+                if detalhes:
+                    ConsultaVendaDialog(detalhes, self).exec_()
+
+        campo.returnPressed.connect(pesquisar)
+        btnPesquisar.clicked.connect(pesquisar)
+        resultados.itemSelectionChanged.connect(lambda: btnAbrir.setEnabled(resultados.currentItem() is not None and resultados.currentItem().data(Qt.UserRole) is not None))
+        resultados.itemDoubleClicked.connect(lambda _item: abrir_selecionado())
+        botoes.rejected.connect(dialog.reject)
+        btnAbrir.clicked.connect(abrir_selecionado)
+        campo.setFocus()
+        dialog.exec_()
 
     def _select_primary_nav(self, key: str) -> None:
         button_map = {
@@ -765,8 +962,11 @@ QPushButton:hover { background: #2a74b8; }
         primary_action_text: str = "Selecione uma opcao abaixo",
         primary_action=None,
     ) -> None:
+        self._salvar_estado_management()
         primary_button.setChecked(True)
+        self.btnVoltarInicio.show()
         self.lblSectionTitle.setText(title)
+        self._atualizar_breadcrumb(title)
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
         self._mostrar_controles_dashboard(False)
@@ -783,8 +983,11 @@ QPushButton:hover { background: #2a74b8; }
         self._mark_subnav_button(None)
 
     def _show_dashboard(self) -> None:
+        self._salvar_estado_management()
         self.btnNavDashboard.setChecked(True)
+        self.btnVoltarInicio.hide()
         self.lblSectionTitle.setText("Dashboard Administrativo")
+        self._atualizar_breadcrumb("Início")
         self.btnFrenteCaixa.show()
         self.btnFecharCaixaDashboard.show()
         self._mostrar_controles_dashboard(True)
@@ -800,7 +1003,9 @@ QPushButton:hover { background: #2a74b8; }
         self._load_dashboard_cards()
 
     def _show_management_page(self, key: str) -> None:
+        self._salvar_estado_management()
         config = self._management_configs[key]
+        self.btnVoltarInicio.show()
         self._select_primary_nav(key)
         group_map = {
             "produtos": "cadastros",
@@ -815,6 +1020,13 @@ QPushButton:hover { background: #2a74b8; }
             "auditoria": "auditoria",
         }
         self.lblSectionTitle.setText(config["section_title"])
+        grupo_rotulos = {
+            "cadastros": "Cadastros",
+            "financeiro": "Financeiro",
+            "operacao_fiscal": "Operação",
+            "auditoria": "Auditoria",
+        }
+        self._atualizar_breadcrumb(grupo_rotulos.get(group_map.get(key, ""), config["section_title"]), config["title"])
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
         self._mostrar_controles_dashboard(False)
@@ -841,8 +1053,11 @@ QPushButton:hover { background: #2a74b8; }
         self._populate_management_page(key)
 
     def _show_configuracoes(self) -> None:
+        self._salvar_estado_management()
         self.btnNavConfiguracoes.setChecked(True)
+        self.btnVoltarInicio.show()
         self.lblSectionTitle.setText("Configurações do Sistema")
+        self._atualizar_breadcrumb("Configurações")
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
         self._mostrar_controles_dashboard(False)
@@ -852,8 +1067,11 @@ QPushButton:hover { background: #2a74b8; }
         self._mark_subnav_button(None)
 
     def _show_parametros_fiscais(self) -> None:
+        self._salvar_estado_management()
         self.btnNavLotes.setChecked(True)
+        self.btnVoltarInicio.show()
         self.lblSectionTitle.setText("Parâmetros Fiscais")
+        self._atualizar_breadcrumb("Operação", "Parâmetros fiscais")
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
         self._mostrar_controles_dashboard(False)
@@ -872,8 +1090,14 @@ QPushButton:hover { background: #2a74b8; }
             else:
                 button.setStyleSheet("")
 
+    def _salvar_estado_management(self) -> None:
+        current_key = getattr(self, "_current_management_key", None)
+        if current_key and self.managementPage.isVisible():
+            self._management_states[current_key] = self.managementPage.view_state()
+
     def _populate_management_page(self, key: str) -> None:
         config = self._management_configs[key]
+        saved_state = self._management_states.get(key, {})
         if key == "produtos":
             self._current_management_key = key
             self.managementPage.configure(
@@ -883,7 +1107,11 @@ QPushButton:hover { background: #2a74b8; }
                 rows=[],
             )
             self.managementPage.set_remote_search_callback(self._buscar_produtos_paginado)
-            self._carregar_produtos_paginado()
+            self.managementPage.set_search_text_silent(saved_state.get("busca", ""))
+            self._carregar_produtos_paginado(
+                pagina=int(saved_state.get("pagina", 0) or 0),
+                busca=saved_state.get("busca", ""),
+            )
             return
 
         self.managementPage.set_remote_search_callback(None)
@@ -901,6 +1129,9 @@ QPushButton:hover { background: #2a74b8; }
             columns=config["columns"],
             rows=rows,
         )
+        self.managementPage.set_search_text_silent(saved_state.get("busca", ""))
+        self.managementPage.apply_saved_search()
+        self.managementPage.restore_selection(saved_state.get("selected_id"))
         self._current_management_key = key
         if error_message:
             mostrar_aviso(self, "Falha ao carregar dados", error_message)
@@ -950,6 +1181,9 @@ QPushButton:hover { background: #2a74b8; }
             total=total,
             page_size=100,
             callback=lambda page: self._carregar_produtos_paginado(page=page),
+        )
+        self.managementPage.restore_selection(
+            self._management_states.get("produtos", {}).get("selected_id")
         )
 
     @pyqtSlot(str, int)

@@ -38,6 +38,7 @@ MANIFEST
 *.spec
 !cspdv.spec
 dist-installer/
+releases/
 
 # Installer logs
 pip-log.txt

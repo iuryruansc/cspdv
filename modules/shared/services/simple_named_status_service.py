@@ -35,8 +35,10 @@ def cadastrar_entidade_simples(
     if not valido:
         return False, mensagem
 
+    dados_normalizados = dict(dados)
+    dados_normalizados[nome_campo] = str(dados.get(nome_campo) or "").strip()
     try:
-        registro_id = inserir_fn(dados)
+        registro_id = inserir_fn(dados_normalizados)
     except Exception as exc:
         return False, f"Erro ao salvar {entidade}:\n{exc}"
 
@@ -61,8 +63,10 @@ def atualizar_entidade_simples(
     if not valido:
         return False, mensagem
 
+    dados_normalizados = dict(dados)
+    dados_normalizados[nome_campo] = str(dados.get(nome_campo) or "").strip()
     try:
-        atualizado = atualizar_fn(int(record_id), dados)
+        atualizado = atualizar_fn(int(record_id), dados_normalizados)
     except Exception as exc:
         return False, f"Erro ao atualizar {entidade}:\n{exc}"
 
