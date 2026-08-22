@@ -7,11 +7,14 @@ from PyQt5.QtGui import QIntValidator, QKeyEvent
 from PyQt5.QtWidgets import (
     QApplication,
     QDialog,
+    QAbstractItemView,
+    QHeaderView,
     QLabel,
     QInputDialog,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMessageBox,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -54,7 +57,7 @@ from modules.shared.constants import (
 from ui.venda.frente_venda import Ui_FrenteVenda
 from utils.format_utils import formatar_decimal
 from utils.image_utils import atualizar_preview_label
-from utils.ui_messages import mostrar_aviso, mostrar_info
+from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
 class FrenteVendaView(QWidget, Ui_FrenteVenda):
     pagamento_solicitado = pyqtSignal(dict)
@@ -69,6 +72,9 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
     lineEditDescontoTotal: QLineEdit
     lineEditTotalItens: QLineEdit
     lblImagemProduto: QLabel
+    lblInfoProduto: QLabel
+    lblCupomVazio: QLabel
+    lblEconomiaVenda: QLabel
     lblTotalAPagarValor: QLabel
     lblStatusVenda: QLabel
     lblDataHora: QLabel
@@ -197,8 +203,55 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.setFocusPolicy(Qt.StrongFocus)
         # A imagem e apenas um apoio visual e nao deve impor a altura minima
         # da venda em terminais com resolucao reduzida.
-        self.lblImagemProduto.setMinimumHeight(0)
-        self.frameImagem.setMinimumHeight(0)
+        self.lblImagemProduto.setMinimumHeight(120)
+        self.frameImagem.setMinimumHeight(180)
+        self.rightPanelVLayout.setStretch(0, 3)
+        self.rightPanelVLayout.setStretch(1, 2)
+        self.tableCupom.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableCupom.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tableCupom.setAlternatingRowColors(True)
+        self.tableCupom.setToolTip(
+            "Clique para selecionar um item. Duplo clique na quantidade ou desconto para alterar."
+        )
+        self.lblCupomVazio = QLabel("Nenhum item adicionado. Leia um produto para começar.", self.frameCupom)
+        self.lblCupomVazio.setAlignment(Qt.AlignCenter)
+        self.lblCupomVazio.setStyleSheet("color:#6b879d; font-size:13px; padding:12px;")
+        self.cupomVLayout.insertWidget(1, self.lblCupomVazio)
+        self.lblInfoProduto = QLabel(
+            "Selecione um produto para visualizar estoque e validade.",
+            self.frameImagem,
+        )
+        self.lblInfoProduto.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.lblInfoProduto.setWordWrap(True)
+        self.lblInfoProduto.setStyleSheet(
+            "QLabel { background:#102233; color:#8fb8d8; font-size:11px; padding:6px 8px; border-top:1px solid #2a5a80; }"
+        )
+        self.imagemVLayout.addWidget(self.lblInfoProduto)
+        header = self.tableCupom.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+        self.lineEditDescricaoProduto.setToolTip(
+            "Digite o nome, código ou use quantidade*produto. Exemplo: 2*Arroz."
+        )
+        self.lineEditDescricaoProduto.setPlaceholderText("Digite o produto ou leia o código de barras...")
+        self.lblDescontoHeader.setText("Desc. global")
+        self.lblDescontoItensHeader.setText("Desc. itens")
+        self.lblDescontoTotalHeader.setText("Total descontos")
+        self.lblItensHeader.setText("Itens")
+        self.lineEditQuantidade.setToolTip("Quantidade do produto. Atalho: F3.")
+        self.btnFecharVenda.setToolTip("Finaliza a venda e abre o pagamento. Atalho: F4.")
+        self.btnCancelarItem.setToolTip("Remove o item selecionado. Atalho: F5.")
+        self.btnCancelarVenda.setToolTip("Cancela todos os itens da venda. Atalho: F6.")
+        self.lineEditDescontoTotal.setToolTip("Economia total concedida nesta venda.")
+        self.lblEconomiaVenda = QLabel("Economia\nR$ 0,00", self.frameTotalAPagar)
+        self.lblEconomiaVenda.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.lblEconomiaVenda.setStyleSheet("color:#b54708; font-size:11px; font-weight:bold;")
+        self.lblEconomiaVenda.hide()
+        self.totalAPagarHL.insertWidget(0, self.lblEconomiaVenda)
         self.lineEditQuantidade.setValidator(QIntValidator(1, 999999, self))
         self.lineEditQuantidade.setText("1")
         self.btnAtalhoF7 = self._criar_botao_atalho("F7  Consulta Preço")
@@ -264,6 +317,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.btnCancelarItem.clicked.connect(self._cancelar_item_selecionado)
         self.btnCancelarVenda.clicked.connect(self._cancelar_venda)
         self.tableCupom.itemClicked.connect(self._ao_clicar_item_cupom)
+        self.tableCupom.itemDoubleClicked.connect(self._duplo_clique_item_cupom)
 
     def _configurar_venda_inicial(self) -> None:
         self._atualizar_numero_venda_sessao()
@@ -278,6 +332,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditDescontoTotal.setText("0,00")
         self.lineEditTotalItens.setText("0")
         self.lblInfoStatusVenda.setText("● Venda em aberto")
+        self._atualizar_status_venda("● Aguardando produto", "#d8f3dc")
 
     def _abrir_consulta_produto(self) -> None:
         dialog = ModalConsultaProdutoView(self)
@@ -358,18 +413,21 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             self._limpar_preview_produto()
             return
 
+        self._atualizar_status_venda("⏳ Buscando produto...", "#fff1c7")
         produtos = ProdutoService.buscar_para_venda(termo_busca)
         if not produtos:
             self._produto_atual = None
             self._resultados_busca_produto = []
             self._ocultar_sugestoes_produto()
             self._limpar_preview_produto(manter_descricao=True, mensagem_imagem="Nenhum produto encontrado")
+            self._atualizar_status_venda("! Produto não encontrado", "#fde2e1")
             return
 
         self._resultados_busca_produto = produtos
         self._produto_atual = produtos[0]
         self._preencher_sugestoes_produto(produtos)
         self._preencher_preview_produto(self._produto_atual)
+        self._atualizar_status_venda("✓ Produto encontrado", "#d8f3dc")
 
     def _preencher_sugestoes_produto(self, produtos: list[dict[str, Any]]) -> None:
         self.listaSugestoesProdutos.clear()
@@ -452,6 +510,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         quantidade_total_solicitada = quantidade_ja_lancada + quantidade
 
         if not self._permitir_venda_sem_estoque() and quantidade_total_solicitada > int(estoque_disponivel):
+            self._atualizar_status_venda("! Estoque insuficiente", "#fde2e1")
             mostrar_aviso(
                 self,
                 "Estoque insuficiente",
@@ -474,6 +533,12 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._limpar_preview_produto()
         self.lineEditDescricaoProduto.setFocus()
 
+    def _atualizar_status_venda(self, texto: str, fundo: str = "#d8f3dc") -> None:
+        self.lblInfoStatusVenda.setText(texto)
+        self.lblInfoStatusVenda.setStyleSheet(
+            f"color:#1a3a5c; background-color:{fundo}; border-radius:4px; padding:3px 8px;"
+        )
+
     def _preencher_preview_produto(self, produto: dict[str, Any]) -> None:
         codigo = str(produto.get("codigo_barras") or "")
         preco = float(produto.get("preco_venda") or 0)
@@ -485,6 +550,7 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditPrecoUnitario.setText(formatar_decimal(preco))
         self._atualizar_subtotal()
         self._atualizar_imagem_produto(produto.get("imagem_path"))
+        self._atualizar_info_produto(produto)
 
     def _preencher_preview_item_venda(self, item: dict[str, Any]) -> None:
         self.lineEditCodigo.setText(str(item.get("codigo_barras") or ""))
@@ -492,6 +558,19 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditPrecoUnitario.setText(formatar_decimal(item.get("preco_venda")))
         self.lineEditSubtotalItem.setText(formatar_decimal(item.get("total")))
         self._atualizar_imagem_produto(item.get("imagem_path"))
+        self._atualizar_info_produto(item)
+
+    def _atualizar_info_produto(self, produto: dict[str, Any]) -> None:
+        estoque = int(float(produto.get("quantidade_estoque") or 0))
+        unidade = str(produto.get("unidade") or "un")
+        validade = str(produto.get("data_validade") or "Não informada")
+        self.lblInfoProduto.setText(
+            f"Estoque disponível: {estoque} {unidade}\nValidade: {validade}"
+        )
+        self.lblInfoProduto.setStyleSheet(
+            "QLabel { background:#102233; color:#b9d5e8; font-size:11px; padding:6px 8px; "
+            "border-top:1px solid #2a5a80; }"
+        )
 
     def _atualizar_subtotal(self) -> None:
         preco = 0.0
@@ -524,6 +603,11 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditQuantidade.setText("1")
         self.lineEditPrecoUnitario.clear()
         self.lineEditSubtotalItem.clear()
+        self.lblInfoProduto.setText("Selecione um produto para visualizar estoque e validade.")
+        self.lblInfoProduto.setStyleSheet(
+            "QLabel { background:#102233; color:#8fb8d8; font-size:11px; padding:6px 8px; border-top:1px solid #2a5a80; }"
+        )
+        self.lblEconomiaVenda.hide()
         if not self._itens_venda:
             self.lineEditTotalItens.setText("0")
             self.lblTotalAPagarValor.setText("0,00")
@@ -534,6 +618,16 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         if row < 0 or row >= len(self._itens_venda):
             return
         self._selecionar_item_cupom(row)
+
+    def _duplo_clique_item_cupom(self, item_tabela: QTableWidgetItem) -> None:
+        row = item_tabela.row()
+        if row < 0 or row >= len(self._itens_venda):
+            return
+        self._selecionar_item_cupom(row)
+        if item_tabela.column() == 2:
+            self._ajustar_quantidade_item()
+        elif item_tabela.column() == 4:
+            self._abrir_desconto()
 
     def _selecionar_item_cupom(self, row: int) -> None:
         if row < 0 or row >= len(self._itens_venda):
@@ -576,6 +670,13 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self._limpar_preview_produto(manter_descricao=bool(self.lineEditDescricaoProduto.text().strip()))
 
     def _renderizar_cupom(self) -> None:
+        if not self._itens_venda:
+            self.tableCupom.clearContents()
+            self.tableCupom.setRowCount(0)
+            self.lblCupomVazio.show()
+            self._atualizar_status_venda("● Aguardando produto", "#d8f3dc")
+            return
+        self.lblCupomVazio.hide()
         self.tableCupom.setRowCount(len(self._itens_venda))
 
         for row, item in enumerate(self._itens_venda):
@@ -602,6 +703,18 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
         self.lineEditDescontoItens.setText(formatar_decimal(desconto_itens))
         self.lineEditDescontoTotal.setText(formatar_decimal(self._desconto_total()))
         self.lblTotalAPagarValor.setText(formatar_decimal(valor_total))
+        desconto_total = self._desconto_total()
+        self.lblEconomiaVenda.setText(f"Economia\nR$ {formatar_decimal(desconto_total)}")
+        self.lblEconomiaVenda.setVisible(desconto_total > 0)
+        self.lblTotalAPagarValor.setStyleSheet(
+            "font-size:40px; font-weight:bold; color:#b54708;"
+            if desconto_total > 0
+            else "font-size:40px; font-weight:bold; color:#173452;"
+        )
+        self._atualizar_status_venda(
+            f"✓ {total_itens} item(ns) no cupom",
+            "#d8f3dc" if valor_total > 0 else "#fff1c7",
+        )
         if self._linha_cupom_selecionada is not None and 0 <= self._linha_cupom_selecionada < len(self._itens_venda):
             self.tableCupom.selectRow(self._linha_cupom_selecionada)
             self._selecionar_item_cupom(self._linha_cupom_selecionada)
@@ -619,6 +732,14 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             self._restaurar_preview_contexto()
 
     def _cancelar_venda(self) -> None:
+        if self._itens_venda and not confirmar_acao(
+            self,
+            "Cancelar venda",
+            "Deseja realmente cancelar todos os itens desta venda?",
+            texto_confirmar=QMessageBox.Yes,
+            texto_cancelar=QMessageBox.No,
+        ):
+            return
         self._itens_venda.clear()
         self._linha_cupom_selecionada = None
         self._desconto_global_valor = 0.0
@@ -631,8 +752,22 @@ class FrenteVendaView(QWidget, Ui_FrenteVenda):
             self._cliente_selecionado_manualmente = False
             self.lblClienteNome.setText("Selecionar cliente")
         self._limpar_preview_produto()
+        self._atualizar_status_venda("● Venda cancelada. Aguardando produto", "#fff1c7")
 
     def _abrir_confirmacao_venda(self) -> None:
+        if not self._itens_venda:
+            self._atualizar_status_venda("! Adicione pelo menos um item para fechar a venda", "#fde2e1")
+            mostrar_info(self, "Venda vazia", "Adicione pelo menos um produto antes de fechar a venda.")
+            self.lineEditDescricaoProduto.setFocus()
+            return
+        if not CaixaSession.has_open_caixa():
+            self._atualizar_status_venda("! Caixa fechado: venda bloqueada", "#fde2e1")
+            mostrar_aviso(
+                self,
+                "Caixa fechado",
+                "Abra um caixa antes de finalizar a venda.",
+            )
+            return
         if not self._garantir_cliente_conforme_regra():
             return
         self._atualizar_numero_venda_sessao()

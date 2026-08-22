@@ -5,11 +5,12 @@ from decimal import Decimal, ROUND_HALF_UP
 from typing import Any
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QDate, Qt
+from PyQt5.QtCore import QDate, QObject, QThread, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtWidgets import (
     QComboBox,
     QInputDialog,
+    QLabel,
     QLineEdit,
     QMainWindow,
     QPushButton,
@@ -43,6 +44,61 @@ from utils.operational_panel_mixin import PainelOperacionalMixin
 from utils.table_widget_utils import set_table_item
 from utils.ui_messages import confirmar_acao, mostrar_aviso, mostrar_info
 
+
+class _PainelFinanceiroWorker(QObject):
+    concluido = pyqtSignal(object, int)
+    falhou = pyqtSignal(str, int)
+
+    def __init__(self, parametros: dict[str, Any], geracao: int):
+        super().__init__()
+        self._parametros = parametros
+        self._geracao = geracao
+
+    def executar(self) -> None:
+        try:
+            data_inicial = self._parametros["data_inicial"]
+            data_final = self._parametros["data_final"]
+            pdv_id = self._parametros["pdv_id"]
+            forma_pagamento = self._parametros["forma_pagamento"]
+            busca = self._parametros["busca"]
+            status_filtro = self._parametros["status_filtro"]
+            dados = {
+                "resumo": FinanceiroService.obter_resumo_financeiro(
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    pdv_id=pdv_id,
+                    forma_pagamento=forma_pagamento,
+                ),
+                "movimentacoes": FinanceiroService.listar_movimentacoes_caixa(
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    pdv_id=pdv_id,
+                ),
+                "vendas": FinanceiroService.listar_vendas_registradas(
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    pdv_id=pdv_id,
+                    forma_pagamento=forma_pagamento,
+                    busca=busca,
+                ),
+                "contas": FinanceiroService.listar_contas_receber(
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    pdv_id=pdv_id,
+                    busca=busca,
+                    status_filtro=status_filtro,
+                ),
+                "reembolsos": FinanceiroService.listar_reembolsos(
+                    data_inicial=data_inicial,
+                    data_final=data_final,
+                    pdv_id=pdv_id,
+                    forma_pagamento=forma_pagamento,
+                ),
+            }
+            self.concluido.emit(dados, self._geracao)
+        except Exception as exc:
+            self.falhou.emit(str(exc), self._geracao)
+
 class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMixin):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -56,7 +112,11 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.tableContasReceber: QTableWidget
         self.tableReembolsos: QTableWidget
         self.tabWidgetRight: QtWidgets.QTabWidget
+        self._painel_load_generation = 0
+        self._painel_thread: QThread | None = None
+        self._painel_worker: _PainelFinanceiroWorker | None = None
 
+        self._configurar_resumos_abas()
         self._configurar_tamanho_responsivo()
         self._configurar_operador()
         self._configurar_relogio()
@@ -71,6 +131,16 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self._carregar_painel()
 
     def _configurar_tabelas(self) -> None:
+        for table in (self.tableCaixaMovimentacoes, self.tablePagamentos, self.tableContasReceber, self.tableReembolsos):
+            table.setAlternatingRowColors(True)
+            table.setShowGrid(True)
+            table.verticalHeader().setDefaultSectionSize(30)
+            table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+            table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+
+        self.tablePagamentos.setToolTip("Clique em uma venda para consultar seus detalhes.")
+        self.tableContasReceber.setToolTip("Clique em uma conta para consultar, receber ou acompanhar o saldo.")
+        self.tableReembolsos.setToolTip("Clique em um reembolso para consultar seus detalhes.")
         self.tablePagamentos.cellDoubleClicked.connect(self._consultar_venda)
         self.tableContasReceber.cellDoubleClicked.connect(self._abrir_detalhe_conta)
         self.tablePagamentos.itemSelectionChanged.connect(self._atualizar_contexto_selecao)
@@ -80,6 +150,24 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         return None
 
     def _configurar_filtros_iniciais(self) -> None:
+        self.frameToolbarFilters.setStyleSheet(
+            "QFrame#frameToolbarFilters { background:#f8fbff; border:1px solid #b8cde0; border-radius:6px; }"
+        )
+        self.framePeriodoFiltro.setStyleSheet(
+            "QFrame#framePeriodoFiltro { background:#eef6ff; border:1px solid #8db8df; border-radius:5px; } "
+            "QLabel { color:#1a5fa0; font-weight:bold; }"
+        )
+        self.cmbPdvFiltro.setToolTip("Filtra os dados pelo ponto de venda.")
+        self.cmbFormaPagamentoFiltro.setToolTip("Filtra os dados pela forma de pagamento.")
+        self.cmbStatusContaFiltro.setToolTip("Define quais contas a receber serão exibidas.")
+        self.lineEditBuscaConta.setToolTip("Pesquise por cliente, conta ou venda e pressione Enter.")
+        self.dateInicial.setToolTip("Data inicial do período analisado.")
+        self.dateFinal.setToolTip("Data final do período analisado.")
+        self.btnOperacoes.setText("Ações")
+        self.btnCaixa.setToolTip("Ações de abertura e fechamento de caixa.")
+        self.btnFinanceiro.setToolTip("Recebimentos, reembolsos e movimentações financeiras.")
+        self.btnOperacoes.setToolTip("Atualização e consulta de vendas.")
+        self.lblSaldoCaixaTitulo.setText("Saldo em Caixa")
         self._configurar_periodo_padrao()
         self._carregar_pdvs()
         self._carregar_formas_pagamento()
@@ -122,7 +210,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
 
     def _carregar_status_conta(self) -> None:
         self.cmbStatusContaFiltro.clear()
-        self.cmbStatusContaFiltro.addItem("Contas em aberto", "ABERTAS")
+        self.cmbStatusContaFiltro.addItem("Contas a receber em aberto", "ABERTAS")
         self.cmbStatusContaFiltro.addItem("Todas as contas", "TODAS")
         self.cmbStatusContaFiltro.addItem("Pendentes", "PENDENTE")
         self.cmbStatusContaFiltro.addItem("Parcialmente recebidas", "PARCIALMENTE_RECEBIDA")
@@ -132,14 +220,71 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.cmbStatusContaFiltro.addItem("Próximos 7 dias", "PROXIMOS_7_DIAS")
 
     def _carregar_painel(self) -> None:
-        self._carregar_cards()
-        self._carregar_movimentacoes_caixa()
-        self._carregar_vendas_registradas()
-        self._carregar_contas_receber()
-        self._carregar_reembolsos()
+        if self._painel_thread is not None and self._painel_thread.isRunning():
+            self.lblStatusBar.setText("Atualização financeira já está em andamento...")
+            return
+
+        self._painel_load_generation += 1
+        geracao = self._painel_load_generation
+        parametros = {
+            "data_inicial": self.dateInicial.date().toPyDate(),
+            "data_final": self.dateFinal.date().toPyDate(),
+            "pdv_id": combo_int(self.cmbPdvFiltro),
+            "forma_pagamento": self._forma_pagamento_filtro(),
+            "busca": self.lineEditBuscaConta.text().strip() or None,
+            "status_filtro": self.cmbStatusContaFiltro.currentData(),
+        }
+        self.lblResumoVendas.setText("Carregando vendas...")
+        self.lblResumoContas.setText("Carregando contas a receber...")
+        self.lblResumoReembolsos.setText("Carregando reembolsos...")
+        self.lblStatusBar.setText("Atualizando dados financeiros...")
+
+        thread = QThread(self)
+        worker = _PainelFinanceiroWorker(parametros, geracao)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.executar)
+        worker.concluido.connect(self._painel_carregado)
+        worker.falhou.connect(self._painel_falhou)
+        worker.concluido.connect(thread.quit)
+        worker.falhou.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(self._finalizar_carregamento_painel)
+        self._painel_thread = thread
+        self._painel_worker = worker
+        thread.start()
+
+    @pyqtSlot(object, int)
+    def _painel_carregado(self, dados: dict[str, Any], geracao: int) -> None:
+        if geracao != self._painel_load_generation:
+            return
+        self._carregar_cards(dados.get("resumo") or {})
+        self._carregar_movimentacoes_caixa(dados.get("movimentacoes") or [])
+        self._carregar_vendas_registradas(dados.get("vendas") or [])
+        self._carregar_contas_receber(dados.get("contas") or [])
+        self._carregar_reembolsos(dados.get("reembolsos") or [])
         self._atualizar_resumo_secoes_direita()
         self._ajustar_alturas_secao_direita()
         self._atualizar_contexto_selecao()
+        self.lblStatusBar.setText("Dados financeiros atualizados.")
+
+    @pyqtSlot(str, int)
+    def _painel_falhou(self, mensagem: str, geracao: int) -> None:
+        if geracao != self._painel_load_generation:
+            return
+        self.lblResumoVendas.setText("Não foi possível carregar as vendas.")
+        self.lblResumoContas.setText("Não foi possível carregar as contas.")
+        self.lblResumoReembolsos.setText("Não foi possível carregar os reembolsos.")
+        self.lblStatusBar.setText("Falha ao atualizar os dados financeiros.")
+        mostrar_aviso(
+            self,
+            "Falha ao carregar dados",
+            f"Não foi possível atualizar o painel financeiro agora.\n\nDetalhes: {mensagem}",
+        )
+
+    def _finalizar_carregamento_painel(self) -> None:
+        self._painel_thread = None
+        self._painel_worker = None
 
     def _abrir_caixa_financeiro(self) -> None:
         if not SessionManager.has_permission("vendas.pdv"):
@@ -468,24 +613,26 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             return None
         return reembolso_id if reembolso_id > 0 else None
 
-    def _carregar_cards(self) -> None:
-        resumo = FinanceiroService.obter_resumo_financeiro(
-            data_inicial=self.dateInicial.date().toPyDate(),
-            data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=combo_int(self.cmbPdvFiltro),
-            forma_pagamento=self._forma_pagamento_filtro(),
-        )
+    def _carregar_cards(self, resumo: dict[str, Any] | None = None) -> None:
+        if resumo is None:
+            resumo = FinanceiroService.obter_resumo_financeiro(
+                data_inicial=self.dateInicial.date().toPyDate(),
+                data_final=self.dateFinal.date().toPyDate(),
+                pdv_id=combo_int(self.cmbPdvFiltro),
+                forma_pagamento=self._forma_pagamento_filtro(),
+            )
         self.lblSaldoCaixaValor.setText(formatar_moeda(resumo.get("saldo_atual_caixa")))
         self.lblEntradasDiaValor.setText(formatar_moeda(resumo.get("entradas_periodo")))
         self.lblSaidasDiaValor.setText(formatar_moeda(resumo.get("saidas_periodo")))
         self.lblPagamentosPendentesValor.setText(formatar_inteiro(resumo.get("contas_abertas_periodo")))
 
-    def _carregar_movimentacoes_caixa(self) -> None:
-        registros = FinanceiroService.listar_movimentacoes_caixa(
-            data_inicial=self.dateInicial.date().toPyDate(),
-            data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=combo_int(self.cmbPdvFiltro),
-        )
+    def _carregar_movimentacoes_caixa(self, registros: list[dict[str, Any]] | None = None) -> None:
+        if registros is None:
+            registros = FinanceiroService.listar_movimentacoes_caixa(
+                data_inicial=self.dateInicial.date().toPyDate(),
+                data_final=self.dateFinal.date().toPyDate(),
+                pdv_id=combo_int(self.cmbPdvFiltro),
+            )
 
         registros.sort(key=lambda r: r.get("data_hora") or 0, reverse=True)
 
@@ -520,16 +667,21 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
                 alignment=Qt.AlignRight | Qt.AlignVCenter,
             )
 
-    def _carregar_vendas_registradas(self) -> None:
-        registros = FinanceiroService.listar_vendas_registradas(
-            data_inicial=self.dateInicial.date().toPyDate(),
-            data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=combo_int(self.cmbPdvFiltro),
-            forma_pagamento=self._forma_pagamento_filtro(),
-            busca=self.lineEditBuscaConta.text().strip() or None,
-        )
+    def _carregar_vendas_registradas(self, registros: list[dict[str, Any]] | None = None) -> None:
+        if registros is None:
+            registros = FinanceiroService.listar_vendas_registradas(
+                data_inicial=self.dateInicial.date().toPyDate(),
+                data_final=self.dateFinal.date().toPyDate(),
+                pdv_id=combo_int(self.cmbPdvFiltro),
+                forma_pagamento=self._forma_pagamento_filtro(),
+                busca=self.lineEditBuscaConta.text().strip() or None,
+            )
 
         self.tablePagamentos.setRowCount(len(registros))
+        total_vendas = sum((Decimal(str(registro.get("valor_total") or 0)) for registro in registros), Decimal("0.00"))
+        self.lblResumoVendas.setText(
+            f"{len(registros)} venda(s) no período • Total: {formatar_moeda(total_vendas)}"
+        )
         for row, registro in enumerate(registros):
             item_venda = set_table_item(
                 self.tablePagamentos,
@@ -560,16 +712,21 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             self._destacar_total(total_item)
             self._aplicar_tooltip_venda(row, registro)
 
-    def _carregar_contas_receber(self) -> None:
-        registros = FinanceiroService.listar_contas_receber(
-            data_inicial=self.dateInicial.date().toPyDate(),
-            data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=combo_int(self.cmbPdvFiltro),
-            busca=self.lineEditBuscaConta.text().strip() or None,
-            status_filtro=self.cmbStatusContaFiltro.currentData(),
-        )
+    def _carregar_contas_receber(self, registros: list[dict[str, Any]] | None = None) -> None:
+        if registros is None:
+            registros = FinanceiroService.listar_contas_receber(
+                data_inicial=self.dateInicial.date().toPyDate(),
+                data_final=self.dateFinal.date().toPyDate(),
+                pdv_id=combo_int(self.cmbPdvFiltro),
+                busca=self.lineEditBuscaConta.text().strip() or None,
+                status_filtro=self.cmbStatusContaFiltro.currentData(),
+            )
 
         self.tableContasReceber.setRowCount(len(registros))
+        total_aberto = sum((Decimal(str(registro.get("valor_aberto") or 0)) for registro in registros), Decimal("0.00"))
+        self.lblResumoContas.setText(
+            f"{len(registros)} conta(s) exibida(s) • Saldo em aberto: {formatar_moeda(total_aberto)}"
+        )
         for row, registro in enumerate(registros):
             item_conta = set_table_item(
                 self.tableContasReceber,
@@ -618,13 +775,14 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             self._destacar_saldo_conta(saldo_item, bool(registro.get("vencida")))
             self._aplicar_tooltip_conta(row, registro)
 
-    def _carregar_reembolsos(self) -> None:
-        registros = FinanceiroService.listar_reembolsos(
-            data_inicial=self.dateInicial.date().toPyDate(),
-            data_final=self.dateFinal.date().toPyDate(),
-            pdv_id=combo_int(self.cmbPdvFiltro),
-            forma_pagamento=self._forma_pagamento_filtro(),
-        )
+    def _carregar_reembolsos(self, registros: list[dict[str, Any]] | None = None) -> None:
+        if registros is None:
+            registros = FinanceiroService.listar_reembolsos(
+                data_inicial=self.dateInicial.date().toPyDate(),
+                data_final=self.dateFinal.date().toPyDate(),
+                pdv_id=combo_int(self.cmbPdvFiltro),
+                forma_pagamento=self._forma_pagamento_filtro(),
+            )
         registros.sort(
             key=lambda r: (
                 r.get("data_hora") or 0,
@@ -633,6 +791,10 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             reverse=True,
         )
         self.tableReembolsos.setRowCount(len(registros))
+        total_reembolsado = sum((Decimal(str(registro.get("valor_total") or 0)) for registro in registros), Decimal("0.00"))
+        self.lblResumoReembolsos.setText(
+            f"{len(registros)} reembolso(s) • Total devolvido: {formatar_moeda(total_reembolsado)}"
+        )
         for row, registro in enumerate(registros):
             item_venda = set_table_item(
                 self.tableReembolsos,
@@ -682,6 +844,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_venda(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
+        rotulo = PainelFinanceiroView._rotulo_status(status_normalizado)
         icones = {
             STATUS_VENDA_CONCLUIDA: "\u2713",
             STATUS_VENDA_CONCLUIDA_COM_PENDENCIA: "\u25CB",
@@ -689,7 +852,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
             STATUS_VENDA_REEMBOLSADA: "\u2717",
         }
         icone = icones.get(status_normalizado, "\u2022")
-        texto = f" {icone}  {status.strip()} "
+        texto = f" {icone}  {rotulo} "
         item.setText(texto)
         if status_normalizado == STATUS_VENDA_CONCLUIDA:
             PainelFinanceiroView._estilizar_item_status(item, "#ecfdf3", "#027a48")
@@ -708,6 +871,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_conta(item: QTableWidgetItem, status: str, vencida: bool) -> None:
         status_normalizado = status.strip().upper()
+        item.setText("Vencida" if vencida else PainelFinanceiroView._rotulo_status(status_normalizado))
         if vencida or status_normalizado == STATUS_CONTA_VENCIDA:
             PainelFinanceiroView._estilizar_item_status(item, "#fef3f2", "#b42318")
             return
@@ -725,6 +889,7 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
     @staticmethod
     def _aplicar_estilo_status_reembolso(item: QTableWidgetItem, status: str) -> None:
         status_normalizado = status.strip().upper()
+        item.setText(PainelFinanceiroView._rotulo_status(status_normalizado))
         if status_normalizado == STATUS_REEMBOLSO_CONCLUIDO:
             PainelFinanceiroView._estilizar_item_status(item, "#ecfdf3", "#027a48")
             return
@@ -740,6 +905,22 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         item.setFont(fonte)
         item.setBackground(QBrush(QColor(background_hex)))
         item.setForeground(QBrush(QColor(foreground_hex)))
+
+    @staticmethod
+    def _rotulo_status(status: str) -> str:
+        rotulos = {
+            STATUS_VENDA_CONCLUIDA: "Concluída",
+            STATUS_VENDA_CONCLUIDA_COM_PENDENCIA: "Concluída com pendência",
+            STATUS_VENDA_PARCIALMENTE_REEMBOLSADA: "Reembolso parcial",
+            STATUS_VENDA_REEMBOLSADA: "Reembolsada",
+            STATUS_CONTA_PENDENTE: "Pendente",
+            STATUS_CONTA_PARCIALMENTE_RECEBIDA: "Parcialmente recebida",
+            STATUS_CONTA_QUITADA: "Quitada",
+            STATUS_CONTA_VENCIDA: "Vencida",
+            STATUS_REEMBOLSO_CONCLUIDO: "Concluído",
+            STATUS_REEMBOLSO_CANCELADO: "Cancelado",
+        }
+        return rotulos.get(status, status.replace("_", " ").capitalize() or "-")
 
     @staticmethod
     def _destacar_total(item: QTableWidgetItem) -> None:
@@ -764,6 +945,21 @@ class PainelFinanceiroView(QMainWindow, Ui_PainelFinanceiro, PainelOperacionalMi
         self.tabWidgetRight.setTabText(0, f"Vendas ({qtd_vendas})")
         self.tabWidgetRight.setTabText(1, f"Contas a Receber ({qtd_contas})")
         self.tabWidgetRight.setTabText(2, f"Reembolsos ({qtd_reembolsos})")
+
+    def _configurar_resumos_abas(self) -> None:
+        estilo = (
+            "QLabel { background:#f8fbff; color:#46627d; border-bottom:1px solid #d8e5f1; "
+            "padding:7px 12px; font-size:11px; font-weight:600; }"
+        )
+        self.lblResumoVendas = QLabel(self.tabVendas)
+        self.lblResumoVendas.setStyleSheet(estilo)
+        self.tabVendasLayout.insertWidget(0, self.lblResumoVendas)
+        self.lblResumoContas = QLabel(self.tabContas)
+        self.lblResumoContas.setStyleSheet(estilo)
+        self.tabContasLayout.insertWidget(0, self.lblResumoContas)
+        self.lblResumoReembolsos = QLabel(self.tabReembolsos)
+        self.lblResumoReembolsos.setStyleSheet(estilo)
+        self.tabReembolsosLayout.insertWidget(0, self.lblResumoReembolsos)
 
     def _ajustar_alturas_secao_direita(self) -> None:
         pass

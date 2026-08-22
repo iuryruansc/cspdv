@@ -54,6 +54,23 @@ class _ProdutoResumoWorker(QObject):
             self.falhou.emit(str(exc), self._geracao)
 
 
+class _DashboardResumoWorker(QObject):
+    concluido = pyqtSignal(object, int)
+    falhou = pyqtSignal(str, int)
+
+    def __init__(self, geracao: int):
+        super().__init__()
+        self._geracao = geracao
+
+    def executar(self) -> None:
+        try:
+            from modules.admin.services.dashboard_service import DashboardAdminService
+
+            self.concluido.emit(DashboardAdminService.carregar_dashboard(), self._geracao)
+        except Exception as exc:
+            self.falhou.emit(str(exc), self._geracao)
+
+
 class PainelAdminView(QMainWindow, Ui_PainelAdmin):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -65,6 +82,9 @@ class PainelAdminView(QMainWindow, Ui_PainelAdmin):
         self._produto_load_generation = 0
         self._produto_threads: set[QThread] = set()
         self._produto_workers: set[_ProdutoResumoWorker] = set()
+        self._dashboard_load_generation = 0
+        self._dashboard_thread: QThread | None = None
+        self._dashboard_worker: _DashboardResumoWorker | None = None
         self._setup_user_context()
         self._setup_dashboard_actions()
         self._setup_dashboard_layout()
@@ -111,7 +131,25 @@ QPushButton:hover {
         )
         self.sectionTitleHLayout.addWidget(self.btnFecharCaixaDashboard)
         self.btnFecharCaixaDashboard.hide()
+        self.btnAtualizarDashboard = QPushButton("Atualizar", self._central_widget_parent())
+        self.btnAtualizarDashboard.setMinimumSize(106, 38)
+        self.btnAtualizarDashboard.setToolTip("Atualiza os indicadores, vendas recentes e alertas do painel.")
+        self.btnAtualizarDashboard.setStyleSheet(
+            "QPushButton { background:#eef6ff; color:#1a5fa0; font-size:12px; font-weight:bold; "
+            "border:1px solid #8db8df; border-radius:5px; padding:6px 12px; } "
+            "QPushButton:hover { background:#dceaf4; }"
+        )
+        self.sectionTitleHLayout.insertWidget(2, self.btnAtualizarDashboard)
+        self.lblUltimaAtualizacaoDashboard = QLabel("Atualizado: --", self._central_widget_parent())
+        self.lblUltimaAtualizacaoDashboard.setStyleSheet("color:#58758f; font-size:11px;")
+        self.lblUltimaAtualizacaoDashboard.setToolTip("Horário da última atualização concluída.")
+        self.sectionTitleHLayout.insertWidget(2, self.lblUltimaAtualizacaoDashboard)
+        self.btnAtualizarDashboard.clicked.connect(self._load_dashboard_cards)
         self.tableUltimasVendas.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.tableUltimasVendas.setAlternatingRowColors(True)
+        self.tableUltimasVendas.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tableUltimasVendas.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tableUltimasVendas.setToolTip("Clique duas vezes em uma venda para consultar seus detalhes.")
         self.tableUltimasVendas.doubleClicked.connect(self._abrir_detalhe_venda_dashboard)
 
         self.btnVerProdutos = QPushButton("📦   Ver Produtos", self.frameAcoesBtns)
@@ -130,12 +168,18 @@ QPushButton:hover {
     def _setup_dashboard_layout(self) -> None:
         self.lblAcoesTitle.setText("Ações Essenciais")
         self.lblConfigEstruturalTitle.setText("Operação e Sistema")
+        self.lblVendasHojeTitulo.setText("Vendas hoje")
+        self.lblFaturamentoTitulo.setText("Faturamento hoje")
+        self.lblProdutosTitulo.setText("Produtos ativos")
+        self.lblClientesTitulo.setText("Clientes ativos")
 
         # Mantem o cabecalho compacto e reserva o espaco vertical para os
         # botoes de acesso rapido.
         self.lblAcoesTitle.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         self.lblAcoesTitle.setMinimumHeight(36)
         self.lblAcoesTitle.setMaximumHeight(42)
+        self.acoesBtnsVLayout.setContentsMargins(10, 8, 10, 8)
+        self.acoesBtnsVLayout.setSpacing(5)
 
         self.btnAcaoCadFuncionario.hide()
         self.btnAcaoCadUsuario.hide()
@@ -194,6 +238,8 @@ QLabel[panelTitle="true"] {
         self.lineResumoAlertas.hide()
         self.frameEstruturalBodyLayout.removeWidget(self.lblResumoAlertasTitulo)
         self.lblResumoAlertasTitulo.hide()
+        self.frameEstruturalBodyLayout.setContentsMargins(14, 12, 14, 12)
+        self.frameEstruturalBodyLayout.setSpacing(8)
 
         for botao in [
             self.btnResumoAlerta1,
@@ -705,6 +751,10 @@ QPushButton:hover { background: #2a74b8; }
         self.cardClientes.hide()
         self.frameUltimasVendas.hide()
 
+    def _mostrar_controles_dashboard(self, visivel: bool) -> None:
+        self.btnAtualizarDashboard.setVisible(visivel)
+        self.lblUltimaAtualizacaoDashboard.setVisible(visivel)
+
     def _show_placeholder_section(
         self,
         *,
@@ -719,6 +769,7 @@ QPushButton:hover { background: #2a74b8; }
         self.lblSectionTitle.setText(title)
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
+        self._mostrar_controles_dashboard(False)
         self._hide_content_pages()
         self._set_subnav_group(group_key)
         self.placeholderPage.show()
@@ -736,6 +787,7 @@ QPushButton:hover { background: #2a74b8; }
         self.lblSectionTitle.setText("Dashboard Administrativo")
         self.btnFrenteCaixa.show()
         self.btnFecharCaixaDashboard.show()
+        self._mostrar_controles_dashboard(True)
         self._atualizar_acao_caixa_dashboard()
         self._hide_content_pages()
         self._set_subnav_group("dashboard")
@@ -765,6 +817,7 @@ QPushButton:hover { background: #2a74b8; }
         self.lblSectionTitle.setText(config["section_title"])
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
+        self._mostrar_controles_dashboard(False)
         self._hide_content_pages()
         self._set_subnav_group(group_map.get(key, "cadastros"))
         self.managementPage.show()
@@ -792,6 +845,7 @@ QPushButton:hover { background: #2a74b8; }
         self.lblSectionTitle.setText("Configurações do Sistema")
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
+        self._mostrar_controles_dashboard(False)
         self._hide_content_pages()
         self._set_subnav_group("configuracoes")
         self.configuracoesPage.show()
@@ -802,6 +856,7 @@ QPushButton:hover { background: #2a74b8; }
         self.lblSectionTitle.setText("Parâmetros Fiscais")
         self.btnFrenteCaixa.hide()
         self.btnFecharCaixaDashboard.hide()
+        self._mostrar_controles_dashboard(False)
         self._hide_content_pages()
         self._set_subnav_group("operacao_fiscal")
         self.parametrosFiscaisPage.show()
@@ -1446,24 +1501,34 @@ QPushButton:hover { background: #2a74b8; }
         self.lblDataHora.setText(current.toString("dd/MM/yyyy  hh:mm:ss"))
 
     def _load_dashboard_cards(self) -> None:
-        from modules.admin.services.dashboard_service import DashboardAdminService
-
-        try:
-            resumo = DashboardAdminService.carregar_dashboard()
-        except Exception as exc:
-            self.lblVendasHojeValor.setText("0")
-            self.lblFaturamentoValor.setText("R$ 0,00")
-            self.lblProdutosValor.setText("0")
-            self.lblClientesValor.setText("0")
-            self._atualizar_resumo_estrutura({})
-            self._populate_dashboard_sales([])
-            mostrar_aviso(
-                self,
-                "Dashboard indisponível",
-                f"Não foi possível carregar os indicadores do dashboard agora.\n\nDetalhes: {exc}",
-            )
+        if self._dashboard_thread is not None and self._dashboard_thread.isRunning():
+            self.lblStatusSistema.setText("Atualizando painel...")
             return
 
+        self._dashboard_load_generation += 1
+        geracao = self._dashboard_load_generation
+        self.lblStatusSistema.setText("Atualizando painel...")
+        self.lblUltimaAtualizacaoDashboard.setText("Atualizando...")
+        self.btnAtualizarDashboard.setEnabled(False)
+        thread = QThread(self)
+        worker = _DashboardResumoWorker(geracao)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.executar)
+        worker.concluido.connect(self._dashboard_carregado)
+        worker.falhou.connect(self._dashboard_falhou)
+        worker.concluido.connect(thread.quit)
+        worker.falhou.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        thread.finished.connect(self._finalizar_carregamento_dashboard)
+        self._dashboard_thread = thread
+        self._dashboard_worker = worker
+        thread.start()
+
+    @pyqtSlot(object, int)
+    def _dashboard_carregado(self, resumo: dict[str, Any], geracao: int) -> None:
+        if geracao != self._dashboard_load_generation:
+            return
         self.lblVendasHojeValor.setText(str(resumo["vendas_hoje"]))
         self.lblFaturamentoValor.setText(str(resumo["faturamento_dia"]))
         self.lblProdutosValor.setText(str(resumo["produtos_ativos"]))
@@ -1471,22 +1536,43 @@ QPushButton:hover { background: #2a74b8; }
         self._atualizar_resumo_estrutura(resumo)
         self._populate_dashboard_sales(resumo["ultimas_vendas"])
         self._atualizar_acao_caixa_dashboard()
+        self.lblUltimaAtualizacaoDashboard.setText(
+            f"Atualizado: {QDateTime.currentDateTime().toString('dd/MM/yyyy hh:mm')}"
+        )
+        self.lblStatusSistema.setText("Sistema Online")
+
+    @pyqtSlot(str, int)
+    def _dashboard_falhou(self, mensagem: str, geracao: int) -> None:
+        if geracao != self._dashboard_load_generation:
+            return
+        self.lblUltimaAtualizacaoDashboard.setText("Falha na atualização")
+        self.lblStatusSistema.setText("Falha ao atualizar o painel")
+        mostrar_aviso(
+            self,
+            "Dashboard indisponível",
+            f"Não foi possível atualizar os indicadores agora.\n\nDetalhes: {mensagem}",
+        )
+
+    def _finalizar_carregamento_dashboard(self) -> None:
+        self._dashboard_thread = None
+        self._dashboard_worker = None
+        self.btnAtualizarDashboard.setEnabled(True)
 
     def _atualizar_resumo_estrutura(self, resumo: dict[str, Any]) -> None:
         self.lblResumoUsuarios.setText(
-            f"Acesso: usuarios ativos {int(resumo.get('usuarios_ativos') or 0)} | "
-            f"perfis ativos {int(resumo.get('perfis_ativos') or 0)}"
+            f"Usuários ativos: {int(resumo.get('usuarios_ativos') or 0)}  •  "
+            f"Perfis ativos: {int(resumo.get('perfis_ativos') or 0)}"
         )
         self.lblResumoPerfis.setText(
-            f"Operacao: PDVs ativos {int(resumo.get('pdvs_ativos') or 0)} | "
-            f"caixas abertos {int(resumo.get('caixas_abertos') or 0)}"
+            f"PDVs ativos: {int(resumo.get('pdvs_ativos') or 0)}  •  "
+            f"Caixas abertos: {int(resumo.get('caixas_abertos') or 0)}"
         )
         self.lblResumoPdvs.setText(
-            f"Financeiro: recebimentos hoje {str(resumo.get('recebimentos_dia') or 'R$ 0,00')} | "
-            f"reembolsos hoje {str(resumo.get('reembolsos_dia') or 'R$ 0,00')}"
+            f"Recebimentos hoje: {str(resumo.get('recebimentos_dia') or 'R$ 0,00')}  •  "
+            f"Reembolsos hoje: {str(resumo.get('reembolsos_dia') or 'R$ 0,00')}"
         )
         self.lblResumoCaixas.setText(
-            f"Sistema: ultimo backup {str(resumo.get('ultimo_backup_resumo') or 'Nenhum backup realizado ainda')}"
+            f"Último backup: {str(resumo.get('ultimo_backup_resumo') or 'Nenhum backup realizado ainda')}"
         )
         self.lblResumoFormasPagamento.setText(
             f"Formas de pagamento ativas: {int(resumo.get('formas_pagamento_ativas') or 0)}"
@@ -1522,7 +1608,7 @@ QPushButton:hover { background: #2a74b8; }
             ),
         }
         if not alertas:
-            alertas = [{"nivel": "ok", "texto": "Nenhum alerta estrutural no momento.", "acao": "nenhuma"}]
+            alertas = [{"nivel": "ok", "texto": "Tudo certo por enquanto. Nenhuma ação pendente.", "acao": "nenhuma"}]
 
         for index, botao in enumerate(botoes):
             self._desconectar_click(botao)
@@ -1531,7 +1617,8 @@ QPushButton:hover { background: #2a74b8; }
                 nivel = str(alerta.get("nivel") or "info").strip().lower()
                 texto = str(alerta.get("texto") or "").strip()
                 acao = str(alerta.get("acao") or "nenhuma").strip().lower()
-                botao.setText(f"• {texto}")
+                prefixo = "✓" if nivel == "ok" else "•"
+                botao.setText(f"{prefixo} {texto}")
                 botao.setStyleSheet(estilos.get(nivel, estilos["info"]))
                 botao.setEnabled(acao != "nenhuma")
                 if acao != "nenhuma":
