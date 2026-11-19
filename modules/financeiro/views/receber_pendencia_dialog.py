@@ -50,7 +50,7 @@ class ReceberPendenciaDialog(QDialog, Ui_ReceberPendenciaDialog):
         self.lblTotalValor.setText(formatar_moeda(self._conta.get("valor_total") or 0))
         self.lblRecebidoValor.setText(formatar_moeda(self._conta.get("valor_recebido") or 0))
         self.lblAbertoValor.setText(formatar_moeda(self._conta.get("valor_aberto") or 0))
-        self.lineEditValor.setText(formatar_moeda(self._conta.get("valor_aberto") or 0).replace("R$ ", ""))
+        self.lineEditValor.setText("0,00")
         self.dateRecebimento.setDisplayFormat("dd/MM/yyyy")
         self.dateRecebimento.setDate(QDate.currentDate())
         self.textObservacao.setPlainText(str(self._conta.get("observacao") or "").strip())

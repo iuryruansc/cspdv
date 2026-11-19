@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any, Dict, Optional, cast
 from database.connection import db_cursor, db_transaction, get_connection
 from modules.admin.models.configuracoes_model import ConfiguracoesModel
-from modules.shared.constants import STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA
+from modules.estoque.models.estoque_lote_model import EstoqueLoteModel
+from modules.shared.constants import STATUS_PROMOCAO_AGENDADA, STATUS_PROMOCAO_ATIVA, TIPO_MOVIMENTACAO_AJUSTE_MANUAL
 from utils.app_logger import log_error
 
 class ProdutoModel:
@@ -380,6 +381,7 @@ class ProdutoModel:
         quantidade_ajuste: float,
         usuario_id: int,
         observacoes: str,
+        tipo_movimentacao: str = TIPO_MOVIMENTACAO_AJUSTE_MANUAL,
     ) -> None:
         with db_transaction(dictionary=False) as cur:
             cur.execute(
@@ -391,11 +393,33 @@ class ProdutoModel:
                 (nova_quantidade, produto_id),
             )
 
-            ProdutoModel._sincronizar_lotes_quantidade(
+            movimentacoes = EstoqueLoteModel.sincronizar_quantidade(
                 cursor=cur,
                 produto_id=produto_id,
                 nova_quantidade=int(nova_quantidade),
+                quantidade_anterior=int(quantidade_anterior),
             )
+
+            # O painel de estoque consulta o historico por meio de
+            # movimentacao_estoque. O ajuste manual tambem precisa deixar
+            # esse registro, inclusive quando a quantidade for reduzida.
+            for lote_id, quantidade_movimentada in movimentacoes:
+                cur.execute(
+                    """
+                    INSERT INTO movimentacao_estoque
+                        (lote_id, venda_id, data_hora, tipo, quantidade, usuario_id,
+                         observacao, tipo_movimento_id, ativo, createdAt, updatedAt)
+                    VALUES
+                        (%s, NULL, NOW(), %s, %s, %s, %s, NULL, 'S', NOW(), NOW())
+                    """,
+                    (
+                        lote_id,
+                        tipo_movimentacao,
+                        abs(int(quantidade_movimentada)),
+                        usuario_id,
+                        observacoes or "Ajuste manual de estoque",
+                    ),
+                )
 
             cur.execute(
                 """
@@ -423,64 +447,6 @@ class ProdutoModel:
             )
 
     @staticmethod
-    def _sincronizar_lotes_quantidade(cursor, produto_id: int, nova_quantidade: int) -> None:
-        cursor.execute(
-            """
-            SELECT id, numero_lote, quantidade
-            FROM lotes
-            WHERE produto_id = %s
-              AND ativo = 'S'
-            ORDER BY
-                CASE WHEN numero_lote LIKE 'AUTO-%%' THEN 0 ELSE 1 END,
-                data_validade DESC,
-                id DESC
-            """,
-            (produto_id,),
-        )
-        lotes = cursor.fetchall()
-        if not lotes:
-            return
-
-        total_lotes = sum(int(lote[2] or 0) for lote in lotes)
-        diferenca = int(nova_quantidade) - total_lotes
-        if diferenca == 0:
-            return
-
-        if diferenca > 0:
-            lote_id = int(lotes[0][0])
-            cursor.execute(
-                """
-                UPDATE lotes
-                SET quantidade = quantidade + %s,
-                    updatedAt = NOW()
-                WHERE id = %s
-                """,
-                (diferenca, lote_id),
-            )
-            return
-
-        restante_reduzir = abs(diferenca)
-        for lote in lotes:
-            lote_id = int(lote[0])
-            quantidade_atual = int(lote[2] or 0)
-            if quantidade_atual <= 0:
-                continue
-            reduzir = min(quantidade_atual, restante_reduzir)
-            if reduzir <= 0:
-                continue
-            cursor.execute(
-                """
-                UPDATE lotes
-                SET quantidade = quantidade - %s,
-                    updatedAt = NOW()
-                WHERE id = %s
-                """,
-                (reduzir, lote_id),
-            )
-            restante_reduzir -= reduzir
-            if restante_reduzir == 0:
-                break
-
     @staticmethod
     def inserir(dados: dict[str, Any]) -> int | None:
         with db_transaction(dictionary=False) as cur:

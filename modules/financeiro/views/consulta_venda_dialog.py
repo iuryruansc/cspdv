@@ -28,6 +28,7 @@ class ConsultaVendaDialog(QDialog, Ui_ConsultaVendaDialog):
         self.setModal(True)
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.btnFechar.clicked.connect(self.accept)
+        self.btnGerarComprovante.clicked.connect(self._gerar_comprovante)
         self._configure_pendencia_button()
         self._populate()
 
@@ -79,6 +80,12 @@ class ConsultaVendaDialog(QDialog, Ui_ConsultaVendaDialog):
 
         self._payment_registered = True
         self.accept()
+
+    def _gerar_comprovante(self) -> None:
+        from modules.financeiro.views.comprovante_venda_dialog import ComprovanteVendaDialog
+
+        dialog = ComprovanteVendaDialog(detalhes=self._detalhes, parent=self)
+        dialog.exec_()
 
     def _populate(self) -> None:
         venda = self._venda

@@ -13,8 +13,12 @@ class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
     def __init__(self, produto: dict[str, Any], parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.setWindowTitle("Movimentar Estoque")
         self.produto = produto
-        self.quantidade_atual = float(produto.get("quantidade_estoque") or 0)
+        quantidade_informada = produto.get("quantidade_estoque")
+        if quantidade_informada is None:
+            quantidade_informada = produto.get("quantidade")
+        self.quantidade_atual = float(quantidade_informada or 0)
 
         self.setModal(True)
         self.setWindowModality(Qt.WindowModal)
@@ -23,12 +27,13 @@ class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
         self.lblCodigo.setText(f"Codigo de barras: {produto.get('codigo_barras', '-')}")
         self.lblQuantidadeAtual.setText(self._formatar_quantidade(self.quantidade_atual))
 
-        self.comboModo.addItems(["Definir", "Somar", "Subtrair"])
+        self.comboModo.addItem("Entrada de Produto", "entrada")
+        self.comboModo.addItem("Saída de Produto", "saida")
         self.comboModo.currentTextChanged.connect(self._atualizar_previsao)
 
-        self.spinQuantidade.setRange(0, 999999999)
+        self.spinQuantidade.setRange(1, 999999999)
         self.spinQuantidade.setSingleStep(1)
-        self.spinQuantidade.setValue(int(self.quantidade_atual))
+        self.spinQuantidade.setValue(1)
         self.spinQuantidade.valueChanged.connect(self._atualizar_previsao)
 
         self.textObservacao.setMaximumBlockCount(6)
@@ -42,10 +47,8 @@ class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
 
     def _saldo_previsto(self) -> float:
         quantidade = int(self.spinQuantidade.value())
-        modo = self.comboModo.currentText().lower()
-        if modo == "definir":
-            return quantidade
-        if modo == "somar":
+        modo = str(self.comboModo.currentData() or "entrada")
+        if modo == "entrada":
             return self.quantidade_atual + quantidade
         return self.quantidade_atual - quantidade
 
@@ -58,12 +61,18 @@ class AjusteQuantidadeDialog(QDialog, Ui_AjusteQuantidadeDialog):
             self.lblResultado.setStyleSheet("font-weight: bold; color: #1a5fa0;")
 
     def _aplicar_ajuste(self) -> None:
+        observacao = self.textObservacao.toPlainText().strip()
+        if not observacao:
+            mostrar_aviso(self, "Motivo obrigatório", "Informe o motivo da entrada ou saída de produto.")
+            self.textObservacao.setFocus()
+            return
+
         usuario = SessionManager.current_user() or {}
         sucesso, mensagem = ProdutoService.ajustar_quantidade(
             produto_id=self.produto["id"],
-            modo=self.comboModo.currentText(),
+            modo=str(self.comboModo.currentData() or "entrada"),
             quantidade=int(self.spinQuantidade.value()),
-            observacao=self.textObservacao.toPlainText().strip(),
+            observacao=observacao,
             usuario_id=usuario.get("id"),
         )
         if sucesso:

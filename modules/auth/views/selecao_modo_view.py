@@ -209,9 +209,9 @@ class SelecaoModoView(QWidget, Ui_SelecaoModo):
     def _open_promocoes(self):
         if not self._tem_permissao("relatorios.ver"):
             return
-        from modules.promocoes.views.painel_promocoes_view import PainelPromocoesView
+        from modules.promocoes.views.visao_geral_promocoes_view import VisaoGeralPromocoesView
 
-        self._abrir_modulo(PainelPromocoesView, "painel_promocoes")
+        self._abrir_modulo(VisaoGeralPromocoesView, "painel_promocoes")
 
     def _open_relatorios(self):
         if not self._tem_permissao("relatorios.ver"):

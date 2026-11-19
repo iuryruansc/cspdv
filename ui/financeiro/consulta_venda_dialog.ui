@@ -446,6 +446,29 @@ QPushButton:hover { background: #225d8e; }</string>
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="btnReceberPendencia">
+       <property name="styleSheet">
+        <string notr="true">background: #27ae60;</string>
+       </property>
+       <property name="text">
+        <string>Receber Pendência</string>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnGerarComprovante">
+       <property name="styleSheet">
+        <string notr="true">background: #2f80c9;</string>
+       </property>
+       <property name="text">
+        <string>Gerar Comprovante</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnFechar">
        <property name="text">
         <string>Fechar</string>

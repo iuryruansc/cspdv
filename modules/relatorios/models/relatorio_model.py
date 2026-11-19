@@ -55,7 +55,7 @@ def _buscar_reembolsos_por_cliente(cursor: Any, inicio, fim) -> dict[str, Decima
         WHERE vr.ativo = 'S'
           AND vr.status = 'CONCLUIDO'
           AND vr.data_hora >= %s AND vr.data_hora < %s
-        GROUP BY c.nome
+        GROUP BY c.id, c.nome
         """,
         (inicio, fim),
     )
@@ -103,7 +103,7 @@ FROM vendas v
 LEFT JOIN clientes c ON c.id = v.cliente_id
 WHERE v.data_hora >= %s AND v.data_hora < %s
   AND v.status IN ('{STATUS_VENDA_SQL}')
-GROUP BY c.nome
+GROUP BY c.id, c.nome
 ORDER BY total_gasto DESC
 LIMIT 10
 """

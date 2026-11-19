@@ -330,6 +330,11 @@ QPushButton#btnVoltar {
             <string>PRECO_FIXO</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>POR_PRODUTO</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="2" column="2">

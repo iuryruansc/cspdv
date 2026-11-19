@@ -3,7 +3,16 @@ from __future__ import annotations
 from typing import Any
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QDoubleSpinBox, QTableWidget
+from PyQt5.QtWidgets import (
+    QAbstractItemView,
+    QCheckBox,
+    QComboBox,
+    QDialog,
+    QDoubleSpinBox,
+    QHBoxLayout,
+    QLabel,
+    QTableWidget,
+)
 
 from modules.promocoes.services.promocao_service import PromocaoService
 from ui.promocoes.vincular_produtos_promocao import Ui_VincularProdutosPromocao
@@ -25,6 +34,8 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         self._itens_vinculados: list[dict[str, Any]] = []
 
         self._configurar_tabelas()
+        self.btnVincularProduto.setText("Vincular selecionados")
+        self.lblBuscaHint.setText("Selecione um ou mais produtos; use Ctrl/Shift para selecionar em lote.")
         self._conectar_sinais()
         self._carregar_contexto()
 
@@ -35,19 +46,45 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         self.tableProdutos.setColumnWidth(1, 250)
         self.tableProdutos.setColumnWidth(2, 100)
         self.tableProdutos.setColumnWidth(3, 80)
-        self.tableItensVinculados.setColumnWidth(0, 220)
-        self.tableItensVinculados.setColumnWidth(1, 90)
-        self.tableItensVinculados.setColumnWidth(2, 95)
-        self.tableItensVinculados.setColumnWidth(3, 85)
+        self.tableProdutos.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.tableItensVinculados.setColumnCount(7)
+        self.tableItensVinculados.setHorizontalHeaderLabels(
+            ["Produto", "Regra", "Preço Atual", "Preço Promo", "Desconto (R$)", "Desconto (%)", "Observação"]
+        )
+        self.tableItensVinculados.setColumnWidth(0, 190)
+        self.tableItensVinculados.setColumnWidth(1, 125)
+        self.tableItensVinculados.setColumnWidth(2, 90)
+        self.tableItensVinculados.setColumnWidth(3, 95)
+        self.tableItensVinculados.setColumnWidth(4, 85)
+        self.tableItensVinculados.setColumnWidth(5, 85)
+        self.tableItensVinculados.setColumnWidth(6, 110)
 
-        self.spinNovoPreco = QDoubleSpinBox(self.frameBusca)
-        self.spinNovoPreco.setDecimals(2)
-        self.spinNovoPreco.setRange(0.01, 999999.99)
-        self.spinNovoPreco.setPrefix("R$ ")
-        self.spinNovoPreco.setValue(0.00)
-        self.spinNovoPreco.setFixedHeight(42)
-        self.spinNovoPreco.setVisible(False)
-        self.buscaLayout.insertWidget(3, self.spinNovoPreco)
+        self._check_regra_padrao = QCheckBox("Usar regra padrão da promoção", self.frameBusca)
+        self._check_regra_padrao.setChecked(True)
+        self._check_regra_padrao.toggled.connect(self._alternar_regra_item)
+
+        self._label_regra_item = QLabel("Regra do produto:", self.frameBusca)
+        self._combo_regra_item = QComboBox(self.frameBusca)
+        self._combo_regra_item.addItem("Desconto percentual", "PERCENTUAL")
+        self._combo_regra_item.addItem("Desconto em valor", "VALOR")
+        self._combo_regra_item.addItem("Preço promocional", "PRECO_FIXO")
+        self._combo_regra_item.addItem("Novo preço por produto", "NOVO_PRECO")
+        self._spin_valor_regra = QDoubleSpinBox(self.frameBusca)
+        self._spin_valor_regra.setDecimals(2)
+        self._spin_valor_regra.setRange(0.01, 999999.99)
+        self._spin_valor_regra.setFixedWidth(125)
+        self._atualizar_formato_regra_item()
+        self._combo_regra_item.currentIndexChanged.connect(self._atualizar_formato_regra_item)
+
+        regra_layout = QHBoxLayout()
+        regra_layout.setSpacing(8)
+        regra_layout.addWidget(self._check_regra_padrao)
+        regra_layout.addWidget(self._label_regra_item)
+        regra_layout.addWidget(self._combo_regra_item)
+        regra_layout.addWidget(self._spin_valor_regra)
+        regra_layout.addStretch()
+        self.buscaLayout.insertLayout(3, regra_layout)
+        self._alternar_regra_item(True)
 
     def _conectar_sinais(self) -> None:
         self.btnAtualizar.clicked.connect(self._carregar_contexto)
@@ -66,7 +103,9 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         self._promocao = promocao
         self._popular_resumo_promocao()
         tipo = str(promocao.get("tipo_desconto") or "").strip().upper()
-        self.spinNovoPreco.setVisible(tipo == "NOVO_PRECO")
+        if tipo == "POR_PRODUTO":
+            self._check_regra_padrao.setChecked(False)
+            self._check_regra_padrao.setEnabled(False)
         self._carregar_produtos()
         self._carregar_itens_vinculados()
 
@@ -109,9 +148,11 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
         for row, item in enumerate(self._itens_vinculados):
             valores = [
                 str(item.get("produto") or "-"),
+                self._formatar_regra_item(item),
                 formatar_moeda(item.get("preco_original")),
                 formatar_moeda(item.get("preco_promocional")),
                 formatar_moeda(item.get("desconto_aplicado")),
+                self._formatar_desconto_percentual(item),
                 str(item.get("observacao") or "-"),
             ]
             for column, valor in enumerate(valores):
@@ -121,34 +162,82 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             self.tableItensVinculados.selectRow(0)
 
     def _vincular_produto(self) -> None:
-        row = self.tableProdutos.currentRow()
-        if row < 0 or row >= len(self._produtos_encontrados):
-            mostrar_aviso(self, "Promoções", "Selecione um produto para vincular.")
+        rows = sorted({index.row() for index in self.tableProdutos.selectionModel().selectedRows()})
+        if not rows:
+            mostrar_aviso(self, "Promoções", "Selecione um ou mais produtos para vincular.")
             return
 
-        produto = self._produtos_encontrados[row]
-        tipo = str(self._promocao.get("tipo_desconto") or "").strip().upper()
+        tipo_item = None
+        valor_item = None
         preco_personalizado = None
-        if tipo == "NOVO_PRECO":
-            preco_personalizado = self.spinNovoPreco.value()
-            if preco_personalizado <= 0:
-                mostrar_aviso(self, "Promoções", "Informe o novo preço para o produto.")
-                return
+        if not self._check_regra_padrao.isChecked():
+            tipo_item = str(self._combo_regra_item.currentData() or "")
+            valor_item = float(self._spin_valor_regra.value())
+            preco_personalizado = valor_item if tipo_item == "NOVO_PRECO" else None
 
-        sucesso, mensagem = PromocaoService.vincular_produto(
-            promocao_id=self.promocao_id,
-            produto_id=int(produto.get("id") or 0),
-            observacao="",
-            preco_personalizado=preco_personalizado,
-        )
-        if not sucesso:
-            mostrar_aviso(self, "Promoções", mensagem)
-            return
+        sucessos = 0
+        erros: list[str] = []
+        for row in rows:
+            produto = self._produtos_encontrados[row]
+            sucesso, mensagem = PromocaoService.vincular_produto(
+                promocao_id=self.promocao_id,
+                produto_id=int(produto.get("id") or 0),
+                observacao="",
+                preco_personalizado=preco_personalizado,
+                tipo_desconto_item=tipo_item,
+                valor_desconto_item=valor_item,
+            )
+            if sucesso:
+                sucessos += 1
+            else:
+                erros.append(f"{produto.get('nome') or 'Produto'}: {mensagem}")
 
-        mostrar_info(self, "Promoções", mensagem)
-        self.spinNovoPreco.setValue(0.00)
+        if sucessos:
+            mostrar_info(self, "Promoções", f"{sucessos} produto(s) vinculado(s) à promoção.")
+        if erros:
+            mostrar_aviso(self, "Produtos não vinculados", "\n".join(erros[:5]))
+        self._spin_valor_regra.setValue(0.00)
         self._carregar_produtos()
         self._carregar_itens_vinculados()
+
+    def _alternar_regra_item(self, usar_padrao: bool) -> None:
+        self._label_regra_item.setVisible(not usar_padrao)
+        self._combo_regra_item.setVisible(not usar_padrao)
+        self._spin_valor_regra.setVisible(not usar_padrao)
+
+    def _atualizar_formato_regra_item(self) -> None:
+        tipo = str(self._combo_regra_item.currentData() or "")
+        if tipo == "PERCENTUAL":
+            self._spin_valor_regra.setPrefix("")
+            self._spin_valor_regra.setSuffix(" %")
+        else:
+            self._spin_valor_regra.setPrefix("R$ ")
+            self._spin_valor_regra.setSuffix("")
+
+    @staticmethod
+    def _formatar_regra_item(item: dict[str, Any]) -> str:
+        tipo = str(item.get("tipo_desconto_item") or "").upper()
+        if not tipo:
+            tipo = "PADRÃO"
+        if tipo == "PERCENTUAL":
+            return f"{float(item.get('desconto_percentual_item') or 0):.2f}%".replace(".", ",")
+        if tipo == "VALOR":
+            return f"R$ {float(item.get('desconto_valor_item') or 0):.2f}".replace(".", ",")
+        if tipo in ("PRECO_FIXO", "NOVO_PRECO"):
+            return f"Preço R$ {float(item.get('preco_fixo_item') or item.get('preco_promocional') or 0):.2f}".replace(".", ",")
+        return "Padrão da promoção"
+
+    @staticmethod
+    def _formatar_desconto_percentual(item: dict[str, Any]) -> str:
+        try:
+            preco_original = float(item.get("preco_original") or 0)
+            preco_promocional = float(item.get("preco_promocional") or 0)
+        except (TypeError, ValueError):
+            return "-"
+        if preco_original <= 0:
+            return "-"
+        percentual = max(0.0, (preco_original - preco_promocional) / preco_original * 100)
+        return f"{percentual:.2f}%".replace(".", ",")
 
     def _remover_produto(self) -> None:
         row = self.tableItensVinculados.currentRow()
@@ -179,6 +268,7 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             "VALOR": "Desconto por valor",
             "PRECO_FIXO": "Preço promocional",
             "NOVO_PRECO": "Novo preço por produto",
+            "POR_PRODUTO": "Regra definida por produto",
         }
         return mapa.get(tipo.strip().upper(), tipo)
 
@@ -200,4 +290,6 @@ class VincularProdutosPromocaoDialog(QDialog, Ui_VincularProdutosPromocao):
             return f"Preço final R$ {preco_fixo:.2f}".replace(".", ",")
         if tipo == "NOVO_PRECO":
             return "Preço definido por produto"
+        if tipo == "POR_PRODUTO":
+            return "Regra definida em cada produto"
         return "-"

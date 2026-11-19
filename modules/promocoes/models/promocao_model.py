@@ -167,10 +167,16 @@ class PromocaoModel:
                 cur.execute(
                     """
                     INSERT INTO promocao_produtos
-                        (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
+                        (promocao_id, produto_id, tipo_desconto_item, desconto_percentual_item,
+                         desconto_valor_item, preco_fixo_item, preco_original, preco_promocional,
+                         desconto_aplicado, observacao, ativo, createdAt, updatedAt)
                     SELECT
                         %s,
                         produto_id,
+                        tipo_desconto_item,
+                        desconto_percentual_item,
+                        desconto_valor_item,
+                        preco_fixo_item,
                         preco_original,
                         preco_promocional,
                         desconto_aplicado,
@@ -304,6 +310,10 @@ class PromocaoModel:
                 SELECT
                     pp.produto_id,
                     pr.nome AS produto,
+                    pp.tipo_desconto_item,
+                    pp.desconto_percentual_item,
+                    pp.desconto_valor_item,
+                    pp.preco_fixo_item,
                     pp.preco_original,
                     pp.preco_promocional,
                     pp.desconto_aplicado,
@@ -354,7 +364,7 @@ class PromocaoModel:
     def buscar_produtos_disponiveis(promocao_id: int, busca: str = "") -> list[dict[str, Any]]:
         with db_cursor() as cur:
             filtros = ["p.ativo = %s"]
-            params: list[Any] = [int(promocao_id)]
+            params: list[Any] = [FLAG_SIM]
 
             termo = str(busca or "").strip()
             if termo:
@@ -398,7 +408,7 @@ class PromocaoModel:
                     p.nome
                 LIMIT 150
                 """,
-                [int(promocao_id), FLAG_SIM, *params, FLAG_SIM],
+                [int(promocao_id), FLAG_SIM, *params],
             )
             return cast(list[dict[str, Any]], list(cur.fetchall() or []))
     @staticmethod
@@ -451,6 +461,10 @@ class PromocaoModel:
         preco_promocional: float,
         desconto_aplicado: float,
         observacao: str,
+        tipo_desconto_item: str | None = None,
+        desconto_percentual_item: float | None = None,
+        desconto_valor_item: float | None = None,
+        preco_fixo_item: float | None = None,
     ) -> None:
         with db_transaction() as cur:
             cur.execute(
@@ -468,7 +482,11 @@ class PromocaoModel:
                 cur.execute(
                     """
                     UPDATE promocao_produtos
-                    SET preco_original = %s,
+                    SET tipo_desconto_item = %s,
+                        desconto_percentual_item = %s,
+                        desconto_valor_item = %s,
+                        preco_fixo_item = %s,
+                        preco_original = %s,
                         preco_promocional = %s,
                         desconto_aplicado = %s,
                         observacao = %s,
@@ -477,6 +495,10 @@ class PromocaoModel:
                     WHERE id = %s
                     """,
                     (
+                        tipo_desconto_item,
+                        desconto_percentual_item,
+                        desconto_valor_item,
+                        preco_fixo_item,
                         preco_original,
                         preco_promocional,
                         desconto_aplicado,
@@ -489,13 +511,19 @@ class PromocaoModel:
                 cur.execute(
                     """
                     INSERT INTO promocao_produtos
-                        (promocao_id, produto_id, preco_original, preco_promocional, desconto_aplicado, observacao, ativo, createdAt, updatedAt)
+                        (promocao_id, produto_id, tipo_desconto_item, desconto_percentual_item,
+                         desconto_valor_item, preco_fixo_item, preco_original, preco_promocional,
+                         desconto_aplicado, observacao, ativo, createdAt, updatedAt)
                     VALUES
-                        (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                     """,
                     (
                         int(promocao_id),
                         int(produto_id),
+                        tipo_desconto_item,
+                        desconto_percentual_item,
+                        desconto_valor_item,
+                        preco_fixo_item,
                         preco_original,
                         preco_promocional,
                         desconto_aplicado,
@@ -707,11 +735,24 @@ class PromocaoModel:
                     cur.execute(
                         """
                         UPDATE promocao_produtos
-                        SET preco_original = %s, preco_promocional = %s,
+                        SET tipo_desconto_item = %s,
+                            desconto_percentual_item = %s,
+                            desconto_valor_item = %s,
+                            preco_fixo_item = %s,
+                            preco_original = %s, preco_promocional = %s,
                             desconto_aplicado = %s, ativo = 'S', updatedAt = NOW()
                         WHERE id = %s
                         """,
-                        (preco_original, preco_promocional, desconto, int(existente[0])),
+                        (
+                            None,
+                            None,
+                            None,
+                            None,
+                            preco_original,
+                            preco_promocional,
+                            desconto,
+                            int(existente[0]),
+                        ),
                     )
                 else:
                     cur.execute(

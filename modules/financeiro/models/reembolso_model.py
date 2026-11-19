@@ -11,6 +11,8 @@ from modules.shared.constants import (
     STATUS_REEMBOLSO_CONCLUIDO,
     STATUS_VENDA_PARCIALMENTE_REEMBOLSADA,
     STATUS_VENDA_REEMBOLSADA,
+    TIPO_MOVIMENTACAO_ENTRADA_REEMBOLSO,
+    TIPO_MOVIMENTACAO_ENTRADA_REEMBOLSO_KIT,
 )
 
 CENT = Decimal("0.01")
@@ -108,7 +110,7 @@ class ReembolsoModel:
                             lote_id,
                             venda_id,
                             data_hora,
-                            "entrada_reembolso",
+                            TIPO_MOVIMENTACAO_ENTRADA_REEMBOLSO,
                             quantidade,
                             usuario_id,
                             f"Entrada por reembolso #{reembolso_id}",
@@ -274,7 +276,7 @@ class ReembolsoModel:
                     lote_id,
                     venda_id,
                     data_hora,
-                    "entrada_reembolso_kit",
+                    TIPO_MOVIMENTACAO_ENTRADA_REEMBOLSO_KIT,
                     quantidade,
                     usuario_id,
                     f"Entrada do componente do kit #{kit_id} por reembolso #{reembolso_id}",

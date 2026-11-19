@@ -58,7 +58,8 @@ class ContasClienteDialog(QDialog):
         self.btnPagarAgora.setStyleSheet("background:#f0a039;color:#fff;font-weight:bold;padding:7px 16px;border-radius:5px;")
         self.btnPagarAgora.setEnabled(False)
         botoes.addButton(self.btnPagarAgora, QDialogButtonBox.AcceptRole)
-        botoes.addButton(QDialogButtonBox.Close)
+        btn_fechar = botoes.addButton(QDialogButtonBox.Close)
+        btn_fechar.setText("Fechar")
         self.table.itemSelectionChanged.connect(lambda: self.btnPagarAgora.setEnabled(self.table.currentRow() >= 0))
         self.table.itemSelectionChanged.connect(lambda: self.btnVerConta.setEnabled(self.table.currentRow() >= 0))
         self.table.itemDoubleClicked.connect(lambda _item: self._ver_conta())
@@ -70,6 +71,10 @@ class ContasClienteDialog(QDialog):
 
     def _carregar(self) -> None:
         contas = FinanceiroService.listar_contas_receber_cliente(int(self._cliente.get("id") or 0))
+        self.table.clearSelection()
+        self.table.setCurrentCell(-1, -1)
+        self.btnPagarAgora.setEnabled(False)
+        self.btnVerConta.setEnabled(False)
         self.table.setRowCount(len(contas))
         total_aberto = 0.0
         for row, conta in enumerate(contas):
@@ -114,10 +119,17 @@ class ContasClienteDialog(QDialog):
             return
         from modules.financeiro.views.consulta_conta_receber_dialog import ConsultaContaReceberDialog
 
-        ConsultaContaReceberDialog(detalhes, self).exec_()
+        dialog = ConsultaContaReceberDialog(detalhes, self)
+        if dialog.exec_() == dialog.Accepted and dialog.solicitar_recebimento:
+            self._pagar_agora(conta_id=conta_id, detalhes=detalhes)
 
-    def _pagar_agora(self) -> None:
-        conta_id = self._conta_selecionada_id()
+    def _pagar_agora(
+        self,
+        *,
+        conta_id: int | None = None,
+        detalhes: dict[str, Any] | None = None,
+    ) -> None:
+        conta_id = int(conta_id or self._conta_selecionada_id())
         if not conta_id:
             mostrar_aviso(self, "Selecione uma conta", "Selecione a conta que será paga.")
             return
@@ -125,7 +137,7 @@ class ContasClienteDialog(QDialog):
             mostrar_aviso(self, "Caixa não encontrado", "Abra um caixa antes de registrar pagamentos de pendências.")
             return
 
-        detalhes = FinanceiroService.obter_conta_receber_detalhada(conta_id)
+        detalhes = detalhes or FinanceiroService.obter_conta_receber_detalhada(conta_id)
         if not detalhes:
             mostrar_aviso(self, "Conta não encontrada", "Não foi possível localizar os dados da conta selecionada.")
             return

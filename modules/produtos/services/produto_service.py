@@ -4,7 +4,15 @@ from typing import Any
 
 from modules.produtos.models.produto_model import ProdutoModel
 from modules.produtos.models.kit_model import KitModel
-from modules.shared.constants import FLAG_NAO, FLAG_SIM, ResultadoOperacao, alternar_flag
+from modules.shared.constants import (
+    FLAG_NAO,
+    FLAG_SIM,
+    ResultadoOperacao,
+    TIPO_MOVIMENTACAO_AJUSTE_MANUAL,
+    TIPO_MOVIMENTACAO_ENTRADA_MANUAL,
+    TIPO_MOVIMENTACAO_SAIDA_MANUAL,
+    alternar_flag,
+)
 from utils.app_logger import log_error
 
 class ProdutoService:
@@ -143,6 +151,10 @@ class ProdutoService:
         if quantidade <= 0:
             return False, "Informe uma quantidade maior que zero para o ajuste."
 
+        observacao_limpa = str(observacao or "").strip()
+        if not observacao_limpa:
+            return False, "Informe o motivo da entrada ou saída de produto."
+
         produto = ProdutoModel.buscar_por_id(int(produto_id))
         if not produto:
             return False, "Produto não localizado para ajuste."
@@ -150,12 +162,20 @@ class ProdutoService:
         quantidade_atual = float(produto.get("quantidade_estoque") or 0)
         modo_normalizado = str(modo).strip().lower()
 
-        if modo_normalizado == "definir":
-            nova_quantidade = quantidade
-        elif modo_normalizado == "somar":
+        if modo_normalizado in {"entrada", "entrada de produto", "somar"}:
             nova_quantidade = quantidade_atual + quantidade
-        elif modo_normalizado == "subtrair":
+            tipo_movimentacao = TIPO_MOVIMENTACAO_ENTRADA_MANUAL
+            descricao_modo = "entrada de produto"
+        elif modo_normalizado in {"saida", "saída", "saida de produto", "saída de produto", "subtrair"}:
             nova_quantidade = quantidade_atual - quantidade
+            tipo_movimentacao = TIPO_MOVIMENTACAO_SAIDA_MANUAL
+            descricao_modo = "saída de produto"
+        elif modo_normalizado == "definir":
+            # Compatibilidade com chamadas antigas; a interface atual não oferece
+            # mais esse modo porque ele não representa uma movimentação explícita.
+            nova_quantidade = quantidade
+            tipo_movimentacao = TIPO_MOVIMENTACAO_AJUSTE_MANUAL
+            descricao_modo = "definir"
         else:
             return False, "Modo de ajuste inválido."
 
@@ -167,9 +187,7 @@ class ProdutoService:
 
         quantidade_ajuste = nova_quantidade - quantidade_atual
         observacao_final = (
-            f"Ajuste manual ({modo_normalizado})"
-            if not observacao
-            else f"Ajuste manual ({modo_normalizado}) - {str(observacao).strip()}"
+            f"{descricao_modo.title()} - {observacao_limpa}"
         )
 
         try:
@@ -180,8 +198,9 @@ class ProdutoService:
                 quantidade_ajuste=quantidade_ajuste,
                 usuario_id=int(usuario_id),
                 observacoes=observacao_final,
+                tipo_movimentacao=tipo_movimentacao,
             )
-            return True, "Quantidade ajustada com sucesso."
+            return True, "Movimentação de estoque registrada com sucesso."
         except Exception as e:
             return False, f"Erro ao registrar ajuste de estoque:\n{e}"
 

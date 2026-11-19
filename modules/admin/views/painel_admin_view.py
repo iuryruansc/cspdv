@@ -1890,10 +1890,10 @@ QPushButton:hover { background: #2a74b8; }
                     "O usuário atual não possui permissão para abrir o módulo de promoções.",
                 )
                 return
-            from modules.promocoes.views.painel_promocoes_view import PainelPromocoesView
+            from modules.promocoes.views.visao_geral_promocoes_view import VisaoGeralPromocoesView
 
             self.hide()
-            self.painel_promocoes = PainelPromocoesView()
+            self.painel_promocoes = VisaoGeralPromocoesView()
             self.painel_promocoes.showMaximized()
             return
 

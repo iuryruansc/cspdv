@@ -173,6 +173,10 @@ QPushButton {
 QPushButton:hover { background-color: #2b74b4; }
 QPushButton#btnAjusteEstoque { background-color: #f0a030; color: #1d2430; }
 QPushButton#btnAjusteEstoque:hover { background-color: #d88b20; }
+QPushButton#btnFornecimento { background-color: #2f80c9; color: white; }
+QPushButton#btnFornecimento:hover { background-color: #276faa; }
+QPushButton#btnLimparFiltros { background-color: #f4f7fa; color: #315676; border: 1px solid #c8d7e6; }
+QPushButton#btnLimparFiltros:hover { background-color: #e5eef6; }
        </string>
       </property>
       <layout class="QHBoxLayout" name="toolbarHLayout">
@@ -228,12 +232,21 @@ QPushButton#btnAjusteEstoque:hover { background-color: #d88b20; }
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btnNovoLote">
-         <property name="text">
-          <string>Novo Lote</string>
-         </property>
-        </widget>
        </item>
+      <item>
+       <widget class="QPushButton" name="btnFornecimento">
+        <property name="text">
+         <string>Fornecimento</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnLimparFiltros">
+        <property name="text">
+         <string>Limpar</string>
+        </property>
+       </widget>
+      </item>
        <item>
         <widget class="QPushButton" name="btnAjusteEstoque">
          <property name="text">
@@ -526,6 +539,15 @@ QHeaderView::section {
              <property name="columnCount">
               <number>8</number>
              </property>
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
              </attribute>
@@ -572,7 +594,7 @@ QHeaderView::section {
               <string>true</string>
              </property>
              <property name="text">
-              <string>Ultimas Movimentacoes de Estoque</string>
+              <string>Movimentações de Estoque</string>
              </property>
             </widget>
            </item>

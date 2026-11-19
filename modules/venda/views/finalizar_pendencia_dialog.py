@@ -34,7 +34,7 @@ class FinalizarPendenciaDialog(QDialog, Ui_FinalizarPendenciaDialog):
         self.lblPagoValor.setText(formatar_moeda(self._valor_pago))
         self.lblAbertoValor.setText(formatar_moeda(self._valor_aberto))
         self.dateVencimento.setDisplayFormat("dd/MM/yyyy")
-        self.dateVencimento.setDate(QDate.currentDate().addDays(7))
+        self.dateVencimento.setDate(QDate.currentDate().addDays(30))
 
     def _conectar_sinais(self) -> None:
         self.btnCancelar.clicked.connect(self.reject)

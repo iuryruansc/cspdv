@@ -81,11 +81,6 @@ class Ui_CadastroPromocao(object):
             QPushButton#btnSalvar:hover { background-color: #276faa; }
             QPushButton#btnLimpar   { background-color: white; color: #315676; border: 1px solid #c6d6e5; }
             QPushButton#btnVoltar   { background-color: #d92b2b; color: white; }
-            QPushButton#btnAplicarRegra {
-                background-color: #e9f3fb; color: #205d8f;
-                border: 1px solid #b8d3ea; font-size: 11px; min-height: 34px;
-            }
-            QPushButton#btnAplicarRegra:hover { background-color: #d8ebfa; }
             QScrollArea { border: none; background: transparent; }
             QScrollBar:vertical {
                 background: #edf3f8; width: 10px; border-radius: 5px;
@@ -180,12 +175,7 @@ class Ui_CadastroPromocao(object):
         self.scrollLayout.addWidget(self.frameVigencia)
         self._montar_vigencia()
 
-        # ---- 5. Vinculacao de Produtos (colapsavel) ----
-        self.frameVinculacao = self._criar_secao_card("frameVinculacao")
-        self.scrollLayout.addWidget(self.frameVinculacao)
-        self._montar_vinculacao()
-
-        # ---- 6. Descricao / Observacao (colapsavel) ----
+        # ---- 5. Descricao / Observacao (colapsavel) ----
         self.frameTextos = self._criar_secao_card("frameTextos")
         self.scrollLayout.addWidget(self.frameTextos)
         self._montar_textos()
@@ -317,6 +307,7 @@ class Ui_CadastroPromocao(object):
             ("LEVE_X_PAGUE_Y", "2x1", "Leve X Pague Y"),
             ("DESCONTO_PROGRESSIVO", "++", "Progressivo"),
             ("COMBO", "C", "Combo"),
+            ("POR_PRODUTO", "P", "Por Produto"),
         ]
 
         self._tipo_cards: dict[str, QtWidgets.QFrame] = {}
@@ -463,6 +454,18 @@ class Ui_CadastroPromocao(object):
         fl.addStretch(1)
         lay.addWidget(self.frameCombo)
 
+        # --- REGRA POR PRODUTO ---
+        self.framePorProduto = QtWidgets.QFrame(self.frameConfig)
+        fl = QtWidgets.QVBoxLayout(self.framePorProduto)
+        fl.setContentsMargins(0, 0, 0, 0)
+        info = QtWidgets.QLabel(self.framePorProduto)
+        info.setText("A regra será definida ao vincular cada produto. Você poderá selecionar vários produtos e aplicar a mesma regra de uma vez.")
+        info.setWordWrap(True)
+        info.setStyleSheet("color: #46627d; font-size: 11px; padding: 4px 0;")
+        fl.addWidget(info)
+        fl.addStretch(1)
+        lay.addWidget(self.framePorProduto)
+
         # frame placeholder vazio quando nada selecionado
         self.frameConfigVazio = QtWidgets.QLabel(self.frameConfig)
         self.frameConfigVazio.setText("Selecione um tipo de desconto acima.")
@@ -478,6 +481,7 @@ class Ui_CadastroPromocao(object):
             "LEVE_X_PAGUE_Y": self.frameLeveXPagueY,
             "DESCONTO_PROGRESSIVO": self.frameProgressivo,
             "COMBO": self.frameCombo,
+            "POR_PRODUTO": self.framePorProduto,
         }
 
     # --------------------------------------------------------- 4. Vigencia
@@ -498,73 +502,7 @@ class Ui_CadastroPromocao(object):
         r.addStretch(1)
         lay.addLayout(r)
 
-    # --------------------------------------------------------- 5. Vinculacao
-    def _montar_vinculacao(self):
-        lay = QtWidgets.QVBoxLayout(self.frameVinculacao)
-        lay.setContentsMargins(16, 14, 16, 14)
-        lay.setSpacing(8)
-
-        hdr = QtWidgets.QHBoxLayout()
-        self._lblVincTitle = QtWidgets.QLabel(self.frameVinculacao)
-        self._lblVincTitle.setProperty("sectionTitle", "true")
-        self._lblVincTitle.setText("Vinculacao Automatica de Produtos")
-        hdr.addWidget(self._lblVincTitle)
-        self._btnToggleVinc = QtWidgets.QPushButton(self.frameVinculacao)
-        self._btnToggleVinc.setText("expandir  v")
-        self._btnToggleVinc.setFlat(True)
-        self._btnToggleVinc.setStyleSheet("color: #3a8ad3; font-size: 11px; font-weight: 600; min-height: 20px;")
-        self._btnToggleVinc.setCheckable(True)
-        self._btnToggleVinc.toggled.connect(self._toggle_vinculacao)
-        hdr.addWidget(self._btnToggleVinc, 0, QtCore.Qt.AlignRight)
-        lay.addLayout(hdr)
-
-        self._vincBody = QtWidgets.QFrame(self.frameVinculacao)
-        self._vincBody.hide()
-        vbl = QtWidgets.QVBoxLayout(self._vincBody)
-        vbl.setContentsMargins(0, 4, 0, 0)
-        vbl.setSpacing(8)
-
-        hint = QtWidgets.QLabel(self._vincBody)
-        hint.setProperty("sectionHint", "true")
-        hint.setText("Vincule produtos por Marca, Categoria, Fornecedor ou faixa de preco.")
-        hint.setWordWrap(True)
-        vbl.addWidget(hint)
-
-        r = QtWidgets.QHBoxLayout()
-        r.setSpacing(12)
-        r.addLayout(self._criar_combo(self._vincBody, "Regra", "comboTipoRegra", ["ITEM", "MARCA", "CATEGORIA", "FORNECEDOR", "FAIXA_PRECO", "LISTA_ITENS"]), 1)
-        r.addLayout(self._criar_campo(self._vincBody, "Valor", "lineEditValorRegra"), 2)
-        vbl.addLayout(r)
-
-        self.frameFaixaPreco = QtWidgets.QFrame(self._vincBody)
-        fp = QtWidgets.QHBoxLayout(self.frameFaixaPreco)
-        fp.setContentsMargins(0, 0, 0, 0)
-        fp.setSpacing(12)
-        self.lineEditFaixaPrecoMin = QtWidgets.QLineEdit(self.frameFaixaPreco)
-        self.lineEditFaixaPrecoMin.setPlaceholderText("Min (R$)")
-        fp.addWidget(self.lineEditFaixaPrecoMin)
-        self.lineEditFaixaPrecoMax = QtWidgets.QLineEdit(self.frameFaixaPreco)
-        self.lineEditFaixaPrecoMax.setPlaceholderText("Max (R$)")
-        fp.addWidget(self.lineEditFaixaPrecoMax)
-        vbl.addWidget(self.frameFaixaPreco)
-        self.frameFaixaPreco.hide()
-
-        br = QtWidgets.QHBoxLayout()
-        self.btnAplicarRegra = QtWidgets.QPushButton(self._vincBody)
-        self.btnAplicarRegra.setObjectName("btnAplicarRegra")
-        self.btnAplicarRegra.setText("Aplicar Regra e Vincular Produtos")
-        br.addWidget(self.btnAplicarRegra)
-        br.addStretch(1)
-        vbl.addLayout(br)
-
-        self.lblResultadoRegra = QtWidgets.QLabel(self._vincBody)
-        self.lblResultadoRegra.setWordWrap(True)
-        self.lblResultadoRegra.setStyleSheet("color: #2e7d32; font-size: 12px; font-weight: 600;")
-        vbl.addWidget(self.lblResultadoRegra)
-
-        lay.addWidget(self._vincBody)
-
-    # --------------------------------------------------------- 6. Textos
+    # --------------------------------------------------------- 5. Textos
     def _montar_textos(self):
         lay = QtWidgets.QVBoxLayout(self.frameTextos)
         lay.setContentsMargins(16, 14, 16, 14)
@@ -611,10 +549,6 @@ class Ui_CadastroPromocao(object):
         lay.addWidget(self._txtBody)
 
     # --------------------------------------------------------- toggles
-    def _toggle_vinculacao(self, checked):
-        self._vincBody.setVisible(checked)
-        self._btnToggleVinc.setText("recolher  ^" if checked else "expandir  v")
-
     def _toggle_textos(self, checked):
         self._txtBody.setVisible(checked)
         self._btnToggleTxt.setText("recolher  ^" if checked else "expandir  v")
@@ -625,7 +559,7 @@ class Ui_CadastroPromocao(object):
         CadastroPromocao.setWindowTitle(_t("CadastroPromocao", "CSPdv - Cadastro de Promocao"))
         self.lblBadge.setText(_t("CadastroPromocao", "CADASTRO DE PROMOCAO"))
         self.lblFormTitle.setText(_t("CadastroPromocao", "Nova Promocao"))
-        self.lblFormHint.setText(_t("CadastroPromocao", "Cadastre a promocao, selecione o tipo de desconto e configure os detalhes."))
+        self.lblFormHint.setText(_t("CadastroPromocao", "Salve a campanha e depois vincule os produtos pelo painel de promocoes."))
         self.lineEditCodigo.setText(_t("CadastroPromocao", "Auto-gerado"))
         self.btnLimpar.setText(_t("CadastroPromocao", "Limpar"))
         self.btnVoltar.setText(_t("CadastroPromocao", "Voltar"))

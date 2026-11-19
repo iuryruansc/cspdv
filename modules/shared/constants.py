@@ -5,6 +5,15 @@ ResultadoOperacao = tuple[bool, str]
 FLAG_SIM = "S"
 FLAG_NAO = "N"
 
+TIPO_MOVIMENTACAO_SAIDA_VENDA = "saida_venda"
+TIPO_MOVIMENTACAO_SAIDA_VENDA_KIT = "saida_venda_kit"
+TIPO_MOVIMENTACAO_ENTRADA_REEMBOLSO = "entrada_reembolso"
+TIPO_MOVIMENTACAO_ENTRADA_REEMBOLSO_KIT = "entrada_reembolso_kit"
+TIPO_MOVIMENTACAO_ENTRADA_MANUAL = "entrada_manual"
+TIPO_MOVIMENTACAO_SAIDA_MANUAL = "saida_manual"
+TIPO_MOVIMENTACAO_SAIDA_FORNECIMENTO = "saida_fornecimento"
+TIPO_MOVIMENTACAO_AJUSTE_MANUAL = "ajuste_manual"
+
 STATUS_PDV_ATIVO = "ativo"
 STATUS_PDV_INATIVO = "inativo"
 

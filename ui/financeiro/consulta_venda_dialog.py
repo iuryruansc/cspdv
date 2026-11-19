@@ -84,6 +84,9 @@ class Ui_ConsultaVendaDialog(object):
         self.btnReceberPendencia.setStyleSheet("background: #27ae60;")
         self.btnReceberPendencia.setVisible(False)
         self.footerLayout.addWidget(self.btnReceberPendencia)
+        self.btnGerarComprovante = QtWidgets.QPushButton(ConsultaVendaDialog)
+        self.btnGerarComprovante.setStyleSheet("background: #2f80c9;")
+        self.footerLayout.addWidget(self.btnGerarComprovante)
         self.btnFechar = QtWidgets.QPushButton(ConsultaVendaDialog)
         self.footerLayout.addWidget(self.btnFechar)
         self.verticalLayout.addLayout(self.footerLayout)
@@ -129,4 +132,5 @@ class Ui_ConsultaVendaDialog(object):
         _translate = QtCore.QCoreApplication.translate
         self.lblHeaderTitulo.setText(_translate("ConsultaVendaDialog", "Venda #-"))
         self.btnReceberPendencia.setText(_translate("ConsultaVendaDialog", "Receber Pendência"))
+        self.btnGerarComprovante.setText(_translate("ConsultaVendaDialog", "Gerar Comprovante"))
         self.btnFechar.setText(_translate("ConsultaVendaDialog", "Fechar"))

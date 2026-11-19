@@ -13,6 +13,8 @@ from modules.shared.constants import (
     STATUS_VENDA_CONCLUIDA,
     STATUS_VENDA_OPERACIONAL,
     STATUS_VENDA_SQL,
+    TIPO_MOVIMENTACAO_SAIDA_VENDA,
+    TIPO_MOVIMENTACAO_SAIDA_VENDA_KIT,
 )
 
 CENT = Decimal("0.01")
@@ -200,7 +202,7 @@ class VendaModel:
                                 alocacao.lote_id,
                                 venda_id,
                                 data_hora,
-                                "saida_venda",
+                        TIPO_MOVIMENTACAO_SAIDA_VENDA,
                                 alocacao.quantidade,
                                 funcionario_id,
                                 f"Saida por venda #{venda_id}",
@@ -477,7 +479,7 @@ class VendaModel:
                         alocacao.lote_id,
                         venda_id,
                         data_hora,
-                        "saida_venda_kit",
+                        TIPO_MOVIMENTACAO_SAIDA_VENDA_KIT,
                         alocacao.quantidade,
                         usuario_id,
                         f"Saida do componente do kit #{kit_id} na venda #{venda_id}",

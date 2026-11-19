@@ -36,8 +36,8 @@ class Ui_AjusteQuantidadeDialog(object):
         self.formLayout.addRow("Saldo previsto:", self.lblResultado)
 
         self.textObservacao = QtWidgets.QPlainTextEdit(AjusteQuantidadeDialog)
-        self.textObservacao.setPlaceholderText("Motivo do ajuste ou observacao operacional...")
-        self.formLayout.addRow("Observacao:", self.textObservacao)
+        self.textObservacao.setPlaceholderText("Informe o motivo da entrada ou saída...")
+        self.formLayout.addRow("Motivo:", self.textObservacao)
         self.verticalLayout.addLayout(self.formLayout)
 
         self.buttonLayout = QtWidgets.QHBoxLayout()
@@ -58,6 +58,6 @@ class Ui_AjusteQuantidadeDialog(object):
 
     def retranslateUi(self, AjusteQuantidadeDialog):
         _translate = QtCore.QCoreApplication.translate
-        AjusteQuantidadeDialog.setWindowTitle(_translate("AjusteQuantidadeDialog", "Ajustar Quantidade"))
+        AjusteQuantidadeDialog.setWindowTitle(_translate("AjusteQuantidadeDialog", "Movimentar Estoque"))
         self.btnCancelar.setText(_translate("AjusteQuantidadeDialog", "Cancelar"))
-        self.btnSalvar.setText(_translate("AjusteQuantidadeDialog", "Aplicar Ajuste"))
+        self.btnSalvar.setText(_translate("AjusteQuantidadeDialog", "Aplicar Movimentação"))

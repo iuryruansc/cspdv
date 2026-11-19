@@ -21,6 +21,8 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         self._conta = detalhes.get("conta") or {}
         self.solicitar_recebimento = False
         self.setupUi(self)
+        for botao in (self.btnReceberAgora, self.btnGerarComprovante, self.btnFechar):
+            botao.setFixedWidth(165)
         # Reserva uma area maior para que os itens vendidos fiquem visiveis
         # sem comprimir a tabela em poucas linhas.
         self.setMinimumSize(900, 760)
@@ -35,6 +37,7 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
         self.setWindowFlag(Qt.WindowContextHelpButtonHint, False)
         self.btnFechar.clicked.connect(self.accept)
         self.btnReceberAgora.clicked.connect(self._receber_agora)
+        self.btnGerarComprovante.clicked.connect(self._gerar_comprovante)
         self._populate()
 
     def _populate(self) -> None:
@@ -100,4 +103,23 @@ class ConsultaContaReceberDialog(QDialog, Ui_ConsultaContaReceberDialog):
     def _receber_agora(self) -> None:
         self.solicitar_recebimento = True
         self.accept()
+
+    def _gerar_comprovante(self) -> None:
+        from modules.financeiro.views.comprovante_venda_dialog import ComprovanteVendaDialog
+
+        conta_id = int(self._conta.get("id") or 0)
+        detalhes_venda = {
+            "venda": {
+                "id": self._conta.get("venda_id"),
+                "cliente": self._conta.get("cliente"),
+                "valor_total": self._conta.get("valor_total"),
+                "data_hora": self._conta.get("data_emissao"),
+                "status": self._conta.get("status"),
+            },
+            "itens": self._detalhes.get("itens_venda") or [],
+            "pagamentos": [],
+            "reembolsos": [],
+            "conta_receber_id": conta_id,
+        }
+        ComprovanteVendaDialog(detalhes=detalhes_venda, parent=self).exec_()
 

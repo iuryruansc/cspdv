@@ -125,7 +125,14 @@ class PromocaoService:
         return True, "Promoção cancelada com sucesso."
 
     @staticmethod
-    def vincular_produto(promocao_id: int, produto_id: int, observacao: str = "", preco_personalizado: float | None = None) -> ResultadoOperacao:
+    def vincular_produto(
+        promocao_id: int,
+        produto_id: int,
+        observacao: str = "",
+        preco_personalizado: float | None = None,
+        tipo_desconto_item: str | None = None,
+        valor_desconto_item: float | None = None,
+    ) -> ResultadoOperacao:
         promocao = PromocaoModel.buscar_por_id(int(promocao_id))
         if not promocao:
             return False, "Promoção não localizada para vincular produtos."
@@ -158,10 +165,14 @@ class PromocaoService:
         if preco_original <= Decimal("0"):
             return False, "O produto selecionado não possui preço de venda válido."
 
-        tipo = str(promocao.get("tipo_desconto") or "").strip().upper()
-        percentual = PromocaoService._decimal(promocao.get("desconto_percentual"))
-        valor = PromocaoService._decimal(promocao.get("desconto_valor"))
-        preco_fixo = PromocaoService._decimal(promocao.get("preco_fixo"))
+        tipo = str(tipo_desconto_item or promocao.get("tipo_desconto") or "").strip().upper()
+        if tipo == "POR_PRODUTO" and not tipo_desconto_item:
+            return False, "Defina a regra de desconto para este produto."
+        valor_item = PromocaoService._decimal(valor_desconto_item)
+        percentual = valor_item if tipo == "PERCENTUAL" and tipo_desconto_item else PromocaoService._decimal(promocao.get("desconto_percentual"))
+        valor = valor_item if tipo == "VALOR" and tipo_desconto_item else PromocaoService._decimal(promocao.get("desconto_valor"))
+        preco_fixo = valor_item if tipo == "PRECO_FIXO" and tipo_desconto_item else PromocaoService._decimal(promocao.get("preco_fixo"))
+        preco_fixo_item = None
 
         if tipo == "PERCENTUAL":
             if percentual <= Decimal("0"):
@@ -180,6 +191,7 @@ class PromocaoService:
                 return False, "O preço fixo promocional deve ser menor que o preço atual do produto."
             preco_promocional = preco_fixo.quantize(Decimal("0.01"))
             desconto_aplicado = (preco_original - preco_promocional).quantize(Decimal("0.01"))
+            preco_fixo_item = float(preco_promocional)
         elif tipo == "NOVO_PRECO":
             if preco_personalizado is None or preco_personalizado <= 0:
                 return False, "Informe o novo preço para este produto."
@@ -188,6 +200,7 @@ class PromocaoService:
                 return False, "O novo preço deve ser menor que o preço atual do produto."
             preco_promocional = preco_novo.quantize(Decimal("0.01"))
             desconto_aplicado = (preco_original - preco_promocional).quantize(Decimal("0.01"))
+            preco_fixo_item = float(preco_promocional)
         else:
             return False, "Tipo de desconto da promoção inválido."
 
@@ -202,6 +215,10 @@ class PromocaoService:
                 preco_promocional=float(preco_promocional),
                 desconto_aplicado=float(desconto_aplicado),
                 observacao=str(observacao or "").strip(),
+                tipo_desconto_item=tipo if tipo_desconto_item else None,
+                desconto_percentual_item=float(percentual) if tipo == "PERCENTUAL" and tipo_desconto_item else None,
+                desconto_valor_item=float(valor) if tipo == "VALOR" and tipo_desconto_item else None,
+                preco_fixo_item=preco_fixo_item if tipo_desconto_item else None,
             )
         except Exception as exc:
             return False, f"Erro ao vincular produto à promoção: {exc}"
@@ -263,6 +280,9 @@ class PromocaoService:
                 return None, "Informe a quantidade do combo maior que zero."
             if combo_preco <= Decimal("0"):
                 return None, "Informe o preço do combo maior que zero."
+        if tipo == "POR_PRODUTO":
+            # A regra será informada individualmente ao vincular cada produto.
+            pass
 
         usuario = SessionManager.current_user() or {}
         usuario_id = int(usuario.get("id") or 0)
@@ -329,6 +349,8 @@ class PromocaoService:
             return False, "Promoção não localizada.", 0
 
         tipo_desconto = str(promocao.get("tipo_desconto") or "").upper()
+        if tipo_desconto == "POR_PRODUTO":
+            return False, "Para uma promoção por produto, vincule os itens diretamente e defina a regra de cada um.", 0
 
         try:
             produtos = PromocaoModel.buscar_produtos_por_regra(regra_dados)

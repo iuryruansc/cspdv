@@ -374,6 +374,11 @@ QLabel#lblStatusBar {
               <string>Preco promocional</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>Regra por produto</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
